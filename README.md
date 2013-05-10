@@ -1,4 +1,4 @@
 slick-pg
 ========
 
-Slick extensions for postgres PostgreSQL
+Slick extensions for PostgreSQL
