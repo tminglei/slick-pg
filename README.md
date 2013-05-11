@@ -2,13 +2,12 @@ Slick-pg
 ========
 Slick extensions for PostgreSQL, to support a series of pg data types.
 
-Currently supported data types:  
--------------------------------
-- ARRAY  
-- Range  
-- Hstore  
-- Search(tsquery+tsvector)  
-- Geometry  
+####Currently supported data types:
+- ARRAY
+- Range
+- Hstore
+- Search(tsquery+tsvector)
+- Geometry
 
 
 Usage
