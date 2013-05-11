@@ -82,9 +82,9 @@ trait PgArraySupport { driver: PostgresDriver =>
 
     def sqlTypeName: String = s"$tpeName ARRAY"
 
-    def setValue(v: List[T], p: PositionedParameters) = p.setObject(SQLArray(v), sqlType)
+    def setValue(v: List[T], p: PositionedParameters) = p.setObject(toSQLArray(v), sqlType)
 
-    def setOption(v: Option[List[T]], p: PositionedParameters) = p.setObjectOption(v.map(SQLArray(_)), sqlType)
+    def setOption(v: Option[List[T]], p: PositionedParameters) = p.setObjectOption(v.map(toSQLArray), sqlType)
 
     def nextValue(r: PositionedResult): List[T] = {
       r.nextObjectOption().map(_.asInstanceOf[java.sql.Array])
@@ -92,12 +92,12 @@ trait PgArraySupport { driver: PostgresDriver =>
         .getOrElse(zero)
     }
 
-    def updateValue(v: List[T], r: PositionedResult) = r.updateObject(SQLArray(v))
+    def updateValue(v: List[T], r: PositionedResult) = r.updateObject(toSQLArray(v))
 
-    override def valueToSQLLiteral(v: List[T]) = SQLArray(v).toString
+    override def valueToSQLLiteral(v: List[T]) = toSQLArray(v).toString
 
     //--
-    private def SQLArray(arr: List[T]): java.sql.Array = new TransferArray(arr, tpeName, tpe)
+    private def toSQLArray(arr: List[T]): java.sql.Array = new TransferArray(arr, tpeName, tpe)
   }
 
   ////////////////////////////////////////////////////////////////////////////////

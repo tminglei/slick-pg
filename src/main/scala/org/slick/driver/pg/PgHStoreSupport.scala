@@ -91,7 +91,7 @@ trait PgHStoreSupport { driver: PostgresDriver =>
 
     def setValue(v: Map[String, String], p: PositionedParameters) = p.setObject(toPGObject(v), sqlType)
 
-    def setOption(v: Option[Map[String, String]], p: PositionedParameters) = p.setObjectOption(v.map(toPGObject _), sqlType)
+    def setOption(v: Option[Map[String, String]], p: PositionedParameters) = p.setObjectOption(v.map(toPGObject), sqlType)
 
     def nextValue(r: PositionedResult) = {
       r.nextObjectOption().map(_.asInstanceOf[java.util.Map[String, String]])

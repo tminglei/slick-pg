@@ -310,7 +310,7 @@ trait PostGISSupport { driver: PostgresDriver =>
 
     def setOption(v: Option[T], p: PositionedParameters) = if (v.isDefined) setValue(v.get, p) else p.setNull(sqlType)
 
-    def nextValue(r: PositionedResult): T = r.nextStringOption().map(fromLiteral _).getOrElse(zero)
+    def nextValue(r: PositionedResult): T = r.nextStringOption().map(fromLiteral).getOrElse(zero)
 
     def updateValue(v: T, r: PositionedResult) = r.updateBytes(toBytes(v))
 
