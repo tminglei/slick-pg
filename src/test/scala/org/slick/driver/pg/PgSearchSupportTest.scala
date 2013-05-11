@@ -72,11 +72,11 @@ class PgSearchSupportTest {
 
       val query = tsQuery("neutrino|(dark & matter)".bind)
 
-      val q1 = TestTable.where(r => tsVector(r.text) @@ query).map(r => (r.id, r.text, tsRank(tsVector(r.text), query))).sortBy(_._2)
+      val q1 = TestTable.where(r => tsVector(r.text) @@ query).map(r => (r.id, r.text, tsRank(tsVector(r.text), query))).sortBy(_._3)
       println(s"\n'ts_rank' sql = ${q1.selectStatement}")
       q1.list().map(r => println(s"${r._1}  |  ${r._2} | ${r._3}"))
 
-      val q2 = TestTable.where(r => tsVector(r.text) @@ query).map(r => (r.id, r.text, tsRankCD(tsVector(r.text), query))).sortBy(_._2)
+      val q2 = TestTable.where(r => tsVector(r.text) @@ query).map(r => (r.id, r.text, tsRankCD(tsVector(r.text), query))).sortBy(_._3)
       println(s"\n'ts_rank_cd' sql = ${q2.selectStatement}")
       q2.list().map(r => println(s"${r._1}  |  ${r._2} | ${r._3}"))
 
