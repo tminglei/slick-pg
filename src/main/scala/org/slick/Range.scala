@@ -1,6 +1,9 @@
 package org.slick
 
 case class Range[T](lower: T, upper: T, edge: Range.Edge = Range.IncInf) {
+  def to[A](convertFn: (T => A)): Range[A] = {
+    new Range[A](convertFn(lower), convertFn(upper), edge)
+  }
   override def toString = edge match {
     case Range.IncInf => s"[$lower,$upper)"
     case Range.InfInc => s"($lower,$upper]"
