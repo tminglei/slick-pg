@@ -1,9 +1,11 @@
 package org.slick
 
 case class Range[T](lower: T, upper: T, edge: Range.Edge = Range.IncInf) {
-  def to[A](convertFn: (T => A)): Range[A] = {
-    new Range[A](convertFn(lower), convertFn(upper), edge)
+
+  def as[A](convert: (T => A)): Range[A] = {
+    new Range[A](convert(lower), convert(upper), edge)
   }
+
   override def toString = edge match {
     case Range.IncInf => s"[$lower,$upper)"
     case Range.InfInc => s"($lower,$upper]"
@@ -13,6 +15,7 @@ case class Range[T](lower: T, upper: T, edge: Range.Edge = Range.IncInf) {
 }
 
 object Range {
+
   sealed trait Edge
   case object IncInf extends Edge     // inclusive + infinite:  '[lower,upper)'
   case object InfInc extends Edge     // infinite  + inclusive: '(lower,upper]'
@@ -25,10 +28,10 @@ object Range {
   val InfInfRange = """\("?([^,]*)"?,[ ]*"?([^,]*)"?\)""".r   //matches: (lower,upper)
   val IncIncRange = """\["?([^,]*)"?,[ ]*"?([^,]*)"?\]""".r   //matches: [lower,upper]
 
-  def fromString[T](parseFn: (String => T))(str: String): Range[T] = str match {
-    case IncInfRange(lower, upper) => Range(parseFn(lower), parseFn(upper), IncInf)
-    case InfIncRange(lower, upper) => Range(parseFn(lower), parseFn(upper), InfInc)
-    case InfInfRange(lower, upper) => Range(parseFn(lower), parseFn(upper), InfInf)
-    case IncIncRange(lower, upper) => Range(parseFn(lower), parseFn(upper), IncInc)
+  def fromString[T](parse: (String => T))(str: String): Range[T] = str match {
+    case IncInfRange(lower, upper) => Range(parse(lower), parse(upper), IncInf)
+    case InfIncRange(lower, upper) => Range(parse(lower), parse(upper), InfInc)
+    case InfInfRange(lower, upper) => Range(parse(lower), parse(upper), InfInf)
+    case IncIncRange(lower, upper) => Range(parse(lower), parse(upper), IncInc)
   }
 }
