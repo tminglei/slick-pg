@@ -1,9 +1,27 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.slick</groupId>
+    <groupId>com.github.slickpg</groupId>
     <artifactId>slick-pg</artifactId>
     <version>0.1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
     <name>slick-pg</name>
+    <description>Slick extensions for PostgreSQL</description>
+    <url>https://github.com/tminglei/slick-pg</url>
+
+    <licenses>
+        <license>
+            <name>Two-clause BSD-style license</name>
+            <url>http://github.com/tminglei/slick-pg/blob/master/LICENSE.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>git@github.com:tminglei/slick-pg.git</url>
+        <connection>scm:git:git@github.com:tminglei/slick-pg.git</connection>
+    </scm>
+
     <dependencies>
         <dependency>
             <groupId>com.typesafe.slick</groupId>
@@ -21,46 +39,13 @@
             <version>9.2-1002.jdbc4</version>
         </dependency>
         <dependency>
-            <groupId>javax.transaction</groupId>
-            <artifactId>jta</artifactId>
-            <version>1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.7.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
     		<groupId>junit</groupId>
     		<artifactId>junit</artifactId>
     		<version>4.11</version>
             <scope>test</scope>
 		</dependency>
-        <dependency>
-            <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_2.10</artifactId>
-            <version>2.0.M6-SNAP16</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <version>2.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.joda</groupId>
-            <artifactId>joda-convert</artifactId>
-            <version>1.2</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
+
     <repositories>
         <repository>
             <id>mvn-adamgent</id>

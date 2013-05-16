@@ -1,4 +1,4 @@
-package org.slick.driver.pg
+package com.github.slickpg
 
 import scala.slick.driver.PostgresDriver
 import scala.slick.lifted.{OptionMapperDSL, Column, TypeMapper}

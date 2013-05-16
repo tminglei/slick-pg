@@ -1,9 +1,7 @@
-package org.slick.driver
-package pg
+package com.github.slickpg
 
 import org.junit._
 import org.junit.Assert._
-import java.util.UUID
 
 class PgArraySupportTest {
   import MyPostgresDriver.simple._

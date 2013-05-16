@@ -1,4 +1,4 @@
-package org.slick.driver.pg
+package com.github.slickpg
 
 import scala.slick.driver.{BasicProfile, PostgresDriver}
 import scala.slick.lifted._

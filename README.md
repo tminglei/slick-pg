@@ -1,6 +1,6 @@
 Slick-pg
 ========
-Slick extensions for PostgreSQL, to support a series of pg data types.
+[Slick](https://github.com/slick/slick "Slick") extensions for PostgreSQL, to support a series of pg data types and related operators/functions.
 
 ####Currently supported data types:
 - ARRAY
@@ -15,7 +15,7 @@ Usage
 To use it, you maybe need integrate it with PostgresDriver like this:
 ```scala
 import slick.driver.PostgresDriver
-import org.slick.driver.pg._
+import com.github.slickpg._
 
 trait MyPostgresDriver extends PostgresDriver
                           with PgArraySupport
@@ -29,15 +29,15 @@ trait MyPostgresDriver extends PostgresDriver
 
   //////
   trait ImplicitsPlus extends Implicits
-                      with ArrayImplicits
-                      with RangeImplicits
-                      with HStoreImplicits
-                      with SearchImplicits
-                      with PostGISImplicits
+                        with ArrayImplicits
+                        with RangeImplicits
+                        with HStoreImplicits
+                        with SearchImplicits
+                        with PostGISImplicits
 
   trait SimpleQLPlus extends SimpleQL
-                      with ImplicitsPlus
-                      with SearchAssistants
+                        with ImplicitsPlus
+                        with SearchAssistants
 }
 
 object MyPostgresDriver extends MyPostgresDriver

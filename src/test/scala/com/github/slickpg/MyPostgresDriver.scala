@@ -1,7 +1,6 @@
-package org.slick.driver
+package com.github.slickpg
 
 import slick.driver.PostgresDriver
-import org.slick.driver.pg._
 
 trait MyPostgresDriver extends PostgresDriver
                           with PgArraySupport
@@ -15,15 +14,15 @@ trait MyPostgresDriver extends PostgresDriver
 
   //////
   trait ImplicitsPlus extends Implicits
-                      with ArrayImplicits
-                      with RangeImplicits
-                      with HStoreImplicits
-                      with SearchImplicits
-                      with PostGISImplicits
+                        with ArrayImplicits
+                        with RangeImplicits
+                        with HStoreImplicits
+                        with SearchImplicits
+                        with PostGISImplicits
 
   trait SimpleQLPlus extends SimpleQL
-                      with ImplicitsPlus
-                      with SearchAssistants
+                        with ImplicitsPlus
+                        with SearchAssistants
 }
 
 object MyPostgresDriver extends MyPostgresDriver

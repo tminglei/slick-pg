@@ -1,5 +1,4 @@
-package org.slick.driver
-package pg
+package com.github.slickpg
 
 import com.vividsolutions.jts.io._
 import com.vividsolutions.jts.geom._

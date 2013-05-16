@@ -1,7 +1,5 @@
-package org.slick.driver
-package pg
+package com.github.slickpg
 
-import org.slick.Range
 import java.sql.{Date, Timestamp}
 import scala.slick.driver.{BasicProfile, PostgresDriver}
 import scala.slick.lifted._

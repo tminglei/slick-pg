@@ -1,10 +1,8 @@
-package org.slick.driver
-package pg
+package com.github.slickpg
 
 import org.junit._
 import org.junit.Assert._
 import java.sql.Timestamp
-import org.slick.Range
 
 class PgRangeSupportTest {
   import MyPostgresDriver.simple._
