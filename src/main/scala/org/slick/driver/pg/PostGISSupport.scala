@@ -12,7 +12,7 @@ import scala.slick.session.{PositionedResult, PositionedParameters}
 
 trait PostGISSupport { driver: PostgresDriver =>
 
-  trait GeometryTypeMapperImplicits {
+  trait PostGISImplicits {
     implicit val geometryTypeMapper = new GeometryTypeMapper[Geometry]
     implicit val pointTypeMapper = new GeometryTypeMapper[Point]
     implicit val polygonTypeMapper = new GeometryTypeMapper[Polygon]
@@ -22,9 +22,8 @@ trait PostGISSupport { driver: PostgresDriver =>
     implicit val multiPointTypeMapper = new GeometryTypeMapper[MultiPoint]
     implicit val multiPolygonTypeMapper = new GeometryTypeMapper[MultiPolygon]
     implicit val multiLineStringTypeMapper = new GeometryTypeMapper[MultiLineString]
-  }
-  
-  trait PostGISImplicits extends GeometryTypeMapperImplicits {
+
+    ///
     implicit def geometryColumnExtensionMethods[G1 <: Geometry](c: Column[G1])(
       implicit tm: GeometryTypeMapper[G1]) = {
     		new GeometryColumnExtensionMethods[G1, G1](c)
@@ -56,10 +55,37 @@ trait PostGISSupport { driver: PostgresDriver =>
     val BoxLooseAbove = new SqlOperator("|&>")
     val BoxStrictAbove = new SqlOperator("|>>")
 
+    /** Geometry Accessors */
+    val GeometryType = new SqlFunction("ST_GeometryType")
+    val SRID = new SqlFunction("ST_SRID")
+    val IsValid = new SqlFunction("ST_IsValid")
+    val IsClosed = new SqlFunction("ST_IsClosed")
+    val IsCollection = new SqlFunction("ST_IsCollection")
+    val IsEmpty = new SqlFunction("ST_IsEmpty")
+    val IsRing = new SqlFunction("ST_IsRing")
+    val IsSimple = new SqlFunction("ST_IsSimple")
+    val Area = new SqlFunction("ST_Area")
+    val Boundary = new SqlFunction("ST_Boundary")
+    val Dimension = new SqlFunction("ST_Dimension")
+    val CoordDim = new SqlFunction("ST_CoordDim")
+
+    /** Geometry Outputs */
+    val AsBinary = new SqlFunction("ST_AsBinary")
+    val AsText = new SqlFunction("ST_AsText")
+    val AsLatLonText = new SqlFunction("ST_AsLatLonText")
+    val AsEWKB = new SqlFunction("ST_AsEWKB")
+    val AsEWKT = new SqlFunction("ST_AsEWKT")
+    val AsHEXEWKB = new SqlFunction("ST_AsHEXEWKB")
+    val AsGeoJSON = new SqlFunction("ST_AsGeoJSON")
+    val AsGeoHash = new SqlFunction("ST_GeoHash")
+    val AsGML = new SqlFunction("ST_AsGML")
+    val AsKML = new SqlFunction("ST_AsKML")
+    val AsSVG = new SqlFunction("ST_AsSVG")
+    val AsX3D = new SqlFunction("ST_AsX3D")
+
     /** Spatial Relationships and Measurements */
     val Azimuth = new SqlFunction("ST_Azimuth")
     val Centroid = new SqlFunction("ST_Centroid")
-    val Area = new SqlFunction("ST_Area")
     val ClosestPoint = new SqlFunction("ST_ClosestPoint")
     val PointOnSurface = new SqlFunction("ST_PointOnSurface")
     val Project = new SqlFunction("ST_Project")
@@ -89,6 +115,8 @@ trait PostGISSupport { driver: PostgresDriver =>
     val ShortestLine = new SqlFunction("ST_ShortestLine")
 
     /** Geometry Processing */
+    val SetSRID = new SqlFunction("ST_SetSRID")
+    val Transform = new SqlFunction("ST_Transform")
     val Simplify = new SqlFunction("ST_Simplify")
     val RemoveRepeatedPoints = new SqlFunction("ST_RemoveRepeatedPoints")
     val SimplifyPreserveTopology = new SqlFunction("ST_SimplifyPreserveTopology")
@@ -101,13 +129,11 @@ trait PostGISSupport { driver: PostgresDriver =>
     val CurveToLine = new SqlFunction("ST_CurveToLine")
     val OffsetCurve = new SqlFunction("ST_OffsetCurve")
     val UnaryUnion = new SqlFunction("ST_UnaryUnion")
-
     val MinBoundingCircle = new SqlFunction("ST_MinimumBoundingCircle")
   }
 
   /** Extension methods for hstore Columns */
-  class GeometryColumnExtensionMethods[G1, P1](val c: Column[P1]) 
-  						extends ExtensionMethods[G1, P1] with GeometryTypeMapperImplicits {
+  class GeometryColumnExtensionMethods[G1, P1](val c: Column[P1]) extends ExtensionMethods[G1, P1] with PostGISImplicits {
     /** Geometry Operators */
     def @&&[G2, P2, R](geom: Column[P2])(implicit om: o#arg[G2, P2]#to[Boolean, R]) = {
     		om(PostGISLibrary.BoxIntersects.column(n, Node(geom)))
@@ -153,15 +179,101 @@ trait PostGISSupport { driver: PostgresDriver =>
         om(PostGISLibrary.BoxStrictAbove.column(n, Node(geom)))
       }
 
+    /** Geometry Accessors */
+    def tpe[R](implicit om: o#to[String, R]) = {
+        om(PostGISLibrary.GeometryType.column(n))
+      }
+    def srid[R](implicit om: o#to[Int, R]) = {
+        om(PostGISLibrary.SRID.column(n))
+      }
+    def isValid[R](implicit om: o#to[Boolean, R]) = {
+        om(PostGISLibrary.IsValid.column(n))
+      }
+    def isClosed[R](implicit om: o#to[Boolean, R]) = {
+        om(PostGISLibrary.IsClosed.column(n))
+      }
+    def isCollection[R](implicit om: o#to[Boolean, R]) = {
+        om(PostGISLibrary.IsCollection.column(n))
+      }
+    def isEmpty[R](implicit om: o#to[Boolean, R]) = {
+        om(PostGISLibrary.IsEmpty.column(n))
+      }
+    def isRing[R](implicit om: o#to[Boolean, R]) = {
+        om(PostGISLibrary.IsRing.column(n))
+      }
+    def isSimple[R](implicit om: o#to[Boolean, R]) = {
+        om(PostGISLibrary.IsSimple.column(n))
+      }
+    def area[R](implicit om: o#to[Float, R]) = {
+        om(PostGISLibrary.Area.column(n))
+      }
+    def boundary[R](implicit om: o#to[Geometry, R]) = {
+        om(PostGISLibrary.Boundary.column(n))
+      }
+    def dimension[R](implicit om: o#to[Int, R]) = {
+        om(PostGISLibrary.Dimension.column(n))
+      }
+    def coordDim[R](implicit om: o#to[Int, R]) = {
+        om(PostGISLibrary.CoordDim.column(n))
+      }
+
+    /** Geometry Outputs */
+    def asBinary[R](NDRorXDR: Option[String] = None)(implicit om: o#to[Array[Byte], R]) = NDRorXDR match {
+        case Some(endian) => om(PostGISLibrary.AsBinary.column(n, LiteralNode(endian)))
+        case None   => om(PostGISLibrary.AsBinary.column(n))
+      }
+    def asText[R](implicit om: o#to[String, R]) = {
+        om(PostGISLibrary.AsText.column(n))
+      }
+    def asLatLonText[R](format: Option[String] = None)(implicit om: o#to[String, R]) = format match {
+        case Some(fmt) => om(PostGISLibrary.AsLatLonText.column(n, LiteralNode(fmt)))
+        case None   => om(PostGISLibrary.AsLatLonText.column(n))
+      }
+    def asEWKB[R](NDRorXDR: Option[String] = None)(implicit om: o#to[Array[Byte], R]) = NDRorXDR match {
+        case Some(endian) => om(PostGISLibrary.AsEWKB.column(n, LiteralNode(endian)))
+        case None   => om(PostGISLibrary.AsEWKB.column(n))
+      }
+    def asEWKT[R](implicit om: o#to[String, R]) = {
+        om(PostGISLibrary.AsText.column(n))
+      }
+    def asHEXEWKB[R](NDRorXDR: Option[String] = None)(implicit om: o#to[String, R]) = NDRorXDR match {
+        case Some(endian) => om(PostGISLibrary.AsHEXEWKB.column(n, LiteralNode(endian)))
+        case None   => om(PostGISLibrary.AsHEXEWKB.column(n))
+      }
+    def asGeoJSON[R](maxDigits: Int = 15, options: Int = 0, geoJsonVer: Option[Int] = None)(
+      implicit om: o#to[String, R]) = geoJsonVer match {
+        case Some(ver) => om(PostGISLibrary.AsGeoJSON.column(LiteralNode(ver), n, LiteralNode(maxDigits), LiteralNode(options)))
+        case None   => om(PostGISLibrary.AsGeoJSON.column(n, LiteralNode(maxDigits), LiteralNode(options)))
+      }
+    def asGeoHash[R](maxChars: Option[Int] = None)(implicit om: o#to[String, R]) = maxChars match {
+        case Some(charNum) => om(PostGISLibrary.AsHEXEWKB.column(n, LiteralNode(charNum)))
+        case None   => om(PostGISLibrary.AsHEXEWKB.column(n))
+      }
+    def asGML[R](maxDigits: Int = 15, options: Int = 0, version: Option[Int] = None,  nPrefix: Option[String] = None)(
+      implicit om: o#to[String, R]) = (version, nPrefix) match {
+        case (Some(ver), Some(prefix)) => om(PostGISLibrary.AsGML.column(LiteralNode(ver), n, LiteralNode(maxDigits), LiteralNode(options), LiteralNode(prefix)))
+        case (Some(ver), None) => om(PostGISLibrary.AsGML.column(LiteralNode(ver), n, LiteralNode(maxDigits), LiteralNode(options)))
+        case (_, _)   => om(PostGISLibrary.AsGML.column(n, LiteralNode(maxDigits), LiteralNode(options)))
+      }
+    def asKML[R](maxDigits: Int = 15, version: Option[Int] = None,  nPrefix: Option[String] = None)(
+      implicit om: o#to[String, R]) = (version, nPrefix) match {
+        case (Some(ver), Some(prefix)) => om(PostGISLibrary.AsKML.column(LiteralNode(ver), n, LiteralNode(maxDigits), LiteralNode(prefix)))
+        case (Some(ver), None) => om(PostGISLibrary.AsKML.column(LiteralNode(ver), n, LiteralNode(maxDigits)))
+        case (_, _)   => om(PostGISLibrary.AsKML.column(n, LiteralNode(maxDigits)))
+      }
+    def asSVG[R](rel: Int = 0, maxDigits: Int = 15)(implicit om: o#to[String, R]) = {
+        om(PostGISLibrary.AsSVG.column(n, LiteralNode(rel), LiteralNode(15)))
+      }
+    def asX3D[R](maxDigits: Int = 15, options: Int = 0)(implicit om: o#to[String, R]) = {
+        om(PostGISLibrary.AsX3D.column(n, LiteralNode(15), LiteralNode(options)))
+      }
+
     /** Spatial Relationships and Measurements */
     def azimuth[G2, P2, R](geom: Column[P2])(implicit om: o#arg[G2, P2]#to[Float, R]) = {
         om(PostGISLibrary.Azimuth.column(n, Node(geom)))
       }
     def centroid[R](implicit om: o#to[Point, R]) = {
         om(PostGISLibrary.Centroid.column[Point](n))
-      }
-    def area[R](implicit om: o#to[Float, R]) = {
-        om(PostGISLibrary.Area.column(n))
       }
     def closestPoint[G2, P2, R](geom: Column[P2])(implicit om: o#arg[G2, P2]#to[Float, R]) = {
         om(PostGISLibrary.ClosestPoint.column(n, Node(geom)))
@@ -242,7 +354,7 @@ trait PostGISSupport { driver: PostgresDriver =>
     def hausdorffDistance[G2, P2, R](geom: Column[P2], densifyFrac: Option[Float] = None)(
       implicit om: o#arg[G2, P2]#to[Float, R]) = densifyFrac match {
         case Some(denFrac) => om(PostGISLibrary.HausdorffDistance.column(n, Node(geom), LiteralNode(denFrac)))
-        case None       => om(PostGISLibrary.HausdorffDistance.column(n, Node(geom)))
+        case None   => om(PostGISLibrary.HausdorffDistance.column(n, Node(geom)))
       }
     def longestLine[G2, P2, R](geom: Column[P2])(implicit om: o#arg[G2, P2]#to[LineString, R]) = {
         om(PostGISLibrary.LongestLine.column[LineString](n, Node(geom)))
@@ -252,6 +364,12 @@ trait PostGISSupport { driver: PostgresDriver =>
       }
 
     /** Geometry Processing */
+    def setSRID[R](srid: Column[Int])(implicit om: o#to[Geometry, R]) = {
+        om(PostGISLibrary.SetSRID.column[Geometry](n, Node(srid)))
+      }
+    def Transform[R](srid: Column[Int])(implicit om: o#to[Geometry, R]) = {
+        om(PostGISLibrary.Transform.column[Geometry](n, Node(srid)))
+      }
     def simplify[R](tolerance: Column[Float])(implicit om: o#to[Geometry, R]) = {
         om(PostGISLibrary.Simplify.column[Geometry](n, Node(tolerance)))
       }
