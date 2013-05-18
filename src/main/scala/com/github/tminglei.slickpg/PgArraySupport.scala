@@ -1,4 +1,4 @@
-package com.github.slickpg
+package com.github.tminglei.slickpg
 
 import java.util.{Map => JMap, UUID}
 import scala.slick.driver.{BasicProfile, PostgresDriver}

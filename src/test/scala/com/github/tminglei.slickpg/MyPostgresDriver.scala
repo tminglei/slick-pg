@@ -1,4 +1,4 @@
-package com.github.slickpg
+package com.github.tminglei.slickpg
 
 import slick.driver.PostgresDriver
 
@@ -23,6 +23,7 @@ trait MyPostgresDriver extends PostgresDriver
   trait SimpleQLPlus extends SimpleQL
                         with ImplicitsPlus
                         with SearchAssistants
+                        with PostGISAssistants
 }
 
 object MyPostgresDriver extends MyPostgresDriver

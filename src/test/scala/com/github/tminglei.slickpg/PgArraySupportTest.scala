@@ -1,4 +1,4 @@
-package com.github.slickpg
+package com.github.tminglei.slickpg
 
 import org.junit._
 import org.junit.Assert._

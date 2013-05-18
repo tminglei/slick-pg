@@ -1,10 +1,10 @@
-package com.github.slickpg
+package com.github.tminglei.slickpg
 
 import com.vividsolutions.jts.io._
 import com.vividsolutions.jts.geom._
 import java.sql.SQLException
 import scala.slick.driver.{BasicProfile, PostgresDriver}
-import scala.slick.lifted.{BaseTypeMapper, TypeMapperDelegate, ExtensionMethods, Column}
+import scala.slick.lifted._
 import scala.slick.ast.Library.{SqlFunction, SqlOperator}
 import scala.slick.ast.{LiteralNode, Node}
 import scala.slick.session.{PositionedResult, PositionedParameters}
@@ -33,6 +33,41 @@ trait PostGISSupport { driver: PostgresDriver =>
     	}
   }
 
+  trait PostGISAssistants extends PostGISImplicits {
+    /** Geometry Constructors */
+    def geomFromText[P, R](wkt: Column[P], srid: Option[Int] = None)(
+      implicit om: OptionMapperDSL.arg[String, P]#to[Geometry, R]) = srid match {
+        case Some(srid) => om(PostGISLibrary.GeomFromText.column[Geometry](Node(wkt), LiteralNode(srid)))
+        case None   => om(PostGISLibrary.GeomFromText.column[Geometry](Node(wkt)))
+      }
+    def geomFromWKB[P, R](wkb: Column[P], srid: Option[Int] = None)(
+      implicit om: OptionMapperDSL.arg[Array[Byte], P]#to[Geometry, R]) = srid match {
+        case Some(srid) => om(PostGISLibrary.GeomFromWKB.column[Geometry](Node(wkb), LiteralNode(srid)))
+        case None   => om(PostGISLibrary.GeomFromWKB.column[Geometry](Node(wkb)))
+      }
+    def geomFromEWKT[P, R](ewkt: Column[P])(
+      implicit om: OptionMapperDSL.arg[String, P]#to[Geometry, R]) = {
+        om(PostGISLibrary.GeomFromEWKT.column[Geometry](Node(ewkt)))
+      }
+    def geomFromEWKB[P, R](ewkb: Column[P])(
+      implicit om: OptionMapperDSL.arg[Array[Byte], P]#to[Geometry, R]) = {
+        om(PostGISLibrary.GeomFromEWKB.column[Geometry](Node(ewkb)))
+      }
+    def geomFromGML[P, R](gml: Column[P], srid: Option[Int] = None)(
+      implicit om: OptionMapperDSL.arg[String, P]#to[Geometry, R]) = srid match {
+        case Some(srid) => om(PostGISLibrary.GeomFromGML.column[Geometry](Node(gml), LiteralNode(srid)))
+        case None   => om(PostGISLibrary.GeomFromGML.column[Geometry](Node(gml)))
+      }
+    def geomFromKML[P, R](kml: Column[P])(
+      implicit om: OptionMapperDSL.arg[String, P]#to[Geometry, R]) = {
+        om(PostGISLibrary.GeomFromKML.column[Geometry](Node(kml)))
+      }
+    def geomFromGeoJSON[P, R](json: Column[P])(
+      implicit om: OptionMapperDSL.arg[String, P]#to[Geometry, R]) = {
+        om(PostGISLibrary.GeomFromGeoJSON.column[Geometry](Node(json)))
+      }
+  }
+
   //////////////////////////////////////////////////////////////////////////////////
 
   object PostGISLibrary {
@@ -41,7 +76,7 @@ trait PostGISSupport { driver: PostgresDriver =>
     val BoxIntersects3D = new SqlOperator("&&&")
     val BoxContains = new SqlOperator("~")
     val BoxContainedBy = new SqlOperator("@")
-    val BoxEquals = new SqlOperator("=")
+//    val BoxEquals = new SqlOperator("=")  // it's not necessary
     val PointDistance = new SqlOperator("<->")
     val BoxDistance = new SqlOperator("<#>")
 
@@ -53,6 +88,15 @@ trait PostGISSupport { driver: PostgresDriver =>
     val BoxStrictRight = new SqlOperator(">>")
     val BoxLooseAbove = new SqlOperator("|&>")
     val BoxStrictAbove = new SqlOperator("|>>")
+
+    /** Geometry Constructors */
+    val GeomFromText = new SqlFunction("ST_GeomFromText")
+    val GeomFromWKB = new SqlFunction("ST_GeomFromWKB")
+    val GeomFromEWKT = new SqlFunction("ST_GeomFromEWKT")
+    val GeomFromEWKB = new SqlFunction("ST_GeomFromEWKB")
+    val GeomFromGML = new SqlFunction("ST_GeomFromGML")
+    val GeomFromKML = new SqlFunction("ST_GeomFromKML")
+    val GeomFromGeoJSON = new SqlFunction("ST_GeomFromGeoJSON")
 
     /** Geometry Accessors */
     val GeometryType = new SqlFunction("ST_GeometryType")
@@ -146,10 +190,10 @@ trait PostGISSupport { driver: PostgresDriver =>
     def <@[G2, P2, R](geom: Column[P2])(implicit om: o#arg[G2, P2]#to[Boolean, R]) = {
     		om(PostGISLibrary.BoxContainedBy.column(n, Node(geom)))
     	}
-    def <->[G2, P2, R](geom: Column[P2])(implicit om: o#arg[G2, P2]#to[Boolean, R]) = {
+    def <->[G2, P2, R](geom: Column[P2])(implicit om: o#arg[G2, P2]#to[Double, R]) = {
     		om(PostGISLibrary.PointDistance.column(n, Node(geom)))
     	}
-    def <#>[G2, P2, R](geom: Column[P2])(implicit om: o#arg[G2, P2]#to[Boolean, R]) = {
+    def <#>[G2, P2, R](geom: Column[P2])(implicit om: o#arg[G2, P2]#to[Double, R]) = {
     		om(PostGISLibrary.BoxDistance.column(n, Node(geom)))
     	}
 

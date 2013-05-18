@@ -1,4 +1,4 @@
-package com.github.slickpg
+package com.github.tminglei.slickpg
 
 case class Range[T](lower: T, upper: T, edge: Range.Edge = Range.IncInf) {
 

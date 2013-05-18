@@ -15,7 +15,7 @@ Usage
 To use it, you maybe need integrate it with PostgresDriver like this:
 ```scala
 import slick.driver.PostgresDriver
-import com.github.slickpg._
+import com.github.tminglei.slickpg._
 
 trait MyPostgresDriver extends PostgresDriver
                           with PgArraySupport

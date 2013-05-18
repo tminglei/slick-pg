@@ -8,7 +8,7 @@ object SlickPgBuild extends Build {
     description := "Slick extensions for PostgreSQL",
     version := "0.1.0-SNAPSHOT",
     organizationName := "slick-pg",
-    organization := "com.github.slickpg",
+    organization := "com.github.tminglei",
 
     scalaVersion := "2.10.1",
     scalaBinaryVersion <<= scalaVersion,
@@ -24,22 +24,22 @@ object SlickPgBuild extends Build {
       "com.novocode" % "junit-interface" % "0.10-M4" % "test"
     ),
 
-    resolvers += Resolver.mavenLocal,
-    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))),
-    publishMavenStyle := true,
-
-//    resolvers += Resolver.sonatypeRepo("snapshots"),
-//    publishTo <<= version { (v: String) =>
-//      val nexus = "https://oss.sonatype.org/"
-//      if (v.trim.endsWith("SNAPSHOT"))
-//        Some("snapshots" at nexus + "content/repositories/snapshots")
-//      else
-//        Some("releases"  at nexus + "service/local/staging/deploy/maven2")
-//    },
+//    resolvers += Resolver.mavenLocal,
+//    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))),
 //    publishMavenStyle := true,
-//    publishArtifact in Test := false,
-//    pomIncludeRepository := { _ => false },
-//    makePomConfiguration ~= { _.copy(configurations = Some(Seq(Compile, Runtime, Optional))) },
+
+    resolvers += Resolver.sonatypeRepo("snapshots"),
+    publishTo <<= version { (v: String) =>
+      val nexus = "https://oss.sonatype.org/"
+      if (v.trim.endsWith("SNAPSHOT"))
+        Some("snapshots" at nexus + "content/repositories/snapshots")
+      else
+        Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+    },
+    publishMavenStyle := true,
+    publishArtifact in Test := false,
+    pomIncludeRepository := { _ => false },
+    makePomConfiguration ~= { _.copy(configurations = Some(Seq(Compile, Runtime, Optional))) },
 
     pomExtra := (
       <url>https://github.com/tminglei/slick-pg</url>
