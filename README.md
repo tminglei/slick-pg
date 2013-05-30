@@ -9,10 +9,25 @@ Slick-pg
 - Search(tsquery+tsvector)
 - Geometry
 
+Install
+-------
+To use slick-pg in [sbt](http://www.scala-sbt.org/ "slick-sbt"), add the following to your project file:
+```scala
+libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.1" % "0.1.0"
+```
+
+Or, you can add `slick-pg` to your `pom.xml` like this:
+```
+<dependency>
+    <groupId>com.github.tminglei</groupId>
+    <artifactId>slick-pg_2.10.1</artifactId>
+    <version>0.1.0</version>
+</dependency>
+```
 
 Usage
 ------
-To use it, you maybe need integrate it with PostgresDriver like this:
+Before using it, you need integrate it with PostgresDriver maybe like this:
 ```scala
 import slick.driver.PostgresDriver
 import com.github.tminglei.slickpg._
