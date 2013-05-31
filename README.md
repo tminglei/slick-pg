@@ -9,6 +9,8 @@ Slick-pg
 - Search(tsquery+tsvector)
 - Geometry
 
+** tested on `postgreSQL 9.2`
+
 Install
 -------
 To use slick-pg in [sbt](http://www.scala-sbt.org/ "slick-sbt"), add the following to your project file:
