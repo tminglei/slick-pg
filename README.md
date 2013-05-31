@@ -9,7 +9,7 @@ Slick-pg
 - Search(tsquery+tsvector)
 - Geometry
 
-** tested on `postgreSQL 9.2`
+** tested on `postgreSQL 9.2` with `Slick 1.0`.
 
 Install
 -------
