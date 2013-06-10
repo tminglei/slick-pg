@@ -13,12 +13,12 @@ Slick-pg
 
 Install
 -------
-To use slick-pg in [sbt](http://www.scala-sbt.org/ "slick-sbt"), add the following to your project file:
+To use slick-pg in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
 libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.1" % "0.1.0"
 ```
 
-Or, you can add `slick-pg` to your `pom.xml` like this:
+Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg` to your `pom.xml` like this:
 ```
 <dependency>
     <groupId>com.github.tminglei</groupId>
@@ -93,8 +93,13 @@ object TestTable extends Table[Test](Some("xxx"), "Test") {
  
 ```
 
-Supported [data type's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg "data type's operators/functions")
+Supported data type's operators/functions
 -----------------------------------------
+- [Array's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#array "Array's operators/functions")
+- [Range's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#range "Range's operators/functions")
+- [HStore's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#hstore "HStore's operators/functions")
+- [Search's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#search "Search's operators/functions")
+- [Geometry's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#geometry "Geometry's operators/functions")
 
 
 License
