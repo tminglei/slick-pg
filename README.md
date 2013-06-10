@@ -93,8 +93,8 @@ object TestTable extends Table[Test](Some("xxx"), "Test") {
  
 ```
 
-Supported data type's operators/functions
------------------------------------------
+Data types/operators/functions
+------------------------------
 - [Array's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#array "Array's operators/functions")
 - [Range's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#range "Range's operators/functions")
 - [HStore's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#hstore "HStore's operators/functions")
