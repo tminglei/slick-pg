@@ -1,4 +1,4 @@
-Slick-PG
+Slick-pg
 ========
 [Slick](https://github.com/slick/slick "Slick") extensions for PostgreSQL, to support a series of pg data types and related operators/functions.
 
@@ -93,9 +93,9 @@ object TestTable extends Table[Test](Some("xxx"), "Test") {
  
 ```
 
-Supported data type's operators/functions
+Supported [data type's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg "data type's operators/functions")
 -----------------------------------------
-[Supported data type's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg "Supported data type's operators/functions")
+
 
 License
 -------
