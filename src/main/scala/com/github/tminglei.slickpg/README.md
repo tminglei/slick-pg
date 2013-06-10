@@ -9,8 +9,11 @@ Supported data type's operators/functions
 | @>                      | @>                   | contains                      | ARRAY[1,4,3] @> ARRAY[3,1]      |   t    |
 | <@                      | <@                   | is contained by               | ARRAY[2,7] <@ ARRAY[1,7,4,2,6]  |   t    |
 | @&                      | &&                   | overlap                       | ARRAY[1,4,3] && ARRAY[2,1]      |   t    |
-| length                  | array_length         | returns the length of the array/dimension | array_length(array[1,2,3], 1)|   3   |
-| unnest                  | unnest               | expand an array to a set of rows | unnest(ARRAY[1,2])           | 1<br/>2<br/>(2 rows) |
+| ++                      | ||                   | array-to-array concatenation  | ARRAY[1,2,3] || ARRAY[4,5,6]    | {1,2,3,4,5,6} |
+| +                       | ||                   | array-to-element concatenation| ARRAY[4,5,6] || 7               | {4,5,6,7} |
+| +:                      | ||                   | element-to-array concatenation| 3 || ARRAY[4,5,6]               | {3,4,5,6} |
+| length                  | array_length         | length of the array/dimension | array_length(array[1,2,3], 1)   |   3    |
+| unnest                  | unnest               | expand array to a set of rows | unnest(ARRAY[1,2])              | 1<br/>2<br/>(2 rows) |
 
 
 #### Range

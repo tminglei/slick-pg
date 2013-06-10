@@ -38,6 +38,7 @@ trait PgArraySupport { driver: PostgresDriver =>
   object ArrayLibrary {
     val Any = new SqlFunction("any")
     val All = new SqlFunction("all")
+    val Concatenate = new SqlOperator("||")
     val Contains  = new SqlOperator("@>")
     val ContainedBy = new SqlOperator("<@")
     val Overlap = new SqlOperator("&&")
@@ -62,6 +63,16 @@ trait PgArraySupport { driver: PostgresDriver =>
       }
     def @&[P2, R](e: Column[P2])(implicit om: o#arg[List[B0], P2]#to[Boolean, R]) = {
         om(ArrayLibrary.Overlap.column(n, Node(e)))
+      }
+
+    def ++[P2, R](e: Column[P2])(implicit om: o#arg[List[B0], P2]#to[List[B0], R]) = {
+        om(ArrayLibrary.Concatenate.column(n, Node(e)))
+      }
+    def +[P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[List[B0], R]) = {
+        om(ArrayLibrary.Concatenate.column(n, Node(e)))
+      }
+    def +:[P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[List[B0], R]) = {
+        om(ArrayLibrary.Concatenate.column(Node(e), n))
       }
     def length(dim: Column[Int] = ConstColumn(1)) = ArrayLibrary.Length.column[Int](n, Node(dim))
     def unnest[R](implicit om: o#to[B0, R]) = om(ArrayLibrary.Unnest.column(n))

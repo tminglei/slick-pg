@@ -2,9 +2,8 @@ package com.github.tminglei.slickpg
 
 import org.junit._
 import org.junit.Assert._
-import com.vividsolutions.jts.geom.{Point, Geometry}
+import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.io.{WKTWriter, WKBWriter, WKTReader}
-import scala.slick.ast.Library
 
 class PostGISSupportTest {
   import MyPostgresDriver.simple._

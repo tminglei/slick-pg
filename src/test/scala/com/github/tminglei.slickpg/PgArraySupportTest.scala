@@ -31,16 +31,6 @@ class PgArraySupportTest {
   val testRec3 = ArrayBean(41L, List(103, 101), List(11L, 5L, 31L), Some(List("str11", "str5", "str3")))
 
   @Test
-  def testSimpleInsertFetch(): Unit = {
-    db withSession { implicit session: Session =>
-      ArrayTestTable.insert(testRec1)
-
-      val rec1 = ArrayTestTable.where(_.id === testRec1.id.bind).map(t => t).first()
-      assertEquals(testRec1, rec1)
-    }
-  }
-
-  @Test
   def testArrayFunctions(): Unit = {
     db withSession { implicit session: Session =>
       ArrayTestTable.insert(testRec1)
@@ -76,6 +66,22 @@ class PgArraySupportTest {
       val q6 = ArrayTestTable.where(5L.bind <= _.longArr.all).map(_.strArr.unnest)
       println(s"'unnest' sql = ${q6.selectStatement}")
       assertEquals((testRec2.strArr.get ++ testRec3.strArr.get).toList, q6.list().map(_.orNull))
+
+      val q7 = ArrayTestTable.where(_.id === 33L.bind).map(_.intArr ++ List(105, 107).bind)
+      println(s"concatenate1 sql = ${q7.selectStatement}")
+      assertEquals(List(101, 102, 103, 105, 107), q7.first())
+
+      val q8 = ArrayTestTable.where(_.id === 33L.bind).map(List(105, 107).bind ++ _.intArr)
+      println(s"concatenate2 sql = ${q8.selectStatement}")
+      assertEquals(List(105, 107, 101, 102, 103), q8.first())
+
+      val q9 = ArrayTestTable.where(_.id === 33L.bind).map(_.intArr + 105.bind)
+      println(s"concatenate3 sql = ${q9.selectStatement}")
+      assertEquals(List(101, 102, 103, 105), q9.first())
+
+      val q10 = ArrayTestTable.where(_.id === 33L.bind).map(105.bind +: _.intArr)
+      println(s"concatenate4 sql = ${q10.selectStatement}")
+      assertEquals(List(105, 101, 102, 103), q10.first())
     }
   }
 
