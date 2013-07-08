@@ -15,7 +15,7 @@ Install
 -------
 To use slick-pg in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.1" % "0.1.0"
+libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.1" % "0.1.1"
 ```
 
 Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg` to your `pom.xml` like this:
@@ -23,7 +23,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.10.1</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
 </dependency>
 ```
 
@@ -100,6 +100,19 @@ Data types/operators/functions
 - [HStore's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#hstore "HStore's operators/functions")
 - [Search's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#search "Search's operators/functions")
 - [Geometry's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#geometry "Geometry's operators/functions")
+
+
+Version history
+---------------
+v0.1.1 (8-Jul-2013):  
+1) supplement pg array support  
+
+v0.1.0 (20-May-2013):  
+1) support pg array  
+2) support pg range  
+3) support pg hstore  
+4) support pg search  
+5) support pg geometry  
 
 
 License
