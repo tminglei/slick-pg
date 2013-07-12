@@ -115,6 +115,13 @@ v0.1.0 (20-May-2013):
 5) support pg geometry  
 
 
+Existing issues
+----------------
+1) When using slick-pg's uuid array support, you maybe encountered an exception said like 'Method Jdbc4Array .getArrayImpl(long,int,Map) is not yet implemented'.
+That's because uuid array is not supported by postgres jdbc driver yet.  
+I have submitted enhancement changes to postgres jdbc driver development team, pls see [Add uuid array support](https://github.com/pgjdbc/pgjdbc/pull/50 "Add uuid array support") for details.  
+
+
 License
 -------
 Licensing conditions (BSD-style) can be found in LICENSE.txt.
