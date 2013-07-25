@@ -16,11 +16,11 @@ trait PgRangeSupport { driver: PostgresDriver =>
   private def toSQLDate(str: String) = new Date(dateFormatter.parse(str).getTime)
 
   trait RangeImplicits {
-    implicit val intRangeTypeMapper = new RangeTypeMapper[Int]("int4range", _.toInt)
-    implicit val longRangeTypeMapper = new RangeTypeMapper[Long]("int8range", _.toLong)
-    implicit val floatRangeTypeMapper = new RangeTypeMapper[Float]("numrange", _.toFloat)
-    implicit val timestampRangeTypeMapper = new RangeTypeMapper[Timestamp]("tsrange", toTimestamp)
-    implicit val dateRangeTypeMapper = new RangeTypeMapper[Date]("daterange", toSQLDate)
+    implicit val intRangeTypeMapper = new RangeTypeMapper[Int]("int4range", Range.mkParser(_.toInt))
+    implicit val longRangeTypeMapper = new RangeTypeMapper[Long]("int8range", Range.mkParser(_.toLong))
+    implicit val floatRangeTypeMapper = new RangeTypeMapper[Float]("numrange", Range.mkParser(_.toFloat))
+    implicit val timestampRangeTypeMapper = new RangeTypeMapper[Timestamp]("tsrange", Range.mkParser(toTimestamp))
+    implicit val dateRangeTypeMapper = new RangeTypeMapper[Date]("daterange", Range.mkParser(toSQLDate))
 
     implicit def rangeColumnExtensionMethods[B0](c: Column[Range[B0]])(
       implicit tm: TypeMapper[B0], tm1: RangeTypeMapper[B0]) = {
@@ -96,7 +96,7 @@ trait PgRangeSupport { driver: PostgresDriver =>
 
   ///////////////////////////////////////////////////////////////////////////////
 
-  class RangeTypeMapper[T](rangeType: String, parseFn: (String => T))
+  class RangeTypeMapper[T](rangeType: String, parser: (String => Range[T]))
               extends TypeMapperDelegate[Range[T]] with BaseTypeMapper[Range[T]] {
 
     def apply(v1: BasicProfile): TypeMapperDelegate[Range[T]] = this
@@ -112,7 +112,7 @@ trait PgRangeSupport { driver: PostgresDriver =>
 
     def setOption(v: Option[Range[T]], p: PositionedParameters) = p.setObjectOption(v.map(toPGObject), sqlType)
 
-    def nextValue(r: PositionedResult): Range[T] = r.nextStringOption().map(fromString).getOrElse(zero)
+    def nextValue(r: PositionedResult): Range[T] = r.nextStringOption().map(parser).getOrElse(zero)
 
     def updateValue(v: Range[T], r: PositionedResult) = r.updateObject(toPGObject(v))
 
@@ -125,6 +125,5 @@ trait PgRangeSupport { driver: PostgresDriver =>
       obj.setValue(valueToSQLLiteral(v))
       obj
     }
-    private def fromString(str: String): Range[T] = Range.fromString(parseFn)(str)
   }
 }

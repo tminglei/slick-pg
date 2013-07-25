@@ -28,10 +28,11 @@ object Range {
   val InfInfRange = """\("?([^,]*)"?,[ ]*"?([^,]*)"?\)""".r   //matches: (lower,upper)
   val IncIncRange = """\["?([^,]*)"?,[ ]*"?([^,]*)"?\]""".r   //matches: [lower,upper]
 
-  def fromString[T](parse: (String => T))(str: String): Range[T] = str match {
-    case IncInfRange(lower, upper) => Range(parse(lower), parse(upper), IncInf)
-    case InfIncRange(lower, upper) => Range(parse(lower), parse(upper), InfInc)
-    case InfInfRange(lower, upper) => Range(parse(lower), parse(upper), InfInf)
-    case IncIncRange(lower, upper) => Range(parse(lower), parse(upper), IncInc)
-  }
+  def mkParser[T](convert: (String => T)): (String => Range[T]) =
+    (str: String) => str match {
+      case IncInfRange(lower, upper) => Range(convert(lower), convert(upper), IncInf)
+      case InfIncRange(lower, upper) => Range(convert(lower), convert(upper), InfInc)
+      case InfInfRange(lower, upper) => Range(convert(lower), convert(upper), InfInf)
+      case IncIncRange(lower, upper) => Range(convert(lower), convert(upper), IncInc)
+    }
 }
