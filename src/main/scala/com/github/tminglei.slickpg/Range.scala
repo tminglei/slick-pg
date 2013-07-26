@@ -15,14 +15,14 @@ case class Range[T](lower: T, upper: T, edge: Range.Edge = Range.IncInf) {
 }
 
 object Range {
-
+  /* range edge types */
   sealed trait Edge
   case object IncInf extends Edge     // inclusive + infinite:  '[lower,upper)'
   case object InfInc extends Edge     // infinite  + inclusive: '(lower,upper]'
   case object InfInf extends Edge     // infinite  + infinite:  '(lower,upper)'
   case object IncInc extends Edge     // inclusive + inclusive: '[lower,upper]'
 
-  ///
+  // regular expr matchers to range string
   val IncInfRange = """\["?([^,]*)"?,[ ]*"?([^,]*)"?\)""".r   //matches: [lower,upper)
   val InfIncRange = """\("?([^,]*)"?,[ ]*"?([^,]*)"?\]""".r   //matches: (lower,upper]
   val InfInfRange = """\("?([^,]*)"?,[ ]*"?([^,]*)"?\)""".r   //matches: (lower,upper)

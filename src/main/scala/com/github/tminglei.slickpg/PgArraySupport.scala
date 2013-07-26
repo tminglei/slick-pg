@@ -1,26 +1,27 @@
 package com.github.tminglei.slickpg
 
-import java.util.{Map => JMap, UUID}
+import java.util.UUID
 import scala.slick.driver.{BasicProfile, PostgresDriver}
 import scala.slick.lifted._
 import scala.slick.ast.Library.{SqlOperator, SqlFunction}
 import scala.slick.ast.Node
 import scala.reflect.ClassTag
 import scala.slick.session.{PositionedResult, PositionedParameters}
+import org.postgresql.util.PGobject
 
 trait PgArraySupport { driver: PostgresDriver =>
 
   trait ArrayImplicits {
     /** for type/name, @see [[org.postgresql.core.Oid]] and [[org.postgresql.jdbc2.TypeInfoCache]]*/
-    implicit val uuidListTypeMapper = new ArrayListTypeMapper[UUID]("uuid", 2950)
-    implicit val strListTypeMapper = new ArrayListTypeMapper[String]("text", 25)
-    implicit val longListTypeMapper = new ArrayListTypeMapper[Long]("int8", 20)
-    implicit val intListTypeMapper = new ArrayListTypeMapper[Int]("int4", 23)
-    implicit val floatListTypeMapper = new ArrayListTypeMapper[Float]("float8", 701)
-    implicit val boolListTypeMapper = new ArrayListTypeMapper[Boolean]("bool", 16)
-    implicit val dateListTypeMapper = new ArrayListTypeMapper[java.sql.Date]("date", 1082)
-    implicit val timeListTypeMapper = new ArrayListTypeMapper[java.sql.Time]("time", 1083)
-    implicit val tsListTypeMapper = new ArrayListTypeMapper[java.sql.Timestamp]("timestamp", 1114)
+    implicit val uuidListTypeMapper = new ArrayListTypeMapper[UUID]("uuid")
+    implicit val strListTypeMapper = new ArrayListTypeMapper[String]("text")
+    implicit val longListTypeMapper = new ArrayListTypeMapper[Long]("int8")
+    implicit val intListTypeMapper = new ArrayListTypeMapper[Int]("int4")
+    implicit val floatListTypeMapper = new ArrayListTypeMapper[Float]("float8")
+    implicit val boolListTypeMapper = new ArrayListTypeMapper[Boolean]("bool")
+    implicit val dateListTypeMapper = new ArrayListTypeMapper[java.sql.Date]("date")
+    implicit val timeListTypeMapper = new ArrayListTypeMapper[java.sql.Time]("time")
+    implicit val tsListTypeMapper = new ArrayListTypeMapper[java.sql.Timestamp]("timestamp")
 
     ///
     implicit def arrayColumnExtensionMethods[B1](c: Column[List[B1]])(
@@ -80,7 +81,7 @@ trait PgArraySupport { driver: PostgresDriver =>
 
   ///////////////////////////////////////////////////////////////////////////////////////
 
-  class ArrayListTypeMapper[T: ClassTag](tpeName: String, tpe: Int)
+  class ArrayListTypeMapper[T: ClassTag](baseType: String)
   					extends TypeMapperDelegate[List[T]] with BaseTypeMapper[List[T]] {
 
     def apply(v1: BasicProfile): TypeMapperDelegate[List[T]] = this
@@ -90,11 +91,11 @@ trait PgArraySupport { driver: PostgresDriver =>
 
     def sqlType: Int = java.sql.Types.ARRAY
 
-    def sqlTypeName: String = s"$tpeName ARRAY"
+    def sqlTypeName: String = s"$baseType ARRAY"
 
-    def setValue(v: List[T], p: PositionedParameters) = p.setObject(toSQLArray(v), sqlType)
+    def setValue(v: List[T], p: PositionedParameters) = p.setObject(mkSqlArray(v, p), sqlType)
 
-    def setOption(v: Option[List[T]], p: PositionedParameters) = p.setObjectOption(v.map(toSQLArray), sqlType)
+    def setOption(v: Option[List[T]], p: PositionedParameters) = p.setObjectOption(v.map(mkSqlArray(_, p)), sqlType)
 
     def nextValue(r: PositionedResult): List[T] = {
       r.nextObjectOption().map(_.asInstanceOf[java.sql.Array])
@@ -102,44 +103,21 @@ trait PgArraySupport { driver: PostgresDriver =>
         .getOrElse(zero)
     }
 
-    def updateValue(v: List[T], r: PositionedResult) = r.updateObject(toSQLArray(v))
+    def updateValue(v: List[T], r: PositionedResult) = r.updateObject(mkPgObject(v))
 
-    override def valueToSQLLiteral(v: List[T]) = toSQLArray(v).toString
+    override def valueToSQLLiteral(v: List[T]) = buildStr(v).toString
 
     //--
-    private def toSQLArray(arr: List[T]): java.sql.Array = new TransferArray(arr, tpeName, tpe)
-  }
+    private def mkSqlArray(v: List[T], p: PositionedParameters) = {
+      val arr = v.map(_.asInstanceOf[AnyRef]).toArray
+      p.ps.getConnection.createArrayOf(baseType, arr)
+    }
 
-  ////////////////////////////////////////////////////////////////////////////////
-
-  /** should only be used to transfer array data into driver/preparedStatement */
-  class TransferArray(arr: Seq[Any], tpeName: String, tpe: Int) extends java.sql.Array {
-
-    def getBaseTypeName = tpeName
-
-    def getBaseType = tpe
-
-    def getArray = arr.toArray
-
-    def getArray(map: JMap[String, Class[_]]) = ???
-
-    def getArray(index: Long, count: Int) = ???
-
-    def getArray(index: Long, count: Int, map: JMap[String, Class[_]]) = ???
-
-    def getResultSet = ???
-
-    def getResultSet(map: JMap[String, Class[_]]) = ???
-
-    def getResultSet(index: Long, count: Int) = ???
-
-    def getResultSet(index: Long, count: Int, map: JMap[String, Class[_]]) = ???
-
-    def free() = { /* nothing to do */}
-
-    ///
-    override def toString = {
-      buildStr(arr).toString()
+    private def mkPgObject(v: List[T]) = {
+      val obj = new PGobject
+      obj.setType(sqlTypeName)
+      obj.setValue(valueToSQLLiteral(v))
+      obj
     }
 
     /** copy from [[org.postgresql.jdbc4.AbstractJdbc4Connection#createArrayOf(..)]]

@@ -108,18 +108,18 @@ trait PgRangeSupport { driver: PostgresDriver =>
 
     def sqlTypeName: String = rangeType
 
-    def setValue(v: Range[T], p: PositionedParameters) = p.setObject(toPGObject(v), sqlType)
+    def setValue(v: Range[T], p: PositionedParameters) = p.setObject(mkPgObject(v), sqlType)
 
-    def setOption(v: Option[Range[T]], p: PositionedParameters) = p.setObjectOption(v.map(toPGObject), sqlType)
+    def setOption(v: Option[Range[T]], p: PositionedParameters) = p.setObjectOption(v.map(mkPgObject), sqlType)
 
     def nextValue(r: PositionedResult): Range[T] = r.nextStringOption().map(parser).getOrElse(zero)
 
-    def updateValue(v: Range[T], r: PositionedResult) = r.updateObject(toPGObject(v))
+    def updateValue(v: Range[T], r: PositionedResult) = r.updateObject(mkPgObject(v))
 
     override def valueToSQLLiteral(v: Range[T]) = v.toString
 
     ///
-    private def toPGObject(v: Range[T]) = {
+    private def mkPgObject(v: Range[T]) = {
       val obj = new PGobject
       obj.setType(rangeType)
       obj.setValue(valueToSQLLiteral(v))

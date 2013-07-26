@@ -6,7 +6,7 @@ import scala.slick.ast.Library.{SqlFunction, SqlOperator}
 import scala.slick.ast.{Library, Node}
 import scala.slick.session.{PositionedResult, PositionedParameters}
 import scala.collection.convert.{WrapAsJava, WrapAsScala}
-import org.postgresql.util.PGobject
+import org.postgresql.util.{HStoreConverter, PGobject}
 
 trait PgHStoreSupport { driver: PostgresDriver =>
 
@@ -89,9 +89,9 @@ trait PgHStoreSupport { driver: PostgresDriver =>
 
     def sqlTypeName = "hstore"
 
-    def setValue(v: Map[String, String], p: PositionedParameters) = p.setObject(toPGObject(v), sqlType)
+    def setValue(v: Map[String, String], p: PositionedParameters) = p.setObject(mkPgObject(v), sqlType)
 
-    def setOption(v: Option[Map[String, String]], p: PositionedParameters) = p.setObjectOption(v.map(toPGObject), sqlType)
+    def setOption(v: Option[Map[String, String]], p: PositionedParameters) = p.setObjectOption(v.map(mkPgObject), sqlType)
 
     def nextValue(r: PositionedResult) = {
       r.nextObjectOption().map(_.asInstanceOf[java.util.Map[String, String]])
@@ -101,30 +101,14 @@ trait PgHStoreSupport { driver: PostgresDriver =>
 
     def updateValue(v: Map[String, String], r: PositionedResult) = r.updateObject(WrapAsJava.mapAsJavaMap(v))
 
-    override def valueToSQLLiteral(v: Map[String, String]) = buildStr(v).toString()
+    override def valueToSQLLiteral(v: Map[String, String]) = HStoreConverter.toString(WrapAsJava.mapAsJavaMap(v))
 
     ///
-    private def toPGObject(v: Map[String, String]) = {
+    private def mkPgObject(v: Map[String, String]) = {
       val obj = new PGobject
       obj.setType(sqlTypeName)
       obj.setValue(valueToSQLLiteral(v))
       obj
-    }
-
-    /** copy from [[org.postgresql.util.HStoreConverter#toString(..)]] */
-    private def buildStr(m: Map[String, String]) = {
-      def escape(s: String) = {
-        StringBuilder.newBuilder + '"' appendAll (
-          s map {
-            c => if (c == '"' || c == '\\') '\\' else c
-          }) + '"'
-      }
-
-      StringBuilder.newBuilder append (
-        m map {
-          case (k, v) => escape(k) append "=>" append Option(v).map(escape _).getOrElse("NULL")
-        } mkString(",")
-      )
     }
   }
 }
