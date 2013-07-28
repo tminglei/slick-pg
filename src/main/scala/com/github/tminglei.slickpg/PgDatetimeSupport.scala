@@ -10,7 +10,7 @@ import java.sql.{Date, Time, Timestamp}
 
 trait PgDatetimeSupport { driver: PostgresDriver =>
 
-  trait DateImplicits {
+  trait DatetimeImplicits {
     implicit val intervalTypeMapper = new IntervalTypeMapper
 
     ///

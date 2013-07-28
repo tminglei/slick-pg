@@ -16,7 +16,7 @@ trait MyPostgresDriver extends PostgresDriver
   //////
   trait ImplicitsPlus extends Implicits
                         with ArrayImplicits
-                        with DateImplicits
+                        with DatetimeImplicits
                         with RangeImplicits
                         with HStoreImplicits
                         with SearchImplicits
