@@ -98,14 +98,17 @@ object TestTable extends Table[Test](Some("xxx"), "Test") {
 
 Build instructions
 ------------------
-`slick-pg` uses SBT for building, and the root directory contains an SBT launcher which makes building very easy.
-Just clone the git repository and build `slick-pg` in the following way:
+`slick-pg` uses sbt for building. Assume you have already installed sbt, then you can simply clone the git repository and build `slick-pg` in the following way:
 ```
 ./sbt update
 ./sbt compile
 ```
-To run the test suite, you need create a user 'test' and db 'test' on your local postgres server, and user 'test'
-should be an super user and be the owner of db 'test'. Then you can run the tests like this:
+
+_To run the test suite, you need:_
+- create a user 'test' and db 'test' on your local postgres server, and 
+- the user 'test' should be an super user and be the owner of db 'test'
+
+Then you can run the tests like this:
 ```
 ./sbt test
 ```
