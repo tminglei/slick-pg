@@ -4,6 +4,7 @@ import slick.driver.PostgresDriver
 
 trait MyPostgresDriver extends PostgresDriver
                           with PgArraySupport
+                          with PgDatetimeSupport
                           with PgRangeSupport
                           with PgHStoreSupport
                           with PgSearchSupport
@@ -15,6 +16,7 @@ trait MyPostgresDriver extends PostgresDriver
   //////
   trait ImplicitsPlus extends Implicits
                         with ArrayImplicits
+                        with DateImplicits
                         with RangeImplicits
                         with HStoreImplicits
                         with SearchImplicits

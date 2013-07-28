@@ -4,6 +4,7 @@ Slick-pg
 
 ####Currently supported data types:
 - ARRAY
+- Datetime(date+time+timestamp+interval)
 - Range
 - Hstore
 - Search(tsquery+tsvector)
@@ -13,13 +14,13 @@ Slick-pg
 
 Install
 -------
-To use slick-pg in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
+To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
 libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.1" % "0.1.1"
 ```
 
 Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg` to your `pom.xml` like this:
-```
+```xml
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.10.1</artifactId>
@@ -36,6 +37,7 @@ import com.github.tminglei.slickpg._
 
 trait MyPostgresDriver extends PostgresDriver
                           with PgArraySupport
+                          with PgDatetimeSupport
                           with PgRangeSupport
                           with PgHStoreSupport
                           with PgSearchSupport
@@ -47,6 +49,7 @@ trait MyPostgresDriver extends PostgresDriver
   //////
   trait ImplicitsPlus extends Implicits
                         with ArrayImplicits
+                        with DateImplicits
                         with RangeImplicits
                         with HStoreImplicits
                         with SearchImplicits
@@ -93,9 +96,24 @@ object TestTable extends Table[Test](Some("xxx"), "Test") {
  
 ```
 
+Build instructions
+------------------
+`slick-pg` uses SBT for building, and the root directory contains an SBT launcher which makes building very easy.
+Just clone the git repository and build `slick-pg` in the following way:
+```scala
+./sbt update
+./sbt compile
+```
+To run the test suite, you need create a user 'test' and db 'test' on your local postgres server, and user 'test'
+should be an super user and be the owner of db 'test'. Then you can run the tests like this:
+```scala
+./sbt test
+```
+
 Data types/operators/functions
 ------------------------------
 - [Array's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#array "Array's operators/functions")
+- [Datetime's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#datetime "Datetime's operators/functions")
 - [Range's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#range "Range's operators/functions")
 - [HStore's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#hstore "HStore's operators/functions")
 - [Search's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#search "Search's operators/functions")

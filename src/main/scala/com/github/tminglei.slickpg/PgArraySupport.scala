@@ -69,7 +69,7 @@ trait PgArraySupport { driver: PostgresDriver =>
     def ++[P2, R](e: Column[P2])(implicit om: o#arg[List[B0], P2]#to[List[B0], R]) = {
         om(ArrayLibrary.Concatenate.column(n, Node(e)))
       }
-    def +[P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[List[B0], R]) = {
+    def + [P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[List[B0], R]) = {
         om(ArrayLibrary.Concatenate.column(n, Node(e)))
       }
     def +:[P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[List[B0], R]) = {

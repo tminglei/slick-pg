@@ -83,13 +83,13 @@ trait PgRangeSupport { driver: PostgresDriver =>
         om(RangeLibrary.Adjacent.column(n, Node(e)))
       }
 
-    def +[P2, R](e: Column[P2])(implicit om: o#arg[Range[B0], P2]#to[Range[B0], R]) = {
+    def + [P2, R](e: Column[P2])(implicit om: o#arg[Range[B0], P2]#to[Range[B0], R]) = {
         om(RangeLibrary.Union.column(n, Node(e)))
       }
-    def *[P2, R](e: Column[P2])(implicit om: o#arg[Range[B0], P2]#to[Range[B0], R]) = {
+    def * [P2, R](e: Column[P2])(implicit om: o#arg[Range[B0], P2]#to[Range[B0], R]) = {
         om(RangeLibrary.Intersection.column(n, Node(e)))
       }
-    def -[P2, R](e: Column[P2])(implicit om: o#arg[Range[B0], P2]#to[Range[B0], R]) = {
+    def - [P2, R](e: Column[P2])(implicit om: o#arg[Range[B0], P2]#to[Range[B0], R]) = {
         om(RangeLibrary.Subtraction.column(n, Node(e)))
       }
   }

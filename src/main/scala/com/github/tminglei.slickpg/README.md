@@ -16,6 +16,9 @@ Supported data type's operators/functions
 | unnest                  | unnest               | expand array to a set of rows | unnest(ARRAY[1,2])              | 1<br/>2<br/>(2 rows) |
 
 
+### Datetime
+TODO
+
 #### Range
 | Slick Operator/Function | PG Operator/Function |       Description       |                Example                | Result |
 | ----------------------- | -------------------- | ----------------------- | ------------------------------------- | ------ |
