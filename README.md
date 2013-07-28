@@ -100,15 +100,20 @@ Build instructions
 ------------------
 `slick-pg` uses SBT for building, and the root directory contains an SBT launcher which makes building very easy.
 Just clone the git repository and build `slick-pg` in the following way:
-```scala
+```
 ./sbt update
 ./sbt compile
 ```
 To run the test suite, you need create a user 'test' and db 'test' on your local postgres server, and user 'test'
 should be an super user and be the owner of db 'test'. Then you can run the tests like this:
-```scala
+```
 ./sbt test
 ```
+_ps: in the code of unit tests, the `slick` database is setup like this:_
+```scala
+val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=test", driver = "org.postgresql.Driver")
+```
+
 
 Data types/operators/functions
 ------------------------------
