@@ -16,7 +16,7 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.1" % "0.1.1"
+libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.1" % "0.1.2"
 ```
 
 Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg` to your `pom.xml` like this:
@@ -130,7 +130,10 @@ Data types/operators/functions
 
 Version history
 ---------------
-v0.1.1 (8-Jul-2013):  
+v0.1.2 (31-Jul-2013):
+1) add pg datetime support
+
+v0.1.1 (8-Jul-2013):
 1) supplement pg array support  
 
 v0.1.0 (20-May-2013):  
