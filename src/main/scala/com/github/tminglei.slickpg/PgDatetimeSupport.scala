@@ -126,6 +126,9 @@ trait PgDatetimeSupport { driver: PostgresDriver =>
         om(DatetimeLibrary./.column(n, Node(factor)))
       }
 
+    def part[R](field: Column[String])(implicit om: o#to[Double, R]) = {
+        om(DatetimeLibrary.Part.column(Node(field), n))
+      }
     def justifyDays[R](implicit om: o#to[Interval, R]) = om(DatetimeLibrary.JustifyDays.column(n))
     def justifyHours[R](implicit om: o#to[Interval, R]) = om(DatetimeLibrary.JustifyHours.column(n))
     def justifyInterval[R](implicit om: o#to[Interval, R]) = om(DatetimeLibrary.JustifyInterval.column(n))

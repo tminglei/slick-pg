@@ -121,6 +121,10 @@ class PgDatetimeSupportTest {
       println(s"'part' sql = ${q15.selectStatement}")
       assertEquals(2001, q15.first(), 0.00001d)
 
+      val q1501 = DatetimeTable.where(_.id === 102L.bind).map(r => r.interval.part("year"))
+      println(s"'part' sql = ${q1501.selectStatement}")
+      assertEquals(4, q1501.first(), 0.00001d)
+
       val q16 = DatetimeTable.where(_.id === 101L.bind).map(r => r.timestamp.trunc("day"))
       println(s"'trunc' sql = ${q16.selectStatement}")
       assertEquals(ts("2001-1-3 00:00:00"), q16.first())
