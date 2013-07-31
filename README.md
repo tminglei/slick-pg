@@ -130,10 +130,10 @@ Data types/operators/functions
 
 Version history
 ---------------
-v0.1.2 (31-Jul-2013):
-1) add pg datetime support
+v0.1.2 (31-Jul-2013):  
+1) add pg datetime support  
 
-v0.1.1 (8-Jul-2013):
+v0.1.1 (8-Jul-2013):  
 1) supplement pg array support  
 
 v0.1.0 (20-May-2013):  
