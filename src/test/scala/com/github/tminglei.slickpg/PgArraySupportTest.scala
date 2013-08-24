@@ -2,6 +2,7 @@ package com.github.tminglei.slickpg
 
 import org.junit._
 import org.junit.Assert._
+import java.util.UUID
 
 class PgArraySupportTest {
   import MyPostgresDriver.simple._
@@ -82,22 +83,71 @@ class PgArraySupportTest {
       val q10 = ArrayTestTable.where(_.id === 33L.bind).map(105.bind +: _.intArr)
       println(s"concatenate4 sql = ${q10.selectStatement}")
       assertEquals(List(105, 101, 102, 103), q10.first())
+
+      // test array type mapper's 'updateObject' method
+      ArrayTestTable.where(_.id === 33L.bind).map(r => r).mutate({ m =>
+        m.row = m.row.copy( longArr = List(3, 5, 9))
+      })
+      val q11 = ArrayTestTable.where(_.id === 33L.bind).map(r => r.longArr)
+      assertEquals(List(3,5,9), q11.first())
     }
   }
+
+  ////////////////////////////////////////////////////////////////////////
+
+  /**
+   * disable it, since postgres jdbc didn't support uuid array now
+   **/
+//  case class ArrayBean1(
+//    id: Long,
+//    uuidArr: List[UUID]
+//    )
+//
+//  object ArrayTestTable1 extends Table[ArrayBean1](Some("test"), "ArrayTest1") {
+//    def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
+//    def uuidArr = column[List[UUID]]("uuidArray")
+//
+//    def * = id ~ uuidArr <> (ArrayBean1, ArrayBean1 unapply _)
+//  }
+//
+//  //------------------------------------------------------------------------------
+//
+//  val uuid1 = UUID.randomUUID()
+//  val uuid2 = UUID.randomUUID()
+//  val uuid3 = UUID.randomUUID()
+//
+//  val rec1 = ArrayBean1(51L, List(uuid1, uuid2))
+//  val rec2 = ArrayBean1(52L, List(uuid1, uuid2, uuid3))
+//  val rec3 = ArrayBean1(53L, List(uuid1, uuid3))
+//
+//  @Test
+//  def testArrayFunctions1(): Unit = {
+//    db withSession { implicit session: Session =>
+//      ArrayTestTable1.insert(rec1)
+//      ArrayTestTable1.insert(rec2)
+//      ArrayTestTable1.insert(rec3)
+//
+//      val q1 = ArrayTestTable1.where(_.uuidArr @> List(uuid2).bind).map(t => t)
+//      println(s"uuid '@>' sql = ${q1.selectStatement}")
+//      assertEquals(List(rec1, rec2), q1.list())
+//    }
+//  }
 
   //////////////////////////////////////////////////////////////////////
 
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
-      ArrayTestTable.ddl create
+      ArrayTestTable.ddl create;
+//      ArrayTestTable1.ddl create
     }
   }
 
   @After
   def dropTables(): Unit = {
     db withSession { implicit session: Session =>
-      ArrayTestTable.ddl drop
+      ArrayTestTable.ddl drop;
+//      ArrayTestTable1.ddl drop
     }
   }
 }

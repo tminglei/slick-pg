@@ -1,13 +1,12 @@
 package com.github.tminglei.slickpg
 
-import java.util.UUID
+import java.util.{Map => JMap, UUID}
 import scala.slick.driver.{BasicProfile, PostgresDriver}
 import scala.slick.lifted._
 import scala.slick.ast.Library.{SqlOperator, SqlFunction}
 import scala.slick.ast.Node
 import scala.reflect.ClassTag
 import scala.slick.session.{PositionedResult, PositionedParameters}
-import org.postgresql.util.PGobject
 
 trait PgArraySupport { driver: PostgresDriver =>
 
@@ -81,7 +80,7 @@ trait PgArraySupport { driver: PostgresDriver =>
 
   ///////////////////////////////////////////////////////////////////////////////////////
 
-  class ArrayListTypeMapper[T: ClassTag](baseType: String)
+  class ArrayListTypeMapper[T: ClassTag](baseTypeName: String)
   					extends TypeMapperDelegate[List[T]] with BaseTypeMapper[List[T]] {
 
     def apply(v1: BasicProfile): TypeMapperDelegate[List[T]] = this
@@ -91,11 +90,11 @@ trait PgArraySupport { driver: PostgresDriver =>
 
     def sqlType: Int = java.sql.Types.ARRAY
 
-    def sqlTypeName: String = s"$baseType ARRAY"
+    def sqlTypeName: String = s"$baseTypeName ARRAY"
 
-    def setValue(v: List[T], p: PositionedParameters) = p.setObject(mkSqlArray(v, p), sqlType)
+    def setValue(v: List[T], p: PositionedParameters) = p.setObject(mkArray(v), sqlType)
 
-    def setOption(v: Option[List[T]], p: PositionedParameters) = p.setObjectOption(v.map(mkSqlArray(_, p)), sqlType)
+    def setOption(v: Option[List[T]], p: PositionedParameters) = p.setObjectOption(v.map(mkArray), sqlType)
 
     def nextValue(r: PositionedResult): List[T] = {
       r.nextObjectOption().map(_.asInstanceOf[java.sql.Array])
@@ -103,22 +102,42 @@ trait PgArraySupport { driver: PostgresDriver =>
         .getOrElse(zero)
     }
 
-    def updateValue(v: List[T], r: PositionedResult) = r.updateObject(mkPgObject(v))
+    def updateValue(v: List[T], r: PositionedResult) = r.updateObject(mkArray(v))
 
-    override def valueToSQLLiteral(v: List[T]) = buildStr(v).toString
+    override def valueToSQLLiteral(v: List[T]) = mkArray(v).toString
 
     //--
-    private def mkSqlArray(v: List[T], p: PositionedParameters) = {
-      val arr = v.map(_.asInstanceOf[AnyRef]).toArray
-      p.ps.getConnection.createArrayOf(baseType, arr)
-    }
+    private def mkArray(v: List[T]): java.sql.Array = new SimpleArray(v, baseTypeName)
+  }
 
-    private def mkPgObject(v: List[T]) = {
-      val obj = new PGobject
-      obj.setType(sqlTypeName)
-      obj.setValue(valueToSQLLiteral(v))
-      obj
-    }
+  /////////////////////////////////////////////////////////////////////////////////////////
+
+  /** should only be used to transfer array data into driver/preparedStatement */
+  class SimpleArray(arr: Seq[Any], baseTypeName: String) extends java.sql.Array {
+
+    def getBaseTypeName = baseTypeName
+
+    def getBaseType = ???
+
+    def getArray = arr.toArray
+
+    def getArray(map: JMap[String, Class[_]]) = ???
+
+    def getArray(index: Long, count: Int) = ???
+
+    def getArray(index: Long, count: Int, map: JMap[String, Class[_]]) = ???
+
+    def getResultSet = ???
+
+    def getResultSet(map: JMap[String, Class[_]]) = ???
+
+    def getResultSet(index: Long, count: Int) = ???
+
+    def getResultSet(index: Long, count: Int, map: JMap[String, Class[_]]) = ???
+
+    override def toString = buildStr(arr).toString()
+
+    def free() = { /* nothing to do */ }
 
     /** copy from [[org.postgresql.jdbc4.AbstractJdbc4Connection#createArrayOf(..)]]
       * and [[org.postgresql.jdbc2.AbstractJdbc2Array#escapeArrayElement(..)]] */
