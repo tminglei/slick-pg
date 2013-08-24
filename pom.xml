@@ -34,9 +34,9 @@
             <version>1.13</version>
         </dependency>
         <dependency>
-            <groupId>postgresql</groupId>
+            <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>9.2-1002.jdbc4</version>
+            <version>9.2-1003-jdbc4</version>
         </dependency>
         <dependency>
     		<groupId>junit</groupId>
@@ -45,12 +45,4 @@
             <scope>test</scope>
 		</dependency>
     </dependencies>
-
-    <repositories>
-        <repository>
-            <id>mvn-adamgent</id>
-            <url>http://mvn-adamgent.googlecode.com/svn/maven/release</url>
-            <name>Adam Gent Maven Repository</name>
-        </repository>
-    </repositories>
 </project>
