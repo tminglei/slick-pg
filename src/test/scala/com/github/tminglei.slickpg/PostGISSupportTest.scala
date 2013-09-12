@@ -49,9 +49,11 @@ class PostGISSupportTest {
       val q3 = GeomTestTable.where(_.geom === geomFromEWKT("SRID=0;POINT(-71.064544 42.28787)".bind)).map(t => t)
       assertEquals(bean, q3.first())
 
-      val q4 = GeomTestTable.where(_.geom === geomFromGML("""<gml:Point>
-                                                            <gml:coordinates>-71.064544,42.28787</gml:coordinates>
-                                                       </gml:Point>""".bind)).map(t => t)
+      val q4 = GeomTestTable.where(_.geom === geomFromGML("""<gml:Point xmlns:gml="http://www.opengis.net/gml">
+                                                              <gml:coordinates>
+                                                                -71.064544,42.28787
+                                                              </gml:coordinates>
+                                                             </gml:Point>""".bind)).map(t => t)
       assertEquals(bean, q4.first())
 
       val q5 = GeomTestTable.where(_.geom === geomFromKML("""<Point>
@@ -322,6 +324,8 @@ class PostGISSupportTest {
 
       val q2 = GeomTestTable.where(_.id === polygonId.bind).map(_.geom.centroid)
       assertEquals(centroid, q2.first())
+      val q21 = GeomTestTable.where(_.id === polygonId.bind).map(r => (r.geom.centroid within r.geom))
+      assertEquals(true, q21.first())
 
       val q3 = GeomTestTable.where(_.id === polygonId.bind).map(_.geom.closestPoint(point2.bind))
       assertEquals(closetPoint, q3.first())
