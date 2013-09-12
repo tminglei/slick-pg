@@ -204,7 +204,7 @@ trait PostGISSupport { driver: PostgresDriver =>
   }
 
   /** Extension methods for hstore Columns */
-  class GeometryColumnExtensionMethods[T <: Geometry, P1](val c: Column[P1]) extends ExtensionMethods[T, P1] with PostGISImplicits {
+  class GeometryColumnExtensionMethods[G1 <: Geometry, P1](val c: Column[P1]) extends ExtensionMethods[G1, P1] with PostGISImplicits {
     /** Geometry Operators */
     def @&&[P2, R](geom: Column[P2])(implicit om: o#arg[Geometry, P2]#to[Boolean, R]) = {
     		om(PostGISLibrary.BoxIntersects.column(n, Node(geom)))
