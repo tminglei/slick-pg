@@ -16,7 +16,7 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.1" % "0.1.3"
+libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.1" % "0.1.3.1"
 ```
 
 Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg` to your `pom.xml` like this:
@@ -24,7 +24,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.10.1</artifactId>
-    <version>0.1.3</version>
+    <version>0.1.3.1</version>
 </dependency>
 ```
 
@@ -130,7 +130,10 @@ Data types/operators/functions
 
 Version history
 ---------------
-v0.1.3 (27-Aug-2013):  
+v0.1.3.1 (13-Sep-2013):
+1) fix Issue #10
+
+v0.1.3 (27-Aug-2013):
 1) fix array type mapper' s updating bug (introduced by 52442d6)  
 
 v0.1.2 (31-Jul-2013):  
