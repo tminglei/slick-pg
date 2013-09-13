@@ -130,10 +130,10 @@ Data types/operators/functions
 
 Version history
 ---------------
-v0.1.3.1 (13-Sep-2013):
+v0.1.3.1 (13-Sep-2013):  
 1) fix Issue #10
 
-v0.1.3 (27-Aug-2013):
+v0.1.3 (27-Aug-2013):  
 1) fix array type mapper' s updating bug (introduced by 52442d6)  
 
 v0.1.2 (31-Jul-2013):  
