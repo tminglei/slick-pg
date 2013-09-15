@@ -20,7 +20,7 @@ class PgSearchSupportTest {
 
   //-----------------------------------------------------------------------------
 
-  val testRec1 = TestBean(33L, "fat cats ate rats", "")
+  val testRec1 = TestBean(33L, "fat cat ate rat", "")
   val testRec2 = TestBean(37L, "cat", "fat")
 
   @Test

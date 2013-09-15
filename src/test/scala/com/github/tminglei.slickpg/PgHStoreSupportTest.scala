@@ -84,17 +84,17 @@ class PgHStoreSupportTest {
       println(s"'@+' sql = ${q5.selectStatement}")
       assertEquals(Map("a"->"test", "c"->"105"), q5.first())
 
-      val q6 = HStoreTestTable.where(_.id === 37L).map(t => t.hstore @- "a".bind)
+      val q6 = HStoreTestTable.where(_.id === 37L).map(t => t.hstore @- Map("a"->"111", "c"->"105").bind)
       println(s"'@-' sql = ${q6.selectStatement}")
-      assertEquals(Map("c"->"105"), q6.first())
+      assertEquals(Map("a"->null), q6.first())
 
       val q7 = HStoreTestTable.where(_.id === 37L).map(t => t.hstore -- List("a").bind)
       println(s"'--' sql = ${q7.selectStatement}")
       assertEquals(Map("c"->"105"), q7.first())
 
-      val q8 = HStoreTestTable.where(_.id === 37L).map(t => t.hstore -/ Map("a"->"111", "c"->"105").bind)
+      val q8 = HStoreTestTable.where(_.id === 37L).map(t => t.hstore -/ "a".bind)
       println(s"'-/' sql = ${q8.selectStatement}")
-      assertEquals(Map("a"->null), q8.first())
+      assertEquals(Map("c"->"105"), q8.first())
     }
   }
 

@@ -28,8 +28,8 @@ trait PgHStoreSupport { driver: PostgresDriver =>
   object HStoreLibrary {
     val On = new SqlOperator("->")
     val Exist   = new SqlFunction("exist")
-//    val ExistAll = new SqlOperator("?&")  //can't support, because there exists '?' conflict
-//    val ExistAny = new SqlOperator("?|")  //can't support, because there exists '?' conflict
+//    val ExistAll = new SqlOperator("?&")  //can't support, '?' conflict with jdbc '?'
+//    val ExistAny = new SqlOperator("?|")  //can't support, '?' conflict with jdbc '?'
     val Defined = new SqlFunction("defined")
     val Contains = new SqlOperator("@>")
     val ContainedBy = new SqlOperator("<@")
@@ -65,13 +65,13 @@ trait PgHStoreSupport { driver: PostgresDriver =>
     def @+[P2, R](c2: Column[P2])(implicit om: o#arg[Map[String, String], P2]#to[Map[String, String], R]) = {
         om(HStoreLibrary.Concatenate.column[Map[String, String]](n, Node(c2)))
       }
-    def @-[P2, R](c2: Column[P2])(implicit om: o#arg[String, P2]#to[Map[String, String], R]) = {
+    def @-[P2, R](c2: Column[P2])(implicit om: o#arg[Map[String, String], P2]#to[Map[String, String], R]) = {
         om(HStoreLibrary.Delete.column[Map[String, String]](n, Node(c2)))
       }
     def --[P2, R](c2: Column[P2])(implicit om: o#arg[List[String], P2]#to[Map[String, String], R]) = {
         om(HStoreLibrary.Delete.column[Map[String, String]](n, Node(c2)))
       }
-    def -/[P2, R](c2: Column[P2])(implicit om: o#arg[Map[String, String], P2]#to[Map[String, String], R]) = {
+    def -/[P2, R](c2: Column[P2])(implicit om: o#arg[String, P2]#to[Map[String, String], R]) = {
         om(HStoreLibrary.Delete.column[Map[String, String]](n, Node(c2)))
       }
   }
