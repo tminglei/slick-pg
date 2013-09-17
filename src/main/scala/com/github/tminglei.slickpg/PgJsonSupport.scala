@@ -46,7 +46,7 @@ trait PgJsonSupport[T] { driver: PostgresDriver =>
   class JsonColumnExtensionMethods[P1](val c: Column[P1])(
             implicit tm: TypeMapper[JValue], tm1: TypeMapper[List[String]])
                   extends ExtensionMethods[JValue, P1] {
-
+    /** Note: json array's index starts with 0   */
     def ~> [P2, R](index: Column[P2])(implicit om: o#arg[Int, P2]#to[JValue, R]) = {
         om(JsonLibrary.->.column[JValue](n, Node(index)))
       }
