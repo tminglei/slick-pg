@@ -6,7 +6,7 @@ object SlickPgBuild extends Build {
   lazy val theSettings = Seq(
     name := "slick-pg",
     description := "Slick extensions for PostgreSQL",
-    version := "0.1.3.1",
+    version := "0.1.5",
     organizationName := "slick-pg",
     organization := "com.github.tminglei",
 
@@ -18,8 +18,11 @@ object SlickPgBuild extends Build {
       "-language:postfixOps"),
     libraryDependencies := Seq(
       "com.typesafe.slick" % "slick_2.10" % "1.0.0",
-      "com.vividsolutions" % "jts" % "1.13",
       "org.postgresql" % "postgresql" % "9.2-1003-jdbc4",
+      "com.vividsolutions" % "jts" % "1.13",
+      "org.json4s" % "json4s-ast_2.10" % "3.2.5",
+      "org.json4s" % "json4s-core_2.10" % "3.2.5",
+      "org.json4s" % "json4s-native_2.10" % "3.2.5" % "test",
       "junit" % "junit" % "4.11" % "test",
       "com.novocode" % "junit-interface" % "0.10" % "test"
     ),

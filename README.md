@@ -16,7 +16,7 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.1" % "0.1.3.1"
+libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.1" % "0.1.5"
 ```
 
 Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg` to your `pom.xml` like this:
@@ -24,7 +24,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.10.1</artifactId>
-    <version>0.1.3.1</version>
+    <version>0.1.5</version>
 </dependency>
 ```
 
@@ -121,6 +121,7 @@ val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=test", dri
 Data types/operators/functions
 ------------------------------
 - [Array's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#array "Array's operators/functions")
+- [JSON's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#json "JSON's operators/functions")
 - [Datetime's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#datetime "Datetime's operators/functions")
 - [Range's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#range "Range's operators/functions")
 - [HStore's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#hstore "HStore's operators/functions")
@@ -130,6 +131,9 @@ Data types/operators/functions
 
 Version history
 ---------------
+v0.1.5 (29-Sep-2013):  
+1) support pg json
+
 v0.1.3.1 (13-Sep-2013):  
 1) fix Issue #10
 
