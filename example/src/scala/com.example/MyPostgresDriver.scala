@@ -7,8 +7,12 @@ trait MyPostgresDriver extends PostgresDriver
                           with PgArraySupport
                           with PgRangeSupport
                           with PgHStoreSupport
+//                          with PgJsonSupport[text.Document]
                           with PgSearchSupport
-                          with PostGISSupport {
+                          with PostGISSupport
+                          with PgDatetimeSupport {
+
+//  override val jsonMethods = org.json4s.native.JsonMethods
 
   override val Implicit = new ImplicitsPlus {}
   override val simple = new SimpleQLPlus {}
@@ -18,8 +22,10 @@ trait MyPostgresDriver extends PostgresDriver
                          with ArrayImplicits
                          with RangeImplicits
                          with HStoreImplicits
+//                         with JsonImplicits
                          with SearchImplicits
                          with PostGISImplicits
+                         with DatetimeImplicits
 
   trait SimpleQLPlus extends SimpleQL
                         with ImplicitsPlus

@@ -19,9 +19,10 @@ object ExampleBuild extends Build {
 
     libraryDependencies := Seq(
       "com.typesafe.slick" % "slick_2.10" % "1.0.1",
+      "com.github.tminglei" % "slick-pg_2.10.1" % "0.1.3.1",
+      "org.postgresql" % "postgresql" % "9.2-1003-jdbc4",
       "com.vividsolutions" % "jts" % "1.13",
-      "postgresql" % "postgresql" % "9.1-901.jdbc4",
-      "com.github.tminglei" % "slick-pg_2.10.1" % "0.1.1"
+      "org.json4s" % "json4s-native_2.10" % "3.2.5"
     ),
     resolvers += Resolver.mavenLocal,
     resolvers += Resolver.sonatypeRepo("snapshots"),
