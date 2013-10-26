@@ -2,7 +2,7 @@ package com.github.tminglei.slickpg
 
 import org.junit._
 import org.junit.Assert._
-import com.vividsolutions.jts.geom.Geometry
+import com.vividsolutions.jts.geom.{Geometry, Point}
 import com.vividsolutions.jts.io.{WKTWriter, WKBWriter, WKTReader}
 
 class PostGISSupportTest {
@@ -20,6 +20,17 @@ class PostGISSupportTest {
     def iCols = geom returning id
   }
 
+  ///
+  case class PointBean(id: Long, point: Point)
+
+  object PointTestTable extends Table[PointBean](Some("test"), "point_test") {
+    def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
+    def point = column[Point]("point")
+
+    def * = id ~ point <> (PointBean, PointBean.unapply _)
+    def iCols = point returning id
+  }
+
   ////////////////////////////////////////////////////////////////////////////////
 
   val wktReader = new WKTReader()
@@ -29,9 +40,9 @@ class PostGISSupportTest {
   @Test
   def testGeomConstructors(): Unit = {
     val POINT = "POINT(-71.064544 42.28787)"
-    val point = wktReader.read(POINT)
-    val point1 = wktReader.read("POINT(-81.064544 32.28787)")
-    val point2 = wktReader.read("POINT(-61.064544 52.28787)")
+    val point = wktReader.read(POINT).asInstanceOf[Point]
+    val point1 = wktReader.read("POINT(-81.064544 32.28787)").asInstanceOf[Point]
+    val point2 = wktReader.read("POINT(-61.064544 52.28787)").asInstanceOf[Point]
 
     db withSession { implicit session: Session =>
       val id = GeomTestTable.iCols.insert(point)
@@ -78,7 +89,9 @@ class PostGISSupportTest {
     val line1 = wktReader.read("LINESTRING(0 0, 3 3)")
     val line2 = wktReader.read("LINESTRING(1 2, 4 6)")
     val line3 = wktReader.read("LINESTRING(1 1, 2 2)")
-    val point = wktReader.read("POINT(4 5)")
+    val point = wktReader.read("POINT(4 5)").asInstanceOf[Point]
+    val point1 = wktReader.read("POINT(7 9)").asInstanceOf[Point]
+    val point2 = wktReader.read("POINT(11 13)").asInstanceOf[Point]
     val line3d1 = wktReader.read("LINESTRING(0 0 1, 3 3 2)")
     val line3d2 = wktReader.read("LINESTRING(1 2 1, 4 6 1)")
 
@@ -87,6 +100,12 @@ class PostGISSupportTest {
       val bean = GeometryBean(id, line1)
       val id3d = GeomTestTable.iCols.insert(line3d1)
       val bean3d = GeometryBean(id3d, line3d1)
+
+      //
+      val pid1 = PointTestTable.iCols.insert(point1)
+      val pbean1 = PointBean(pid1, point1)
+      val pid2 = PointTestTable.iCols.insert(point2)
+      val pbean2 = PointBean(pid2, point2)
 
       ///
       val q1 = GeomTestTable.where(r => { r.id === id.bind && r.geom @&& line2.bind }).map(r => r)
@@ -103,6 +122,10 @@ class PostGISSupportTest {
 
       val q5 = GeomTestTable.where(r => { r.id === id.bind && (r.geom <-> line2.bind) > 0.7d.bind }).map(r => r)
       assertEquals(bean, q5.first())
+      var q51 = PointTestTable.sortBy(r => r.point <-> point.bind).map(r => r)
+      assertEquals(List(pbean1, pbean2), q51.list())
+      var q52 = PointTestTable.sortBy(r => r.point <-> Option(point).bind).map(r => r)
+      assertEquals(List(pbean1, pbean2), q52.list())
 
       val q6 = GeomTestTable.where(r => { r.id === id.bind && (r.geom <#> line2.bind) === 0.0d.bind}).map(r => r)
       assertEquals(bean, q6.first())
@@ -458,14 +481,14 @@ class PostGISSupportTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
-      GeomTestTable.ddl create
+      (GeomTestTable.ddl ++ PointTestTable.ddl) create
     }
   }
 
   @After
   def dropTables(): Unit = {
     db withSession { implicit session: Session =>
-      GeomTestTable.ddl drop
+      (GeomTestTable.ddl ++ PointTestTable.ddl) drop
     }
   }
 }

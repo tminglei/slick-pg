@@ -39,6 +39,22 @@
             <version>9.2-1003-jdbc4</version>
         </dependency>
         <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-ast_2.10</artifactId>
+            <version>3.2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-core_2.10</artifactId>
+            <version>3.2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-native_2.10</artifactId>
+            <version>3.2.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
     		<groupId>junit</groupId>
     		<artifactId>junit</artifactId>
     		<version>4.11</version>
