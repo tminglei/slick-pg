@@ -322,9 +322,9 @@ class PostGISSupportTest {
 
   @Test
   def testGeomMeasures(): Unit = {
-    val point1 = wktReader.read("POINT(25 45)")
-    val point2 = wktReader.read("POINT(75 100)")
-    val point3 = wktReader.read("POINT(-75 80)")
+    val point1 = wktReader.read("POINT(25 45)").asInstanceOf[Point]
+    val point2 = wktReader.read("POINT(75 100)").asInstanceOf[Point]
+    val point3 = wktReader.read("POINT(-75 80)").asInstanceOf[Point]
 
     val line = wktReader.read("LINESTRING(743238 2967416,743238 2967450,743265 2967450,743265.625 2967416,743238 2967416)")
     val line3d = wktReader.read("LINESTRING(743238 2967416 1,743238 2967450 1,743265 2967450 3,743265.625 2967416 3,743238 2967416 3)")
@@ -341,6 +341,11 @@ class PostGISSupportTest {
       val lineId = GeomTestTable.iCols.insert(line)
       val line3dId = GeomTestTable.iCols.insert(line3d)
       val polygonId = GeomTestTable.iCols.insert(polygon)
+      //
+      val pid1 = PointTestTable.iCols.insert(point1)
+      val pbean1 = PointBean(pid1, point1)
+      val pid2 = PointTestTable.iCols.insert(point2)
+      val pbean2 = PointBean(pid2, point2)
 
       val q1 = GeomTestTable.where(_.id === pointId.bind).map((_.geom.azimuth(point2.bind).toDegrees))
       assertEquals(42.2736890060937d, q1.first(), 0.1d)
@@ -370,6 +375,8 @@ class PostGISSupportTest {
 
       val q9 = GeomTestTable.where(_.id === polygonId.bind).map(_.geom.distance(point2.bind))
       assertEquals(17.09934425354004d, q9.first(), 0.1d)
+      val q91 = PointTestTable.sortBy(_.point.distance(point3.bind)).map(r => r)
+      assertEquals(List(pbean1, pbean2), q91.list())
 
       val q10 = GeomTestTable.where(_.id === pointId.bind).map(_.geom.distanceSphere(point3.bind))
       assertEquals(5286499.0d, q10.first(), 0.1d)
