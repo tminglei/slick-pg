@@ -67,16 +67,11 @@ object SlickPgBuild extends Build {
   )
 
   lazy val slickPgProject = Project(id = "slick-pg", base = file("."),
-    settings = Project.defaultSettings ++ theSettings) aggregate (slickPgCore, slickPgDefault)
+    settings = Project.defaultSettings ++ theSettings) dependsOn (slickPgCore)
 
   lazy val slickPgCore = Project(id = "slick-pg_core", base = file("./core"),
     settings = Project.defaultSettings ++ theSettings ++ Seq(
       name := "slick-pg_core"
     ))
-
-  lazy val slickPgDefault = Project(id = "slick-pg_default", base = file("./default"),
-    settings = Project.defaultSettings ++ theSettings ++ Seq(
-      publishArtifact := false
-    )) dependsOn (slickPgCore)
 
 }
