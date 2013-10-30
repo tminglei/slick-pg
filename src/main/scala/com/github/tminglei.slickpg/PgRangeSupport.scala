@@ -1,34 +1,29 @@
 package com.github.tminglei.slickpg
 
-import java.sql.{Date, Timestamp}
 import scala.slick.driver.{BasicProfile, PostgresDriver}
 import scala.slick.lifted._
-import scala.slick.ast.Library.SqlOperator
-import scala.slick.ast.{Library, Node}
 import scala.slick.session.{PositionedResult, PositionedParameters}
 import org.postgresql.util.PGobject
+import java.sql.{Date, Timestamp}
+import scala.slick.ast.Library.SqlOperator
+import scala.slick.ast.{Library, Node}
 
 trait PgRangeSupport { driver: PostgresDriver =>
 
-  private val tsFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-  private val dateFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd")
-  private def toTimestamp(str: String) = new Timestamp(tsFormatter.parse(str).getTime)
-  private def toSQLDate(str: String) = new Date(dateFormatter.parse(str).getTime)
+  type RangeType[T]
 
   trait RangeImplicits {
-    implicit val intRangeTypeMapper = new RangeTypeMapper[Int]("int4range", Range.mkParser(_.toInt))
-    implicit val longRangeTypeMapper = new RangeTypeMapper[Long]("int8range", Range.mkParser(_.toLong))
-    implicit val floatRangeTypeMapper = new RangeTypeMapper[Float]("numrange", Range.mkParser(_.toFloat))
-    implicit val timestampRangeTypeMapper = new RangeTypeMapper[Timestamp]("tsrange", Range.mkParser(toTimestamp))
-    implicit val dateRangeTypeMapper = new RangeTypeMapper[Date]("daterange", Range.mkParser(toSQLDate))
+    // !!!NOTE: supplement RangeTypeMapper declarations when your using, like this
+//    implicit val intRangeTypeMapper = new RangeTypeMapper(classOf[Int], Range.mkParser(_.toInt))
+//    implicit val longRangeTypeMapper = new RangeTypeMapper(classOf[Long], Range.mkParser(_.toLong))
 
-    implicit def rangeColumnExtensionMethods[B0](c: Column[Range[B0]])(
+    implicit def rangeColumnExtensionMethods[B0, RangeType[B0]](c: Column[RangeType[B0]])(
       implicit tm: TypeMapper[B0], tm1: RangeTypeMapper[B0]) = {
-        new RangeColumnExtensionMethods[B0, Range[B0]](c)
+        new RangeColumnExtensionMethods[B0, RangeType[B0]](c)
       }
-    implicit def rangeOptionColumnExtensionMethods[B0](c: Column[Option[Range[B0]]])(
+    implicit def rangeOptionColumnExtensionMethods[B0, RangeType[B0]](c: Column[Option[RangeType[B0]]])(
       implicit tm: TypeMapper[B0], tm1: RangeTypeMapper[B0]) = {
-        new RangeColumnExtensionMethods[B0, Option[Range[B0]]](c)
+        new RangeColumnExtensionMethods[B0, Option[RangeType[B0]]](c)
       }
   }
 
@@ -50,78 +45,88 @@ trait PgRangeSupport { driver: PostgresDriver =>
   }
 
   class RangeColumnExtensionMethods[B0, P1](val c: Column[P1])(
-              implicit tm: TypeMapper[B0], tm1: TypeMapper[Range[B0]]) extends ExtensionMethods[Range[B0], P1] {
+              implicit tm: TypeMapper[B0], tm1: TypeMapper[RangeType[B0]]) extends ExtensionMethods[RangeType[B0], P1] {
 
     def @>^[P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[Boolean, R]) = {
         om(RangeLibrary.Contains.column(n, Node(Library.Cast.column[B0](e.nodeDelegate))))
       }
-    def @>[P2, R](e: Column[P2])(implicit om: o#arg[Range[B0], P2]#to[Boolean, R]) = {
+    def @>[P2, R](e: Column[P2])(implicit om: o#arg[RangeType[B0], P2]#to[Boolean, R]) = {
         om(RangeLibrary.Contains.column(n, Node(e)))
       }
     def <@^:[P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[Boolean, R]) = {
         om(RangeLibrary.ContainedBy.column(Node(Library.Cast.column[B0](e.nodeDelegate)), n))
       }
-    def <@:[P2, R](e: Column[P2])(implicit om: o#arg[Range[B0], P2]#to[Boolean, R]) = {
+    def <@:[P2, R](e: Column[P2])(implicit om: o#arg[RangeType[B0], P2]#to[Boolean, R]) = {
         om(RangeLibrary.ContainedBy.column(Node(e), n))
       }
-    def @&[P2, R](e: Column[P2])(implicit om: o#arg[Range[B0], P2]#to[Boolean, R]) = {
+    def @&[P2, R](e: Column[P2])(implicit om: o#arg[RangeType[B0], P2]#to[Boolean, R]) = {
         om(RangeLibrary.Overlap.column(n, Node(e)))
       }
-    def <<[P2, R](e: Column[P2])(implicit om: o#arg[Range[B0], P2]#to[Boolean, R]) = {
+    def <<[P2, R](e: Column[P2])(implicit om: o#arg[RangeType[B0], P2]#to[Boolean, R]) = {
         om(RangeLibrary.StrictLeft.column(n, Node(e)))
       }
-    def >>[P2, R](e: Column[P2])(implicit om: o#arg[Range[B0], P2]#to[Boolean, R]) = {
+    def >>[P2, R](e: Column[P2])(implicit om: o#arg[RangeType[B0], P2]#to[Boolean, R]) = {
         om(RangeLibrary.StrictRight.column(n, Node(e)))
       }
-    def &<[P2, R](e: Column[P2])(implicit om: o#arg[Range[B0], P2]#to[Boolean, R]) = {
+    def &<[P2, R](e: Column[P2])(implicit om: o#arg[RangeType[B0], P2]#to[Boolean, R]) = {
         om(RangeLibrary.NotExtendRight.column(n, Node(e)))
       }
-    def &>[P2, R](e: Column[P2])(implicit om: o#arg[Range[B0], P2]#to[Boolean, R]) = {
+    def &>[P2, R](e: Column[P2])(implicit om: o#arg[RangeType[B0], P2]#to[Boolean, R]) = {
         om(RangeLibrary.NotExtendLeft.column(n, Node(e)))
       }
-    def -|-[P2, R](e: Column[P2])(implicit om: o#arg[Range[B0], P2]#to[Boolean, R]) = {
+    def -|-[P2, R](e: Column[P2])(implicit om: o#arg[RangeType[B0], P2]#to[Boolean, R]) = {
         om(RangeLibrary.Adjacent.column(n, Node(e)))
       }
 
-    def + [P2, R](e: Column[P2])(implicit om: o#arg[Range[B0], P2]#to[Range[B0], R]) = {
+    def + [P2, R](e: Column[P2])(implicit om: o#arg[RangeType[B0], P2]#to[RangeType[B0], R]) = {
         om(RangeLibrary.Union.column(n, Node(e)))
       }
-    def * [P2, R](e: Column[P2])(implicit om: o#arg[Range[B0], P2]#to[Range[B0], R]) = {
+    def * [P2, R](e: Column[P2])(implicit om: o#arg[RangeType[B0], P2]#to[RangeType[B0], R]) = {
         om(RangeLibrary.Intersection.column(n, Node(e)))
       }
-    def - [P2, R](e: Column[P2])(implicit om: o#arg[Range[B0], P2]#to[Range[B0], R]) = {
+    def - [P2, R](e: Column[P2])(implicit om: o#arg[RangeType[B0], P2]#to[RangeType[B0], R]) = {
         om(RangeLibrary.Subtraction.column(n, Node(e)))
       }
   }
 
   ///////////////////////////////////////////////////////////////////////////////
 
-  class RangeTypeMapper[T](rangeType: String, parser: (String => Range[T]))
-              extends TypeMapperDelegate[Range[T]] with BaseTypeMapper[Range[T]] {
+  val pgRangeTypes: Map[Class[_], String] = Map(
+                          classOf[Int] -> "int4range",
+                          classOf[Long] -> "int8range",
+                          classOf[Float] -> "numrange",
+                          classOf[Timestamp] -> "tsrange",
+                          classOf[Date] -> "daterange")
 
-    def apply(v1: BasicProfile): TypeMapperDelegate[Range[T]] = this
+  ///
+  class RangeTypeMapper[T](baseType: Class[T], fnFromString: (String => RangeType[T]),
+                           fnToString: (RangeType[T] => String) = ((r: RangeType[T]) => r.toString))
+                                extends TypeMapperDelegate[RangeType[T]] with BaseTypeMapper[RangeType[T]] {
+
+    def apply(v1: BasicProfile): TypeMapperDelegate[RangeType[T]] = this
 
     //-----------------------------------------------------------------
-    def zero: Range[T] = null.asInstanceOf[Range[T]]
+    def zero: RangeType[T] = null.asInstanceOf[RangeType[T]]
 
     def sqlType: Int = java.sql.Types.OTHER
 
-    def sqlTypeName: String = rangeType
+    def sqlTypeName: String = pgRangeTypes.get(baseType)
+      .getOrElse(throw new NotImplementedError(s"Unsupported base type: ${baseType.getName}, pls check/override PgRangeSupport.pgRangeTypes."))
 
-    def setValue(v: Range[T], p: PositionedParameters) = p.setObject(mkPgObject(v), sqlType)
+    def setValue(v: RangeType[T], p: PositionedParameters) = p.setObject(mkPgObject(v), sqlType)
 
-    def setOption(v: Option[Range[T]], p: PositionedParameters) = p.setObjectOption(v.map(mkPgObject), sqlType)
+    def setOption(v: Option[RangeType[T]], p: PositionedParameters) = p.setObjectOption(v.map(mkPgObject), sqlType)
 
-    def nextValue(r: PositionedResult): Range[T] = r.nextStringOption().map(parser).getOrElse(zero)
+    def nextValue(r: PositionedResult): RangeType[T] = r.nextStringOption().map(fnFromString).getOrElse(zero)
 
-    def updateValue(v: Range[T], r: PositionedResult) = r.updateObject(mkPgObject(v))
+    def updateValue(v: RangeType[T], r: PositionedResult) = r.updateObject(mkPgObject(v))
 
-    override def valueToSQLLiteral(v: Range[T]) = v.toString
+    override def valueToSQLLiteral(v: RangeType[T]) = fnToString(v)
 
     ///
-    private def mkPgObject(v: Range[T]) = {
+    private def mkPgObject(v: RangeType[T]) = {
       val obj = new PGobject
-      obj.setType(rangeType)
+      obj.setType(sqlTypeName)
       obj.setValue(valueToSQLLiteral(v))
       obj
     }
