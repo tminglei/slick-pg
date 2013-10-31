@@ -4,12 +4,12 @@ import slick.driver.PostgresDriver
 
 trait MyPostgresDriver extends PostgresDriver
                           with PgArraySupport
-                          with PgDatetimeSupport
+                          with PgDateSupport
                           with PgRangeSupport
                           with PgHStoreSupport
                           with PgJsonSupport[text.Document]
                           with PgSearchSupport
-                          with PostGISSupport {
+                          with PgPostGISSupport {
 
   override val jsonMethods = org.json4s.native.JsonMethods
 
