@@ -3,10 +3,7 @@ import Keys._
 
 object SlickPgBuild extends Build {
 
-  lazy val theSettings = Seq(
-    name := "slick-pg",
-    description := "Slick extensions for PostgreSQL",
-    version := "0.1.5.1",
+  lazy val commonSettings = Seq(
     organizationName := "slick-pg",
     organization := "com.github.tminglei",
 
@@ -17,16 +14,6 @@ object SlickPgBuild extends Build {
       "-language:reflectiveCalls",
       "-language:higherKinds",
       "-language:postfixOps"),
-    libraryDependencies := Seq(
-      "com.typesafe.slick" % "slick_2.10" % "1.0.0",
-      "org.postgresql" % "postgresql" % "9.2-1003-jdbc4",
-      "com.vividsolutions" % "jts" % "1.13",
-      "org.json4s" % "json4s-ast_2.10" % "3.2.5",
-      "org.json4s" % "json4s-core_2.10" % "3.2.5",
-      "org.json4s" % "json4s-native_2.10" % "3.2.5" % "test",
-      "junit" % "junit" % "4.11" % "test",
-      "com.novocode" % "junit-interface" % "0.10" % "test"
-    ),
 
 //    resolvers += Resolver.mavenLocal,
 //    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))),
@@ -64,15 +51,42 @@ object SlickPgBuild extends Build {
           <name>Minglei Tu</name>
           <timezone>+8</timezone>
         </developer>
-      </developers>)
+      </developers>
+    )
+  )
+
+  lazy val coreSettings = Seq(
+    name := "slick-pg_core",
+    description := "Slick extensions for PostgreSQL - Core",
+    version := "0.1.5.1",
+    libraryDependencies := Seq(
+      "com.typesafe.slick" % "slick_2.10" % "1.0.0",
+      "org.postgresql" % "postgresql" % "9.2-1003-jdbc4",
+      "com.vividsolutions" % "jts" % "1.13"
+    )
+  )
+
+  lazy val slickPgSettings = Seq(
+    name := "slick-pg",
+    description := "Slick extensions for PostgreSQL",
+    version := "0.1.5.1",
+    libraryDependencies := Seq(
+      "com.typesafe.slick" % "slick_2.10" % "1.0.0",
+      "org.postgresql" % "postgresql" % "9.2-1003-jdbc4",
+      "com.vividsolutions" % "jts" % "1.13",
+      "org.json4s" % "json4s-ast_2.10" % "3.2.5",
+      "org.json4s" % "json4s-core_2.10" % "3.2.5",
+      "org.json4s" % "json4s-native_2.10" % "3.2.5" % "test",
+      "junit" % "junit" % "4.11" % "test",
+      "com.novocode" % "junit-interface" % "0.10" % "test"
+    )
   )
 
   lazy val slickPgProject = Project(id = "slick-pg", base = file("."),
-    settings = Project.defaultSettings ++ theSettings) dependsOn (slickPgCore)
+    settings = Project.defaultSettings ++ commonSettings ++ slickPgSettings
+  ) dependsOn (slickPgCore) aggregate (slickPgCore)
 
   lazy val slickPgCore = Project(id = "slick-pg_core", base = file("./core"),
-    settings = Project.defaultSettings ++ theSettings ++ Seq(
-      name := "slick-pg_core"
-    ))
+    settings = Project.defaultSettings ++ commonSettings ++ coreSettings)
 
 }

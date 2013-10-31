@@ -5,7 +5,7 @@ import org.junit.Assert._
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import com.vividsolutions.jts.io.{WKTWriter, WKBWriter, WKTReader}
 
-class PostGISSupportTest {
+class PgPostGISSupportTest {
   import MyPostgresDriver.simple._
 
   val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=test", driver = "org.postgresql.Driver")
