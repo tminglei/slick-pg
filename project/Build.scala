@@ -15,6 +15,7 @@ object SlickPgBuild extends Build {
     scalacOptions ++= Seq("-deprecation", "-feature",
       "-language:implicitConversions",
       "-language:reflectiveCalls",
+      "-language:higherKinds",
       "-language:postfixOps"),
     libraryDependencies := Seq(
       "com.typesafe.slick" % "slick_2.10" % "1.0.0",

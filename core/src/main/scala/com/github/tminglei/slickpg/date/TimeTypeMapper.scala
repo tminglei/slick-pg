@@ -1,4 +1,5 @@
-package com.github.tminglei.slickpg.date
+package com.github.tminglei.slickpg
+package date
 
 import java.sql.Time
 import scala.slick.lifted.{BaseTypeMapper, TypeMapperDelegate}
@@ -7,7 +8,7 @@ import scala.slick.session.{PositionedResult, PositionedParameters}
 
 class TimeTypeMapper[TIME](fnFromTime: (Time => TIME),
                            fnToTime: (TIME => Time))
-            extends TypeMapperDelegate[TIME] with BaseTypeMapper[TIME] {
+              extends TypeMapperDelegate[TIME] with BaseTypeMapper[TIME] {
 
   def apply(v1: BasicProfile): TypeMapperDelegate[TIME] = this
 

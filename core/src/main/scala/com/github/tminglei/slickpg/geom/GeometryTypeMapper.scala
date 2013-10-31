@@ -1,4 +1,5 @@
-package com.github.tminglei.slickpg.geom
+package com.github.tminglei.slickpg
+package geom
 
 import com.vividsolutions.jts.geom.Geometry
 import scala.slick.lifted.{BaseTypeMapper, TypeMapperDelegate}

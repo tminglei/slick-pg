@@ -1,4 +1,5 @@
-package com.github.tminglei.slickpg.array
+package com.github.tminglei.slickpg
+package array
 
 import scala.reflect.ClassTag
 import scala.slick.lifted.{BaseTypeMapper, TypeMapperDelegate}
@@ -6,7 +7,7 @@ import scala.slick.driver.BasicProfile
 import scala.slick.session.{PositionedResult, PositionedParameters}
 import java.util.{Map => JMap}
 
-class ArrayTypeMapper[T: ClassTag](baseTypeName: String)
+class ArrayTypeMapper[T: ClassTag](pgBaseType: String)
           extends TypeMapperDelegate[List[T]] with BaseTypeMapper[List[T]] {
 
   def apply(v1: BasicProfile): TypeMapperDelegate[List[T]] = this
@@ -16,7 +17,7 @@ class ArrayTypeMapper[T: ClassTag](baseTypeName: String)
 
   def sqlType: Int = java.sql.Types.ARRAY
 
-  def sqlTypeName: String = s"$baseTypeName ARRAY"
+  def sqlTypeName: String = s"$pgBaseType ARRAY"
 
   def setValue(v: List[T], p: PositionedParameters) = p.setObject(mkArray(v), sqlType)
 
@@ -33,7 +34,7 @@ class ArrayTypeMapper[T: ClassTag](baseTypeName: String)
   override def valueToSQLLiteral(v: List[T]) = mkArray(v).toString
 
   //--
-  private def mkArray(v: List[T]): java.sql.Array = new SimpleArray(v, baseTypeName)
+  private def mkArray(v: List[T]): java.sql.Array = new SimpleArray(v, pgBaseType)
   
   
   /** only used to transfer array data into driver/preparedStatement */

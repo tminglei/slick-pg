@@ -1,4 +1,5 @@
-package com.github.tminglei.slickpg.search
+package com.github.tminglei.slickpg
+package search
 
 import scala.slick.lifted.{OptionMapperDSL, Column, TypeMapper}
 import scala.slick.ast.{Library, LiteralNode, Node}
@@ -24,14 +25,15 @@ trait PgSearchExtensions {
     }
 
     def tsHeadline[P1, P2, R](text: Column[P1], query: TsQuery[P2], config: Option[String] = None, options: Option[String] = None)(
-      implicit om: OptionMapperDSL.arg[String, P1]#arg[String, P2]#to[String, R]) = (config, options) match {
-      case (Some(conf), Some(opt)) => om(SearchLibrary.TsHeadline.column(LiteralNode(conf), Node(text), Node(query), LiteralNode(opt)))
-      case (Some(conf), None) => om(SearchLibrary.TsHeadline.column(LiteralNode(conf), Node(text), Node(query)))
-      case (None, Some(opt))  => om(SearchLibrary.TsHeadline.column(Node(text), Node(query), LiteralNode(opt)))
-      case (None, None)       => om(SearchLibrary.TsHeadline.column(Node(text), Node(query)))
-    }
+                  implicit om: OptionMapperDSL.arg[String, P1]#arg[String, P2]#to[String, R]) =
+      (config, options) match {
+        case (Some(conf), Some(opt)) => om(SearchLibrary.TsHeadline.column(LiteralNode(conf), Node(text), Node(query), LiteralNode(opt)))
+        case (Some(conf), None) => om(SearchLibrary.TsHeadline.column(LiteralNode(conf), Node(text), Node(query)))
+        case (None, Some(opt))  => om(SearchLibrary.TsHeadline.column(Node(text), Node(query), LiteralNode(opt)))
+        case (None, None)       => om(SearchLibrary.TsHeadline.column(Node(text), Node(query)))
+      }
     def tsRank[P1, P2, R](text: TsVector[P1], query: TsQuery[P2], weights: Option[List[Float]] = None, normalization: Option[Int] = None)(
-      implicit om: OptionMapperDSL.arg[String, P1]#arg[String, P2]#to[Float, R], tm: TypeMapper[List[Float]]) = {
+                  implicit om: OptionMapperDSL.arg[String, P1]#arg[String, P2]#to[Float, R], tm: TypeMapper[List[Float]]) = {
       val weightsNode = weights.map(w => Library.Cast.typed[List[Float]](LiteralNode(w)))
       (weights, normalization) match {
         case (Some(w), Some(n)) => om(SearchLibrary.TsRank.column(weightsNode.get, Node(text), Node(query), LiteralNode(n)))
@@ -41,7 +43,7 @@ trait PgSearchExtensions {
       }
     }
     def tsRankCD[P1, P2, R](text: TsVector[P1], query: TsQuery[P2], weights: Option[List[Float]] = None, normalization: Option[Int] = None)(
-      implicit om: OptionMapperDSL.arg[String, P1]#arg[String, P2]#to[Float, R], tm: TypeMapper[List[Float]]) = {
+                  implicit om: OptionMapperDSL.arg[String, P1]#arg[String, P2]#to[Float, R], tm: TypeMapper[List[Float]]) = {
       val weightsNode = weights.map(w => Library.Cast.typed[List[Float]](LiteralNode(w)))
       (weights, normalization) match {
         case (Some(w), Some(n)) => om(SearchLibrary.TsRankCD.column(weightsNode.get, Node(text), Node(query), LiteralNode(n)))

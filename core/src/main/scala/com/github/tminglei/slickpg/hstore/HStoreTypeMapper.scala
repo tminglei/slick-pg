@@ -1,4 +1,5 @@
-package com.github.tminglei.slickpg.hstore
+package com.github.tminglei.slickpg
+package hstore
 
 import scala.slick.lifted.{BaseTypeMapper, TypeMapperDelegate}
 import scala.slick.driver.BasicProfile

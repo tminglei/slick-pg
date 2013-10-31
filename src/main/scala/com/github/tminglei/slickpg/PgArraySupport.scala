@@ -4,12 +4,8 @@ import java.util.UUID
 import scala.slick.lifted.{TypeMapper, Column}
 import scala.slick.driver.PostgresDriver
 
-trait PgArraySupport2 { driver: PostgresDriver =>
-  import array._
-
-  val arrayExt = new array.PgArrayExtensions {
-    type LIST[T] = List[T]
-  }
+trait PgArraySupport extends array.PgArrayExtensions { driver: PostgresDriver =>
+  import array.ArrayTypeMapper
 
   trait ArrayImplicits {
     /** for type/name, @see [[org.postgresql.core.Oid]] and [[org.postgresql.jdbc2.TypeInfoCache]]*/
@@ -26,11 +22,11 @@ trait PgArraySupport2 { driver: PostgresDriver =>
     ///
     implicit def arrayColumnExtensionMethods[B1](c: Column[List[B1]])(
       implicit tm: TypeMapper[B1], tm1: ArrayTypeMapper[B1]) = {
-        new arrayExt.ArrayColumnExtensionMethods[B1, List[B1]](c)
+        new ArrayColumnExtensionMethods[B1, List[B1]](c)
       }
     implicit def arrayOptionColumnExtensionMethods[B1](c: Column[Option[List[B1]]])(
       implicit tm: TypeMapper[B1], tm1: ArrayTypeMapper[B1]) = {
-        new arrayExt.ArrayColumnExtensionMethods[B1, Option[List[B1]]](c)
+        new ArrayColumnExtensionMethods[B1, Option[List[B1]]](c)
       }
   }
 }

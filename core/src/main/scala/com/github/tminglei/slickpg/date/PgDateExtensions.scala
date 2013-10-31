@@ -29,7 +29,9 @@ trait PgDateExtensions {
   }
 
   class TimestampColumnExtensionMethods[P1](val c: Column[P1])(
-            implicit tm: TypeMapper[INTERVAL]) extends ExtensionMethods[TIMESTAMP, P1] {
+            implicit tm: TypeMapper[INTERVAL], tm1: TypeMapper[DATE], tm2: TypeMapper[TIME], tm3: TypeMapper[TIMESTAMP])
+                  extends ExtensionMethods[TIMESTAMP, P1] {
+
     def +++[P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIMESTAMP, R]) = {
         om(DateLibrary.+.column(n, Node(e)))
       }
@@ -56,7 +58,9 @@ trait PgDateExtensions {
   }
 
   class TimeColumnExtensionMethods[P1](val c: Column[P1])(
-            implicit tm: TypeMapper[INTERVAL]) extends ExtensionMethods[TIME, P1] {
+            implicit tm: TypeMapper[INTERVAL], tm1: TypeMapper[DATE], tm2: TypeMapper[TIME], tm3: TypeMapper[TIMESTAMP])
+                  extends ExtensionMethods[TIME, P1] {
+
     def + [P2, R](e: Column[P2])(implicit om: o#arg[DATE, P2]#to[TIMESTAMP, R]) = {
         om(DateLibrary.+.column[TIMESTAMP](n, Node(e)))
       }
@@ -72,7 +76,9 @@ trait PgDateExtensions {
   }
 
   class DateColumnExtensionMethods[P1](val c: Column[P1])(
-            implicit tm: TypeMapper[INTERVAL]) extends ExtensionMethods[DATE, P1] {
+              implicit tm: TypeMapper[INTERVAL], tm1: TypeMapper[DATE], tm2: TypeMapper[TIME], tm3: TypeMapper[TIMESTAMP])
+                    extends ExtensionMethods[DATE, P1] {
+
     def + [P2, R](e: Column[P2])(implicit om: o#arg[TIME, P2]#to[TIMESTAMP, R]) = {
         om(DateLibrary.+.column[TIMESTAMP](n, Node(e)))
       }
@@ -94,7 +100,9 @@ trait PgDateExtensions {
   }
 
   class IntervalColumnExtensionMethods[P1](val c: Column[P1])(
-            implicit tm: TypeMapper[INTERVAL]) extends ExtensionMethods[INTERVAL, P1] {
+              implicit tm: TypeMapper[INTERVAL], tm1: TypeMapper[DATE], tm2: TypeMapper[TIME], tm3: TypeMapper[TIMESTAMP])
+                    extends ExtensionMethods[INTERVAL, P1] {
+
     def + [P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[INTERVAL, R]) = {
         om(DateLibrary.+.column(n, Node(e)))
       }

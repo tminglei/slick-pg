@@ -1,4 +1,5 @@
-package com.github.tminglei.slickpg.hstore
+package com.github.tminglei.slickpg
+package hstore
 
 import scala.slick.ast.Library.{SqlFunction, SqlOperator}
 import scala.slick.lifted.{ExtensionMethods, TypeMapper, Column}
@@ -21,39 +22,38 @@ trait PgHStoreExtensions {
 
   /** Extension methods for hstore Columns */
   class HStoreColumnExtensionMethods[P1](val c: Column[P1])(
-              implicit tm: TypeMapper[Map[String, String]], tm1: TypeMapper[List[String]])
-                      extends ExtensionMethods[Map[String, String], P1] {
+              implicit tm: TypeMapper[Map[String, String]], tm1: TypeMapper[List[String]]) extends ExtensionMethods[Map[String, String], P1] {
 
     def +>[P2, R](k: Column[P2])(implicit om: o#arg[String, P2]#to[String, R]) = {
-      om(HStoreLibrary.On.column[String](n, Node(k)))
-    }
+        om(HStoreLibrary.On.column[String](n, Node(k)))
+      }
     def >>[T: TypeMapper](k: Column[String]) = {
-      Library.Cast.column[T](HStoreLibrary.On(n, Node(k)))
-    }
+        Library.Cast.column[T](HStoreLibrary.On(n, Node(k)))
+      }
     def ??[P2, R](k: Column[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
-      om(HStoreLibrary.Exist.column(n, Node(k)))
-    }
+        om(HStoreLibrary.Exist.column(n, Node(k)))
+      }
     def ?&[P2, R](k: Column[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
-      om(HStoreLibrary.Defined.column(n, Node(k)))
-    }
+        om(HStoreLibrary.Defined.column(n, Node(k)))
+      }
     def @>[P2, R](c2: Column[P2])(implicit om: o#arg[Map[String, String], P2]#to[Boolean, R]) = {
-      om(HStoreLibrary.Contains.column(n, Node(c2)))
-    }
+        om(HStoreLibrary.Contains.column(n, Node(c2)))
+      }
     def <@:[P2, R](c2: Column[P2])(implicit om: o#arg[Map[String, String], P2]#to[Boolean, R]) = {
-      om(HStoreLibrary.ContainedBy.column(Node(c2), n))
-    }
+        om(HStoreLibrary.ContainedBy.column(Node(c2), n))
+      }
 
     def @+[P2, R](c2: Column[P2])(implicit om: o#arg[Map[String, String], P2]#to[Map[String, String], R]) = {
-      om(HStoreLibrary.Concatenate.column[Map[String, String]](n, Node(c2)))
-    }
+        om(HStoreLibrary.Concatenate.column[Map[String, String]](n, Node(c2)))
+      }
     def @-[P2, R](c2: Column[P2])(implicit om: o#arg[Map[String, String], P2]#to[Map[String, String], R]) = {
-      om(HStoreLibrary.Delete.column[Map[String, String]](n, Node(c2)))
-    }
+        om(HStoreLibrary.Delete.column[Map[String, String]](n, Node(c2)))
+      }
     def --[P2, R](c2: Column[P2])(implicit om: o#arg[List[String], P2]#to[Map[String, String], R]) = {
-      om(HStoreLibrary.Delete.column[Map[String, String]](n, Node(c2)))
-    }
+        om(HStoreLibrary.Delete.column[Map[String, String]](n, Node(c2)))
+      }
     def -/[P2, R](c2: Column[P2])(implicit om: o#arg[String, P2]#to[Map[String, String], R]) = {
-      om(HStoreLibrary.Delete.column[Map[String, String]](n, Node(c2)))
-    }
+        om(HStoreLibrary.Delete.column[Map[String, String]](n, Node(c2)))
+      }
   }
 }

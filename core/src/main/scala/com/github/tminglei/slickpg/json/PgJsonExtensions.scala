@@ -1,4 +1,5 @@
-package com.github.tminglei.slickpg.json
+package com.github.tminglei.slickpg
+package json
 
 import scala.slick.ast.Library.{SqlFunction, SqlOperator}
 import scala.slick.lifted.{ExtensionMethods, TypeMapper, Column}
@@ -6,7 +7,7 @@ import scala.slick.ast.Node
 
 trait PgJsonExtensions {
   
-  type JSONTYPE
+  type JSONType
 
   object JsonLibrary {
     val ->  = new SqlOperator("->")
@@ -25,30 +26,30 @@ trait PgJsonExtensions {
   }
 
   class JsonColumnExtensionMethods[P1](val c: Column[P1])(
-                implicit tm: TypeMapper[JSONTYPE], tm1: TypeMapper[List[String]])
-                        extends ExtensionMethods[JSONTYPE, P1] {
+                implicit tm: TypeMapper[JSONType], tm1: TypeMapper[List[String]]) extends ExtensionMethods[JSONType, P1] {
+
     /** Note: json array's index starts with 0   */
-    def ~> [P2, R](index: Column[P2])(implicit om: o#arg[Int, P2]#to[JSONTYPE, R]) = {
-      om(JsonLibrary.->.column[JSONTYPE](n, Node(index)))
-    }
+    def ~> [P2, R](index: Column[P2])(implicit om: o#arg[Int, P2]#to[JSONType, R]) = {
+        om(JsonLibrary.->.column[JSONType](n, Node(index)))
+      }
     def ~>>[P2, R](index: Column[P2])(implicit om: o#arg[Int, P2]#to[String, R]) = {
-      om(JsonLibrary.->>.column[String](n, Node(index)))
-    }
-    def +> [P2, R](key: Column[P2])(implicit om: o#arg[String, P2]#to[JSONTYPE, R]) = {
-      om(JsonLibrary.->.column[JSONTYPE](n, Node(key)))
-    }
+        om(JsonLibrary.->>.column[String](n, Node(index)))
+      }
+    def +> [P2, R](key: Column[P2])(implicit om: o#arg[String, P2]#to[JSONType, R]) = {
+        om(JsonLibrary.->.column[JSONType](n, Node(key)))
+      }
     def +>>[P2, R](key: Column[P2])(implicit om: o#arg[String, P2]#to[String, R]) = {
-      om(JsonLibrary.->>.column[String](n, Node(key)))
-    }
-    def #> [P2, R](keyPath: Column[P2])(implicit om: o#arg[List[String], P2]#to[JSONTYPE, R]) = {
-      om(JsonLibrary.#>.column[JSONTYPE](n, Node(keyPath)))
-    }
+        om(JsonLibrary.->>.column[String](n, Node(key)))
+      }
+    def #> [P2, R](keyPath: Column[P2])(implicit om: o#arg[List[String], P2]#to[JSONType, R]) = {
+        om(JsonLibrary.#>.column[JSONType](n, Node(keyPath)))
+      }
     def #>>[P2, R](keyPath: Column[P2])(implicit om: o#arg[List[String], P2]#to[String, R]) = {
-      om(JsonLibrary.#>>.column[String](n, Node(keyPath)))
-    }
+        om(JsonLibrary.#>>.column[String](n, Node(keyPath)))
+      }
 
     def arrayLength[R](implicit om: o#to[Int, R]) = om(JsonLibrary.arrayLength.column(n))
-    def arrayElements[R](implicit om: o#to[JSONTYPE, R]) = om(JsonLibrary.arrayElements.column(n))
+    def arrayElements[R](implicit om: o#to[JSONType, R]) = om(JsonLibrary.arrayElements.column(n))
     def objectKeys[R](implicit om: o#to[String, R]) = om(JsonLibrary.objectKeys.column(n))
   }
 }

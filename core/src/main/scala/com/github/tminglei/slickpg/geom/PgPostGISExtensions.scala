@@ -1,49 +1,53 @@
-package com.github.tminglei.slickpg.geom
+package com.github.tminglei.slickpg
+package geom
 
-import scala.slick.lifted.{ConstColumn, ExtensionMethods, OptionMapperDSL, Column}
+import scala.slick.lifted._
 import scala.slick.ast.{LiteralNode, Node}
 import scala.slick.ast.Library.{SqlFunction, SqlOperator}
+import scala.Some
 
 trait PgPostGISExtensions {
 
   type GEOMETRY
   type POINT <: GEOMETRY
   type LINESTRING <: GEOMETRY
+  type POLYGON <: GEOMETRY
+  type GEOMETRYCOLLECTION <: GEOMETRY
 
   trait PostGISAssistants {
     /** Geometry Constructors */
-    def geomFromText[P, R](wkt: Column[P], srid: Option[Int] = None)(implicit om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) =
+    def geomFromText[P, R](wkt: Column[P], srid: Option[Int] = None)(implicit tm: TypeMapper[GEOMETRY], om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) =
       srid match {
         case Some(srid) => om(GeomLibrary.GeomFromText.column[GEOMETRY](Node(wkt), LiteralNode(srid)))
         case None   => om(GeomLibrary.GeomFromText.column[GEOMETRY](Node(wkt)))
       }
-    def geomFromWKB[P, R](wkb: Column[P], srid: Option[Int] = None)(implicit om: OptionMapperDSL.arg[Array[Byte], P]#to[GEOMETRY, R]) = 
+    def geomFromWKB[P, R](wkb: Column[P], srid: Option[Int] = None)(implicit tm: TypeMapper[GEOMETRY], om: OptionMapperDSL.arg[Array[Byte], P]#to[GEOMETRY, R]) =
       srid match {
         case Some(srid) => om(GeomLibrary.GeomFromWKB.column[GEOMETRY](Node(wkb), LiteralNode(srid)))
         case None   => om(GeomLibrary.GeomFromWKB.column[GEOMETRY](Node(wkb)))
       }
-    def geomFromEWKT[P, R](ewkt: Column[P])(implicit om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) = {
+    def geomFromEWKT[P, R](ewkt: Column[P])(implicit tm: TypeMapper[GEOMETRY], om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) = {
         om(GeomLibrary.GeomFromEWKT.column[GEOMETRY](Node(ewkt)))
       }
-    def geomFromEWKB[P, R](ewkb: Column[P])(implicit om: OptionMapperDSL.arg[Array[Byte], P]#to[GEOMETRY, R]) = {
+    def geomFromEWKB[P, R](ewkb: Column[P])(implicit tm: TypeMapper[GEOMETRY], om: OptionMapperDSL.arg[Array[Byte], P]#to[GEOMETRY, R]) = {
         om(GeomLibrary.GeomFromEWKB.column[GEOMETRY](Node(ewkb)))
       }
-    def geomFromGML[P, R](gml: Column[P], srid: Option[Int] = None)(implicit om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) = 
+    def geomFromGML[P, R](gml: Column[P], srid: Option[Int] = None)(implicit tm: TypeMapper[GEOMETRY], om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) =
       srid match {
         case Some(srid) => om(GeomLibrary.GeomFromGML.column[GEOMETRY](Node(gml), LiteralNode(srid)))
         case None   => om(GeomLibrary.GeomFromGML.column[GEOMETRY](Node(gml)))
       }
-    def geomFromKML[P, R](kml: Column[P])(implicit om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) = {
+    def geomFromKML[P, R](kml: Column[P])(implicit tm: TypeMapper[GEOMETRY], om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) = {
         om(GeomLibrary.GeomFromKML.column[GEOMETRY](Node(kml)))
       }
-    def geomFromGeoJSON[P, R](json: Column[P])(implicit om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) = {
+    def geomFromGeoJSON[P, R](json: Column[P])(implicit tm: TypeMapper[GEOMETRY], om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) = {
         om(GeomLibrary.GeomFromGeoJSON.column[GEOMETRY](Node(json)))
       }
-    def makeBox[G1 <: GEOMETRY, G2 <: GEOMETRY](lowLeftPoint: Column[G1], upRightPoint: Column[G2]) = {
+    def makeBox[G1 <: GEOMETRY, G2 <: GEOMETRY](lowLeftPoint: Column[G1], upRightPoint: Column[G2])(implicit tm: TypeMapper[GEOMETRY]) = {
         GeomLibrary.MakeBox.column[GEOMETRY](Node(lowLeftPoint), Node(upRightPoint))
       }
     def makePoint[P1, P2, R](x: Column[P1], y: Column[P2], z: Option[Double] = None, m: Option[Double] = None)(
-            implicit om: OptionMapperDSL.arg[Double, P1]#arg[Double, P2]#to[GEOMETRY, R]) = 
+            implicit tm: TypeMapper[GEOMETRY], om: OptionMapperDSL.arg[Double, P1]#arg[Double, P2]#to[GEOMETRY, R]) =
       (z, m) match {
         case (Some(z), Some(m)) => om(GeomLibrary.MakePoint.column[GEOMETRY](Node(x), Node(y), LiteralNode(z), LiteralNode(m)))
         case (Some(z), None) => om(GeomLibrary.MakePoint.column[GEOMETRY](Node(x), Node(y), LiteralNode(z)))
@@ -177,7 +181,10 @@ trait PgPostGISExtensions {
   }
 
   /** Extension methods for hstore Columns */
-  class GeometryColumnExtensionMethods[G1 <: GEOMETRY, P1](val c: Column[P1]) extends ExtensionMethods[G1, P1] {
+  class GeometryColumnExtensionMethods[G1 <: GEOMETRY, P1](val c: Column[P1])(
+            implicit tm: TypeMapper[GEOMETRY], tm1: TypeMapper[POINT], tm2: TypeMapper[LINESTRING], tm3: TypeMapper[POLYGON], tm4: TypeMapper[GEOMETRYCOLLECTION])
+                  extends ExtensionMethods[G1, P1] {
+
     /** Geometry Operators */
     def @&&[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om(GeomLibrary.BoxIntersects.column(n, Node(geom)))
