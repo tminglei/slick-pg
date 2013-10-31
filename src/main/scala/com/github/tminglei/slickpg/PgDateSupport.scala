@@ -4,7 +4,7 @@ import scala.slick.driver.PostgresDriver
 import scala.slick.lifted._
 import java.sql.{Timestamp, Time, Date}
 
-trait PgDateSupport extends date.PgDateExtensions {driver: PostgresDriver =>
+trait PgDateSupport extends date.PgDateExtensions { driver: PostgresDriver =>
 
   type DATE   = Date
   type TIME   = Time
@@ -27,5 +27,4 @@ trait PgDateSupport extends date.PgDateExtensions {driver: PostgresDriver =>
     implicit def intervalColumnExtensionMethods(c: Column[Interval]) = new IntervalColumnExtensionMethods(c)
     implicit def intervalOptColumnExtensionMethods(c: Column[Option[Interval]]) = new IntervalColumnExtensionMethods(c)
   }
-
 }

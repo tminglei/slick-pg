@@ -7,12 +7,14 @@ trait MyPostgresDriver extends PostgresDriver
                           with PgDateSupport
                           with PgRangeSupport
                           with PgHStoreSupport
-                          with PgJsonSupport[text.Document]
+                          with PgJsonSupport
                           with PgSearchSupport
                           with PgPostGISSupport {
-
+  /// for json support
+  type DOCType = text.Document
   override val jsonMethods = org.json4s.native.JsonMethods
 
+  ///
   override val Implicit = new ImplicitsPlus {}
   override val simple = new SimpleQLPlus {}
 
