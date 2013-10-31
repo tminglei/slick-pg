@@ -118,15 +118,15 @@ val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=test", dri
 ```
 
 
-Data types/operators/functions
+Support details
 ------------------------------
-- [Array's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#array "Array's operators/functions")
-- [JSON's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#json "JSON's operators/functions")
-- [Datetime's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#datetime "Datetime's operators/functions")
-- [Range's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#range "Range's operators/functions")
-- [HStore's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#hstore "HStore's operators/functions")
-- [Search's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#search "Search's operators/functions")
-- [Geometry's operators/functions](https://github.com/tminglei/slick-pg/tree/master/src/main/scala/com/github/tminglei.slickpg#geometry "Geometry's operators/functions")
+- Array's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/array "Array's oper/functions")
+- JSON's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/json "JSON's oper/functions")
+- Datetime's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/date "Datetime's oper/functions")
+- Range's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/range "Range's oper/functions")
+- HStore's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/hstore "HStore's oper/functions")
+- Search's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/search "Search's oper/functions")
+- Geometry's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/geom "Geometry's oper/functions")
 
 
 Version history
