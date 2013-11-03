@@ -1,4 +1,4 @@
-Supported Datetime Oper/Functions
+Supported Date/Time Oper/Functions
 ---------------------------------
 
 | Slick Oper/Function | PG Oper/Function |       Description       |                Example                         |           Result         |

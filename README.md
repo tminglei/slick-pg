@@ -2,21 +2,22 @@ Slick-pg
 ========
 [Slick](https://github.com/slick/slick "Slick") extensions for PostgreSQL, to support a series of pg data types and related operators/functions.
 
-####Currently supported data types:
+####Currently supported pg types:
 - ARRAY
-- Datetime(date+time+timestamp+interval)
+- Date/Time
 - Range
 - Hstore
-- Search(tsquery+tsvector)
-- Geometry
+- JSON
+- `text` Search
+- `postgis` Geometry
 
-** tested on `postgreSQL 9.2` with `Slick 1.0`.
+** tested on `postgreSQL 9.3` with `Slick 1.0`.
 
 Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.1" % "0.1.5.1"
+libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.1" % "0.2.0"
 ```
 
 Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg` to your `pom.xml` like this:
@@ -24,7 +25,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.10.1</artifactId>
-    <version>0.1.5.1</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
@@ -39,10 +40,15 @@ trait MyPostgresDriver extends PostgresDriver
                           with PgArraySupport
                           with PgDatetimeSupport
                           with PgRangeSupport
+                          with PgJsonSupport
                           with PgHStoreSupport
                           with PgSearchSupport
                           with PostGISSupport {
+  /// for json support
+  type DOCType = text.Document
+  override val jsonMethods = org.json4s.native.JsonMethods
 
+  ///
   override val Implicit = new ImplicitsPlus {}
   override val simple = new SimpleQLPlus {}
 
@@ -52,6 +58,7 @@ trait MyPostgresDriver extends PostgresDriver
                         with DatetimeImplicits
                         with RangeImplicits
                         with HStoreImplicits
+                        with JsonImplicits
                         with SearchImplicits
                         with PostGISImplicits
 
@@ -96,6 +103,26 @@ object TestTable extends Table[Test](Some("xxx"), "Test") {
  
 ```
 
+Configurable type/mappers
+-------------------------
+Since v0.2.0, `slick-pg` started to support configurable type/mappers.
+
+Some related technical details are as below:
+```
+All pg type oper/functions related codes and some core type mapper logics were extracted to a new sub project "slick-pg_core", and the oper/functions and type/mappers binding related codes were retained in the main project "slick-pg".
+```
+
+**So, if you need bind different scala type/mappers to a pg type oper/functions, you can do it as "slick-pg" currently did.**
+
+####Built in supported type/mappers:
+- List[T] -> Pg ARRAY
+- java.sql.Date/Time/Timestamp -> Pg Date/Time
+- Range[T] -> Pg Range
+- Map[String,String] -> Pg HStore
+- org.json4s.JValue -> Pg JSON
+- (TsQuery+TsVector) -> Pg `text` Search
+- jts.geom.Geometry -> Pg `postgis` Geometry
+
 Build instructions
 ------------------
 `slick-pg` uses sbt for building. Assume you have already installed sbt, then you can simply clone the git repository and build `slick-pg` in the following way:
@@ -122,7 +149,7 @@ Support details
 ------------------------------
 - Array's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/array "Array's oper/functions")
 - JSON's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/json "JSON's oper/functions")
-- Datetime's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/date "Datetime's oper/functions")
+- Date/Time's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/date "Date/Time's oper/functions")
 - Range's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/range "Range's oper/functions")
 - HStore's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/hstore "HStore's oper/functions")
 - Search's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/search "Search's oper/functions")
@@ -131,20 +158,14 @@ Support details
 
 Version history
 ---------------
+v0.2.0 (01-Nov-2013):  
+1) re-arch to support configurable type/mappers
+
 v0.1.5 (29-Sep-2013):  
 1) support pg json
 
-v0.1.3.1 (13-Sep-2013):  
-1) fix Issue #10
-
-v0.1.3 (27-Aug-2013):  
-1) fix array type mapper' s updating bug (introduced by 52442d6)  
-
 v0.1.2 (31-Jul-2013):  
 1) add pg datetime support  
-
-v0.1.1 (8-Jul-2013):  
-1) supplement pg array support  
 
 v0.1.0 (20-May-2013):  
 1) support pg array  
@@ -158,7 +179,7 @@ Existing issues
 ----------------
 1) When using `slick-pg`'s uuid array support, you maybe encountered an exception said like 'Method `Jdbc4Array.getArrayImpl(long,int,Map)` is not yet implemented'.
 That's because uuid array is not supported by postgres jdbc driver yet.  
-I have submitted enhancement changes to postgres jdbc driver's development team, pls see [Add uuid array support](https://github.com/pgjdbc/pgjdbc/pull/50 "Add uuid array support") for details.  
+I have submitted enhancement changes to postgres jdbc driver's development team, pls see [add uuid array support](https://github.com/pgjdbc/pgjdbc/pull/81 "add uuid array support") for details.
 
 
 License
