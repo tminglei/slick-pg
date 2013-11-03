@@ -157,8 +157,8 @@ Support details
 
 Version history
 ---------------
-v0.2.1 (03-Nov-2013):
-1) add type/mapper for threetenbp LocalDate/LocalTime/LocalDateTime/Duration, binding to Pg Date/Time
+v0.2.1 (03-Nov-2013):  
+1) add type/mappers for threetenbp LocalDate/LocalTime/LocalDateTime/Duration, binding to Pg Date/Time
 
 v0.2.0 (01-Nov-2013):  
 1) re-arch to support configurable type/mappers
