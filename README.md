@@ -107,10 +107,8 @@ Configurable type/mappers
 -------------------------
 Since v0.2.0, `slick-pg` started to support configurable type/mappers.
 
-Some related technical details are as below:
-```
-All pg type oper/functions related codes and some core type mapper logics were extracted to a new sub project "slick-pg_core", and the oper/functions and type/mappers binding related codes were retained in the main project "slick-pg".
-```
+Here's the related technical details:
+> All pg type oper/functions related codes and some core type mapper logics were extracted to a new sub project "slick-pg_core", and the oper/functions and type/mappers binding related codes were retained in the main project "slick-pg".
 
 **So, if you need bind different scala type/mappers to a pg type oper/functions, you can do it as "slick-pg" currently did.**
 
