@@ -11,7 +11,7 @@ trait PgDateSupport extends date.PgDateExtensions { driver: PostgresDriver =>
   type TIMESTAMP = Timestamp
   type INTERVAL  = Interval
 
-  trait DatetimeImplicits {
+  trait DateTimeImplicits {
     implicit val intervalTypeMapper = new utils.GenericTypeMapper[Interval]("interval", Interval.apply)
 
     ///

@@ -116,10 +116,11 @@ All pg type oper/functions related codes and some core type mapper logics were e
 
 ####Built in supported type/mappers:
 - List[T] -> Pg ARRAY
-- java.sql.Date/Time/Timestamp -> Pg Date/Time
-- Range[T] -> Pg Range
+- sql.Date/Time/Timestamp/tminglei.slickpg.Interval -> Pg Date/Time
+- threeten.bp.LocalDate/LocalTime/LocalDateTime/Duration -> Pg Date/Time
+- tminglei.slickpg.Range[T] -> Pg Range
 - Map[String,String] -> Pg HStore
-- org.json4s.JValue -> Pg JSON
+- json4s.JValue -> Pg JSON
 - (TsQuery+TsVector) -> Pg `text` Search
 - jts.geom.Geometry -> Pg `postgis` Geometry
 
@@ -158,6 +159,9 @@ Support details
 
 Version history
 ---------------
+v0.2.1 (03-Nov-2013):
+1) add type/mapper for threetenbp LocalDate/LocalTime/LocalDateTime/Duration, binding to Pg Date/Time
+
 v0.2.0 (01-Nov-2013):  
 1) re-arch to support configurable type/mappers
 
