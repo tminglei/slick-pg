@@ -113,14 +113,17 @@ Here's the related technical details:
 **So, if you need bind different scala type/mappers to a pg type oper/functions, you can do it as "slick-pg" currently did.**
 
 ####Built in supported type/mappers:
-- List[T] -> Pg ARRAY
-- sql.Date/Time/Timestamp/tminglei.slickpg.Interval -> Pg Date/Time
-- threeten.bp.LocalDate/LocalTime/LocalDateTime/Duration -> Pg Date/Time
-- tminglei.slickpg.Range[T] -> Pg Range
-- Map[String,String] -> Pg HStore
-- json4s.JValue -> Pg JSON
-- (TsQuery+TsVector) -> Pg `text` Search
-- jts.geom.Geometry -> Pg `postgis` Geometry
+|          scala Type                 |        pg Type        |
+| ----------------------------------- | --------------------- |
+| List[T]                             | Pg ARRAY              |
+| sql.Date/Time/Timestamp + tminglei.slickpg.Interval | Pg Date/Time |
+| threeten.bp.LocalDate/LocalTime/LocalDateTime/Duration | Pg Date/Time |
+| tminglei.slickpg.Range[T]           | Pg Range              |
+| Map[String,String]                  | Pg HStore             |
+| json4s.JValue                       | Pg JSON               |
+| (TsQuery+TsVector)                  | Pg `text` Search      |
+| jts.geom.Geometry                   | Pg `postgis` Geometry |
+
 
 Build instructions
 ------------------
