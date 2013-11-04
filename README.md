@@ -164,8 +164,8 @@ Support details
 Version history
 ---------------
 v0.2.1 (03-Nov-2013)/0.2.2 (04-Nov-2013):  
-1) support jada LocalDate/LocalTime/LocalDateTime/Period, binding to Pg Date/Time  
-2) support threetenbp LocalDate/LocalTime/LocalDateTime/Duration, binding to Pg Date/Time
+1) support Joda date/time, binding to Pg Date/Time  
+2) support threetenbp date/time, binding to Pg Date/Time
 
 v0.2.0 (01-Nov-2013):  
 1) re-arch to support configurable type/mappers
