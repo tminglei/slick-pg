@@ -11,7 +11,7 @@ Slick-pg
 - `text` Search
 - `postgis` Geometry
 
-** tested on `postgreSQL 9.3` with `Slick 1.0`.
+** _tested on `postgreSQL 9.3` with `Slick 1.0`._
 
 Install
 -------
@@ -111,6 +111,8 @@ Here's the related technical details:
 > All pg type oper/functions related codes and some core type mapper logics were extracted to a new sub project "slick-pg_core", and the oper/functions and type/mappers binding related codes were retained in the main project "slick-pg".
 
 **So, if you need bind different scala type/mappers to a pg type oper/functions, you can do it as "slick-pg" currently did.**
+
+** _ps: existing app codes won't be impacted._
 
 ####Built in supported type/mappers:
 |          scala Type                 |        pg Type        |
