@@ -36,8 +36,17 @@ trait MyPostgresDriver extends PostgresDriver
 
 object MyPostgresDriver extends MyPostgresDriver
 
+///
 object MyPostgresDriver2 extends PostgresDriver
                             with PgDateSupport2bp {
+
+  override val Implicit = new Implicits with DateTimeImplicits
+  override val simple = new Implicits with SimpleQL with DateTimeImplicits
+}
+
+///
+object MyPostgresDriver3 extends PostgresDriver
+                            with PgDateSupportJoda {
 
   override val Implicit = new Implicits with DateTimeImplicits
   override val simple = new Implicits with SimpleQL with DateTimeImplicits

@@ -17,7 +17,7 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.1" % "0.2.1"
+libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.1" % "0.2.2"
 ```
 
 Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg` to your `pom.xml` like this:
@@ -25,7 +25,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.10.1</artifactId>
-    <version>0.2.1</version>
+    <version>0.2.2</version>
 </dependency>
 ```
 
@@ -117,6 +117,7 @@ Here's the related technical details:
 | ----------------------------------- | --------------------- |
 | List[T]                             | Pg ARRAY              |
 | sql.Date/Time/Timestamp + tminglei.slickpg.Interval | Pg Date/Time |
+| jada.time.LocalDate/LocalTime/LocalDateTime/Period  | Pg Date/Time |
 | threeten.bp.LocalDate/LocalTime/LocalDateTime/Duration | Pg Date/Time |
 | tminglei.slickpg.Range[T]           | Pg Range              |
 | Map[String,String]                  | Pg HStore             |
@@ -160,8 +161,9 @@ Support details
 
 Version history
 ---------------
-v0.2.1 (03-Nov-2013):  
-1) add type/mappers for threetenbp LocalDate/LocalTime/LocalDateTime/Duration, binding to Pg Date/Time
+v0.2.1 (03-Nov-2013)/0.2.2 (04-Nov-2013):
+1) support jada LocalDate/LocalTime/LocalDateTime/Period, binding to Pg Date/Time
+2) support threetenbp LocalDate/LocalTime/LocalDateTime/Duration, binding to Pg Date/Time
 
 v0.2.0 (01-Nov-2013):  
 1) re-arch to support configurable type/mappers

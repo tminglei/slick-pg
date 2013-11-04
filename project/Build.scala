@@ -75,6 +75,8 @@ object SlickPgBuild extends Build {
       "org.postgresql" % "postgresql" % "9.2-1003-jdbc4",
       "com.vividsolutions" % "jts" % "1.13",
       "org.threeten" % "threetenbp" % "0.8.1",
+      "joda-time" % "joda-time" % "2.3",
+      "org.joda" % "joda-convert" % "1.5",
       "org.json4s" % "json4s-ast_2.10" % "3.2.5",
       "org.json4s" % "json4s-core_2.10" % "3.2.5",
       "org.json4s" % "json4s-native_2.10" % "3.2.5" % "test",
