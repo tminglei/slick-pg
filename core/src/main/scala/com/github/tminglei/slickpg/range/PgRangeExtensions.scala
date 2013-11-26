@@ -2,10 +2,13 @@ package com.github.tminglei.slickpg
 package range
 
 import scala.slick.ast.Library.SqlOperator
-import scala.slick.lifted.{ExtensionMethods, Column}
+import scala.slick.lifted.{FunctionSymbolExtensionMethods, ExtensionMethods, Column}
 import scala.slick.jdbc.JdbcType
+import scala.slick.driver.PostgresDriver
+import scala.slick.ast.Library
 
-trait PgRangeExtensions extends utils.ImplicitJdbcTypes {
+trait PgRangeExtensions extends PostgresDriver.ImplicitColumnTypes {
+  import FunctionSymbolExtensionMethods._
 
   type RANGEType[T]
 
@@ -28,13 +31,13 @@ trait PgRangeExtensions extends utils.ImplicitJdbcTypes {
               implicit tm: JdbcType[B0], tm1: JdbcType[RANGEType[B0]]) extends ExtensionMethods[RANGEType[B0], P1] {
 
     def @>^[P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[Boolean, R]) = {
-        om.column(RangeLibrary.Contains, n, e.toNode)
+        om.column(RangeLibrary.Contains, n, Library.Cast.column[B0](e.toNode).toNode)
       }
     def @>[P2, R](e: Column[P2])(implicit om: o#arg[RANGEType[B0], P2]#to[Boolean, R]) = {
         om.column(RangeLibrary.Contains, n, e.toNode)
       }
     def <@^:[P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[Boolean, R]) = {
-        om.column(RangeLibrary.ContainedBy, e.toNode, n)
+        om.column(RangeLibrary.ContainedBy, Library.Cast.column[B0](e.toNode).toNode, n)
       }
     def <@:[P2, R](e: Column[P2])(implicit om: o#arg[RANGEType[B0], P2]#to[Boolean, R]) = {
         om.column(RangeLibrary.ContainedBy, e.toNode, n)

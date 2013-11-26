@@ -14,9 +14,11 @@ trait PgJsonSupport extends json.PgJsonExtensions { driver: PostgresDriver =>
 
   trait JsonImplicits {
     implicit val jsonTypeMapper =
-      new utils.GenericJdbcType[JValue]("json",
+      new utils.GenericJdbcType[JValue](
+        "json",
         (v) => jsonMethods.parse(v),
-        (v) => jsonMethods.compact(jsonMethods.render(v))
+        (v) => jsonMethods.compact(jsonMethods.render(v)),
+        false
       )
 
     implicit def jsonColumnExtensionMethods(c: Column[JValue])(

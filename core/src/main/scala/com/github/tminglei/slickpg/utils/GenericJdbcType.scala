@@ -6,8 +6,10 @@ import scala.slick.jdbc.{PositionedResult, PositionedParameters, JdbcType}
 import scala.slick.ast.{ScalaBaseType, ScalaType, BaseTypedType}
 import scala.reflect.ClassTag
 
-class GenericJdbcType[T](pgTypeName: String, fnFromString: (String => T),
-                         fnToString: (T => String) = ((r: T) => r.toString))(
+class GenericJdbcType[T](pgTypeName: String,
+                         fnFromString: (String => T),
+                         fnToString: (T => String) = ((r: T) => r.toString),
+                         val hasLiteralForm: Boolean = true)(
               implicit tag: ClassTag[T]) extends JdbcType[T] with BaseTypedType[T] {
 
   def scalaType: ScalaType[T] = ScalaBaseType[T]
@@ -25,8 +27,6 @@ class GenericJdbcType[T](pgTypeName: String, fnFromString: (String => T),
   def nextValue(r: PositionedResult): T = r.nextStringOption().map(fnFromString).getOrElse(zero)
 
   def updateValue(v: T, r: PositionedResult) = r.updateObject(mkPgObject(v))
-
-  def hasLiteralForm: Boolean = true
 
   override def valueToSQLLiteral(v: T) = fnToString(v)
 

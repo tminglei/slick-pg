@@ -4,8 +4,9 @@ package date
 import scala.slick.ast.Library.{SqlFunction, SqlOperator}
 import scala.slick.lifted.{ExtensionMethods, Column}
 import scala.slick.jdbc.JdbcType
+import scala.slick.driver.PostgresDriver
 
-trait PgDateExtensions extends utils.ImplicitJdbcTypes {
+trait PgDateExtensions extends PostgresDriver.ImplicitColumnTypes {
 
   type DATE
   type TIME

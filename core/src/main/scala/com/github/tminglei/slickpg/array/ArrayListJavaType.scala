@@ -28,7 +28,7 @@ class ArrayListJavaType[T: ClassTag](pgBaseType: String) extends JdbcType[List[T
 
   def updateValue(v: List[T], r: PositionedResult) = r.updateObject(mkArray(v))
 
-  def hasLiteralForm: Boolean = true
+  def hasLiteralForm: Boolean = false
 
   override def valueToSQLLiteral(v: List[T]) = mkArray(v).toString
 

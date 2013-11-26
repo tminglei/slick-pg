@@ -4,9 +4,10 @@ package array
 import scala.slick.ast.Library.{SqlOperator, SqlFunction}
 import scala.slick.lifted.{LiteralColumn, ExtensionMethods, Column}
 import scala.slick.jdbc.JdbcType
+import scala.slick.driver.PostgresDriver
 
-trait PgArrayExtensions extends utils.ImplicitJdbcTypes {
-  
+trait PgArrayExtensions extends PostgresDriver.ImplicitColumnTypes {
+
   object ArrayLibrary {
     val Any = new SqlFunction("any")
     val All = new SqlFunction("all")

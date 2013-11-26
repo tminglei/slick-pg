@@ -5,8 +5,9 @@ import scala.slick.lifted.{FunctionSymbolExtensionMethods, OptionMapperDSL, Colu
 import scala.slick.ast.{Library, LiteralNode}
 import scala.slick.ast.Library.{SqlFunction, SqlOperator}
 import scala.slick.jdbc.JdbcType
+import scala.slick.driver.PostgresDriver
 
-trait PgSearchExtensions extends utils.ImplicitJdbcTypes {
+trait PgSearchExtensions extends PostgresDriver.ImplicitColumnTypes {
   import FunctionSymbolExtensionMethods._
 
   case class TsVector[P: JdbcType](text: Column[P], shadow: Boolean = false) extends Column[P] {

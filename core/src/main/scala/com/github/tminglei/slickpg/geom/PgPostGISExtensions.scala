@@ -6,8 +6,9 @@ import scala.slick.ast.{LiteralNode}
 import scala.slick.ast.Library.{SqlFunction, SqlOperator}
 import scala.Some
 import scala.slick.jdbc.JdbcType
+import scala.slick.driver.PostgresDriver
 
-trait PgPostGISExtensions extends utils.ImplicitJdbcTypes {
+trait PgPostGISExtensions extends PostgresDriver.ImplicitColumnTypes {
 
   type GEOMETRY
   type POINT <: GEOMETRY
