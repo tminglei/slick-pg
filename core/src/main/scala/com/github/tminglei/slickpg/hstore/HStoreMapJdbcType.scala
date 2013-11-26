@@ -1,17 +1,17 @@
 package com.github.tminglei.slickpg
 package hstore
 
-import scala.slick.lifted.{BaseTypeMapper, TypeMapperDelegate}
-import scala.slick.driver.BasicProfile
-import scala.slick.session.{PositionedResult, PositionedParameters}
 import scala.collection.convert.{WrapAsJava, WrapAsScala}
 import org.postgresql.util.{PGobject, HStoreConverter}
+import scala.slick.jdbc.{PositionedResult, PositionedParameters, JdbcType}
+import scala.slick.ast.{ScalaBaseType, ScalaType, BaseTypedType}
+import scala.reflect.ClassTag
 
-class HStoreTypeMapper extends TypeMapperDelegate[Map[String, String]] with BaseTypeMapper[Map[String, String]] {
+class HStoreMapJdbcType(implicit tag: ClassTag[Map[String, String]])
+            extends JdbcType[Map[String, String]] with BaseTypedType[Map[String, String]] {
 
-  def apply(v1: BasicProfile): TypeMapperDelegate[Map[String, String]] = this
+  def scalaType: ScalaType[Map[String, String]] = ScalaBaseType[Map[String, String]]
 
-  //----------------------------------------------------------
   def zero = Map.empty[String, String]
 
   def sqlType = java.sql.Types.OTHER
@@ -29,6 +29,8 @@ class HStoreTypeMapper extends TypeMapperDelegate[Map[String, String]] with Base
   }
 
   def updateValue(v: Map[String, String], r: PositionedResult) = r.updateObject(WrapAsJava.mapAsJavaMap(v))
+
+  def hasLiteralForm: Boolean = true
 
   override def valueToSQLLiteral(v: Map[String, String]) = HStoreConverter.toString(WrapAsJava.mapAsJavaMap(v))
 

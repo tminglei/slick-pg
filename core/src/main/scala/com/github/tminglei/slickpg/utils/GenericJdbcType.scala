@@ -1,18 +1,17 @@
 package com.github.tminglei.slickpg
 package utils
 
-import scala.slick.lifted.{BaseTypeMapper, TypeMapperDelegate}
-import scala.slick.driver.BasicProfile
-import scala.slick.session.{PositionedResult, PositionedParameters}
 import org.postgresql.util.PGobject
+import scala.slick.jdbc.{PositionedResult, PositionedParameters, JdbcType}
+import scala.slick.ast.{ScalaBaseType, ScalaType, BaseTypedType}
+import scala.reflect.ClassTag
 
-class GenericTypeMapper[T](pgTypeName: String, fnFromString: (String => T),
-                           fnToString: (T => String) = ((r: T) => r.toString))
-                extends TypeMapperDelegate[T] with BaseTypeMapper[T] {
+class GenericJdbcType[T](pgTypeName: String, fnFromString: (String => T),
+                         fnToString: (T => String) = ((r: T) => r.toString))(
+              implicit tag: ClassTag[T]) extends JdbcType[T] with BaseTypedType[T] {
 
-  def apply(v1: BasicProfile): TypeMapperDelegate[T] = this
+  def scalaType: ScalaType[T] = ScalaBaseType[T]
 
-  //-----------------------------------------------------------------
   def zero: T = null.asInstanceOf[T]
 
   def sqlType: Int = java.sql.Types.OTHER
@@ -26,6 +25,8 @@ class GenericTypeMapper[T](pgTypeName: String, fnFromString: (String => T),
   def nextValue(r: PositionedResult): T = r.nextStringOption().map(fnFromString).getOrElse(zero)
 
   def updateValue(v: T, r: PositionedResult) = r.updateObject(mkPgObject(v))
+
+  def hasLiteralForm: Boolean = true
 
   override def valueToSQLLiteral(v: T) = fnToString(v)
 

@@ -1,55 +1,57 @@
 package com.github.tminglei.slickpg
 package search
 
-import scala.slick.lifted.{OptionMapperDSL, Column, TypeMapper}
-import scala.slick.ast.{Library, LiteralNode, Node}
+import scala.slick.lifted.{FunctionSymbolExtensionMethods, OptionMapperDSL, Column}
+import scala.slick.ast.{Library, LiteralNode}
 import scala.slick.ast.Library.{SqlFunction, SqlOperator}
+import scala.slick.jdbc.JdbcType
 
-trait PgSearchExtensions {
+trait PgSearchExtensions extends utils.ImplicitJdbcTypes {
+  import FunctionSymbolExtensionMethods._
 
-  case class TsVector[P: TypeMapper](text: Column[P], shadow: Boolean = false) extends Column[P] {
-    def nodeDelegate = if (shadow) text.nodeDelegate else SearchLibrary.ToTsVector.typed[P](Node(text))
+  case class TsVector[P: JdbcType](text: Column[P], shadow: Boolean = false) extends Column[P] {
+    def toNode = if (shadow) text.toNode else SearchLibrary.ToTsVector.column[P](text.toNode).toNode
   }
-  case class TsQuery[P: TypeMapper](query: Column[P], shadow: Boolean = false) extends Column[P] {
-    def nodeDelegate = if (shadow) query.nodeDelegate else SearchLibrary.ToTsQuery.typed[P](Node(query))
+  case class TsQuery[P: JdbcType](query: Column[P], shadow: Boolean = false) extends Column[P] {
+    def toNode = if (shadow) query.toNode else SearchLibrary.ToTsQuery.column[P](query.toNode).toNode
   }
 
   //----------------------------------------------------------------------
 
   trait SearchAssistants {
-    def tsVector[P: TypeMapper](text: Column[P]) = TsVector(text)
-    def tsQuery[P: TypeMapper](query: Column[P]) = TsQuery(query)
+    def tsVector[P: JdbcType](text: Column[P]) = TsVector(text)
+    def tsQuery[P: JdbcType](query: Column[P]) = TsQuery(query)
 
-    def tsPlainQuery[P: TypeMapper](query: Column[P]) = {
-      TsQuery(SearchLibrary.PlainToTsQuery.column[P](Node(query)), shadow = true)
+    def tsPlainQuery[P: JdbcType](query: Column[P]) = {
+      TsQuery(SearchLibrary.PlainToTsQuery.column[P](query.toNode), shadow = true)
     }
 
     def tsHeadline[P1, P2, R](text: Column[P1], query: TsQuery[P2], config: Option[String] = None, options: Option[String] = None)(
                   implicit om: OptionMapperDSL.arg[String, P1]#arg[String, P2]#to[String, R]) =
       (config, options) match {
-        case (Some(conf), Some(opt)) => om(SearchLibrary.TsHeadline.column(LiteralNode(conf), Node(text), Node(query), LiteralNode(opt)))
-        case (Some(conf), None) => om(SearchLibrary.TsHeadline.column(LiteralNode(conf), Node(text), Node(query)))
-        case (None, Some(opt))  => om(SearchLibrary.TsHeadline.column(Node(text), Node(query), LiteralNode(opt)))
-        case (None, None)       => om(SearchLibrary.TsHeadline.column(Node(text), Node(query)))
+        case (Some(conf), Some(opt)) => om.column(SearchLibrary.TsHeadline, LiteralNode(conf), text.toNode, query.toNode, LiteralNode(opt))
+        case (Some(conf), None) => om.column(SearchLibrary.TsHeadline, LiteralNode(conf), text.toNode, query.toNode)
+        case (None, Some(opt))  => om.column(SearchLibrary.TsHeadline, text.toNode, query.toNode, LiteralNode(opt))
+        case (None, None)       => om.column(SearchLibrary.TsHeadline, text.toNode, query.toNode)
       }
     def tsRank[P1, P2, R](text: TsVector[P1], query: TsQuery[P2], weights: Option[List[Float]] = None, normalization: Option[Int] = None)(
-                  implicit om: OptionMapperDSL.arg[String, P1]#arg[String, P2]#to[Float, R], tm: TypeMapper[List[Float]]) = {
-      val weightsNode = weights.map(w => Library.Cast.typed[List[Float]](LiteralNode(w)))
+                  implicit om: OptionMapperDSL.arg[String, P1]#arg[String, P2]#to[Float, R], tm: JdbcType[List[Float]]) = {
+      val weightsNode = weights.map(w => Library.Cast.column[List[Float]](LiteralNode(tm, w)).toNode)
       (weights, normalization) match {
-        case (Some(w), Some(n)) => om(SearchLibrary.TsRank.column(weightsNode.get, Node(text), Node(query), LiteralNode(n)))
-        case (Some(w), None)  => om(SearchLibrary.TsRank.column(weightsNode.get, Node(text), Node(query)))
-        case (None, Some(n))  => om(SearchLibrary.TsRank.column(Node(text), Node(query), LiteralNode(n)))
-        case (None, None)     => om(SearchLibrary.TsRank.column(Node(text), Node(query)))
+        case (Some(w), Some(n)) => om.column(SearchLibrary.TsRank, weightsNode.get, text.toNode, query.toNode, LiteralNode(n))
+        case (Some(w), None)  => om.column(SearchLibrary.TsRank, weightsNode.get, text.toNode, query.toNode)
+        case (None, Some(n))  => om.column(SearchLibrary.TsRank, text.toNode, query.toNode, LiteralNode(n))
+        case (None, None)     => om.column(SearchLibrary.TsRank, text.toNode, query.toNode)
       }
     }
     def tsRankCD[P1, P2, R](text: TsVector[P1], query: TsQuery[P2], weights: Option[List[Float]] = None, normalization: Option[Int] = None)(
-                  implicit om: OptionMapperDSL.arg[String, P1]#arg[String, P2]#to[Float, R], tm: TypeMapper[List[Float]]) = {
-      val weightsNode = weights.map(w => Library.Cast.typed[List[Float]](LiteralNode(w)))
+                  implicit om: OptionMapperDSL.arg[String, P1]#arg[String, P2]#to[Float, R], tm: JdbcType[List[Float]]) = {
+      val weightsNode = weights.map(w => Library.Cast.column[List[Float]](LiteralNode(tm, w)).toNode)
       (weights, normalization) match {
-        case (Some(w), Some(n)) => om(SearchLibrary.TsRankCD.column(weightsNode.get, Node(text), Node(query), LiteralNode(n)))
-        case (Some(w), None)  => om(SearchLibrary.TsRankCD.column(weightsNode.get, Node(text), Node(query)))
-        case (None, Some(n))  => om(SearchLibrary.TsRankCD.column(Node(text), Node(query), LiteralNode(n)))
-        case (None, None)     => om(SearchLibrary.TsRankCD.column(Node(text), Node(query)))
+        case (Some(w), Some(n)) => om.column(SearchLibrary.TsRankCD, weightsNode.get, text.toNode, query.toNode, LiteralNode(n))
+        case (Some(w), None)  => om.column(SearchLibrary.TsRankCD, weightsNode.get, text.toNode, query.toNode)
+        case (None, Some(n))  => om.column(SearchLibrary.TsRankCD, text.toNode, query.toNode, LiteralNode(n))
+        case (None, None)     => om.column(SearchLibrary.TsRankCD, text.toNode, query.toNode)
       }
     }
   }
@@ -72,16 +74,16 @@ trait PgSearchExtensions {
     val TsRankCD = new SqlFunction("ts_rank_cd")
   }
 
-  class TsVectorColumnExtensionMethods[P: TypeMapper](val c: TsVector[P]) {
-    def @@(e: TsQuery[P]) = SearchLibrary.Matches.column[Boolean](Node(c), Node(e))
-    def @+(e: TsVector[P]) = TsVector(SearchLibrary.Concatenate.column[P](Node(c), Node(e)), shadow = true)
+  class TsVectorColumnExtensionMethods[P: JdbcType](val c: TsVector[P]) {
+    def @@(e: TsQuery[P]) = SearchLibrary.Matches.column[Boolean](c.toNode, e.toNode)
+    def @+(e: TsVector[P]) = TsVector(SearchLibrary.Concatenate.column[P](c.toNode, e.toNode), shadow = true)
   }
 
-  class TsQueryColumnExtensionMethods[P: TypeMapper](val c: TsQuery[P]) {
-    def @@(e: TsVector[P]) = SearchLibrary.Matches.column[Boolean](Node(c), Node(e))
-    def @&(e: TsQuery[P]) = TsQuery(SearchLibrary.And.column[P](Node(c), Node(e)), shadow = true)
-    def @|(e: TsQuery[P]) = TsQuery(SearchLibrary.Or.column[P](Node(c), Node(e)), shadow = true)
-    def !! = TsQuery(SearchLibrary.Negate.column[P](Node(c)), shadow = true)
-    def @>(e: TsQuery[P]) = SearchLibrary.Contains.column[Boolean](Node(c), Node(e))
+  class TsQueryColumnExtensionMethods[P: JdbcType](val c: TsQuery[P]) {
+    def @@(e: TsVector[P]) = SearchLibrary.Matches.column[Boolean](c.toNode, e.toNode)
+    def @&(e: TsQuery[P]) = TsQuery(SearchLibrary.And.column[P](c.toNode, e.toNode), shadow = true)
+    def @|(e: TsQuery[P]) = TsQuery(SearchLibrary.Or.column[P](c.toNode, e.toNode), shadow = true)
+    def !! = TsQuery(SearchLibrary.Negate.column[P](c.toNode), shadow = true)
+    def @>(e: TsQuery[P]) = SearchLibrary.Contains.column[Boolean](c.toNode, e.toNode)
   }
 }

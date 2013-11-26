@@ -2,17 +2,16 @@ package com.github.tminglei.slickpg
 package date
 
 import java.sql.Timestamp
-import scala.slick.lifted.{BaseTypeMapper, TypeMapperDelegate}
-import scala.slick.driver.BasicProfile
-import scala.slick.session.{PositionedResult, PositionedParameters}
+import scala.slick.jdbc.{PositionedResult, PositionedParameters, JdbcType}
+import scala.slick.ast.{ScalaBaseType, ScalaType, BaseTypedType}
+import scala.reflect.ClassTag
 
-class TimestampTypeMapper[TIMESTAMP](fnFromTimestamp: (Timestamp => TIMESTAMP),
-                                     fnToTimestamp: (TIMESTAMP => Timestamp))
-              extends TypeMapperDelegate[TIMESTAMP] with BaseTypeMapper[TIMESTAMP] {
+class TimestampJdbcType[TIMESTAMP](fnFromTimestamp: (Timestamp => TIMESTAMP),
+                                   fnToTimestamp: (TIMESTAMP => Timestamp))(
+            implicit tag: ClassTag[TIMESTAMP]) extends JdbcType[TIMESTAMP] with BaseTypedType[TIMESTAMP] {
 
-  def apply(v1: BasicProfile): TypeMapperDelegate[TIMESTAMP] = this
+  def scalaType: ScalaType[TIMESTAMP] = ScalaBaseType[TIMESTAMP]
 
-  //-----------------------------------------------------------------
   def zero: TIMESTAMP = null.asInstanceOf[TIMESTAMP]
 
   def sqlType: Int = java.sql.Types.TIMESTAMP
@@ -26,6 +25,8 @@ class TimestampTypeMapper[TIMESTAMP](fnFromTimestamp: (Timestamp => TIMESTAMP),
   def nextValue(r: PositionedResult): TIMESTAMP = r.nextTimestampOption().map(fnFromTimestamp).getOrElse(zero)
 
   def updateValue(v: TIMESTAMP, r: PositionedResult) = r.updateTimestamp(fnToTimestamp(v))
+
+  def hasLiteralForm: Boolean = true
 
   override def valueToSQLLiteral(v: TIMESTAMP) = s"{ts '${fnToTimestamp(v)}'}"
 

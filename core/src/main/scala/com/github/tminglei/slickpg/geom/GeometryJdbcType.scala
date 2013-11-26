@@ -2,17 +2,15 @@ package com.github.tminglei.slickpg
 package geom
 
 import com.vividsolutions.jts.geom.Geometry
-import scala.slick.lifted.{BaseTypeMapper, TypeMapperDelegate}
-import scala.slick.driver.BasicProfile
-import scala.slick.session.{PositionedResult, PositionedParameters}
 import com.vividsolutions.jts.io.{WKBReader, WKBWriter, WKTReader, WKTWriter}
-import java.sql.SQLException
+import scala.slick.jdbc.{PositionedResult, PositionedParameters, JdbcType}
+import scala.slick.ast.{ScalaBaseType, ScalaType, BaseTypedType}
+import scala.reflect.ClassTag
 
-class GeometryTypeMapper[T <: Geometry] extends TypeMapperDelegate[T] with BaseTypeMapper[T] {
+class GeometryJdbcType[T <: Geometry](implicit tag: ClassTag[T]) extends JdbcType[T] with BaseTypedType[T] {
 
-  def apply(v1: BasicProfile): TypeMapperDelegate[T] = this
+  def scalaType: ScalaType[T] = ScalaBaseType[T]
 
-  //--------------------------------------------------------
   def zero: T = null.asInstanceOf[T]
 
   def sqlType: Int = java.sql.Types.OTHER
@@ -26,6 +24,8 @@ class GeometryTypeMapper[T <: Geometry] extends TypeMapperDelegate[T] with BaseT
   def nextValue(r: PositionedResult): T = r.nextStringOption().map(fromLiteral).getOrElse(zero)
 
   def updateValue(v: T, r: PositionedResult) = r.updateBytes(toBytes(v))
+
+  def hasLiteralForm: Boolean = true
 
   override def valueToSQLLiteral(v: T) = toLiteral(v)
 
@@ -66,9 +66,9 @@ class GeometryTypeMapper[T <: Geometry] extends TypeMapperDelegate[T] with BaseT
   /** copy from [[org.postgis.PGgeometry#splitSRID]] */
   private def splitRSIDAndWKT(value: String): (Int, String) = {
     if (value.startsWith("SRID=")) {
-      val index = value.indexOf(';', 5); // srid prefix length is 5
+      val index = value.indexOf(';', 5) // srid prefix length is 5
       if (index == -1) {
-        throw new SQLException("Error parsing Geometry - SRID not delimited with ';' ");
+        throw new java.sql.SQLException("Error parsing Geometry - SRID not delimited with ';' ")
       } else {
         val srid = Integer.parseInt(value.substring(0, index))
         val wkt = value.substring(index + 1)

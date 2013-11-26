@@ -2,17 +2,16 @@ package com.github.tminglei.slickpg
 package date
 
 import java.sql.Date
-import scala.slick.lifted.{BaseTypeMapper, TypeMapperDelegate}
-import scala.slick.driver.BasicProfile
-import scala.slick.session.{PositionedResult, PositionedParameters}
+import scala.slick.jdbc.{PositionedResult, PositionedParameters, JdbcType}
+import scala.slick.ast.{ScalaBaseType, ScalaType, BaseTypedType}
+import scala.reflect.ClassTag
 
-class DateTypeMapper[DATE](fnFromDate: (Date => DATE),
-                           fnToDate: (DATE => Date))
-              extends TypeMapperDelegate[DATE] with BaseTypeMapper[DATE] {
+class DateJdbcType[DATE](fnFromDate: (Date => DATE),
+                         fnToDate: (DATE => Date))(
+            implicit tag: ClassTag[DATE]) extends JdbcType[DATE] with BaseTypedType[DATE] {
 
-  def apply(v1: BasicProfile): TypeMapperDelegate[DATE] = this
+  def scalaType: ScalaType[DATE] = ScalaBaseType[DATE]
 
-  //-----------------------------------------------------------------
   def zero: DATE = null.asInstanceOf[DATE]
 
   def sqlType: Int = java.sql.Types.DATE
@@ -26,6 +25,8 @@ class DateTypeMapper[DATE](fnFromDate: (Date => DATE),
   def nextValue(r: PositionedResult): DATE = r.nextDateOption().map(fnFromDate).getOrElse(zero)
 
   def updateValue(v: DATE, r: PositionedResult) = r.updateDate(fnToDate(v))
+
+  def hasLiteralForm: Boolean = true
 
   override def valueToSQLLiteral(v: DATE) = s"{d '${fnToDate(v)}'}"
 

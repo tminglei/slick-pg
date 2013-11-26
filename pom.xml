@@ -26,12 +26,12 @@
         <dependency>
             <groupId>com.typesafe.slick</groupId>
             <artifactId>slick_2.10</artifactId>
-            <version>1.0.0</version>
+            <version>2.0.0-M3</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>9.2-1003-jdbc4</version>
+            <version>9.3-1100-jdbc41</version>
         </dependency>
         <dependency>
             <groupId>com.vividsolutions</groupId>

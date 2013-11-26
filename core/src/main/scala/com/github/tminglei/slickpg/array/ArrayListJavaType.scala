@@ -2,17 +2,14 @@ package com.github.tminglei.slickpg
 package array
 
 import scala.reflect.ClassTag
-import scala.slick.lifted.{BaseTypeMapper, TypeMapperDelegate}
-import scala.slick.driver.BasicProfile
-import scala.slick.session.{PositionedResult, PositionedParameters}
 import java.util.{Map => JMap}
+import scala.slick.jdbc.{JdbcType, PositionedResult, PositionedParameters}
+import scala.slick.ast.{ScalaBaseType, ScalaType, BaseTypedType}
 
-class ArrayTypeMapper[T: ClassTag](pgBaseType: String)
-          extends TypeMapperDelegate[List[T]] with BaseTypeMapper[List[T]] {
+class ArrayListJavaType[T: ClassTag](pgBaseType: String) extends JdbcType[List[T]] with BaseTypedType[List[T]] {
 
-  def apply(v1: BasicProfile): TypeMapperDelegate[List[T]] = this
+  def scalaType: ScalaType[List[T]] = ScalaBaseType[List[T]]
 
-  //----------------------------------------------------------
   def zero: List[T] = Nil
 
   def sqlType: Int = java.sql.Types.ARRAY
@@ -30,6 +27,8 @@ class ArrayTypeMapper[T: ClassTag](pgBaseType: String)
   }
 
   def updateValue(v: List[T], r: PositionedResult) = r.updateObject(mkArray(v))
+
+  def hasLiteralForm: Boolean = true
 
   override def valueToSQLLiteral(v: List[T]) = mkArray(v).toString
 

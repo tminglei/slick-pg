@@ -2,10 +2,10 @@ package com.github.tminglei.slickpg
 package array
 
 import scala.slick.ast.Library.{SqlOperator, SqlFunction}
-import scala.slick.lifted.{ConstColumn, ExtensionMethods, TypeMapper, Column}
-import scala.slick.ast.Node
+import scala.slick.lifted.{LiteralColumn, ExtensionMethods, Column}
+import scala.slick.jdbc.JdbcType
 
-trait PgArrayExtensions {
+trait PgArrayExtensions extends utils.ImplicitJdbcTypes {
   
   object ArrayLibrary {
     val Any = new SqlFunction("any")
@@ -21,32 +21,34 @@ trait PgArrayExtensions {
 
   /** Extension methods for array Columns */
   class ArrayColumnExtensionMethods[B0, P1](val c: Column[P1])(
-            implicit tm0: TypeMapper[B0], tm: TypeMapper[List[B0]]) extends ExtensionMethods[List[B0], P1] {
+            implicit tm0: JdbcType[B0], tm: JdbcType[List[B0]]) extends ExtensionMethods[List[B0], P1] {
     /** required syntax: expression operator ANY (array expression) */
-    def any[R](implicit om: o#to[B0, R]) = om(ArrayLibrary.Any.column[B0](n))
+    def any[R](implicit om: o#to[B0, R]) = om.column(ArrayLibrary.Any, n)
     /** required syntax: expression operator ALL (array expression) */
-    def all[R](implicit om: o#to[B0, R]) = om(ArrayLibrary.All.column[B0](n))
+    def all[R](implicit om: o#to[B0, R]) = om.column(ArrayLibrary.All, n)
 
     def @>[P2, R](e: Column[P2])(implicit om: o#arg[List[B0], P2]#to[Boolean, R]) = {
-        om(ArrayLibrary.Contains.column(n, Node(e)))
+        om.column(ArrayLibrary.Contains, n, e.toNode)
       }
     def <@:[P2, R](e: Column[P2])(implicit om: o#arg[List[B0], P2]#to[Boolean, R]) = {
-        om(ArrayLibrary.ContainedBy.column(Node(e), n))
+        om.column(ArrayLibrary.ContainedBy, e.toNode, n)
       }
     def @&[P2, R](e: Column[P2])(implicit om: o#arg[List[B0], P2]#to[Boolean, R]) = {
-        om(ArrayLibrary.Overlap.column(n, Node(e)))
+        om.column(ArrayLibrary.Overlap, n, e.toNode)
       }
 
     def ++[P2, R](e: Column[P2])(implicit om: o#arg[List[B0], P2]#to[List[B0], R]) = {
-        om(ArrayLibrary.Concatenate.column(n, Node(e)))
+        om.column(ArrayLibrary.Concatenate, n, e.toNode)
       }
     def + [P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[List[B0], R]) = {
-        om(ArrayLibrary.Concatenate.column(n, Node(e)))
+        om.column(ArrayLibrary.Concatenate, n, e.toNode)
       }
     def +:[P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[List[B0], R]) = {
-        om(ArrayLibrary.Concatenate.column(Node(e), n))
+        om.column(ArrayLibrary.Concatenate, e.toNode, n)
       }
-    def length(dim: Column[Int] = ConstColumn(1)) = ArrayLibrary.Length.column[Int](n, Node(dim))
-    def unnest[R](implicit om: o#to[B0, R]) = om(ArrayLibrary.Unnest.column(n))
+    def length[R](dim: Column[Int] = LiteralColumn(1))(implicit om: o#to[Int, R]) = {
+        om.column(ArrayLibrary.Length, n, dim.toNode)
+      }
+    def unnest[R](implicit om: o#to[B0, R]) = om.column(ArrayLibrary.Unnest, n)
   }  
 }

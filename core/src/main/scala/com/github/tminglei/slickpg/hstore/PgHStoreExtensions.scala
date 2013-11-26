@@ -2,10 +2,12 @@ package com.github.tminglei.slickpg
 package hstore
 
 import scala.slick.ast.Library.{SqlFunction, SqlOperator}
-import scala.slick.lifted.{ExtensionMethods, TypeMapper, Column}
-import scala.slick.ast.{Library, Node}
+import scala.slick.lifted.{FunctionSymbolExtensionMethods, ExtensionMethods, Column}
+import scala.slick.jdbc.JdbcType
+import scala.slick.ast.Library
 
-trait PgHStoreExtensions {
+trait PgHStoreExtensions extends utils.ImplicitJdbcTypes {
+  import FunctionSymbolExtensionMethods._
 
   object HStoreLibrary {
     val On = new SqlOperator("->")
@@ -22,38 +24,39 @@ trait PgHStoreExtensions {
 
   /** Extension methods for hstore Columns */
   class HStoreColumnExtensionMethods[P1](val c: Column[P1])(
-              implicit tm: TypeMapper[Map[String, String]], tm1: TypeMapper[List[String]]) extends ExtensionMethods[Map[String, String], P1] {
+              implicit tm: JdbcType[Map[String, String]], tm1: JdbcType[List[String]])
+                    extends ExtensionMethods[Map[String, String], P1] {
 
     def +>[P2, R](k: Column[P2])(implicit om: o#arg[String, P2]#to[String, R]) = {
-        om(HStoreLibrary.On.column[String](n, Node(k)))
+        om.column(HStoreLibrary.On, n, k.toNode)
       }
-    def >>[T: TypeMapper](k: Column[String]) = {
-        Library.Cast.column[T](HStoreLibrary.On(n, Node(k)))
+    def >>[T: JdbcType](k: Column[String]) = {
+        Library.Cast.column[T](HStoreLibrary.On.column[String](n, k.toNode).toNode)
       }
     def ??[P2, R](k: Column[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
-        om(HStoreLibrary.Exist.column(n, Node(k)))
+        om.column(HStoreLibrary.Exist, n, k.toNode)
       }
     def ?&[P2, R](k: Column[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
-        om(HStoreLibrary.Defined.column(n, Node(k)))
+        om.column(HStoreLibrary.Defined, n, k.toNode)
       }
     def @>[P2, R](c2: Column[P2])(implicit om: o#arg[Map[String, String], P2]#to[Boolean, R]) = {
-        om(HStoreLibrary.Contains.column(n, Node(c2)))
+        om.column(HStoreLibrary.Contains, n, c2.toNode)
       }
     def <@:[P2, R](c2: Column[P2])(implicit om: o#arg[Map[String, String], P2]#to[Boolean, R]) = {
-        om(HStoreLibrary.ContainedBy.column(Node(c2), n))
+        om.column(HStoreLibrary.ContainedBy, c2.toNode, n)
       }
 
     def @+[P2, R](c2: Column[P2])(implicit om: o#arg[Map[String, String], P2]#to[Map[String, String], R]) = {
-        om(HStoreLibrary.Concatenate.column[Map[String, String]](n, Node(c2)))
+        om.column(HStoreLibrary.Concatenate, n, c2.toNode)
       }
     def @-[P2, R](c2: Column[P2])(implicit om: o#arg[Map[String, String], P2]#to[Map[String, String], R]) = {
-        om(HStoreLibrary.Delete.column[Map[String, String]](n, Node(c2)))
+        om.column(HStoreLibrary.Delete, n, c2.toNode)
       }
     def --[P2, R](c2: Column[P2])(implicit om: o#arg[List[String], P2]#to[Map[String, String], R]) = {
-        om(HStoreLibrary.Delete.column[Map[String, String]](n, Node(c2)))
+        om.column(HStoreLibrary.Delete, n, c2.toNode)
       }
     def -/[P2, R](c2: Column[P2])(implicit om: o#arg[String, P2]#to[Map[String, String], R]) = {
-        om(HStoreLibrary.Delete.column[Map[String, String]](n, Node(c2)))
+        om.column(HStoreLibrary.Delete, n, c2.toNode)
       }
   }
 }

@@ -2,10 +2,10 @@ package com.github.tminglei.slickpg
 package range
 
 import scala.slick.ast.Library.SqlOperator
-import scala.slick.lifted.{ExtensionMethods, TypeMapper, Column}
-import scala.slick.ast.{Library, Node}
+import scala.slick.lifted.{ExtensionMethods, Column}
+import scala.slick.jdbc.JdbcType
 
-trait PgRangeExtensions {
+trait PgRangeExtensions extends utils.ImplicitJdbcTypes {
 
   type RANGEType[T]
 
@@ -25,47 +25,47 @@ trait PgRangeExtensions {
   }
 
   class RangeColumnExtensionMethods[B0, P1](val c: Column[P1])(
-              implicit tm: TypeMapper[B0], tm1: TypeMapper[RANGEType[B0]]) extends ExtensionMethods[RANGEType[B0], P1] {
+              implicit tm: JdbcType[B0], tm1: JdbcType[RANGEType[B0]]) extends ExtensionMethods[RANGEType[B0], P1] {
 
     def @>^[P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[Boolean, R]) = {
-        om(RangeLibrary.Contains.column(n, Node(Library.Cast.column[B0](e.nodeDelegate))))
+        om.column(RangeLibrary.Contains, n, e.toNode)
       }
     def @>[P2, R](e: Column[P2])(implicit om: o#arg[RANGEType[B0], P2]#to[Boolean, R]) = {
-        om(RangeLibrary.Contains.column(n, Node(e)))
+        om.column(RangeLibrary.Contains, n, e.toNode)
       }
     def <@^:[P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[Boolean, R]) = {
-        om(RangeLibrary.ContainedBy.column(Node(Library.Cast.column[B0](e.nodeDelegate)), n))
+        om.column(RangeLibrary.ContainedBy, e.toNode, n)
       }
     def <@:[P2, R](e: Column[P2])(implicit om: o#arg[RANGEType[B0], P2]#to[Boolean, R]) = {
-        om(RangeLibrary.ContainedBy.column(Node(e), n))
+        om.column(RangeLibrary.ContainedBy, e.toNode, n)
       }
     def @&[P2, R](e: Column[P2])(implicit om: o#arg[RANGEType[B0], P2]#to[Boolean, R]) = {
-        om(RangeLibrary.Overlap.column(n, Node(e)))
+        om.column(RangeLibrary.Overlap, n, e.toNode)
       }
     def <<[P2, R](e: Column[P2])(implicit om: o#arg[RANGEType[B0], P2]#to[Boolean, R]) = {
-        om(RangeLibrary.StrictLeft.column(n, Node(e)))
+        om.column(RangeLibrary.StrictLeft, n, e.toNode)
       }
     def >>[P2, R](e: Column[P2])(implicit om: o#arg[RANGEType[B0], P2]#to[Boolean, R]) = {
-        om(RangeLibrary.StrictRight.column(n, Node(e)))
+        om.column(RangeLibrary.StrictRight, n, e.toNode)
       }
     def &<[P2, R](e: Column[P2])(implicit om: o#arg[RANGEType[B0], P2]#to[Boolean, R]) = {
-        om(RangeLibrary.NotExtendRight.column(n, Node(e)))
+        om.column(RangeLibrary.NotExtendRight, n, e.toNode)
       }
     def &>[P2, R](e: Column[P2])(implicit om: o#arg[RANGEType[B0], P2]#to[Boolean, R]) = {
-        om(RangeLibrary.NotExtendLeft.column(n, Node(e)))
+        om.column(RangeLibrary.NotExtendLeft, n, e.toNode)
       }
     def -|-[P2, R](e: Column[P2])(implicit om: o#arg[RANGEType[B0], P2]#to[Boolean, R]) = {
-        om(RangeLibrary.Adjacent.column(n, Node(e)))
+        om.column(RangeLibrary.Adjacent, n, e.toNode)
       }
 
     def + [P2, R](e: Column[P2])(implicit om: o#arg[RANGEType[B0], P2]#to[RANGEType[B0], R]) = {
-        om(RangeLibrary.Union.column(n, Node(e)))
+        om.column(RangeLibrary.Union, n, e.toNode)
       }
     def * [P2, R](e: Column[P2])(implicit om: o#arg[RANGEType[B0], P2]#to[RANGEType[B0], R]) = {
-        om(RangeLibrary.Intersection.column(n, Node(e)))
+        om.column(RangeLibrary.Intersection, n, e.toNode)
       }
     def - [P2, R](e: Column[P2])(implicit om: o#arg[RANGEType[B0], P2]#to[RANGEType[B0], R]) = {
-        om(RangeLibrary.Subtraction.column(n, Node(e)))
+        om.column(RangeLibrary.Subtraction, n, e.toNode)
       }
   }
 }

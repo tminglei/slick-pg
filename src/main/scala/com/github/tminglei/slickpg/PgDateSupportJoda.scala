@@ -15,10 +15,10 @@ trait PgDateSupportJoda extends date.PgDateExtensions { driver: PostgresDriver =
   type INTERVAL  = Period
 
   trait DateTimeImplicits {
-    implicit val jodaDateTypeMapper = new date.DateTypeMapper(sqlDate2jodaDate, jodaDate2sqlDate)
-    implicit val jodaTimeTypeMapper = new date.TimeTypeMapper(sqlTime2jodaTime, jodaTime2sqlTime)
-    implicit val jodaDateTimeTypeMapper = new date.TimestampTypeMapper(sqlTimestamp2jodaDateTime, jodaDateTime2sqlTimestamp)
-    implicit val jodaPeriodTypeMapper = new utils.GenericTypeMapper[Period]("interval", pgIntervalStr2jodaPeriod)
+    implicit val jodaDateTypeMapper = new date.DateJdbcType(sqlDate2jodaDate, jodaDate2sqlDate)
+    implicit val jodaTimeTypeMapper = new date.TimeJdbcType(sqlTime2jodaTime, jodaTime2sqlTime)
+    implicit val jodaDateTimeTypeMapper = new date.TimestampJdbcType(sqlTimestamp2jodaDateTime, jodaDateTime2sqlTimestamp)
+    implicit val jodaPeriodTypeMapper = new utils.GenericJdbcType[Period]("interval", pgIntervalStr2jodaPeriod)
 
     ///
     implicit def dateColumnExtensionMethods(c: Column[LocalDate]) = new DateColumnExtensionMethods(c)
