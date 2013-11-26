@@ -57,7 +57,7 @@ trait PgPostGISExtensions extends PostgresDriver.ImplicitColumnTypes {
         om.column(GeomLibrary.MakeBox, lowLeftPoint.toNode, upRightPoint.toNode)
       }
     def makePoint[P1, P2, R](x: Column[P1], y: Column[P2], z: Option[Double] = None, m: Option[Double] = None)(
-      implicit tm: JdbcType[GEOMETRY], tm1: JdbcType[POINT], om: OptionMapperDSL.arg[Double, P1]#arg[Double, P2]#to[POINT, R]) =
+      implicit tm: JdbcType[GEOMETRY], tm1: JdbcType[POINT], om: OptionMapperDSL.arg[Double, P1]#arg[Double, P2]#to[GEOMETRY, R]) =
       (z, m) match {
         case (Some(z), Some(m)) => om.column(GeomLibrary.MakePoint, x.toNode, y.toNode, LiteralNode(z), LiteralNode(m))
         case (Some(z), None) => om.column(GeomLibrary.MakePoint, x.toNode, y.toNode, LiteralNode(z))
@@ -196,47 +196,47 @@ trait PgPostGISExtensions extends PostgresDriver.ImplicitColumnTypes {
                   extends ExtensionMethods[G1, P1] {
 
     /** Geometry Operators */
-    def @&&[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def @&&[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.BoxIntersects, n, geom.toNode)
       }
-    def @&&&[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def @&&&[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.BoxIntersects3D, n, geom.toNode)
       }
-    def @>[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def @>[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.BoxContains, n, geom.toNode)
       }
-    def <@[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def <@[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.BoxContainedBy, n, geom.toNode)
       }
-    def <->[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Double, R]) = {
+    def <->[P2, R](geom: Column[P2])(implicit om: o#to[Double, R]) = {
         om.column(GeomLibrary.PointDistance, n, geom.toNode)
       }
-    def <#>[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Double, R]) = {
+    def <#>[P2, R](geom: Column[P2])(implicit om: o#to[Double, R]) = {
         om.column(GeomLibrary.BoxDistance, n, geom.toNode)
       }
 
-    def &<[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def &<[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.BoxLooseLeft, n, geom.toNode)
       }
-    def <<[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def <<[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.BoxStrictLeft, n, geom.toNode)
       }
-    def &<|[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def &<|[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.BoxLooseBelow, n, geom.toNode)
       }
-    def <<|[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def <<|[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.BoxStrictBelow, n, geom.toNode)
       }
-    def &>[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def &>[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.BoxLooseRight, n, geom.toNode)
       }
-    def >>[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def >>[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.BoxStrictRight, n, geom.toNode)
       }
-    def |&>[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def |&>[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.BoxLooseAbove, n, geom.toNode)
       }
-    def |>>[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def |>>[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.BoxStrictAbove, n, geom.toNode)
       }
 
@@ -350,59 +350,59 @@ trait PgPostGISExtensions extends PostgresDriver.ImplicitColumnTypes {
       }
 
     /** Spatial Relationships */
-    def gEquals[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def gEquals[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.Equals, n, geom.toNode)
       }
-    def orderingEquals[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def orderingEquals[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.OrderingEquals, n, geom.toNode)
       }
-    def overlaps[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def overlaps[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.Overlaps, n, geom.toNode)
       }
-    def intersects[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def intersects[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.Intersects, n, geom.toNode)
       }
-    def crosses[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def crosses[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.Crosses, n, geom.toNode)
       }
-    def disjoint[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def disjoint[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.Disjoint, n, geom.toNode)
       }
-    def contains[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def contains[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.Contains, n, geom.toNode)
       }
-    def containsProperly[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def containsProperly[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.ContainsProperly, n, geom.toNode)
       }
-    def within[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def within[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.Within, n, geom.toNode)
       }
-    def dWithin[P2, R](geom: Column[P2], distance: Column[Double])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def dWithin[P2, R](geom: Column[P2], distance: Column[Double])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.DWithin, n, geom.toNode, distance.toNode)
       }
-    def dFullyWithin[P2, R](geom: Column[P2], distance: Column[Double])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def dFullyWithin[P2, R](geom: Column[P2], distance: Column[Double])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.DFullyWithin, n, geom.toNode, distance.toNode)
       }
-    def touches[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def touches[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.Touches, n, geom.toNode)
       }
-    def relate[P2, R](geom: Column[P2], matrixPattern: Column[String])(implicit om: o#arg[GEOMETRY, P2]#to[Boolean, R]) = {
+    def relate[P2, R](geom: Column[P2], matrixPattern: Column[String])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.Relate, n, geom.toNode, matrixPattern.toNode)
       }
-    def relatePattern[P2, R](geom: Column[P2], boundaryNodeRule: Option[Int] = None)(implicit om: o#arg[GEOMETRY, P2]#to[String, R]) =
+    def relatePattern[P2, R](geom: Column[P2], boundaryNodeRule: Option[Int] = None)(implicit om: o#to[String, R]) =
       boundaryNodeRule match {
         case Some(rule) => om.column(GeomLibrary.Relate, n, geom.toNode, LiteralNode(rule))
         case None    => om.column(GeomLibrary.Relate, n, geom.toNode)
       }
 
     /** Spatial Measurements */
-    def azimuth[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Float, R]) = {
+    def azimuth[P2, R](geom: Column[P2])(implicit om: o#to[Float, R]) = {
         om.column(GeomLibrary.Azimuth, n, geom.toNode)
       }
     def centroid[R](implicit om: o#to[POINT, R]) = {
         om.column(GeomLibrary.Centroid, n)
       }
-    def closestPoint[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[POINT, R]) = {
+    def closestPoint[P2, R](geom: Column[P2])(implicit om: o#to[POINT, R]) = {
         om.column(GeomLibrary.ClosestPoint, n, geom.toNode)
       }
     def pointOnSurface[R](implicit om: o#to[POINT, R]) = {
@@ -420,24 +420,24 @@ trait PgPostGISExtensions extends PostgresDriver.ImplicitColumnTypes {
     def perimeter[R](implicit om: o#to[Float, R]) = {
         om.column(GeomLibrary.Perimeter, n)
       }
-    def distance[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Float, R]) = {
+    def distance[P2, R](geom: Column[P2])(implicit om: o#to[Float, R]) = {
         om.column(GeomLibrary.Distance, n, geom.toNode)
       }
-    def distanceSphere[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Float, R]) = {
+    def distanceSphere[P2, R](geom: Column[P2])(implicit om: o#to[Float, R]) = {
         om.column(GeomLibrary.DistanceSphere, n, geom.toNode)
       }
-    def maxDistance[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[Float, R]) = {
+    def maxDistance[P2, R](geom: Column[P2])(implicit om: o#to[Float, R]) = {
         om.column(GeomLibrary.MaxDistance, n, geom.toNode)
       }
-    def hausdorffDistance[P2, R](geom: Column[P2], densifyFrac: Option[Float] = None)(implicit om: o#arg[GEOMETRY, P2]#to[Float, R]) =
+    def hausdorffDistance[P2, R](geom: Column[P2], densifyFrac: Option[Float] = None)(implicit om: o#to[Float, R]) =
       densifyFrac match {
         case Some(denFrac) => om.column(GeomLibrary.HausdorffDistance, n, geom.toNode, LiteralNode(denFrac))
         case None   => om.column(GeomLibrary.HausdorffDistance, n, geom.toNode)
       }
-    def longestLine[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[LINESTRING, R]) = {
+    def longestLine[P2, R](geom: Column[P2])(implicit om: o#to[LINESTRING, R]) = {
         om.column(GeomLibrary.LongestLine, n, geom.toNode)
       }
-    def shortestLine[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[LINESTRING, R]) = {
+    def shortestLine[P2, R](geom: Column[P2])(implicit om: o#to[LINESTRING, R]) = {
         om.column(GeomLibrary.ShortestLine, n, geom.toNode)
       }
 
@@ -457,19 +457,19 @@ trait PgPostGISExtensions extends PostgresDriver.ImplicitColumnTypes {
     def simplifyPreserveTopology[R](tolerance: Column[Float])(implicit om: o#to[GEOMETRY, R]) = {
         om.column(GeomLibrary.SimplifyPreserveTopology, n, tolerance.toNode)
       }
-    def difference[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[GEOMETRY, R]) = {
+    def difference[P2, R](geom: Column[P2])(implicit om: o#to[GEOMETRY, R]) = {
         om.column(GeomLibrary.Difference, n, geom.toNode)
       }
-    def symDifference[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[GEOMETRY, R]) = {
+    def symDifference[P2, R](geom: Column[P2])(implicit om: o#to[GEOMETRY, R]) = {
         om.column(GeomLibrary.SymDifference, n, geom.toNode)
       }
-    def intersection[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[GEOMETRY, R]) = {
+    def intersection[P2, R](geom: Column[P2])(implicit om: o#to[GEOMETRY, R]) = {
         om.column(GeomLibrary.Intersection, n, geom.toNode)
       }
-    def sharedPaths[P2, R](geom: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[GEOMETRY, R]) = {
+    def sharedPaths[P2, R](geom: Column[P2])(implicit om: o#to[GEOMETRY, R]) = {
         om.column(GeomLibrary.SharedPaths, n, geom.toNode)
       }
-    def split[P2, R](blade: Column[P2])(implicit om: o#arg[GEOMETRY, P2]#to[GEOMETRY, R]) = {
+    def split[P2, R](blade: Column[P2])(implicit om: o#to[GEOMETRY, R]) = {
         om.column(GeomLibrary.Split, n, blade.toNode)
       }
     def minBoundingCircle[R](segNumPerQtrCircle: Column[Int] = LiteralColumn(48))(implicit om: o#to[GEOMETRY, R]) = {
@@ -493,12 +493,12 @@ trait PgPostGISExtensions extends PostgresDriver.ImplicitColumnTypes {
     def collectionHomogenize[R](implicit om: o#to[GEOMETRY, R]) = {
         om.column(GeomLibrary.CollectionHomogenize, n)
       }
-    def addPoint[P2, R](point: Column[P2], position: Option[Int] = None)(implicit om: o#arg[GEOMETRY, P2]#to[GEOMETRY, R]) =
+    def addPoint[P2, R](point: Column[P2], position: Option[Int] = None)(implicit om: o#to[GEOMETRY, R]) =
       position match {
         case Some(pos) => om.column(GeomLibrary.AddPoint, n, point.toNode, LiteralNode(pos))
         case None   =>  om.column(GeomLibrary.AddPoint, n, point.toNode)
       }
-    def setPoint[P2, R](point: Column[P2], position: Column[Int])(implicit om: o#arg[GEOMETRY, P2]#to[GEOMETRY, R]) = {
+    def setPoint[P2, R](point: Column[P2], position: Column[Int])(implicit om: o#to[GEOMETRY, R]) = {
         om.column(GeomLibrary.SetPoint, n, position.toNode, point.toNode)
       }
     def removePoint[R](offset: Column[Int])(implicit om: o#to[GEOMETRY, R]) = {
@@ -515,7 +515,7 @@ trait PgPostGISExtensions extends PostgresDriver.ImplicitColumnTypes {
     def segmentize[R](maxLength: Column[Float])(implicit om: o#to[GEOMETRY, R]) = {
         om.column(GeomLibrary.Segmentize, n, maxLength.toNode)
       }
-    def snap[P2, R](reference: Column[P2], tolerance: Column[Float])(implicit om: o#arg[GEOMETRY, P2]#to[GEOMETRY, R]) = {
+    def snap[P2, R](reference: Column[P2], tolerance: Column[Float])(implicit om: o#to[GEOMETRY, R]) = {
         om.column(GeomLibrary.Snap, n, reference.toNode, tolerance.toNode)
       }
     def translate[R](deltaX: Column[Float], deltaY: Column[Float], deltaZ: Option[Float] = None)(implicit om: o#to[GEOMETRY, R]) =

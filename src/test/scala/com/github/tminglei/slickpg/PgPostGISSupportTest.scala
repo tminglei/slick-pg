@@ -23,7 +23,7 @@ class PgPostGISSupportTest {
   ///
   case class PointBean(id: Long, point: Point)
 
-  class PointTestTable(tag: Tag) extends Table[PointBean](tag, Some("test"), "point_test") {
+  class PointTestTable(tag: Tag) extends Table[PointBean](tag, "point_test") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def point = column[Point]("point")
 
@@ -162,9 +162,10 @@ class PgPostGISSupportTest {
     val collection = wktReader.read("GEOMETRYCOLLECTION(LINESTRING(1 1,0 0),POINT(0 0))")
 
     db withSession { implicit session: Session =>
-      val lineId = GeomTests.insert(line)
-      val polygonId = GeomTests.insert(polygon)
-      val collectionId = GeomTests.insert(collection)
+      val linebean = GeometryBean(131L, line)
+      val polygonbean = GeometryBean(132L, polygon)
+      val collectionbean = GeometryBean(133L, collection)
+      GeomTests.forceInsertAll(linebean, polygonbean, collectionbean)
 
       val q1 = GeomTests.filter(_.id === linebean.id.bind).map(_.geom.geomType)
       assertEquals("ST_LineString", q1.first())
@@ -232,8 +233,9 @@ class PgPostGISSupportTest {
     val POINT_LatLon = """2°19'29.928"S 3°14'3.243"W"""
 
     db withSession { implicit session: Session =>
-      val id = GeomTests.insert(polygon)
-      val id1 = GeomTests.insert(point)
+      val bean = GeometryBean(141L, polygon)
+      val bean1 = GeometryBean(142L, point)
+      GeomTests.forceInsertAll(bean, bean1)
 
       val q1 = GeomTests.filter(_.id === bean.id.bind).map(_.geom.asText)
       assertEquals(POLYGON, q1.first())
@@ -244,7 +246,7 @@ class PgPostGISSupportTest {
       val q3 = GeomTests.filter(_.id === bean.id.bind).map(_.geom.asHEXEWKB())
       assertEquals(POLYGON_HEX, q3.first())
 
-      val q4 = GeomTests.filter(_.id === id1.bind).map(_.geom.asLatLonText())
+      val q4 = GeomTests.filter(_.id === bean1.id.bind).map(_.geom.asLatLonText())
       assertEquals(POINT_LatLon, q4.first())
 
       val q5 = GeomTests.filter(_.id === bean.id.bind).map(_.geom.asGML())
@@ -271,8 +273,9 @@ class PgPostGISSupportTest {
     val line2 = wktReader.read("LINESTRING(0 0, 5 5, 100 100)")
 
     db withSession { implicit session: Session =>
-      val polygonId = GeomTests.insert(polygon)
-      val lineId = GeomTests.insert(line1)
+      val linebean = GeometryBean(151L, line1)
+      val polygonbean = GeometryBean(152L, polygon)
+      GeomTests.forceInsertAll(linebean, polygonbean)
 
       val q1 = GeomTests.filter(_.id === linebean.id.bind).map(_.geom.gEquals(line2.bind))
       assertEquals(true, q1.first())
@@ -305,7 +308,7 @@ class PgPostGISSupportTest {
       assertEquals(true, q11.first())
       val q12 = GeomTests.filter(_.id === polygonbean.id.bind).map(r => multiPoints.bind.dWithin(r.geom, 10d.bind))
       assertEquals(true, q12.first())
-      val q13 = GeomTests.filter(_.id === polygonbean.id.bind).map(r => multiPoints.bind.dFullyWithin(r.geom, 200d.bind))
+      val q13 = GeomTests.filter(_.id === polygonbean.id.bind).map(r => point.bind.dFullyWithin(r.geom, 200d.bind))
       assertEquals(true, q13.first())
 
       val q14 = GeomTests.filter(_.id === polygonbean.id.bind).map(_.geom.touches(point.bind))
@@ -335,15 +338,15 @@ class PgPostGISSupportTest {
     val shortestLine = wktReader.read("LINESTRING(84.89619377162629 86.0553633217993, 75 100)")
 
     db withSession { implicit session: Session =>
-      val pointId = GeomTests.insert(point1)
-      val lineId = GeomTests.insert(line)
-      val line3dId = GeomTests.insert(line3d)
-      val polygonId = GeomTests.insert(polygon)
+      val pointbean = GeometryBean(161L, point1)
+      val linebean = GeometryBean(162L, line)
+      val line3dbean = GeometryBean(163L, line3d)
+      val polygonbean = GeometryBean(164L, polygon)
+      GeomTests.forceInsertAll(pointbean, linebean, line3dbean, polygonbean)
       //
-      val pid1 = PointTests.insert(point1)
-      val pbean1 = PointBean(pid1, point1)
-      val pid2 = PointTests.insert(point2)
-      val pbean2 = PointBean(pid2, point2)
+      val pbean1 = PointBean(166L, point1)
+      val pbean2 = PointBean(167L, point2)
+      PointTests.forceInsertAll(pbean1, pbean2)
 
       val q1 = GeomTests.filter(_.id === pointbean.id.bind).map((_.geom.azimuth(point2.bind).toDegrees))
       assertEquals(42.2736890060937d, q1.first(), 0.1d)
@@ -401,14 +404,16 @@ class PgPostGISSupportTest {
     val line1 = wktReader.read("LINESTRING(1 2,2 1,3 1)")
     val bladeLine = wktReader.read("LINESTRING(0 4,4 0)")
     val multiLine = wktReader.read("MULTILINESTRING((-29 -27,-30 -29.7,-36 -31,-45 -33),(-45 -33,-46 -32))")
-    val collect = wktReader.read("GEOMETRYCOLLECTION(GEOMETRYCOLLECTION(LINESTRING(0 0, 1 1)),LINESTRING(2 2, 3 3))")
+    val collection = wktReader.read("GEOMETRYCOLLECTION(GEOMETRYCOLLECTION(LINESTRING(0 0, 1 1)),LINESTRING(2 2, 3 3))")
 
     db withSession { implicit session: Session =>
       point.setSRID(4326)
-      val pointId = GeomTests.insert(point)
-      val lineId = GeomTests.insert(line)
-      val multiLineId = GeomTests.insert(multiLine)
-      val collectId = GeomTests.insert(collect)
+      
+      val pointbean = GeometryBean(171L, point)
+      val linebean = GeometryBean(172L, line)
+      val multilinebean = GeometryBean(173L, multiLine)
+      val collectionbean = GeometryBean(174L, collection)
+      GeomTests.forceInsertAll(pointbean, linebean, multilinebean, collectionbean)
 
       val q1 = GeomTests.filter(_.id === pointbean.id.bind).map(_.geom.setSRID(0.bind).asEWKT)
       assertEquals("POINT(-123.365556 48.428611)", q1.first())
@@ -449,13 +454,13 @@ class PgPostGISSupportTest {
       val q13 = GeomTests.filter(_.id === linebean.id.bind).map(_.geom.multi.asText)
       assertEquals("MULTILINESTRING((1 1,2 2,2 3.5,1 3,1 2,2 1))", q13.first())
 
-      val q14 = GeomTests.filter(_.id === multiLinebean.id.bind).map(_.geom.lineMerge.asText)
+      val q14 = GeomTests.filter(_.id === multilinebean.id.bind).map(_.geom.lineMerge.asText)
       assertEquals("LINESTRING(-29 -27,-30 -29.7,-36 -31,-45 -33,-46 -32)", q14.first())
 
-      val q15 = GeomTests.filter(_.id === collectbean.id.bind).map(_.geom.collectionExtract(2.bind).asText)
+      val q15 = GeomTests.filter(_.id === collectionbean.id.bind).map(_.geom.collectionExtract(2.bind).asText)
       assertEquals("MULTILINESTRING((0 0,1 1),(2 2,3 3))", q15.first())
 
-      val q16 = GeomTests.filter(_.id === collectbean.id.bind).map(_.geom.collectionHomogenize)
+      val q16 = GeomTests.filter(_.id === collectionbean.id.bind).map(_.geom.collectionHomogenize)
       assertEquals("MULTILINESTRING ((0 0, 0 1), (2 2, 3 3))", wktWriter.write(q16.first()))
 
       val q17 = GeomTests.filter(_.id === linebean.id.bind).map(_.geom.addPoint(point1.bind).asText)
