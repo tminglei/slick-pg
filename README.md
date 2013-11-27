@@ -166,10 +166,10 @@ Support details
 
 Version history
 ------------------------------
-v0.5.0-beta (27-Nov-2013):
+v0.5.0-beta (27-Nov-2013):  
 1) upgrade to slick v2.0.0-M3
 
-v0.2.2 (04-Nov-2013):
+v0.2.2 (04-Nov-2013):  
 1) support Joda date/time, binding to Pg Date/Time  
 2) support threetenbp date/time, binding to Pg Date/Time
 
