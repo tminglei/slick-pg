@@ -11,7 +11,7 @@ Slick-pg
 - `text` Search
 - `postgis` Geometry
 
-** _tested on `postgreSQL 9.3` with `Slick 1.0`._
+** _tested on `postgreSQL 9.3` with `Slick 1.0.1`._
 
 Install
 -------

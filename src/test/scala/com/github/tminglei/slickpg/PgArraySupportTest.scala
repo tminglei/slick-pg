@@ -16,7 +16,7 @@ class PgArraySupportTest {
     strArr: Option[List[String]]
     )
 
-  object ArrayTestTable extends Table[ArrayBean](Some("test"), "ArrayTest") {
+  object ArrayTestTable extends Table[ArrayBean]("ArrayTest") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def intArr = column[List[Int]]("intArray")
     def longArr = column[List[Long]]("longArray")
@@ -98,40 +98,40 @@ class PgArraySupportTest {
   /**
    * disable it, since postgres jdbc didn't support uuid array now
    **/
-//  case class ArrayBean1(
-//    id: Long,
-//    uuidArr: List[UUID]
-//    )
-//
-//  object ArrayTestTable1 extends Table[ArrayBean1](Some("test"), "ArrayTest1") {
-//    def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
-//    def uuidArr = column[List[UUID]]("uuidArray")
-//
-//    def * = id ~ uuidArr <> (ArrayBean1, ArrayBean1 unapply _)
-//  }
-//
-//  //------------------------------------------------------------------------------
-//
-//  val uuid1 = UUID.randomUUID()
-//  val uuid2 = UUID.randomUUID()
-//  val uuid3 = UUID.randomUUID()
-//
-//  val rec1 = ArrayBean1(51L, List(uuid1, uuid2))
-//  val rec2 = ArrayBean1(52L, List(uuid1, uuid2, uuid3))
-//  val rec3 = ArrayBean1(53L, List(uuid1, uuid3))
-//
-//  @Test
-//  def testArrayFunctions1(): Unit = {
-//    db withSession { implicit session: Session =>
-//      ArrayTestTable1.insert(rec1)
-//      ArrayTestTable1.insert(rec2)
-//      ArrayTestTable1.insert(rec3)
-//
-//      val q1 = ArrayTestTable1.where(_.uuidArr @> List(uuid2).bind).map(t => t)
-//      println(s"uuid '@>' sql = ${q1.selectStatement}")
-//      assertEquals(List(rec1, rec2), q1.list())
-//    }
-//  }
+  case class ArrayBean1(
+    id: Long,
+    uuidArr: List[UUID]
+    )
+
+  object ArrayTestTable1 extends Table[ArrayBean1]("ArrayTest1") {
+    def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
+    def uuidArr = column[List[UUID]]("uuidArray")
+
+    def * = id ~ uuidArr <> (ArrayBean1, ArrayBean1 unapply _)
+  }
+
+  //------------------------------------------------------------------------------
+
+  val uuid1 = UUID.randomUUID()
+  val uuid2 = UUID.randomUUID()
+  val uuid3 = UUID.randomUUID()
+
+  val rec1 = ArrayBean1(51L, List(uuid1, uuid2))
+  val rec2 = ArrayBean1(52L, List(uuid1, uuid2, uuid3))
+  val rec3 = ArrayBean1(53L, List(uuid1, uuid3))
+
+  @Test
+  def testArrayFunctions1(): Unit = {
+    db withSession { implicit session: Session =>
+      ArrayTestTable1.insert(rec1)
+      ArrayTestTable1.insert(rec2)
+      ArrayTestTable1.insert(rec3)
+
+      val q1 = ArrayTestTable1.where(_.uuidArr @> List(uuid2).bind).map(t => t)
+      println(s"uuid '@>' sql = ${q1.selectStatement}")
+      assertEquals(List(rec1, rec2), q1.list())
+    }
+  }
 
   //////////////////////////////////////////////////////////////////////
 
@@ -139,7 +139,7 @@ class PgArraySupportTest {
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
       ArrayTestTable.ddl create;
-//      ArrayTestTable1.ddl create
+      ArrayTestTable1.ddl create
     }
   }
 
@@ -147,7 +147,7 @@ class PgArraySupportTest {
   def dropTables(): Unit = {
     db withSession { implicit session: Session =>
       ArrayTestTable.ddl drop;
-//      ArrayTestTable1.ddl drop
+      ArrayTestTable1.ddl drop
     }
   }
 }

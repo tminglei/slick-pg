@@ -19,7 +19,7 @@ class PgRangeSupportTest {
     tsRange: Option[Range[Timestamp]]
     )
 
-  object RangeTestTable extends Table[RangeBean](Some("test"), "RangeTest") {
+  object RangeTestTable extends Table[RangeBean]("RangeTest") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def intRange = column[Range[Int]]("intRange", O.DBType("int4range"))
     def floatRange = column[Range[Float]]("floatRange", O.DBType("numrange"))

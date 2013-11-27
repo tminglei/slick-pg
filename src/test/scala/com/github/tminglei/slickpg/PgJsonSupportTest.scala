@@ -12,7 +12,7 @@ class PgJsonSupportTest {
 
   case class JsonBean(id: Long, json: JValue)
 
-  object JsonTestTable extends Table[JsonBean](Some("test"), "JsonTest") {
+  object JsonTestTable extends Table[JsonBean]("JsonTest") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def json = column[JValue]("json")
 

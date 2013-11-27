@@ -60,7 +60,7 @@ object SlickPgBuild extends Build {
     description := "Slick extensions for PostgreSQL - Core",
     version := "0.2.0",
     libraryDependencies := Seq(
-      "com.typesafe.slick" % "slick_2.10" % "1.0.0",
+      "com.typesafe.slick" % "slick_2.10" % "1.0.1",
       "org.postgresql" % "postgresql" % "9.2-1003-jdbc4",
       "com.vividsolutions" % "jts" % "1.13"
     )
@@ -71,7 +71,7 @@ object SlickPgBuild extends Build {
     description := "Slick extensions for PostgreSQL",
     version := "0.2.2",
     libraryDependencies := Seq(
-      "com.typesafe.slick" % "slick_2.10" % "1.0.0",
+      "com.typesafe.slick" % "slick_2.10" % "1.0.1",
       "org.postgresql" % "postgresql" % "9.2-1003-jdbc4",
       "com.vividsolutions" % "jts" % "1.13",
       "org.threeten" % "threetenbp" % "0.8.1",

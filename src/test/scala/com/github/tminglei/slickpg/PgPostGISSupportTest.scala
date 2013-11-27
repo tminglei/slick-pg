@@ -12,7 +12,7 @@ class PgPostGISSupportTest {
 
   case class GeometryBean(id: Long, geom: Geometry)
 
-  object GeomTestTable extends Table[GeometryBean](Some("test"), "geom_test") {
+  object GeomTestTable extends Table[GeometryBean]("geom_test") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def geom = column[Geometry]("geom")
 
@@ -23,7 +23,7 @@ class PgPostGISSupportTest {
   ///
   case class PointBean(id: Long, point: Point)
 
-  object PointTestTable extends Table[PointBean](Some("test"), "point_test") {
+  object PointTestTable extends Table[PointBean]("point_test") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def point = column[Point]("point")
 
@@ -307,7 +307,7 @@ class PgPostGISSupportTest {
       assertEquals(true, q11.first())
       val q12 = GeomTestTable.where(_.id === polygonId.bind).map(r => multiPoints.bind.dWithin(r.geom, 10d.bind))
       assertEquals(true, q12.first())
-      val q13 = GeomTestTable.where(_.id === polygonId.bind).map(r => multiPoints.bind.dFullyWithin(r.geom, 200d.bind))
+      val q13 = GeomTestTable.where(_.id === polygonId.bind).map(r => point.bind.dFullyWithin(r.geom, 200d.bind))
       assertEquals(true, q13.first())
 
       val q14 = GeomTestTable.where(_.id === polygonId.bind).map(_.geom.touches(point.bind))

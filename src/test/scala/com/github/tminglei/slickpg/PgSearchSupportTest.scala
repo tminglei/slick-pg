@@ -10,7 +10,7 @@ class PgSearchSupportTest {
 
   case class TestBean(id: Long, text: String, comment: String)
 
-  object TestTable extends Table[TestBean](Some("test"), "testTable") {
+  object TestTable extends Table[TestBean]("testTable") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def text = column[String]("text")
     def comment = column[String]("comment")

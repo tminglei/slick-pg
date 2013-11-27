@@ -10,7 +10,7 @@ class PgHStoreSupportTest {
 
   case class MapBean(id: Long, hstore: Map[String, String])
 
-  object HStoreTestTable extends Table[MapBean](Some("test"), "HStoreTest") {
+  object HStoreTestTable extends Table[MapBean]("HStoreTest") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def hstore = column[Map[String, String]]("hstoreMap")
 
