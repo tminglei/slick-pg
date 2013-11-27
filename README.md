@@ -17,7 +17,7 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.1" % "0.2.2"
+libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.1" % "0.2.2.1"
 ```
 
 Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg` to your `pom.xml` like this:
@@ -25,7 +25,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.10.1</artifactId>
-    <version>0.2.2</version>
+    <version>0.2.2.1</version>
 </dependency>
 ```
 
