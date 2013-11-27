@@ -6,7 +6,7 @@ object ExampleBuild extends Build {
   lazy val theSettings = Seq(
     name := "example",
     description := "slick-pg example project",
-    version := "0.1-SNAPSHOT",
+    version := "0.2-SNAPSHOT",
     organizationName := "slick-pg",
     organization := "com.example",
 
@@ -18,9 +18,9 @@ object ExampleBuild extends Build {
       "-language:postfixOps"),
 
     libraryDependencies := Seq(
-      "com.typesafe.slick" % "slick_2.10" % "1.0.1",
-      "com.github.tminglei" % "slick-pg_2.10.1" % "0.1.3.1",
-      "org.postgresql" % "postgresql" % "9.2-1003-jdbc4",
+      "com.typesafe.slick" % "slick_2.10" % "2.0.0-M3",
+      "com.github.tminglei" % "slick-pg_2.10.3" % "0.5.0-beta",
+      "org.postgresql" % "postgresql" % "9.3-1100-jdbc41",
       "com.vividsolutions" % "jts" % "1.13",
       "org.json4s" % "json4s-native_2.10" % "3.2.5"
     ),

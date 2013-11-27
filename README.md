@@ -11,21 +11,21 @@ Slick-pg
 - `text` Search
 - `postgis` Geometry
 
-** _tested on `postgreSQL 9.3` with `Slick 1.0`._
+** _tested on `postgreSQL 9.3` with `Slick 2.0.0-M3`._
 
 Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.1" % "0.2.2"
+libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.3" % "0.5.0-beta"
 ```
 
 Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg` to your `pom.xml` like this:
 ```xml
 <dependency>
     <groupId>com.github.tminglei</groupId>
-    <artifactId>slick-pg_2.10.1</artifactId>
-    <version>0.2.2</version>
+    <artifactId>slick-pg_2.10.3</artifactId>
+    <version>0.5.0-beta</version>
 </dependency>
 ```
 
@@ -38,12 +38,12 @@ import com.github.tminglei.slickpg._
 
 trait MyPostgresDriver extends PostgresDriver
                           with PgArraySupport
-                          with PgDatetimeSupport
+                          with PgDateSupport
                           with PgRangeSupport
-                          with PgJsonSupport
                           with PgHStoreSupport
+                          with PgJsonSupport
                           with PgSearchSupport
-                          with PostGISSupport {
+                          with PgPostGISSupport {
   /// for json support
   type DOCType = text.Document
   override val jsonMethods = org.json4s.native.JsonMethods
@@ -55,7 +55,7 @@ trait MyPostgresDriver extends PostgresDriver
   //////
   trait ImplicitsPlus extends Implicits
                         with ArrayImplicits
-                        with DatetimeImplicits
+                        with DateTimeImplicits
                         with RangeImplicits
                         with HStoreImplicits
                         with JsonImplicits
@@ -65,6 +65,7 @@ trait MyPostgresDriver extends PostgresDriver
   trait SimpleQLPlus extends SimpleQL
                         with ImplicitsPlus
                         with SearchAssistants
+                        with PostGISAssistants
 }
 
 object MyPostgresDriver extends MyPostgresDriver
@@ -75,7 +76,7 @@ then in your codes you can use it like this:
 ```scala
 import MyPostgresDriver.simple._
 
-object TestTable extends Table[Test](Some("xxx"), "Test") {
+class TestTable(tag: Tag) extends Table[Test](tag, Some("xxx"), "Test") {
   def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
   def during = column[Range[Timestamp]]("during")
   def location = column[Point]("location")
@@ -83,8 +84,10 @@ object TestTable extends Table[Test](Some("xxx"), "Test") {
   def props = column[Map[String,String]]("props_hstore")
   def tags = column[List[String]]("tags_arr")
 
-  def * = id ~ during ~ location ~ text ~ props ~ tags <> (Test, Test unapply _)
+  def * = (id, during, location, text, props, tags) <> (Test.tupled, Test.unapply)
+}
 
+object tests extends TableQuery(new TestTable(_)) {
   ///
   def byId(ids: Long*) = TestTable.where(_.id inSetBind ids).map(t => t)
   // will generate sql like: select * from test where tags && ?
@@ -162,8 +165,11 @@ Support details
 
 
 Version history
----------------
-v0.2.1 (03-Nov-2013)/0.2.2 (04-Nov-2013):  
+------------------------------
+v0.5.0-beta (27-Nov-2013):
+1) upgrade to slick v2.0.0-M3
+
+v0.2.2 (04-Nov-2013):
 1) support Joda date/time, binding to Pg Date/Time  
 2) support threetenbp date/time, binding to Pg Date/Time
 
@@ -182,13 +188,6 @@ v0.1.0 (20-May-2013):
 3) support pg hstore  
 4) support pg search  
 5) support pg geometry  
-
-
-Existing issues
-----------------
-1) When using `slick-pg`'s uuid array support, you maybe encountered an exception said like 'Method `Jdbc4Array.getArrayImpl(long,int,Map)` is not yet implemented'.
-That's because uuid array is not supported by postgres jdbc driver yet.  
-I have submitted enhancement changes to postgres jdbc driver's development team, pls see [add uuid array support](https://github.com/pgjdbc/pgjdbc/pull/81 "add uuid array support") for details.
 
 
 License
