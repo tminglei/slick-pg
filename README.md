@@ -89,17 +89,17 @@ class TestTable(tag: Tag) extends Table[Test](tag, Some("xxx"), "Test") {
 
 object tests extends TableQuery(new TestTable(_)) {
   ///
-  def byId(ids: Long*) = TestTable.where(_.id inSetBind ids).map(t => t)
+  def byId(ids: Long*) = tests.where(_.id inSetBind ids).map(t => t)
   // will generate sql like: select * from test where tags && ?
-  def byTag(tags: String*) = TestTable.where(_.tags @& tags.toList.bind).map(t => t)
+  def byTag(tags: String*) = tests.where(_.tags @& tags.toList.bind).map(t => t)
   // will generate sql like: select * from test where during && ?
-  def byTsRange(tsRange: Range[Timestamp]) = TestTable.where(_.during @& tsRange.bind).map(t => t)
+  def byTsRange(tsRange: Range[Timestamp]) = tests.where(_.during @& tsRange.bind).map(t => t)
   // will generate sql like: select * from test where case(props -> ? as [T]) == ?
-  def byProperty[T](key: String, value: T) = TestTable.where(_.props.>>[T](key.bind) === value.bind).map(t => t)
+  def byProperty[T](key: String, value: T) = tests.where(_.props.>>[T](key.bind) === value.bind).map(t => t)
   // will generate sql like: select * from test where ST_DWithin(location, ?, ?)
-  def byDistance(point: Point, distance: Int) = TestTable.where(r => r.location.dWithin(point.bind, distance.bind)).map(t => t)
+  def byDistance(point: Point, distance: Int) = tests.where(r => r.location.dWithin(point.bind, distance.bind)).map(t => t)
   // will generate sql like: select id, text, ts_rank(to_tsvector(text), to_tsquery(?)) from test where to_tsvector(text) @@ to_tsquery(?) order by ts_rank(to_tsvector(text), to_tsquery(?))
-  def search(queryStr: String) = TestTable.where(tsVector(_.text) @@ tsQuery(queryStr.bind)).map(r => (r.id, r.text, tsRank(tsVector(r.text), tsQuery(queryStr.bind)))).sortBy(_._3)
+  def search(queryStr: String) = tests.where(tsVector(_.text) @@ tsQuery(queryStr.bind)).map(r => (r.id, r.text, tsRank(tsVector(r.text), tsQuery(queryStr.bind)))).sortBy(_._3)
 }
 
 ...
