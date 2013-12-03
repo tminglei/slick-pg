@@ -37,17 +37,34 @@ sealed trait PGElements {
 }
 
 sealed trait PGTokenReducer extends PGTokens with PGElements {
-  def compose(input : CompositeToken, level: Int = 0) : Element =  {
-    def merge[T](compositeList : List[Token])(mergeF: (List[Token]) => T ) = {
-      mergeF(compositeList.slice(1,compositeList.length-1))
+  def compose(input : CompositeToken) : Element =  {
+    def mergeString(list : List[Token]) : String = {
+      if(list.isEmpty) ""
+      else
+        list.head match {
+          case Chunk(v) => v + mergeString(list.tail)
+          case Quote(v) => v + mergeString(list.tail)
+          case Escape(_,v) => v + mergeString(list.tail)
+          case Comma() => mergeString(list.tail)
+        }
     }
+    def mergeComposite(composite :CompositeToken, level: Int = 0) : Element = {
+      val elements =
+      composite.value.collect {
+        case v: CTArray   => mergeComposite(v)
+        case v: CTRecord  => mergeComposite(v)
+        case CTString(v)  => ValueE(mergeString(v.slice(1,v.length-1)))
+        case Chunk(v) => ValueE(v)
+      }
 
-//    input match {
-//      case CTArray(v) => merge(v) { }
-//      case CTRecord(v) =>
-////      case CTString(v) if level !=0 => merge(v) {}
-//    }
-    ValueE("dummy")
+      composite match {
+        case CTArray(_) => ArrayE(elements)
+        case CTRecord(_) => CompositeE(elements)
+        case _ => throw new Exception("merge composite should only be called for composites.")
+      }
+
+    }
+    mergeComposite(input)
   }
 
   def reduce(tokens : List[Token]): CompositeToken = {
@@ -140,13 +157,14 @@ object PGObjectTokenizer extends RegexParsers with PGTokens with PGTokenReducer 
   def chunk = """[^}){(\\,"]+""".r ^^ { Chunk}
   def tokens = open | close | escape | marker | comma | chunk
 
-  def tokenise = rep(tokens)  ^^ { tl => reduce(tl) }
+  def tokenise = rep(tokens)  ^^ { tl => compose(reduce(tl)) }
 
 
 
   def apply(input : String) = {
     level = -1
     levelMarker.clear()
+    println(input)
     parseAll(tokenise,new scala.util.parsing.input.CharArrayReader(input.toCharArray))
   }
 }
