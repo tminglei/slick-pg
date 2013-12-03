@@ -117,6 +117,7 @@ sealed trait PGTokenReducer extends PGTokens with PGElements {
 }
 
 object PGObjectTokenizer extends RegexParsers with PGTokens with PGTokenReducer {
+  override def skipWhitespace = false
   var level = -1
   var levelMarker = new mutable.Stack[String]()
 
@@ -157,7 +158,7 @@ object PGObjectTokenizer extends RegexParsers with PGTokens with PGTokenReducer 
   def chunk = """[^}){(\\,"]+""".r ^^ { Chunk}
   def tokens = open | close | escape | marker | comma | chunk
 
-  def tokenise = rep(tokens)  ^^ { tl => compose(reduce(tl)) }
+  def tokenise = rep(tokens)  ^^ { t=> compose(reduce(t)) }
 
 
 
