@@ -5,7 +5,6 @@ sealed trait PGTokens
 {
   trait Token
   case class Comma()                          extends Token
-  case class Chunk(value : String)            extends Token
 
   case class ArrOpen(marker: String,l: Int)   extends Token
   case class RecOpen(marker: String,l: Int)   extends Token
@@ -14,7 +13,13 @@ sealed trait PGTokens
   case class Escape(l:Int, escape: String)    extends Token
   case class Marker(m : String, l: Int)       extends Token
   case class SingleQuote()                    extends Token
-  case class Quote(q: String)                 extends Token
+
+
+  trait ValueToken extends Token {
+    def value: String
+  }
+  case class Chunk(value : String)            extends ValueToken
+  case class Quote(value: String)             extends ValueToken
 
   trait CompositeToken extends Token {
     def value: List[Token]
@@ -24,8 +29,28 @@ sealed trait PGTokens
   case class CTString(value: List[Token])     extends CompositeToken
 }
 
-sealed trait PGTokenReducer extends PGTokens {
-  def reduce(tokens : List[Token]): Token = {
+sealed trait PGElements {
+  sealed trait Element
+  case class ValueE(value: String) extends Element
+  case class ArrayE(elements: List[Element]) extends Element
+  case class CompositeE(members: List[Element]) extends Element
+}
+
+sealed trait PGTokenReducer extends PGTokens with PGElements {
+  def compose(input : CompositeToken, level: Int = 0) : Element =  {
+    def merge[T](compositeList : List[Token])(mergeF: (List[Token]) => T ) = {
+      mergeF(compositeList.slice(1,compositeList.length-1))
+    }
+
+//    input match {
+//      case CTArray(v) => merge(v) { }
+//      case CTRecord(v) =>
+////      case CTString(v) if level !=0 => merge(v) {}
+//    }
+    ValueE("dummy")
+  }
+
+  def reduce(tokens : List[Token]): CompositeToken = {
     def isOpen(token: Token) = { token match {
       case ArrOpen(_,_) => true
       case RecOpen(_,_) => true
@@ -33,7 +58,7 @@ sealed trait PGTokenReducer extends PGTokens {
       case _ => false
     } }
 
-    def close(borderToken: Token, source: List[Token], target : List[Token],depth: Int = 0,consumeCount: Int =1): (Token,Int) = {
+    def close(borderToken: Token, source: List[Token], target : List[Token],depth: Int = 0,consumeCount: Int =1): (CompositeToken,Int) = {
       source match {
         case List() => throw new Exception("reduction should never hit recursive empty list base case.")
         case x :: xs =>
@@ -65,7 +90,7 @@ sealed trait PGTokenReducer extends PGTokens {
         val ret =
           x match {
             case xx if isOpen(x)  => close(x, xs, x :: List() )
-            case _ => throw new Exception("open must always deal with a open token")
+            case _ => throw new Exception("open must always deal with an open token.")
           }
         if(ret._2 != tokens.size)
           throw new Exception("reduction step did not cover all tokens.")
@@ -115,7 +140,7 @@ object PGObjectTokenizer extends RegexParsers with PGTokens with PGTokenReducer 
   def chunk = """[^}){(\\,"]+""".r ^^ { Chunk}
   def tokens = open | close | escape | marker | comma | chunk
 
-  def tokenise = rep(tokens)  ^^ { reduce }
+  def tokenise = rep(tokens)  ^^ { tl => reduce(tl) }
 
 
 
