@@ -42,13 +42,13 @@ trait PgDateSupportJoda extends date.PgDateExtensions { driver: PostgresDriver =
     cal.setTime(date)
     new LocalDate(
       cal.get(Calendar.YEAR),
-      cal.get(Calendar.MONTH),
+      cal.get(Calendar.MONTH) +1,
       cal.get(Calendar.DAY_OF_MONTH)
     )
   }
   private def jodaDate2sqlDate(date: LocalDate): Date = {
     val cal = Calendar.getInstance()
-    cal.set(date.getYear, date.getMonthOfYear, date.getDayOfMonth, 0, 0, 0)
+    cal.set(date.getYear, date.getMonthOfYear -1, date.getDayOfMonth, 0, 0, 0)
     cal.set(Calendar.MILLISECOND, 0)
     new Date(cal.getTimeInMillis)
   }
@@ -77,7 +77,7 @@ trait PgDateSupportJoda extends date.PgDateExtensions { driver: PostgresDriver =
     cal.setTime(ts)
     new LocalDateTime(
       cal.get(Calendar.YEAR),
-      cal.get(Calendar.MONTH),
+      cal.get(Calendar.MONTH) +1,
       cal.get(Calendar.DAY_OF_MONTH),
       cal.get(Calendar.HOUR_OF_DAY),
       cal.get(Calendar.MINUTE),
@@ -87,7 +87,7 @@ trait PgDateSupportJoda extends date.PgDateExtensions { driver: PostgresDriver =
   }
   private def jodaDateTime2sqlTimestamp(dt: LocalDateTime): Timestamp = {
     val cal = Calendar.getInstance()
-    cal.set(dt.getYear, dt.getMonthOfYear, dt.getDayOfMonth, dt.getHourOfDay, dt.getMinuteOfHour, dt.getSecondOfMinute)
+    cal.set(dt.getYear, dt.getMonthOfYear -1, dt.getDayOfMonth, dt.getHourOfDay, dt.getMinuteOfHour, dt.getSecondOfMinute)
     cal.set(Calendar.MILLISECOND, dt.getMillisOfSecond)
     new Timestamp(cal.getTimeInMillis)
   }

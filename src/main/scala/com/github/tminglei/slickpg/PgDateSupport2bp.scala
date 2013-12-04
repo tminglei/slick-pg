@@ -42,13 +42,13 @@ trait PgDateSupport2bp extends date.PgDateExtensions { driver: PostgresDriver =>
     cal.setTime(date)
     LocalDate.of(
       cal.get(Calendar.YEAR),
-      cal.get(Calendar.MONTH),
+      cal.get(Calendar.MONTH) +1,
       cal.get(Calendar.DAY_OF_MONTH)
     )
   }
   private def bpDate2sqlDate(date: LocalDate): Date = {
     val cal = Calendar.getInstance()
-    cal.set(date.getYear, date.getMonthValue, date.getDayOfMonth, 0, 0, 0)
+    cal.set(date.getYear, date.getMonthValue -1, date.getDayOfMonth, 0, 0, 0)
     cal.set(Calendar.MILLISECOND, 0)
     new Date(cal.getTimeInMillis)
   }
@@ -77,7 +77,7 @@ trait PgDateSupport2bp extends date.PgDateExtensions { driver: PostgresDriver =>
     cal.setTime(ts)
     LocalDateTime.of(
       cal.get(Calendar.YEAR),
-      cal.get(Calendar.MONTH),
+      cal.get(Calendar.MONTH) +1,
       cal.get(Calendar.DAY_OF_MONTH),
       cal.get(Calendar.HOUR_OF_DAY),
       cal.get(Calendar.MINUTE),
@@ -87,7 +87,7 @@ trait PgDateSupport2bp extends date.PgDateExtensions { driver: PostgresDriver =>
   }
   private def bpDateTime2sqlTimestamp(dt: LocalDateTime): Timestamp = {
     val cal = Calendar.getInstance()
-    cal.set(dt.getYear, dt.getMonthValue, dt.getDayOfMonth, dt.getHour, dt.getMinute, dt.getSecond)
+    cal.set(dt.getYear, dt.getMonthValue -1, dt.getDayOfMonth, dt.getHour, dt.getMinute, dt.getSecond)
     cal.set(Calendar.MILLISECOND, dt.getNano / 1000)
     new Timestamp(cal.getTimeInMillis)
   }

@@ -78,15 +78,15 @@ class PgDateTime2SupportTest {
 
       val q8 = DatetimeTable.where(_.id === 101L.bind).map(r => r.datetime - r.date)
       println(s"'-' sql = ${q8.selectStatement}")
-      assertEquals(Duration.parse("-P3589DT10H39M"), q8.first())
+      assertEquals(Duration.parse("-P3589DT34H39M"), q8.first())
 
       val q801 = DatetimeTable.where(_.id === 101L.bind).map(r => r.date.asColumnOf[LocalDateTime] - r.datetime)
       println(s"'-' sql = ${q801.selectStatement}")
-      assertEquals(Duration.parse("P3589DT10H39M"), q801.first())
+      assertEquals(Duration.parse("P3589DT34H39M"), q801.first())
 
       val q9 = DatetimeTable.where(_.id === 101L.bind).map(r => r.date - LocalDate.parse("2009-07-05"))
       println(s"'-' sql = ${q9.selectStatement}")
-      assertEquals(485, q9.first())
+      assertEquals(486, q9.first())
 
       val q10 = DatetimeTable.where(_.id === 101L.bind).map(r => r.time - LocalTime.parse("02:37:00").bind)
       println(s"'-' sql = ${q10.selectStatement}")
