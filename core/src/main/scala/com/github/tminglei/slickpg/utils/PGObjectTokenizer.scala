@@ -116,7 +116,7 @@ sealed trait PGTokenReducer extends PGTokens with PGElements {
   }
 }
 
-object PGObjectTokenizer extends RegexParsers with PGTokens with PGTokenReducer {
+class PGObjectTokenizer extends RegexParsers with PGTokens with PGTokenReducer {
   override def skipWhitespace = false
   var level = -1
   var levelMarker = new mutable.Stack[String]()
@@ -127,15 +127,15 @@ object PGObjectTokenizer extends RegexParsers with PGTokens with PGTokenReducer 
     val marker_ = x.getOrElse("")
     levelMarker.push(marker_)
     val r = y match {
-      case '{' => RecOpen(marker_,level)
-      case '(' => ArrOpen(marker_,level)
+      case '{' => ArrOpen(marker_,level)
+      case '(' => RecOpen(marker_,level)
     } ; level += 1; r }
 
   def close: Parser[Token] = (elem('}') | elem(')')) ~ opt(markerRe) ^^ { case (x~ y) =>
     level -= 1 ; levelMarker.pop()
     x match {
-      case '}' => RecClose(y.getOrElse(""),level)
-      case ')' => ArrClose(y.getOrElse(""),level)
+      case '}' => ArrClose(y.getOrElse(""),level)
+      case ')' => RecClose(y.getOrElse(""),level)
     } }
 
   def escape = """\\+[^"\\]""".r ^^ {x => Escape(level,"\\" + x.last)}
@@ -158,14 +158,23 @@ object PGObjectTokenizer extends RegexParsers with PGTokens with PGTokenReducer 
   def chunk = """[^}){(\\,"]+""".r ^^ { Chunk}
   def tokens = open | close | escape | marker | comma | chunk
 
-  def tokenise = rep(tokens)  ^^ { t=> compose(reduce(t)) }
+  def tokenize = rep(tokens)  ^^ { t=> compose(reduce(t)) }
 
-
-
-  def apply(input : String) = {
-    level = -1
-    levelMarker.clear()
+  def process(input : String) = {
     println(input)
-    parseAll(tokenise,new scala.util.parsing.input.CharArrayReader(input.toCharArray))
+    val inputReader = new scala.util.parsing.input.CharSequenceReader(input)
+    parseAll(tokenize, inputReader)
+  }
+}
+
+object PGObjectTokenizer extends PGObjectTokenizer {
+  def apply(input : String) = {
+    new PGObjectTokenizer().process(input)
+  }
+}
+
+object Test {
+  def main(args: Array[String]) = {
+    println(PGObjectTokenizer("{111,111}").get)
   }
 }
