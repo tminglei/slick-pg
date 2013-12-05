@@ -8,8 +8,8 @@ import scala.slick.SlickException
 
 class PGObjectTokenizer extends RegexParsers {
 
-  // pg tokens, internal used only
-  trait PGTokens {
+  // pg tokens, should be used internally only
+  object PGTokens {
     sealed trait Token
     case class Comma()                          extends Token
 
@@ -36,9 +36,10 @@ class PGObjectTokenizer extends RegexParsers {
   }
 
   ////////////////////////////////////
+  import PGTokens._
   import PGObjectTokenizer.PGElements._
 
-  object PGTokenReducer extends PGTokens {
+  object PGTokenReducer {
 
     def compose(input : CompositeToken) : Element =  {
       
