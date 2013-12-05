@@ -9,34 +9,36 @@ import scala.slick.SlickException
 class PGObjectTokenizer extends RegexParsers {
 
   // pg tokens, internal used only
-  sealed trait Token
-  case class Comma()                          extends Token
+  trait PGTokens {
+    sealed trait Token
+    case class Comma()                          extends Token
 
-  case class ArrOpen(marker: String,l: Int)   extends Token
-  case class RecOpen(marker: String,l: Int)   extends Token
-  case class ArrClose(marker: String,l: Int)  extends Token
-  case class RecClose(marker: String,l: Int)  extends Token
-  case class Escape(l:Int, escape: String)    extends Token
-  case class Marker(m : String, l: Int)       extends Token
-  case class SingleQuote()                    extends Token
+    case class ArrOpen(marker: String,l: Int)   extends Token
+    case class RecOpen(marker: String,l: Int)   extends Token
+    case class ArrClose(marker: String,l: Int)  extends Token
+    case class RecClose(marker: String,l: Int)  extends Token
+    case class Escape(l:Int, escape: String)    extends Token
+    case class Marker(m : String, l: Int)       extends Token
+    case class SingleQuote()                    extends Token
 
-  trait ValueToken extends Token {
-    def value: String
+    trait ValueToken extends Token {
+      def value: String
+    }
+    case class Chunk(value : String)            extends ValueToken
+    case class Quote(value: String)             extends ValueToken
+
+    trait CompositeToken extends Token {
+      def value: List[Token]
+    }
+    case class CTArray(value: List[Token])      extends CompositeToken
+    case class CTRecord(value: List[Token])     extends CompositeToken
+    case class CTString(value: List[Token])     extends CompositeToken
   }
-  case class Chunk(value : String)            extends ValueToken
-  case class Quote(value: String)             extends ValueToken
-
-  trait CompositeToken extends Token {
-    def value: List[Token]
-  }
-  case class CTArray(value: List[Token])      extends CompositeToken
-  case class CTRecord(value: List[Token])     extends CompositeToken
-  case class CTString(value: List[Token])     extends CompositeToken
 
   ////////////////////////////////////
   import PGObjectTokenizer.PGElements._
 
-  object PGTokenReducer {
+  object PGTokenReducer extends PGTokens {
 
     def compose(input : CompositeToken) : Element =  {
       
