@@ -44,33 +44,97 @@ class ConverterTest {
     // simple case
     val conv = mkConvFromElement[T]
     assertEquals(T(111,"test","test desc"),
-      conv(CompositeE(List(ValueE("111"), ValueE("test"), ValueE("test desc"), ValueE(null)))))
+      conv(
+        CompositeE(List(
+          ValueE("111"),
+          ValueE("test"),
+          ValueE("test desc"),
+          ValueE(null)
+        ))
+      ))
 
     val conv1 = mkConvToElement[T]
-    assertEquals(CompositeE(List(ValueE("112"), ValueE("test"), ValueE("test 2"), null)),
+    assertEquals(
+      CompositeE(List(
+        ValueE("112"),
+        ValueE("test"),
+        ValueE("test 2"),
+        null)),
       conv1(T(112, "test", "test 2")))
 
     // simple nested case
     Converters.register(conv)
     val convt1 = mkConvFromElement[T1]
-    assertEquals(T1(115,T(111,"test","test dd",Some("hi")),List(157)),
-      convt1(CompositeE(List(ValueE("115"), CompositeE(List(ValueE("111"), ValueE("test"), ValueE("test dd"), ValueE("hi"))), ArrayE(List(ValueE("157")))))))
+    assertEquals(T1(115, T(111,"test","test dd",Some("hi")), List(157)),
+      convt1(
+        CompositeE(List(
+          ValueE("115"),
+          CompositeE(List(
+            ValueE("111"),
+            ValueE("test"),
+            ValueE("test dd"),
+            ValueE("hi"))),
+          ArrayE(List(
+            ValueE("157")
+          ))
+        ))
+      ))
 
     Converters.register(conv1)
     val convt11 = mkConvToElement[T1]
-    assertEquals(CompositeE(List(ValueE("116"), CompositeE(List(ValueE("111"), ValueE("test"), ValueE("test 3"), null)), ArrayE(List(ValueE("123"), ValueE("135"))))),
+    assertEquals(
+      CompositeE(List(
+        ValueE("116"),
+        CompositeE(List(
+          ValueE("111"),
+          ValueE("test"),
+          ValueE("test 3"),
+          null)),
+        ArrayE(List(
+          ValueE("123"),
+          ValueE("135")
+        ))
+      )),
       convt11(T1(116, T(111, "test", "test 3"), List(123,135))))
 
     // composite array case
     Converters.register(convt1)
     val convat = mkArrayConvFromElement[T1]
-    assertEquals(List(T1(115,T(111,"test","test dd",Some("hi")),List(157))),
-      convat(ArrayE(List(CompositeE(List(ValueE("115"), CompositeE(List(ValueE("111"), ValueE("test"), ValueE("test dd"), ValueE("hi"))), ArrayE(List(ValueE("157")))))))))
+    assertEquals(List(T1(115, T(111,"test","test dd",Some("hi")), List(157))),
+      convat(
+        ArrayE(List(
+          CompositeE(List(
+            ValueE("115"),
+            CompositeE(List(
+              ValueE("111"),
+              ValueE("test"),
+              ValueE("test dd"),
+              ValueE("hi"))
+            ),
+            ArrayE(List(
+              ValueE("157")
+            ))
+          ))
+        ))
+      ))
 
     Converters.register(convt11)
     val convat1 = mkArrayConvToElement[T1]
-    assertEquals(ArrayE(List(CompositeE(List(ValueE("115"), CompositeE(List(ValueE("111"), ValueE("test"), ValueE("test dd"), ValueE("hi"))), ArrayE(List(ValueE("157"))))))),
-      convat1(List(T1(115,T(111,"test","test dd",Some("hi")),List(157)))))
+    assertEquals(
+      ArrayE(List(
+        CompositeE(List(
+          ValueE("115"),
+          CompositeE(List(
+            ValueE("111"),
+            ValueE("test"),
+            ValueE("test dd"),
+            ValueE("hi"))),
+          ArrayE(List(
+            ValueE("157")
+          ))
+        ))
+      )),
+      convat1(List(T1(115, T(111,"test","test dd",Some("hi")), List(157)))))
   }
 }
 

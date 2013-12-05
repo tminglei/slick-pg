@@ -1,7 +1,7 @@
 package com.github.tminglei.slickpg
-import scala.annotation.tailrec
 package utils
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.util.parsing.combinator.RegexParsers
 import scala.util.parsing.input.CharSequenceReader
