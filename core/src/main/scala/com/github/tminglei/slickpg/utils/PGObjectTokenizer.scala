@@ -1,4 +1,5 @@
 package com.github.tminglei.slickpg
+import scala.annotation.tailrec
 package utils
 
 import scala.collection.mutable
@@ -42,16 +43,16 @@ class PGObjectTokenizer extends RegexParsers {
   object PGTokenReducer {
 
     def compose(input : CompositeToken) : Element =  {
-      
-      def mergeString(list : List[Token]) : String = {
-        if(list.isEmpty) ""
+
+      @tailrec
+      def mergeString(list : List[Token], tally: String = "") : String = {
+        if(list.isEmpty) tally
         else
           list.head match {
-            case Chunk(v) => v + mergeString(list.tail)
-            case Quote(v) => v + mergeString(list.tail)
-            case Escape(_,v) => v + mergeString(list.tail)
-            case Comma() => mergeString(list.tail)
-            case token => throw new IllegalArgumentException(s"unsupported token $token")
+            case Chunk(v) => mergeString(list.tail, tally + v)
+            case Quote(v) => mergeString(list.tail, tally + v)
+            case Escape(_,v) => mergeString(list.tail, tally + v)
+            case Comma() => mergeString(list.tail, tally)
           }
       }
 
@@ -84,6 +85,12 @@ class PGObjectTokenizer extends RegexParsers {
         case _ => false
       } }
 
+      def innerClose(x : Token, xs: List[Token],dpth: Int) = {
+        val ret = close(x,xs,x::List(),dpth +1)
+        (ret._1.asInstanceOf[CompositeToken], ret._2)
+      }
+
+      @tailrec
       def close(borderToken: Token, source: List[Token], target : List[Token],depth: Int = 0,consumeCount: Int =1): (CompositeToken,Int) = {
         source match {
           case List() => throw new Exception("reduction should never hit recursive empty list base case.")
@@ -102,7 +109,7 @@ class PGObjectTokenizer extends RegexParsers {
               // the else porting of this should be caught by the isOpen case below
               // OPENING CASES -> The results of these are siblings.
               case xx if isOpen(x) => {
-                val (sibling, consumed) = { val ret = close(x,xs,x::List(),depth +1); (ret._1.asInstanceOf[CompositeToken], ret._2) }
+                val (sibling, consumed) = innerClose(x,xs,depth+1)
                 val new_source =  source.splitAt(consumed)._2
                 close(borderToken,new_source,target :+ sibling,consumeCount = consumeCount + consumed)
               }
