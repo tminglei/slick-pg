@@ -1,9 +1,15 @@
+package com.github.tminglei.slickpg
+package utils
+
 import scala.collection.mutable
 import scala.util.parsing.combinator.RegexParsers
+import scala.util.parsing.input.CharSequenceReader
+import scala.slick.SlickException
 
-sealed trait PGTokens
-{
-  trait Token
+class PGObjectTokenizer extends RegexParsers {
+
+  // pg tokens, internal used only
+  sealed trait Token
   case class Comma()                          extends Token
 
   case class ArrOpen(marker: String,l: Int)   extends Token
@@ -13,7 +19,6 @@ sealed trait PGTokens
   case class Escape(l:Int, escape: String)    extends Token
   case class Marker(m : String, l: Int)       extends Token
   case class SingleQuote()                    extends Token
-
 
   trait ValueToken extends Token {
     def value: String
@@ -27,97 +32,102 @@ sealed trait PGTokens
   case class CTArray(value: List[Token])      extends CompositeToken
   case class CTRecord(value: List[Token])     extends CompositeToken
   case class CTString(value: List[Token])     extends CompositeToken
-}
 
-sealed trait PGElements {
-  sealed trait Element
-  case class ValueE(value: String) extends Element
-  case class ArrayE(elements: List[Element]) extends Element
-  case class CompositeE(members: List[Element]) extends Element
-}
+  ////////////////////////////////////
+  import PGObjectTokenizer.PGElements._
 
-sealed trait PGTokenReducer extends PGTokens with PGElements {
-  def compose(input : CompositeToken) : Element =  {
-    def mergeString(list : List[Token]) : String = {
-      if(list.isEmpty) ""
-      else
-        list.head match {
-          case Chunk(v) => v + mergeString(list.tail)
-          case Quote(v) => v + mergeString(list.tail)
-          case Escape(_,v) => v + mergeString(list.tail)
-          case Comma() => mergeString(list.tail)
+  object PGTokenReducer {
+
+    def compose(input : CompositeToken) : Element =  {
+      
+      def mergeString(list : List[Token]) : String = {
+        if(list.isEmpty) ""
+        else
+          list.head match {
+            case Chunk(v) => v + mergeString(list.tail)
+            case Quote(v) => v + mergeString(list.tail)
+            case Escape(_,v) => v + mergeString(list.tail)
+            case Comma() => mergeString(list.tail)
+            case token => throw new IllegalArgumentException(s"unsupported token $token")
+          }
+      }
+
+      def mergeComposite(composite :CompositeToken, level: Int = 0) : Element = {
+        val elements =
+          composite.value.collect {
+            case v: CTArray   => mergeComposite(v)
+            case v: CTRecord  => mergeComposite(v)
+            case CTString(v)  => ValueE(mergeString(v.slice(1,v.length-1)))
+            case Chunk(v) => ValueE(v)
+          }
+
+        composite match {
+          case CTArray(_) => ArrayE(elements)
+          case CTRecord(_) => CompositeE(elements)
+          case token => throw new IllegalArgumentException(s"unsupported token $token")
         }
-    }
-    def mergeComposite(composite :CompositeToken, level: Int = 0) : Element = {
-      val elements =
-      composite.value.collect {
-        case v: CTArray   => mergeComposite(v)
-        case v: CTRecord  => mergeComposite(v)
-        case CTString(v)  => ValueE(mergeString(v.slice(1,v.length-1)))
-        case Chunk(v) => ValueE(v)
       }
 
-      composite match {
-        case CTArray(_) => ArrayE(elements)
-        case CTRecord(_) => CompositeE(elements)
-        case _ => throw new Exception("merge composite should only be called for composites.")
+      //--
+      mergeComposite(input)
+    }
+
+    def reduce(tokens : List[Token]): CompositeToken = {
+
+      def isOpen(token: Token) = { token match {
+        case ArrOpen(_,_) => true
+        case RecOpen(_,_) => true
+        case SingleQuote() => true
+        case _ => false
+      } }
+
+      def close(borderToken: Token, source: List[Token], target : List[Token],depth: Int = 0,consumeCount: Int =1): (CompositeToken,Int) = {
+        source match {
+          case List() => throw new Exception("reduction should never hit recursive empty list base case.")
+          case x :: xs =>
+            x match {
+              // CLOSING CASES
+              case ArrClose(cm,cl) => borderToken match {
+                case ArrOpen(sm,sl) if cm == sm && sl==cl => (CTArray(target :+ x),consumeCount + 1)
+                case _ => throw new Exception (s"open and close tags don't match : $borderToken - $x")
+              }
+              case RecClose(cm,cl) => borderToken match {
+                case RecOpen(sm,sl) if cm == sm && sl == cl => (CTRecord(target :+ x),consumeCount + 1)
+                case _ => throw new Exception (s"open and close tags don't match:  : $borderToken - $x")
+              }
+              case SingleQuote() if borderToken.isInstanceOf[SingleQuote] => (CTString(target :+ x ),consumeCount +1)
+              // the else porting of this should be caught by the isOpen case below
+              // OPENING CASES -> The results of these are siblings.
+              case xx if isOpen(x) => {
+                val (sibling, consumed) = { val ret = close(x,xs,x::List(),depth +1); (ret._1.asInstanceOf[CompositeToken], ret._2) }
+                val new_source =  source.splitAt(consumed)._2
+                close(borderToken,new_source,target :+ sibling,consumeCount = consumeCount + consumed)
+              }
+              case _ => close(borderToken, xs, target :+ x, consumeCount = consumeCount +1)
+            }
+        }
       }
 
+      //--
+      tokens match {
+        case x :: xs if xs != List() =>
+          val ret =
+            x match {
+              case xx if isOpen(x)  => close(x, xs, x :: List() )
+              case _ => throw new Exception("open must always deal with an open token.")
+            }
+          if(ret._2 != tokens.size)
+            throw new Exception("reduction step did not cover all tokens.")
+          ret._1
+      }
     }
-    mergeComposite(input)
   }
 
-  def reduce(tokens : List[Token]): CompositeToken = {
-    def isOpen(token: Token) = { token match {
-      case ArrOpen(_,_) => true
-      case RecOpen(_,_) => true
-      case SingleQuote() => true
-      case _ => false
-    } }
-
-    def close(borderToken: Token, source: List[Token], target : List[Token],depth: Int = 0,consumeCount: Int =1): (CompositeToken,Int) = {
-      source match {
-        case List() => throw new Exception("reduction should never hit recursive empty list base case.")
-        case x :: xs =>
-          x match {
-            // CLOSING CASES
-            case ArrClose(cm,cl) => borderToken match {
-              case ArrOpen(sm,sl) if cm == sm && sl==cl => (CTArray(target :+ x),consumeCount + 1)
-              case _ => throw new Exception (s"open and close tags don't match : $borderToken - $x")
-            }
-            case RecClose(cm,cl) => borderToken match {
-              case RecOpen(sm,sl) if cm == sm && sl == cl => (CTRecord(target :+ x),consumeCount + 1)
-              case _ => throw new Exception (s"open and close tags don't match:  : $borderToken - $x")
-            }
-            case SingleQuote() if borderToken.isInstanceOf[SingleQuote] => (CTString(target :+ x ),consumeCount +1)
-            // the else porting of this should be caught by the isOpen case below
-            // OPENING CASES -> The results of these are siblings.
-            case xx if isOpen(x) => {
-              val (sibling, consumed) = { val ret = close(x,xs,x::List(),depth +1); (ret._1.asInstanceOf[CompositeToken], ret._2) }
-              val new_source =  source.splitAt(consumed)._2
-              close(borderToken,new_source,target :+ sibling,consumeCount = consumeCount + consumed)
-            }
-            case _ => close(borderToken, xs, target :+ x, consumeCount = consumeCount +1)
-          }
-      }
-    }
-
-    tokens match {
-      case x :: xs if xs != List() =>
-        val ret =
-          x match {
-            case xx if isOpen(x)  => close(x, xs, x :: List() )
-            case _ => throw new Exception("open must always deal with an open token.")
-          }
-        if(ret._2 != tokens.size)
-          throw new Exception("reduction step did not cover all tokens.")
-        ret._1
-    }
-  }
-}
-
-class PGObjectTokenizer extends RegexParsers with PGTokens with PGTokenReducer {
+  ////////////////////////////////////////////////////////////////////////////////
+  import PGTokenReducer._
+  
   override def skipWhitespace = false
+  
   var level = -1
   var levelMarker = new mutable.Stack[String]()
 
@@ -140,19 +150,18 @@ class PGObjectTokenizer extends RegexParsers with PGTokens with PGTokenReducer {
 
   def escape = """\\+[^"\\]""".r ^^ {x => Escape(level,"\\" + x.last)}
 
-  def marker =  markerRe ^^ { x=> {
+  def marker =  markerRe ^^ { x=>
     val pow = scala.math.pow(2,level).toInt
     if(x.length % pow == 0) {
       x.length / pow match {
         case 1 => SingleQuote()
         case _ => Quote("\"" * (x.length/pow))
       }
-
     }
     else {
       Marker(x,level)
     }
-  } }
+  }
 
   def comma = elem(',') ^^ { x=> Comma() }
   def chunk = """[^}){(\\,"]+""".r ^^ { Chunk}
@@ -160,21 +169,25 @@ class PGObjectTokenizer extends RegexParsers with PGTokens with PGTokenReducer {
 
   def tokenize = rep(tokens)  ^^ { t=> compose(reduce(t)) }
 
+  //--
   def process(input : String) = {
-    println(input)
-    val inputReader = new scala.util.parsing.input.CharSequenceReader(input)
-    parseAll(tokenize, inputReader)
+    parseAll(tokenize, new CharSequenceReader(input))
   }
 }
 
 object PGObjectTokenizer extends PGObjectTokenizer {
-  def apply(input : String) = {
-    new PGObjectTokenizer().process(input)
-  }
-}
 
-object Test {
-  def main(args: Array[String]) = {
-    println(PGObjectTokenizer("{111,111}").get)
+  object PGElements {
+    sealed trait Element
+    case class ValueE(value: String) extends Element
+    case class ArrayE(elements: List[Element]) extends Element
+    case class CompositeE(members: List[Element]) extends Element
+  }
+
+  def apply(input : String): PGElements.Element = {
+    new PGObjectTokenizer().process(input) match {
+      case Success(result, _) => result
+      case failure: NoSuccess => throw new SlickException(failure.msg)
+    }
   }
 }

@@ -7,7 +7,7 @@ object SlickPgBuild extends Build {
     organizationName := "slick-pg",
     organization := "com.github.tminglei",
 
-    scalaVersion := "2.10.1",
+    scalaVersion := "2.10.3",
     scalaBinaryVersion <<= scalaVersion,
     scalacOptions ++= Seq("-deprecation", "-feature",
       "-language:implicitConversions",
@@ -60,10 +60,12 @@ object SlickPgBuild extends Build {
     description := "Slick extensions for PostgreSQL - Core",
     version := "0.2.0.1",
     libraryDependencies := Seq(
-      "org.scala-lang" % "scala-reflect" % "2.10.1",
+      "org.scala-lang" % "scala-reflect" % "2.10.3",
       "com.typesafe.slick" % "slick_2.10" % "1.0.1",
       "org.postgresql" % "postgresql" % "9.3-1100-jdbc41",
-      "com.vividsolutions" % "jts" % "1.13"
+      "com.vividsolutions" % "jts" % "1.13",
+      "junit" % "junit" % "4.11" % "test",
+      "com.novocode" % "junit-interface" % "0.10" % "test"
     )
   )
 
@@ -72,7 +74,7 @@ object SlickPgBuild extends Build {
     description := "Slick extensions for PostgreSQL",
     version := "0.2.2.2",
     libraryDependencies := Seq(
-      "org.scala-lang" % "scala-reflect" % "2.10.1",
+      "org.scala-lang" % "scala-reflect" % "2.10.3",
       "com.typesafe.slick" % "slick_2.10" % "1.0.1",
       "org.postgresql" % "postgresql" % "9.3-1100-jdbc41",
       "com.vividsolutions" % "jts" % "1.13",
