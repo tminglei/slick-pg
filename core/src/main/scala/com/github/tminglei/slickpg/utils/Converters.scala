@@ -15,16 +15,7 @@ object Converters {
       }
   }
 
-  ///
-  private[utils] case class CacheKey(val from: ru.Type, val to: ru.Type) {
-    override def equals(o: Any) = {
-      if (o.isInstanceOf[CacheKey]) {
-        val that = o.asInstanceOf[CacheKey]
-        from =:= that.from && to =:= that.to
-      } else false
-    }
-  }
-
+  //////////////////////////////////////////////////////////
   private var converterMap = Map[CacheKey, Converter[_, _]]()
 
   private[utils] def internalGet(from: ru.Type, to: ru.Type) = {
@@ -47,7 +38,20 @@ object Converters {
       .getOrElse(throw new IllegalArgumentException(s"Converter NOT FOUND for ${from.tpe} => ${to.tpe}"))
   }
 
-  ////////////////////////////////////////////////////////////////
+  ///
+  private[utils] case class CacheKey(val from: ru.Type, val to: ru.Type) {
+    override def hashCode(): Int = {
+      from.toString.hashCode() * 31 + to.toString.hashCode()
+    }
+    override def equals(o: Any) = {
+      if (o.isInstanceOf[CacheKey]) {
+        val that = o.asInstanceOf[CacheKey]
+        from =:= that.from && to =:= that.to
+      } else false
+    }
+  }
+
+  //////////////////////////////////////////////////////////////////////////
   object Util {
     import PGObjectTokenizer.PGElements._
 

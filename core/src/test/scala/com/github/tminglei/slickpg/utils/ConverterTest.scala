@@ -3,12 +3,12 @@ package utils
 
 import org.junit._
 import org.junit.Assert._
-import scala.reflect.runtime.{universe => ru}
+import scala.reflect.runtime.{universe => ru, currentMirror => runtimeMirror}
 
-class ConverterUtilTest {
+class ConverterTest {
   import Converters.Util._
   import PGObjectTokenizer.PGElements._
-  import ConverterUtilTest._
+  import ConverterTest._
 
   @Test
   def testCacheKey(): Unit = {
@@ -19,6 +19,20 @@ class ConverterUtilTest {
 
     assertEquals(CacheKey(tpe1, tpe2).hashCode(), CacheKey(tpe1, tpe2).hashCode())
     assertEquals(CacheKey(tpe1, tpe2), CacheKey(tpe1, tpe2))
+
+    val tpea = ru.typeOf[ConverterTest.T]
+    val tpeb = ru.typeOf[PGObjectTokenizer.PGElements.Element]
+
+    assertEquals(CacheKey(tpe1, tpe2).hashCode(), CacheKey(tpea, tpeb).hashCode())
+    assertEquals(CacheKey(tpe1, tpe2), CacheKey(tpea, tpeb))
+
+    val t1 = T1(115,T(111,"test","test dd",Some("hi")),List(157))
+    val tt = ru.typeOf[T1].declaration(ru.newTermName("t")).asTerm
+    val tpet = runtimeMirror.reflect(t1).reflectField(tt).symbol.typeSignature
+
+    assertTrue(tpe1 =:= tpet)
+    assertEquals(CacheKey(tpe1, tpe2).hashCode(), CacheKey(tpet, tpe2).hashCode())
+    assertEquals(CacheKey(tpe1, tpe2), CacheKey(tpet, tpe2))
   }
 
   @Test
@@ -60,8 +74,8 @@ class ConverterUtilTest {
   }
 }
 
-object ConverterUtilTest {
-  // !!!NOTE: should use outer (static) classes, instead of inner (dynamic) classes
+object ConverterTest {
+  // !!!NOTE: should use outer (in object) classes, instead of inner (in trait/class) classes
   case class T(id: Long, name: String, desc: String, opt: Option[String] = None)
   case class T1(id: Long, t: T, childIds: List[Long])
 }
