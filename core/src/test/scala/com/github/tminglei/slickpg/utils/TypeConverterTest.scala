@@ -5,14 +5,14 @@ import org.junit._
 import org.junit.Assert._
 import scala.reflect.runtime.{universe => ru, currentMirror => runtimeMirror}
 
-class ConverterTest {
-  import Converters.Util._
+class TypeConverterTest {
+  import TypeConverters.Util._
   import PGObjectTokenizer.PGElements._
-  import ConverterTest._
+  import TypeConverterTest._
 
   @Test
   def testCacheKey(): Unit = {
-    import Converters.CacheKey
+    import TypeConverters.CacheKey
 
     val tpe1 = ru.typeOf[T]
     val tpe2 = ru.typeOf[Element]
@@ -20,7 +20,7 @@ class ConverterTest {
     assertEquals(CacheKey(tpe1, tpe2).hashCode(), CacheKey(tpe1, tpe2).hashCode())
     assertEquals(CacheKey(tpe1, tpe2), CacheKey(tpe1, tpe2))
 
-    val tpea = ru.typeOf[ConverterTest.T]
+    val tpea = ru.typeOf[TypeConverterTest.T]
     val tpeb = ru.typeOf[PGObjectTokenizer.PGElements.Element]
 
     assertEquals(CacheKey(tpe1, tpe2).hashCode(), CacheKey(tpea, tpeb).hashCode())
@@ -37,8 +37,8 @@ class ConverterTest {
 
   @Test
   def testConverterUtil(): Unit = {
-    Converters.register((v: String) => v.toInt)
-    Converters.register((v: String) => v.toLong)
+    TypeConverters.register((v: String) => v.toInt)
+    TypeConverters.register((v: String) => v.toLong)
 //    Converters.register((v: String) => v)
 
     // simple case
@@ -49,7 +49,7 @@ class ConverterTest {
           ValueE("111"),
           ValueE("test"),
           ValueE("test desc"),
-          ValueE(null)
+          null
         ))
       ))
 
@@ -63,7 +63,7 @@ class ConverterTest {
       conv1(T(112, "test", "test 2")))
 
     // simple nested case
-    Converters.register(conv)
+    TypeConverters.register(conv)
     val convt1 = mkConvFromElement[T1]
     assertEquals(T1(115, T(111,"test","test dd",Some("hi")), List(157)),
       convt1(
@@ -80,7 +80,7 @@ class ConverterTest {
         ))
       ))
 
-    Converters.register(conv1)
+    TypeConverters.register(conv1)
     val convt11 = mkConvToElement[T1]
     assertEquals(
       CompositeE(List(
@@ -98,7 +98,7 @@ class ConverterTest {
       convt11(T1(116, T(111, "test", "test 3"), List(123,135))))
 
     // composite array case
-    Converters.register(convt1)
+    TypeConverters.register(convt1)
     val convat = mkArrayConvFromElement[T1]
     assertEquals(List(T1(115, T(111,"test","test dd",Some("hi")), List(157))),
       convat(
@@ -118,7 +118,7 @@ class ConverterTest {
         ))
       ))
 
-    Converters.register(convt11)
+    TypeConverters.register(convt11)
     val convat1 = mkArrayConvToElement[T1]
     assertEquals(
       ArrayE(List(
@@ -138,7 +138,7 @@ class ConverterTest {
   }
 }
 
-object ConverterTest {
+object TypeConverterTest {
   // !!!NOTE: should use outer (in object) classes, instead of inner (in trait/class) classes
   case class T(id: Long, name: String, desc: String, opt: Option[String] = None)
   case class T1(id: Long, t: T, childIds: List[Long])
