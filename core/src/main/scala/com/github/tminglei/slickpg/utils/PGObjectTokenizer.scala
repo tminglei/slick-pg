@@ -56,6 +56,12 @@ class PGObjectTokenizer extends RegexParsers {
           }
       }
 
+      // postgress should never return any ws between chunks and commas. for example : (1, ,2, )
+      // This case class would handle that :
+      // case Chunk(v) if v.trim.isEmpty => null
+      //----------------------------------------------
+      // This (1 ," lalal"   ,) on the other hand would be a seperate matter.
+
       def mergeComposite(composite :CompositeToken, level: Int = 0) : Element = {
         val elements =
           composite.value.collect {
