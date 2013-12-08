@@ -63,6 +63,7 @@ class PGObjectTokenizer extends RegexParsers {
             case v: CTRecord  => mergeComposite(v)
             case CTString(v)  => ValueE(mergeString(v.slice(1,v.length-1)))
             case Chunk(v) => ValueE(v)
+            case null => null
           }
 
         composite match {
@@ -86,23 +87,29 @@ class PGObjectTokenizer extends RegexParsers {
       } }
 
       def innerClose(x : Token, xs: List[Token],dpth: Int) = {
-        val ret = close(x,xs,x::List(),dpth +1)
+        val ret = close(x,x,xs,x::List(),dpth +1)
         (ret._1.asInstanceOf[CompositeToken], ret._2)
       }
 
+      def nullCheck(lastToken: Token, targetList : List[Token]  ) : List[Token] = {
+        lastToken match {
+          case Comma() => targetList :+ null
+          case _ => targetList
+      } }
+
       @tailrec
-      def close(borderToken: Token, source: List[Token], target : List[Token],depth: Int = 0,consumeCount: Int =1): (CompositeToken,Int) = {
+      def close(borderToken: Token, lastToken: Token, source: List[Token], target : List[Token],depth: Int = 0,consumeCount: Int =1): (CompositeToken,Int) = {
         source match {
           case List() => throw new Exception("reduction should never hit recursive empty list base case.")
           case x :: xs =>
             x match {
               // CLOSING CASES
               case ArrClose(cm,cl) => borderToken match {
-                case ArrOpen(sm,sl) if cm == sm && sl==cl => (CTArray(target :+ x),consumeCount + 1)
+                case ArrOpen(sm,sl) if cm == sm && sl==cl => ( CTArray(nullCheck(lastToken,target) :+ x),consumeCount + 1)
                 case _ => throw new Exception (s"open and close tags don't match : $borderToken - $x")
               }
               case RecClose(cm,cl) => borderToken match {
-                case RecOpen(sm,sl) if cm == sm && sl == cl => (CTRecord(target :+ x),consumeCount + 1)
+                case RecOpen(sm,sl) if cm == sm && sl == cl => (CTRecord(nullCheck(lastToken,target) :+ x),consumeCount + 1)
                 case _ => throw new Exception (s"open and close tags don't match:  : $borderToken - $x")
               }
               case SingleQuote() if borderToken.isInstanceOf[SingleQuote] => (CTString(target :+ x ),consumeCount +1)
@@ -111,9 +118,10 @@ class PGObjectTokenizer extends RegexParsers {
               case xx if isOpen(x) => {
                 val (sibling, consumed) = innerClose(x,xs,depth+1)
                 val new_source =  source.splitAt(consumed)._2
-                close(borderToken,new_source,target :+ sibling,consumeCount = consumeCount + consumed)
+                close(borderToken,x,new_source,target :+ sibling,consumeCount = consumeCount + consumed)
               }
-              case _ => close(borderToken, xs, target :+ x, consumeCount = consumeCount +1)
+              case Comma() => close(borderToken,x,xs,nullCheck(lastToken,target) :+ x, consumeCount = consumeCount + 1)
+              case _ => close(borderToken, x, xs, target :+ x, consumeCount = consumeCount +1)
             }
         }
       }
@@ -123,7 +131,7 @@ class PGObjectTokenizer extends RegexParsers {
         case x :: xs if xs != List() =>
           val ret =
             x match {
-              case xx if isOpen(x)  => close(x, xs, x :: List() )
+              case xx if isOpen(x)  => close(x,x, xs, x :: List() )
               case _ => throw new Exception("open must always deal with an open token.")
             }
           if(ret._2 != tokens.size)
