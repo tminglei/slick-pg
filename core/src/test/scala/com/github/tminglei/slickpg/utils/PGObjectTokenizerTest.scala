@@ -136,7 +136,7 @@ class PGObjectTokenizerTest {
           CompositeE(List(
             ValueE("111"),
             ValueE("test"),
-            ValueE("test dd"),
+            ValueE("test desc"),
             ValueE("hi")
           ))
         )),
