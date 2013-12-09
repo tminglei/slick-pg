@@ -49,7 +49,7 @@ class TypeConverterTest {
           ValueE("111"),
           ValueE("test"),
           ValueE("test desc"),
-          null
+          NullE()
         ))
       ))
 
@@ -59,7 +59,7 @@ class TypeConverterTest {
         ValueE("112"),
         ValueE("test"),
         ValueE("test 2"),
-        null)),
+        NullE())),
       conv1(T(112, "test", "test 2")))
 
     // simple nested case
@@ -89,7 +89,7 @@ class TypeConverterTest {
           ValueE("111"),
           ValueE("test"),
           ValueE("test 3"),
-          null)),
+          NullE())),
         ArrayE(List(
           ValueE("123"),
           ValueE("135")
