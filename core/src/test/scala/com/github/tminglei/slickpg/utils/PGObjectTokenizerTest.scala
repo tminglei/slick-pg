@@ -27,7 +27,7 @@ class PGObjectTokenizerTest {
         ValueE("111"),
         ValueE("test"),
         ValueE("test desc"),
-        null
+        NullE()
       ))
 
     assertEquals(expected1, PGObjectTokenizer(input1))
@@ -38,8 +38,8 @@ class PGObjectTokenizerTest {
       CompositeE(List(
         ValueE("111"),
         ValueE("test"),
-        null,
-        null
+        NullE(),
+        NullE()
       ))
     assertEquals(expected2, PGObjectTokenizer(input2))
 
@@ -48,9 +48,9 @@ class PGObjectTokenizerTest {
     val expected3 =
       CompositeE(List(
         ValueE("111"),
-        null,
+        NullE(),
         ValueE("test desc"),
-        null
+        NullE()
       ))
     assertEquals(expected3, PGObjectTokenizer(input3))
   }
@@ -86,7 +86,7 @@ class PGObjectTokenizerTest {
           ValueE("test"),
           ValueE("test dd"),
           ValueE("hi"))),
-        null
+          NullE()
       ))
 
     assertEquals(expected1, PGObjectTokenizer(input1))
@@ -96,7 +96,7 @@ class PGObjectTokenizerTest {
     val expected2 =
       CompositeE(List(
         ValueE("115"),
-        null,
+        NullE(),
         ArrayE(List(
           ValueE("157")
         ))
