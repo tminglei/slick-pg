@@ -7,3 +7,5 @@
 /example/project/project
 /example/project/target
 /example/target
+
+*.iml
