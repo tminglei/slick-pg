@@ -69,7 +69,7 @@ class PGObjectTokenizer extends RegexParsers {
             case v: CTRecord  => mergeComposite(v)
             case CTString(v)  => ValueE(mergeString(v.slice(1,v.length-1)))
             case Chunk(v) => ValueE(v)
-            case null => NullE()
+            case null => NullE
           }
 
         composite match {
@@ -204,7 +204,7 @@ object PGObjectTokenizer extends PGObjectTokenizer {
   object PGElements {
     sealed trait Element
     case class ValueE(value: String) extends Element
-    case class NullE() extends Element
+    case object NullE extends Element
     case class ArrayE(elements: List[Element]) extends Element
     case class CompositeE(members: List[Element]) extends Element
   }

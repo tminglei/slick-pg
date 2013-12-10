@@ -86,7 +86,7 @@ object TypeConverters {
         case (_, _) => {
           TypeConverters.internalGet(fromType, elemType)
             .map(_.asInstanceOf[TypeConverter[Any, Element]](v))
-            .getOrElse(if (v == null || v == None) NullE() else ValueE(v.toString) )
+            .getOrElse(if (v == null || v == None) NullE else ValueE(v.toString) )
         }
       }
     }
