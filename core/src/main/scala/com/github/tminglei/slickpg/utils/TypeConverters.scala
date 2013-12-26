@@ -1,21 +1,48 @@
-package com.github.tminglei.slickpg.utils
+package com.github.tminglei.slickpg
+package utils
 
 import scala.reflect.runtime.{universe => ru, currentMirror => runtimeMirror}
 import scala.reflect.ClassTag
 
-object Converters {
+object TypeConverters {
   @scala.annotation.implicitNotFound(msg = "No converter available for ${FROM} to ${TO}")
-  trait Converter[FROM, TO] extends (FROM => TO)
+  trait TypeConverter[FROM, TO] extends (FROM => TO)
 
-  object Converter {
+  object TypeConverter {
     def apply[FROM, TO](convert: (FROM => TO)) =
-      new Converter[FROM, TO] {
+      new TypeConverter[FROM, TO] {
         def apply(v: FROM) = convert(v)
       }
   }
 
+  //////////////////////////////////////////////////////////
+  private var converterMap = Map[CacheKey, TypeConverter[_, _]]()
+
+  private[utils] def internalGet(from: ru.Type, to: ru.Type) = {
+    val cacheKey = CacheKey(from, to)
+    converterMap.get(cacheKey).orElse({
+      if (to <:< from) {
+        converterMap += (cacheKey -> TypeConverter((v: Any) => v))
+        converterMap.get(cacheKey)
+      } else None
+    })
+  }
+
+  def register[FROM,TO](convert: (FROM => TO))(implicit from: ru.TypeTag[FROM], to: ru.TypeTag[TO]) = {
+    println(s"register converter for ${from.tpe} => ${to.tpe}")
+    converterMap += (CacheKey(from.tpe, to.tpe) -> TypeConverter(convert))
+  }
+
+  def converter[FROM,TO](implicit from: ru.TypeTag[FROM], to: ru.TypeTag[TO]): TypeConverter[FROM,TO] = {
+    internalGet(from.tpe, to.tpe).map(_.asInstanceOf[TypeConverter[FROM,TO]])
+      .getOrElse(throw new IllegalArgumentException(s"Converter NOT FOUND for ${from.tpe} => ${to.tpe}"))
+  }
+
   ///
   private[utils] case class CacheKey(val from: ru.Type, val to: ru.Type) {
+    override def hashCode(): Int = {
+      from.toString.hashCode() * 31 + to.toString.hashCode()
+    }
     override def equals(o: Any) = {
       if (o.isInstanceOf[CacheKey]) {
         val that = o.asInstanceOf[CacheKey]
@@ -24,29 +51,7 @@ object Converters {
     }
   }
 
-  private var converterMap = Map[CacheKey, Converter[_, _]]()
-
-  private[utils] def internalGet(from: ru.Type, to: ru.Type) = {
-    val cacheKey = CacheKey(from, to)
-    converterMap.get(cacheKey).orElse({
-      if (to <:< from) {
-        converterMap += (cacheKey -> Converter((v: Any) => v))
-        converterMap.get(cacheKey)
-      } else None
-    })
-  }
-
-  def register[FROM,TO](convert: (FROM => TO))(implicit from: ru.TypeTag[FROM], to: ru.TypeTag[TO]) = {
-    println(s"register converter for ${from.tpe} => ${to.tpe}")
-    converterMap += (CacheKey(from.tpe, to.tpe) -> Converter(convert))
-  }
-
-  def converter[FROM,TO](implicit from: ru.TypeTag[FROM], to: ru.TypeTag[TO]): Converter[FROM,TO] = {
-    internalGet(from.tpe, to.tpe).map(_.asInstanceOf[Converter[FROM,TO]])
-      .getOrElse(throw new IllegalArgumentException(s"Converter NOT FOUND for ${from.tpe} => ${to.tpe}"))
-  }
-
-  ////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////
   object Util {
     import PGObjectTokenizer.PGElements._
 
@@ -55,12 +60,17 @@ object Converters {
     private val elemType = ru.typeOf[Element]
 
     private def convertToValue(e: Element, toType: ru.Type): Any = e match {
-      case ValueE(v)  => Converters.internalGet(strType, toType).get.asInstanceOf[Converter[String,_]](v)
-      case _: CompositeE  => Converters.internalGet(elemType, toType).get.asInstanceOf[Converter[Element,_]](e)
+      case ValueE(v)  => {
+        TypeConverters.internalGet(strType, toType).get.asInstanceOf[TypeConverter[String,_]](v)
+      }
+      case _: CompositeE  => {
+        TypeConverters.internalGet(elemType, toType).get.asInstanceOf[TypeConverter[Element,_]](e)
+      }
       case ArrayE(el) => {
         val eType = toType.asInstanceOf[ru.TypeRef].args(0)
         el.map(e => convertToValue(e, eType))
       }
+      case _ /* should be null */ => null
     }
 
     private def convertToElement(v: Any, fromType: ru.Type): Element = {
@@ -74,17 +84,17 @@ object Converters {
           ArrayE(vList.map(convertToElement(_, elemType)))
         }
         case (_, _) => {
-          Converters.internalGet(fromType, elemType)
-            .map(_.asInstanceOf[Converter[Any, Element]](v))
-            .getOrElse(if (v == null || v == None) null else ValueE(v.toString) )
+          TypeConverters.internalGet(fromType, elemType)
+            .map(_.asInstanceOf[TypeConverter[Any, Element]](v))
+            .getOrElse(if (v == null || v == None) NullE else ValueE(v.toString) )
         }
       }
     }
 
     ///
-    def mkConvFromElement[T <: AnyRef](implicit ev: ru.TypeTag[T]): Converter[Element, T] = {
+    def mkConvFromElement[T <: AnyRef](implicit ev: ru.TypeTag[T]): TypeConverter[Element, T] = {
 
-      new Converter[Element, T] {
+      new TypeConverter[Element, T] {
         private val thisType = ru.typeOf[T]
         private val optType = ru.typeOf[Option[_]]
 
@@ -112,9 +122,9 @@ object Converters {
       }
     }
 
-    def mkArrayConvFromElement[T](implicit ev: ru.TypeTag[T]): Converter[Element, List[T]] = {
+    def mkArrayConvFromElement[T](implicit ev: ru.TypeTag[T]): TypeConverter[Element, List[T]] = {
 
-      new Converter[Element, List[T]] {
+      new TypeConverter[Element, List[T]] {
         private val thisType = ru.typeOf[T]
         private val optType = ru.typeOf[Option[_]]
 
@@ -135,9 +145,9 @@ object Converters {
     }
 
     ////
-    def mkConvToElement[T](implicit ev: ru.TypeTag[T], ev1: ClassTag[T]): Converter[T, Element] = {
+    def mkConvToElement[T](implicit ev: ru.TypeTag[T], ev1: ClassTag[T]): TypeConverter[T, Element] = {
 
-      new Converter[T, Element] {
+      new TypeConverter[T, Element] {
         private val thisType = ru.typeOf[T]
 
         private val constructor = thisType.declaration(ru.nme.CONSTRUCTOR).asMethod
@@ -162,9 +172,9 @@ object Converters {
       }
     }
 
-    def mkArrayConvToElement[T](implicit ev: ru.TypeTag[T], ev1: ClassTag[T]): Converter[List[T], Element] = {
+    def mkArrayConvToElement[T](implicit ev: ru.TypeTag[T], ev1: ClassTag[T]): TypeConverter[List[T], Element] = {
 
-      new Converter[List[T], Element] {
+      new TypeConverter[List[T], Element] {
         private val thisType = ru.typeOf[T]
 
         def apply(vList: List[T]): Element = {
