@@ -3,11 +3,11 @@ package range
 
 import scala.slick.ast.Library.SqlOperator
 import scala.slick.lifted.{FunctionSymbolExtensionMethods, ExtensionMethods, Column}
-import scala.slick.jdbc.JdbcType
-import scala.slick.driver.PostgresDriver
+import scala.slick.driver.{JdbcTypesComponent, PostgresDriver}
 import scala.slick.ast.Library
 
-trait PgRangeExtensions extends PostgresDriver.ImplicitColumnTypes {
+trait PgRangeExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
+  import driver.Implicit._
   import FunctionSymbolExtensionMethods._
 
   type RANGEType[T]

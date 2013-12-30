@@ -3,11 +3,11 @@ package json
 
 import scala.slick.ast.Library.{SqlFunction, SqlOperator}
 import scala.slick.lifted.{ExtensionMethods, Column}
-import scala.slick.jdbc.JdbcType
-import scala.slick.driver.PostgresDriver
+import scala.slick.driver.{JdbcTypesComponent, PostgresDriver}
 
-trait PgJsonExtensions extends PostgresDriver.ImplicitColumnTypes {
-  
+trait PgJsonExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
+  import driver.Implicit._
+
   type JSONType
 
   object JsonLibrary {

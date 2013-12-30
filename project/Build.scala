@@ -61,9 +61,8 @@ object SlickPgBuild extends Build {
     version := "0.5.0-beta",
     libraryDependencies := Seq(
       "org.scala-lang" % "scala-reflect" % "2.10.3",
-      "com.typesafe.slick" % "slick_2.10" % "2.0.0-M3",
+      "com.typesafe.slick" % "slick_2.10" % "2.0.0-RC1",
       "org.postgresql" % "postgresql" % "9.3-1100-jdbc41",
-      "com.vividsolutions" % "jts" % "1.13",
       "junit" % "junit" % "4.11" % "test",
       "com.novocode" % "junit-interface" % "0.10" % "test"
     )
@@ -75,7 +74,7 @@ object SlickPgBuild extends Build {
     version := "0.5.0-beta",
     libraryDependencies := Seq(
       "org.scala-lang" % "scala-reflect" % "2.10.3",
-      "com.typesafe.slick" % "slick_2.10" % "2.0.0-M3",
+      "com.typesafe.slick" % "slick_2.10" % "2.0.0-RC1",
       "org.postgresql" % "postgresql" % "9.3-1100-jdbc41",
       "com.vividsolutions" % "jts" % "1.13",
       "org.threeten" % "threetenbp" % "0.8.1",

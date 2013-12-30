@@ -4,11 +4,10 @@ package geom
 import scala.slick.lifted._
 import scala.slick.ast.{LiteralNode}
 import scala.slick.ast.Library.{SqlFunction, SqlOperator}
-import scala.Some
-import scala.slick.jdbc.JdbcType
-import scala.slick.driver.PostgresDriver
+import scala.slick.driver.{JdbcTypesComponent, PostgresDriver}
 
-trait PgPostGISExtensions extends PostgresDriver.ImplicitColumnTypes {
+trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
+  import driver.Implicit._
 
   type GEOMETRY
   type POINT <: GEOMETRY

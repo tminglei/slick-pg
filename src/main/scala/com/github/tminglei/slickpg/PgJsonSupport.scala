@@ -2,9 +2,8 @@ package com.github.tminglei.slickpg
 
 import scala.slick.driver.PostgresDriver
 import scala.slick.lifted.Column
-import scala.slick.jdbc.JdbcType
 
-trait PgJsonSupport extends json.PgJsonExtensions { driver: PostgresDriver =>
+trait PgJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import org.json4s._
 
   type DOCType
@@ -14,7 +13,7 @@ trait PgJsonSupport extends json.PgJsonExtensions { driver: PostgresDriver =>
 
   trait JsonImplicits {
     implicit val jsonTypeMapper =
-      new utils.GenericJdbcType[JValue](
+      new GenericJdbcType[JValue](
         "json",
         (v) => jsonMethods.parse(v),
         (v) => jsonMethods.compact(jsonMethods.render(v)),

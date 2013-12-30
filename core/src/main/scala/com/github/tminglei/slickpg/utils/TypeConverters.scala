@@ -66,9 +66,9 @@ object TypeConverters {
       case _: CompositeE  => {
         TypeConverters.internalGet(elemType, toType).get.asInstanceOf[TypeConverter[Element,_]](e)
       }
-      case ArrayE(el) => {
+      case ArrayE(eList) => {
         val eType = toType.asInstanceOf[ru.TypeRef].args(0)
-        el.map(e => convertToValue(e, eType))
+        eList.map(e => convertToValue(e, eType))
       }
       case _ /* should be null */ => null
     }
@@ -80,8 +80,8 @@ object TypeConverters {
           convertToElement(realVal, realType)
         }
         case (vList: List[_], _) => {
-          val elemType = fromType.asInstanceOf[ru.TypeRef].args(0)
-          ArrayE(vList.map(convertToElement(_, elemType)))
+          val vType = fromType.asInstanceOf[ru.TypeRef].args(0)
+          ArrayE(vList.map(convertToElement(_, vType)))
         }
         case (_, _) => {
           TypeConverters.internalGet(fromType, elemType)

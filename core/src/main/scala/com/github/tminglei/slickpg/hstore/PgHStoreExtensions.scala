@@ -3,11 +3,11 @@ package hstore
 
 import scala.slick.ast.Library.{SqlFunction, SqlOperator}
 import scala.slick.lifted.{FunctionSymbolExtensionMethods, ExtensionMethods, Column}
-import scala.slick.jdbc.JdbcType
+import scala.slick.driver.{JdbcTypesComponent, PostgresDriver}
 import scala.slick.ast.Library
-import scala.slick.driver.PostgresDriver
 
-trait PgHStoreExtensions extends PostgresDriver.ImplicitColumnTypes {
+trait PgHStoreExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
+  import driver.Implicit._
   import FunctionSymbolExtensionMethods._
 
   object HStoreLibrary {

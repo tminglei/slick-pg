@@ -1,9 +1,9 @@
 package com.github.tminglei.slickpg
 
 import scala.slick.driver.PostgresDriver
-import scala.slick.jdbc.JdbcType
 
 trait PgSearchSupport extends search.PgSearchExtensions { driver: PostgresDriver =>
+  import driver.Implicit._
 
   trait SearchImplicits {
     implicit def TsVectorColumnExtensionMethods0(c: TsVector[String]) = {

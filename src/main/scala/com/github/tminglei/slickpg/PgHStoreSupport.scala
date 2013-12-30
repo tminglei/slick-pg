@@ -1,13 +1,20 @@
 package com.github.tminglei.slickpg
 
+import scala.collection.convert.{WrapAsJava, WrapAsScala}
 import scala.slick.driver.PostgresDriver
 import scala.slick.lifted.Column
-import scala.slick.jdbc.JdbcType
+import org.postgresql.util.HStoreConverter
 
-trait PgHStoreSupport extends hstore.PgHStoreExtensions { driver: PostgresDriver =>
+trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
 
   trait HStoreImplicits {
-    implicit val hstoreTypeMapper = new hstore.HStoreMapJdbcType
+    implicit val hstoreTypeMapper =
+      new GenericJdbcType[Map[String, String]](
+        "hstore",
+        (v) => WrapAsScala.mapAsScalaMap(HStoreConverter.fromString(v).asInstanceOf[java.util.Map[String, String]]).toMap,
+        (v) => HStoreConverter.toString(WrapAsJava.mapAsJavaMap(v)),
+        false
+      )
 
     implicit def hstoreColumnExtensionMethods(c: Column[Map[String, String]])(
       implicit tm: JdbcType[Map[String, String]], tm1: JdbcType[List[String]]) = {

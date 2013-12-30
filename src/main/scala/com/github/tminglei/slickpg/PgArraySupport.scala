@@ -3,10 +3,8 @@ package com.github.tminglei.slickpg
 import java.util.UUID
 import scala.slick.lifted.Column
 import scala.slick.driver.PostgresDriver
-import scala.slick.jdbc.JdbcType
 
-trait PgArraySupport extends array.PgArrayExtensions { driver: PostgresDriver =>
-  import array.ArrayListJavaType
+trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJavaTypes { driver: PostgresDriver =>
 
   trait ArrayImplicits {
     /** for type/name, @see [[org.postgresql.core.Oid]] and [[org.postgresql.jdbc2.TypeInfoCache]]*/

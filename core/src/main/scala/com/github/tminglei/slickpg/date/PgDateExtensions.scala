@@ -3,10 +3,10 @@ package date
 
 import scala.slick.ast.Library.{SqlFunction, SqlOperator}
 import scala.slick.lifted.{ExtensionMethods, Column}
-import scala.slick.jdbc.JdbcType
-import scala.slick.driver.PostgresDriver
+import scala.slick.driver.{JdbcTypesComponent, PostgresDriver}
 
-trait PgDateExtensions extends PostgresDriver.ImplicitColumnTypes {
+trait PgDateExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
+  import driver.Implicit._
 
   type DATE
   type TIME

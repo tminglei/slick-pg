@@ -4,10 +4,10 @@ package search
 import scala.slick.lifted.{FunctionSymbolExtensionMethods, OptionMapperDSL, Column}
 import scala.slick.ast.{Library, LiteralNode}
 import scala.slick.ast.Library.{SqlFunction, SqlOperator}
-import scala.slick.jdbc.JdbcType
-import scala.slick.driver.PostgresDriver
+import scala.slick.driver.{JdbcTypesComponent, PostgresDriver}
 
-trait PgSearchExtensions extends PostgresDriver.ImplicitColumnTypes {
+trait PgSearchExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
+  import driver.Implicit._
   import FunctionSymbolExtensionMethods._
 
   case class TsVector[P: JdbcType](text: Column[P], shadow: Boolean = false) extends Column[P] {
@@ -75,12 +75,12 @@ trait PgSearchExtensions extends PostgresDriver.ImplicitColumnTypes {
     val TsRankCD = new SqlFunction("ts_rank_cd")
   }
 
-  class TsVectorColumnExtensionMethods[P: JdbcType](val c: TsVector[P]) {
+  class TsVectorColumnExtensionMethods[P](val c: TsVector[P])(implicit tm: JdbcType[P]) {
     def @@(e: TsQuery[P]) = SearchLibrary.Matches.column[Boolean](c.toNode, e.toNode)
     def @+(e: TsVector[P]) = TsVector(SearchLibrary.Concatenate.column[P](c.toNode, e.toNode), shadow = true)
   }
 
-  class TsQueryColumnExtensionMethods[P: JdbcType](val c: TsQuery[P]) {
+  class TsQueryColumnExtensionMethods[P](val c: TsQuery[P])(implicit tm: JdbcType[P]) {
     def @@(e: TsVector[P]) = SearchLibrary.Matches.column[Boolean](c.toNode, e.toNode)
     def @&(e: TsQuery[P]) = TsQuery(SearchLibrary.And.column[P](c.toNode, e.toNode), shadow = true)
     def @|(e: TsQuery[P]) = TsQuery(SearchLibrary.Or.column[P](c.toNode, e.toNode), shadow = true)
