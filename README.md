@@ -37,11 +37,11 @@ import com.github.tminglei.slickpg._
 
 trait MyPostgresDriver extends PostgresDriver
                           with PgArraySupport
-                          with PgDatetimeSupport
+                          with PgDateSupportJoda
                           with PgRangeSupport
                           with PgHStoreSupport
                           with PgSearchSupport
-                          with PostGISSupport {
+                          with PgPostGISSupport {
 
   override val Implicit = new ImplicitsPlus {}
   override val simple = new SimpleQLPlus {}
@@ -49,7 +49,7 @@ trait MyPostgresDriver extends PostgresDriver
   //////
   trait ImplicitsPlus extends Implicits
                         with ArrayImplicits
-                        with DatetimeImplicits
+                        with DateTimeImplicits
                         with RangeImplicits
                         with HStoreImplicits
                         with SearchImplicits
