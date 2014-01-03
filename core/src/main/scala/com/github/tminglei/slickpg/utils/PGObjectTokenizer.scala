@@ -145,6 +145,75 @@ class PGObjectTokenizer extends RegexParsers {
     }
   }
 
+  object PGTokenReverser {
+    val ESCAPE_LETTERS = """,|'|"|\\|\s|\(|\{""".r
+
+    def reverse(elem: Element): String = {
+
+      def escapeRequired(str: String): Boolean = ESCAPE_LETTERS findFirstIn str isDefined
+
+      def addEscaped(buf: StringBuilder, ch: Char, level: Int, dual: Boolean): Unit =
+        ch match {
+          case '\''  => buf append "''"
+          case '"'   => addMark(buf, level, dual)
+          case '\\'  => for(i <- 1 to scala.math.pow(2,level).toInt) buf append "\\"
+          case _  =>  buf append ch
+        }
+
+      def addMark(buf: StringBuilder, level: Int, dual: Boolean): Unit =
+        level match {
+          case l if l < 0 => // do nothing
+          case 0    =>  buf append "\""
+          case 1    =>  buf append (if (dual) "\"\"" else "\\\"")
+          case 2    =>  buf append (if (dual) "\\\\\"\"" else "\\\"\\\"")
+          case l if l > 2 => {
+            for(i <- 1 to (scala.math.pow(2,level).toInt - 4))
+              buf append "\\"
+            buf append (if (dual) "\\\\\"\"" else "\\\"\\\"")
+          }
+        }
+
+      def doReverse(buf: StringBuilder, elem: Element, level: Int, dual: Boolean): Unit =
+        elem match {
+          case ArrayE(vList) => {
+            addMark(buf, level, dual)
+            buf append "{"
+            var first = true
+            for(v <- vList) {
+              if (first) first = false else buf append ","
+              doReverse(buf, v, level + 1, dual)
+            }
+            buf append "}"
+            addMark(buf, level, dual)
+          }
+          case CompositeE(eList) => {
+            addMark(buf, level, dual)
+            buf append "("
+            var first = true
+            for(e <- eList) {
+              if (first) first = false else buf append ","
+              doReverse(buf, e, level + 1, dual)
+            }
+            buf append ")"
+            addMark(buf, level, dual)
+          }
+          case ValueE(v) => {
+            if (escapeRequired(v)) {
+              addMark(buf, level, dual)
+              for(ch <- v) addEscaped(buf, ch, level + 1, dual)
+              addMark(buf, level, dual)
+            } else buf append v
+          }
+          case NullE  =>  // do nothing
+        }
+
+      //--
+      val buf = new StringBuilder
+      doReverse(buf, elem, -1, elem.isInstanceOf[CompositeE])
+      buf.toString
+    }
+  }
+
   ////////////////////////////////////////////////////////////////////////////////
   import PGTokenReducer._
 
@@ -191,12 +260,13 @@ class PGObjectTokenizer extends RegexParsers {
   def tokenParser = rep(tokens)  ^^ { t=> compose(reduce(t)) }
 
   //--
-  def process(input : String) = {
+  def tokenize(input : String) =
     parseAll(tokenParser, new CharSequenceReader(input)) match {
       case Success(result, _) => result
       case failure: NoSuccess => throw new SlickException(failure.msg)
     }
-  }
+
+  def reverse(elem: Element) = PGTokenReverser.reverse(elem)
 }
 
 object PGObjectTokenizer {
@@ -210,8 +280,10 @@ object PGObjectTokenizer {
   }
 
   def tokenize(input : String): PGElements.Element = {
-    new PGObjectTokenizer().process(input)
+    new PGObjectTokenizer().tokenize(input)
   }
 
-  def reverse(elem: PGElements.Element): String = ???
+  def reverse(elem: PGElements.Element): String = {
+    new PGObjectTokenizer().reverse(elem)
+  }
 }

@@ -3,8 +3,9 @@ package utils
 
 import scala.reflect.runtime.{universe => ru, currentMirror => runtimeMirror}
 import scala.reflect.ClassTag
+import scala.slick.util.Logging
 
-object TypeConverters {
+object TypeConverters extends Logging {
   @scala.annotation.implicitNotFound(msg = "No converter available for ${FROM} to ${TO}")
   trait TypeConverter[FROM, TO] extends (FROM => TO)
 
@@ -20,6 +21,7 @@ object TypeConverters {
 
   private[utils] def internalGet(from: ru.Type, to: ru.Type) = {
     val cacheKey = CacheKey(from, to)
+    logger.debug(s"get converter for $from => $to")
     converterMap.get(cacheKey).orElse({
       if (to <:< from) {
         converterMap += (cacheKey -> TypeConverter((v: Any) => v))
@@ -29,7 +31,7 @@ object TypeConverters {
   }
 
   def register[FROM,TO](convert: (FROM => TO))(implicit from: ru.TypeTag[FROM], to: ru.TypeTag[TO]) = {
-    println(s"register converter for ${from.tpe} => ${to.tpe}")
+    logger.info(s"register converter for ${from.tpe} => ${to.tpe}")
     converterMap += (CacheKey(from.tpe, to.tpe) -> TypeConverter(convert))
   }
 
