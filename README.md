@@ -43,7 +43,7 @@ trait MyPostgresDriver extends PostgresDriver
                           with PgJsonSupport
                           with PgHStoreSupport
                           with PgSearchSupport
-                          with PostGISSupport {
+                          with PgPostGISSupport {
   /// for json support
   type DOCType = text.Document
   override val jsonMethods = org.json4s.native.JsonMethods
