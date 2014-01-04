@@ -38,12 +38,12 @@ import com.github.tminglei.slickpg._
 
 trait MyPostgresDriver extends PostgresDriver
                           with PgArraySupport
-                          with PgDatetimeSupport
+                          with PgDateSupportJoda
                           with PgRangeSupport
                           with PgJsonSupport
                           with PgHStoreSupport
                           with PgSearchSupport
-                          with PostGISSupport {
+                          with PgPostGISSupport {
   /// for json support
   type DOCType = text.Document
   override val jsonMethods = org.json4s.native.JsonMethods
@@ -55,7 +55,7 @@ trait MyPostgresDriver extends PostgresDriver
   //////
   trait ImplicitsPlus extends Implicits
                         with ArrayImplicits
-                        with DatetimeImplicits
+                        with DateTimeImplicits
                         with RangeImplicits
                         with HStoreImplicits
                         with JsonImplicits
