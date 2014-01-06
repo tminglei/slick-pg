@@ -61,17 +61,17 @@
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-ast_2.10</artifactId>
-            <version>3.2.5</version>
+            <version>3.2.6</version>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-core_2.10</artifactId>
-            <version>3.2.5</version>
+            <version>3.2.6</version>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-native_2.10</artifactId>
-            <version>3.2.5</version>
+            <version>3.2.6</version>
             <scope>test</scope>
         </dependency>
         <dependency>

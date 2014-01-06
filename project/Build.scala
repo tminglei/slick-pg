@@ -81,9 +81,9 @@ object SlickPgBuild extends Build {
       "org.threeten" % "threetenbp" % "0.8.1",
       "joda-time" % "joda-time" % "2.3",
       "org.joda" % "joda-convert" % "1.5",
-      "org.json4s" % "json4s-ast_2.10" % "3.2.5",
-      "org.json4s" % "json4s-core_2.10" % "3.2.5",
-      "org.json4s" % "json4s-native_2.10" % "3.2.5" % "test",
+      "org.json4s" % "json4s-ast_2.10" % "3.2.6",
+      "org.json4s" % "json4s-core_2.10" % "3.2.6",
+      "org.json4s" % "json4s-native_2.10" % "3.2.6" % "test",
       "junit" % "junit" % "4.11" % "test",
       "com.novocode" % "junit-interface" % "0.10" % "test"
     )
