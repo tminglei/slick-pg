@@ -62,6 +62,7 @@ class PGObjectTokenizer extends RegexParsers {
       def unescape(str: String): String =
         if (str.contains("&#")) {
           str
+            .replaceAllLiterally("&#39;", "'")
             .replaceAllLiterally("&#34;", "\"")
             .replaceAllLiterally("&#92;", "\\")
             .replaceAllLiterally("&#40;", "(")
@@ -212,7 +213,7 @@ class PGObjectTokenizer extends RegexParsers {
 
       def addEscaped(buf: StringBuilder, ch: Char, level: Int, dual: Boolean): Unit =
         ch match {
-          case '\''  => buf append "''"
+          case '\''  => buf append "&#39;"
           case '"'   => buf append "&#34;"
           case '\\'  => buf append "&#92;"
           case '('   => buf append "&#40;"
