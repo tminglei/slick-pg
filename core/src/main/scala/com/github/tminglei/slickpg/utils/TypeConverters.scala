@@ -4,6 +4,8 @@ package utils
 import scala.reflect.runtime.{universe => ru, currentMirror => runtimeMirror}
 import scala.reflect.ClassTag
 import scala.slick.util.Logging
+import java.sql.{Timestamp, Time, Date}
+import java.util.UUID
 
 object TypeConverters extends Logging {
   @scala.annotation.implicitNotFound(msg = "No converter available for ${FROM} to ${TO}")
@@ -16,7 +18,7 @@ object TypeConverters extends Logging {
       }
   }
 
-  //////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////
   private var converterMap = Map[CacheKey, TypeConverter[_, _]]()
 
   private[utils] def internalGet(from: ru.Type, to: ru.Type) = {
@@ -57,7 +59,83 @@ object TypeConverters extends Logging {
   object Util {
     import PGObjectTokenizer.PGElements._
 
-    //
+    private val dateFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd")
+    private val timeFormatter = new java.text.SimpleDateFormat("HH:mm:ss")
+    private val tsFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+
+    lazy val registerBasicTypeConverters = {
+      register((v: String) => v.toInt)
+      register((v: String) => v.toLong)
+      register((v: String) => v.toShort)
+      register((v: String) => v.toFloat)
+      register((v: String) => v.toDouble)
+      register((v: String) => v.toBoolean)
+      register((v: String) => v.toByte)
+      register((v: String) => UUID.fromString(v))
+      // register date/time converters
+      register((v: String) => new Date(dateFormatter.parse(v).getTime))
+      register((v: String) => new Time(timeFormatter.parse(v).getTime))
+      register((v: String) => new Timestamp(tsFormatter.parse(v).getTime))
+      register((v: Date) => dateFormatter.format(v))
+      register((v: Time) => timeFormatter.format(v))
+      register((v: Timestamp) => tsFormatter.format(v))
+      true
+    }
+
+    ///
+    def mkCompositeConvFromString[T <: AnyRef](implicit ev: ru.TypeTag[T]): TypeConverter[String, T] = {
+      registerBasicTypeConverters
+      new TypeConverter[String, T] {
+        val thisType = ru.typeOf[T]
+        if (internalGet(elemType, thisType).isEmpty)
+          register(mkConvFromElement[T])
+        
+        val convFromElement = internalGet(elemType, thisType).map(_.asInstanceOf[TypeConverter[Element,T]]).get
+        def apply(str: String): T = {
+          convFromElement(PGObjectTokenizer.tokenize(str))
+        }
+      }
+    }
+    
+    def mkCompositeConvToString[T <: AnyRef](implicit ev: ru.TypeTag[T], ev1: ClassTag[T]): TypeConverter[T, String] = {
+      registerBasicTypeConverters
+      new TypeConverter[T, String] {
+        val thisType = ru.typeOf[T]
+        if (internalGet(thisType, elemType).isEmpty)
+          register(mkConvToElement[T])
+
+        val convToElement = internalGet(thisType, elemType).map(_.asInstanceOf[TypeConverter[T,Element]]).get
+        def apply(v: T): String = {
+          PGObjectTokenizer.reverse(convToElement(v))
+        }
+      }
+    }
+
+    ///
+    def mkArrayConvFromString[T](implicit ev: ru.TypeTag[T]): TypeConverter[String, List[T]] = {
+      registerBasicTypeConverters
+      new TypeConverter[String, List[T]] {
+        val thisType = ru.typeOf[T]
+        internalGet(strType, thisType).getOrElse(throw new IllegalArgumentException(s"Converter NOT FOUND for String => $thisType"))
+
+        val convFromElement = mkArrayConvFromElement[T]
+        def apply(str: String): List[T] = {
+          convFromElement(PGObjectTokenizer.tokenize(str))
+        }
+      }
+    }
+
+    def mkArrayConvToString[T](implicit ev: ru.TypeTag[T], ev1: ClassTag[T]): TypeConverter[List[T], String] = {
+      registerBasicTypeConverters
+      new TypeConverter[List[T], String] {
+        val convToElement = mkArrayConvToElement[T]
+        def apply(vList: List[T]): String = {
+          PGObjectTokenizer.reverse(convToElement(vList))
+        }
+      }
+    }
+
+    //////////////////////////////////////// support methods ////////////////
     private val strType  = ru.typeOf[String]
     private val elemType = ru.typeOf[Element]
 
@@ -94,7 +172,7 @@ object TypeConverters extends Logging {
     }
 
     ///
-    def mkConvFromElement[T <: AnyRef](implicit ev: ru.TypeTag[T]): TypeConverter[Element, T] = {
+    private[utils] def mkConvFromElement[T <: AnyRef](implicit ev: ru.TypeTag[T]): TypeConverter[Element, T] = {
 
       new TypeConverter[Element, T] {
         private val thisType = ru.typeOf[T]
@@ -124,30 +202,7 @@ object TypeConverters extends Logging {
       }
     }
 
-    def mkArrayConvFromElement[T](implicit ev: ru.TypeTag[T]): TypeConverter[Element, List[T]] = {
-
-      new TypeConverter[Element, List[T]] {
-        private val thisType = ru.typeOf[T]
-        private val optType = ru.typeOf[Option[_]]
-
-        private val (realType, isOption) =
-          if (thisType.typeConstructor =:= optType.typeConstructor) {
-            val realType = thisType.asInstanceOf[ru.TypeRef].args(0)
-            (realType, true)
-          } else (thisType, false)
-
-        //--
-        def apply(elem: Element): List[T] = {
-          elem.asInstanceOf[ArrayE].elements.map { e =>
-            val tv = convertToValue(e, realType)
-            if (isOption) Option(tv) else tv
-          } map (_.asInstanceOf[T])
-        }
-      }
-    }
-
-    ////
-    def mkConvToElement[T](implicit ev: ru.TypeTag[T], ev1: ClassTag[T]): TypeConverter[T, Element] = {
+    private[utils] def mkConvToElement[T](implicit ev: ru.TypeTag[T], ev1: ClassTag[T]): TypeConverter[T, Element] = {
 
       new TypeConverter[T, Element] {
         private val thisType = ru.typeOf[T]
@@ -174,7 +229,30 @@ object TypeConverters extends Logging {
       }
     }
 
-    def mkArrayConvToElement[T](implicit ev: ru.TypeTag[T], ev1: ClassTag[T]): TypeConverter[List[T], Element] = {
+    ////
+    private[utils] def mkArrayConvFromElement[T](implicit ev: ru.TypeTag[T]): TypeConverter[Element, List[T]] = {
+
+      new TypeConverter[Element, List[T]] {
+        private val thisType = ru.typeOf[T]
+        private val optType = ru.typeOf[Option[_]]
+
+        private val (realType, isOption) =
+          if (thisType.typeConstructor =:= optType.typeConstructor) {
+            val realType = thisType.asInstanceOf[ru.TypeRef].args(0)
+            (realType, true)
+          } else (thisType, false)
+
+        //--
+        def apply(elem: Element): List[T] = {
+          elem.asInstanceOf[ArrayE].elements.map { e =>
+            val tv = convertToValue(e, realType)
+            if (isOption) Option(tv) else tv
+          } map (_.asInstanceOf[T])
+        }
+      }
+    }
+
+    private[utils] def mkArrayConvToElement[T](implicit ev: ru.TypeTag[T], ev1: ClassTag[T]): TypeConverter[List[T], Element] = {
 
       new TypeConverter[List[T], Element] {
         private val thisType = ru.typeOf[T]

@@ -9,19 +9,15 @@ import scala.reflect.ClassTag
 
 trait PgCommonJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
-  class GenericJdbcType[T](pgTypeName: String,
+  class GenericJdbcType[T](val sqlTypeName: String,
                            fnFromString: (String => T),
                            fnToString: (T => String) = ((r: T) => r.toString),
+                           val sqlType: Int = java.sql.Types.OTHER,
+                           val zero: T = null.asInstanceOf[T],
                            val hasLiteralForm: Boolean = true)(
                    implicit tag: ClassTag[T]) extends JdbcType[T] with BaseTypedType[T] {
 
     def scalaType: ScalaType[T] = ScalaBaseType[T]
-
-    def zero: T = null.asInstanceOf[T]
-
-    def sqlType: Int = java.sql.Types.OTHER
-
-    def sqlTypeName: String = pgTypeName
 
     def setValue(v: T, p: PositionedParameters) = p.setObject(mkPgObject(v), sqlType)
 

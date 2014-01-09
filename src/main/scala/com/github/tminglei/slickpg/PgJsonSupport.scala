@@ -17,7 +17,7 @@ trait PgJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes {
         "json",
         (v) => jsonMethods.parse(v),
         (v) => jsonMethods.compact(jsonMethods.render(v)),
-        false
+        hasLiteralForm = false
       )
 
     implicit def jsonColumnExtensionMethods(c: Column[JValue])(

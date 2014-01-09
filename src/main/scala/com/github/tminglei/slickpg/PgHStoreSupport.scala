@@ -13,7 +13,7 @@ trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcT
         "hstore",
         (v) => WrapAsScala.mapAsScalaMap(HStoreConverter.fromString(v).asInstanceOf[java.util.Map[String, String]]).toMap,
         (v) => HStoreConverter.toString(WrapAsJava.mapAsJavaMap(v)),
-        false
+        hasLiteralForm = false
       )
 
     implicit def hstoreColumnExtensionMethods(c: Column[Map[String, String]])(
