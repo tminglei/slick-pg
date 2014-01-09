@@ -10,6 +10,11 @@ To use it, pls declare your type mappers like this:
     trait CompositeImplicts {
       import utils.TypeConverters.Util._
       
+      utils.TypeConverters.register(mkCompositeConvFromString[Composite1])
+      utils.TypeConverters.register(mkCompositeConvToString[Composite1])
+      utils.TypeConverters.register(mkCompositeConvFromString[Composite2])
+      utils.TypeConverters.register(mkCompositeConvToString[Composite2])
+      
       implicit val composite1TypeMapper = new GenericJdbcType[Composite1]("composite1",
         mkCompositeConvFromString[Composite1], mkCompositeConvToString[Composite1])
       implicit val composite2TypeMapper = new GenericJdbcType[Composite2]("composite2",
