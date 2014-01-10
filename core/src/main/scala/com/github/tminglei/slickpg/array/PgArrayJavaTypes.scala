@@ -9,9 +9,9 @@ import scala.slick.driver.{PostgresDriver, JdbcTypesComponent}
 
 trait PgArrayJavaTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
-  class ArrayListJavaType[T: ClassTag](pgBaseType: String,
-                           			   fnFromString: (String => List[T]),
-                           			   fnToString: (List[T] => String))
+  class ArrayListJavaType[T: ClassTag](sqlBaseType: String,
+                                       fnFromString: (String => List[T]),
+                                       fnToString: (List[T] => String))
                            extends JdbcType[List[T]] with BaseTypedType[List[T]] {
 
     def scalaType: ScalaType[List[T]] = ScalaBaseType[List[T]]
@@ -20,7 +20,7 @@ trait PgArrayJavaTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
     def sqlType: Int = java.sql.Types.ARRAY
 
-    def sqlTypeName: String = s"$pgBaseType ARRAY"
+    def sqlTypeName: String = s"$sqlBaseType ARRAY"
 
     def setValue(v: List[T], p: PositionedParameters) = p.setObject(mkArray(v), sqlType)
 
@@ -35,13 +35,13 @@ trait PgArrayJavaTypes extends JdbcTypesComponent { driver: PostgresDriver =>
     override def valueToSQLLiteral(v: List[T]) = mkArray(v).toString
 
     //--
-    private def mkArray(v: List[T]): java.sql.Array = new SimpleArray(pgBaseType, v, fnToString)
+    private def mkArray(v: List[T]): java.sql.Array = new SimpleArray(sqlBaseType, v, fnToString)
 
 
     /** only used to transfer array data into driver/preparedStatement */
-    class SimpleArray(pgBaseTypeName: String, vList: List[T], fnToString: (List[T] => String)) extends java.sql.Array {
+    class SimpleArray(sqlBaseTypeName: String, vList: List[T], fnToString: (List[T] => String)) extends java.sql.Array {
 
-      def getBaseTypeName = pgBaseTypeName
+      def getBaseTypeName = sqlBaseTypeName
 
       def getBaseType = ???
 
