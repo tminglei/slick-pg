@@ -6,18 +6,16 @@ import scala.slick.driver.BasicProfile
 import scala.slick.session.{PositionedResult, PositionedParameters}
 import org.postgresql.util.PGobject
 
-class GenericTypeMapper[T](pgTypeName: String, fnFromString: (String => T),
-                           fnToString: (T => String) = ((r: T) => r.toString))
+class GenericTypeMapper[T](val sqlTypeName: String,
+						   fnFromString: (String => T),
+                           fnToString: (T => String) = ((r: T) => r.toString),
+                           val sqlType: Int = java.sql.Types.OTHER,
+                           val zero: T = null.asInstanceOf[T])
                 extends TypeMapperDelegate[T] with BaseTypeMapper[T] {
 
   def apply(v1: BasicProfile): TypeMapperDelegate[T] = this
 
   //-----------------------------------------------------------------
-  def zero: T = null.asInstanceOf[T]
-
-  def sqlType: Int = java.sql.Types.OTHER
-
-  def sqlTypeName: String = pgTypeName
 
   def setValue(v: T, p: PositionedParameters) = p.setObject(mkPgObject(v), sqlType)
 

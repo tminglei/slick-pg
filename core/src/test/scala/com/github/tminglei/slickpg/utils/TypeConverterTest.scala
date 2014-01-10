@@ -39,7 +39,7 @@ class TypeConverterTest {
   def testConverterUtil(): Unit = {
     TypeConverters.register((v: String) => v.toInt)
     TypeConverters.register((v: String) => v.toLong)
-//    Converters.register((v: String) => v)
+    //    Converters.register((v: String) => v)
 
     // simple case
     val conv = mkConvFromElement[T]
