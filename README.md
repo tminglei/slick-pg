@@ -10,6 +10,7 @@ Slick-pg
 - JSON
 - `text` Search
 - `postgis` Geometry
+- Composite type (`basic`)
 
 ** _tested on `postgreSQL 9.3` with `Slick 1.0.1`._
 
@@ -17,15 +18,15 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.1" % "0.2.2.2"
+libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.3" % "0.2.5"
 ```
 
 Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg` to your `pom.xml` like this:
 ```xml
 <dependency>
     <groupId>com.github.tminglei</groupId>
-    <artifactId>slick-pg_2.10.1</artifactId>
-    <version>0.2.2.2</version>
+    <artifactId>slick-pg_2.10.3</artifactId>
+    <version>0.2.5</version>
 </dependency>
 ```
 
