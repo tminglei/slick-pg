@@ -162,12 +162,13 @@ Support details
 - HStore's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/hstore "HStore's oper/functions")
 - Search's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/search "Search's oper/functions")
 - Geometry's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/geom "Geometry's oper/functions")
-
+- `basic` Composite type [support](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/composite "Composite type Support")
 
 Version history
 ------------------------------
-v0.5.0-beta (27-Nov-2013):  
-1) upgrade to slick v2.0.0-M3
+v0.5.0-RC1 (10-Jan-2014):  
+1) upgrade to slick v2.0.0-RC1  
+2) add basic composite type support
 
 v0.2.2 (04-Nov-2013):  
 1) support Joda date/time, binding to Pg Date/Time  
