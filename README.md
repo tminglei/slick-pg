@@ -10,14 +10,15 @@ Slick-pg
 - JSON
 - `text` Search
 - `postgis` Geometry
+- Composite type (`basic`)
 
-** _tested on `postgreSQL 9.3` with `Slick 2.0.0-M3`._
+** _tested on `postgreSQL 9.3` with `Slick 2.0.0-RC1`._
 
 Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.3" % "0.5.0-beta"
+libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.3" % "0.5.0-RC1"
 ```
 
 Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg` to your `pom.xml` like this:
@@ -25,7 +26,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.10.3</artifactId>
-    <version>0.5.0-beta</version>
+    <version>0.5.0-RC1</version>
 </dependency>
 ```
 
@@ -168,7 +169,8 @@ Version history
 ------------------------------
 v0.5.0-RC1 (10-Jan-2014):  
 1) upgrade to slick v2.0.0-RC1  
-2) add basic composite type support
+2) add basic composite type support  
+3) array support: allow nested composite type
 
 v0.2.2 (04-Nov-2013):  
 1) support Joda date/time, binding to Pg Date/Time  
