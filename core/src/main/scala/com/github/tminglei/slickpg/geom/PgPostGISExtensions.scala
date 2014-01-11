@@ -2,11 +2,12 @@ package com.github.tminglei.slickpg
 package geom
 
 import scala.slick.lifted._
-import scala.slick.ast.{LiteralNode, Node}
+import scala.slick.ast.{LiteralNode}
 import scala.slick.ast.Library.{SqlFunction, SqlOperator}
-import scala.Some
+import scala.slick.driver.{JdbcTypesComponent, PostgresDriver}
 
-trait PgPostGISExtensions {
+trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
+  import driver.Implicit._
 
   type GEOMETRY
   type POINT <: GEOMETRY
@@ -16,43 +17,51 @@ trait PgPostGISExtensions {
 
   trait PostGISAssistants {
     /** Geometry Constructors */
-    def geomFromText[P, R](wkt: Column[P], srid: Option[Int] = None)(implicit tm: TypeMapper[GEOMETRY], om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) =
+    def geomFromText[P, R](wkt: Column[P], srid: Option[Int] = None)(
+      implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) =
       srid match {
-        case Some(srid) => om(GeomLibrary.GeomFromText.column[GEOMETRY](Node(wkt), LiteralNode(srid)))
-        case None   => om(GeomLibrary.GeomFromText.column[GEOMETRY](Node(wkt)))
+        case Some(srid) => om.column(GeomLibrary.GeomFromText, wkt.toNode, LiteralNode(srid))
+        case None   => om.column(GeomLibrary.GeomFromText, wkt.toNode)
       }
-    def geomFromWKB[P, R](wkb: Column[P], srid: Option[Int] = None)(implicit tm: TypeMapper[GEOMETRY], om: OptionMapperDSL.arg[Array[Byte], P]#to[GEOMETRY, R]) =
+    def geomFromWKB[P, R](wkb: Column[P], srid: Option[Int] = None)(
+      implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[Array[Byte], P]#to[GEOMETRY, R]) =
       srid match {
-        case Some(srid) => om(GeomLibrary.GeomFromWKB.column[GEOMETRY](Node(wkb), LiteralNode(srid)))
-        case None   => om(GeomLibrary.GeomFromWKB.column[GEOMETRY](Node(wkb)))
+        case Some(srid) => om.column(GeomLibrary.GeomFromWKB, wkb.toNode, LiteralNode(srid))
+        case None   => om.column(GeomLibrary.GeomFromWKB, wkb.toNode)
       }
-    def geomFromEWKT[P, R](ewkt: Column[P])(implicit tm: TypeMapper[GEOMETRY], om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) = {
-        om(GeomLibrary.GeomFromEWKT.column[GEOMETRY](Node(ewkt)))
+    def geomFromEWKT[P, R](ewkt: Column[P])(
+      implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) = {
+        om.column(GeomLibrary.GeomFromEWKT, ewkt.toNode)
       }
-    def geomFromEWKB[P, R](ewkb: Column[P])(implicit tm: TypeMapper[GEOMETRY], om: OptionMapperDSL.arg[Array[Byte], P]#to[GEOMETRY, R]) = {
-        om(GeomLibrary.GeomFromEWKB.column[GEOMETRY](Node(ewkb)))
+    def geomFromEWKB[P, R](ewkb: Column[P])(
+      implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[Array[Byte], P]#to[GEOMETRY, R]) = {
+        om.column(GeomLibrary.GeomFromEWKB, ewkb.toNode)
       }
-    def geomFromGML[P, R](gml: Column[P], srid: Option[Int] = None)(implicit tm: TypeMapper[GEOMETRY], om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) =
+    def geomFromGML[P, R](gml: Column[P], srid: Option[Int] = None)(
+      implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) =
       srid match {
-        case Some(srid) => om(GeomLibrary.GeomFromGML.column[GEOMETRY](Node(gml), LiteralNode(srid)))
-        case None   => om(GeomLibrary.GeomFromGML.column[GEOMETRY](Node(gml)))
+        case Some(srid) => om.column(GeomLibrary.GeomFromGML, gml.toNode, LiteralNode(srid))
+        case None   => om.column(GeomLibrary.GeomFromGML, gml.toNode)
       }
-    def geomFromKML[P, R](kml: Column[P])(implicit tm: TypeMapper[GEOMETRY], om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) = {
-        om(GeomLibrary.GeomFromKML.column[GEOMETRY](Node(kml)))
+    def geomFromKML[P, R](kml: Column[P])(
+      implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) = {
+        om.column(GeomLibrary.GeomFromKML, kml.toNode)
       }
-    def geomFromGeoJSON[P, R](json: Column[P])(implicit tm: TypeMapper[GEOMETRY], om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) = {
-        om(GeomLibrary.GeomFromGeoJSON.column[GEOMETRY](Node(json)))
+    def geomFromGeoJSON[P, R](json: Column[P])(
+      implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) = {
+        om.column(GeomLibrary.GeomFromGeoJSON, json.toNode)
       }
-    def makeBox[G1 <: GEOMETRY, G2 <: GEOMETRY](lowLeftPoint: Column[G1], upRightPoint: Column[G2])(implicit tm: TypeMapper[GEOMETRY]) = {
-        GeomLibrary.MakeBox.column[GEOMETRY](Node(lowLeftPoint), Node(upRightPoint))
+    def makeBox[G1 <: GEOMETRY, P1, G2 <: GEOMETRY, P2, R](lowLeftPoint: Column[P1], upRightPoint: Column[P2])(
+      implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[G1, P1]#arg[G2, P2]#to[GEOMETRY, R]) = {
+        om.column(GeomLibrary.MakeBox, lowLeftPoint.toNode, upRightPoint.toNode)
       }
     def makePoint[P1, P2, R](x: Column[P1], y: Column[P2], z: Option[Double] = None, m: Option[Double] = None)(
-            implicit tm: TypeMapper[GEOMETRY], om: OptionMapperDSL.arg[Double, P1]#arg[Double, P2]#to[GEOMETRY, R]) =
+      implicit tm: JdbcType[GEOMETRY], tm1: JdbcType[POINT], om: OptionMapperDSL.arg[Double, P1]#arg[Double, P2]#to[GEOMETRY, R]) =
       (z, m) match {
-        case (Some(z), Some(m)) => om(GeomLibrary.MakePoint.column[GEOMETRY](Node(x), Node(y), LiteralNode(z), LiteralNode(m)))
-        case (Some(z), None) => om(GeomLibrary.MakePoint.column[GEOMETRY](Node(x), Node(y), LiteralNode(z)))
-        case (None, Some(m)) => om(GeomLibrary.MakePointM.column[GEOMETRY](Node(x), Node(y), Node(m)))
-        case (None, None) => om(GeomLibrary.MakePoint.column[GEOMETRY](Node(x), Node(y)))
+        case (Some(z), Some(m)) => om.column(GeomLibrary.MakePoint, x.toNode, y.toNode, LiteralNode(z), LiteralNode(m))
+        case (Some(z), None) => om.column(GeomLibrary.MakePoint, x.toNode, y.toNode, LiteralNode(z))
+        case (None, Some(m)) => om.column(GeomLibrary.MakePointM, x.toNode, y.toNode, LiteralNode(m))
+        case (None, None) => om.column(GeomLibrary.MakePoint, x.toNode, y.toNode)
       }
   }
 
@@ -182,335 +191,336 @@ trait PgPostGISExtensions {
 
   /** Extension methods for hstore Columns */
   class GeometryColumnExtensionMethods[G1 <: GEOMETRY, P1](val c: Column[P1])(
-            implicit tm: TypeMapper[GEOMETRY], tm1: TypeMapper[POINT], tm2: TypeMapper[LINESTRING], tm3: TypeMapper[POLYGON], tm4: TypeMapper[GEOMETRYCOLLECTION])
+            implicit tm: JdbcType[GEOMETRY], tm1: JdbcType[POINT], tm2: JdbcType[LINESTRING], tm3: JdbcType[POLYGON], tm4: JdbcType[GEOMETRYCOLLECTION])
                   extends ExtensionMethods[G1, P1] {
 
     /** Geometry Operators */
     def @&&[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.BoxIntersects.column(n, Node(geom)))
+        om.column(GeomLibrary.BoxIntersects, n, geom.toNode)
       }
     def @&&&[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.BoxIntersects3D.column(n, Node(geom)))
+        om.column(GeomLibrary.BoxIntersects3D, n, geom.toNode)
       }
     def @>[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.BoxContains.column(n, Node(geom)))
+        om.column(GeomLibrary.BoxContains, n, geom.toNode)
       }
     def <@[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.BoxContainedBy.column(n, Node(geom)))
+        om.column(GeomLibrary.BoxContainedBy, n, geom.toNode)
       }
     def <->[P2, R](geom: Column[P2])(implicit om: o#to[Double, R]) = {
-        om(GeomLibrary.PointDistance.column(n, Node(geom)))
+        om.column(GeomLibrary.PointDistance, n, geom.toNode)
       }
     def <#>[P2, R](geom: Column[P2])(implicit om: o#to[Double, R]) = {
-        om(GeomLibrary.BoxDistance.column(n, Node(geom)))
+        om.column(GeomLibrary.BoxDistance, n, geom.toNode)
       }
 
     def &<[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.BoxLooseLeft.column(n, Node(geom)))
+        om.column(GeomLibrary.BoxLooseLeft, n, geom.toNode)
       }
     def <<[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.BoxStrictLeft.column(n, Node(geom)))
+        om.column(GeomLibrary.BoxStrictLeft, n, geom.toNode)
       }
     def &<|[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.BoxLooseBelow.column(n, Node(geom)))
+        om.column(GeomLibrary.BoxLooseBelow, n, geom.toNode)
       }
     def <<|[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.BoxStrictBelow.column(n, Node(geom)))
+        om.column(GeomLibrary.BoxStrictBelow, n, geom.toNode)
       }
     def &>[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.BoxLooseRight.column(n, Node(geom)))
+        om.column(GeomLibrary.BoxLooseRight, n, geom.toNode)
       }
     def >>[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.BoxStrictRight.column(n, Node(geom)))
+        om.column(GeomLibrary.BoxStrictRight, n, geom.toNode)
       }
     def |&>[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.BoxLooseAbove.column(n, Node(geom)))
+        om.column(GeomLibrary.BoxLooseAbove, n, geom.toNode)
       }
     def |>>[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.BoxStrictAbove.column(n, Node(geom)))
+        om.column(GeomLibrary.BoxStrictAbove, n, geom.toNode)
       }
 
     /** Geometry Accessors */
     def geomType[R](implicit om: o#to[String, R]) = {
-        om(GeomLibrary.GeometryType.column(n))
+        om.column(GeomLibrary.GeometryType, n)
       }
     def srid[R](implicit om: o#to[Int, R]) = {
-        om(GeomLibrary.SRID.column(n))
+        om.column(GeomLibrary.SRID, n)
       }
     def isValid[R](implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.IsValid.column(n))
+        om.column(GeomLibrary.IsValid, n)
       }
     def isClosed[R](implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.IsClosed.column(n))
+        om.column(GeomLibrary.IsClosed, n)
       }
     def isCollection[R](implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.IsCollection.column(n))
+        om.column(GeomLibrary.IsCollection, n)
       }
     def isEmpty[R](implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.IsEmpty.column(n))
+        om.column(GeomLibrary.IsEmpty, n)
       }
     def isRing[R](implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.IsRing.column(n))
+        om.column(GeomLibrary.IsRing, n)
       }
     def isSimple[R](implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.IsSimple.column(n))
+        om.column(GeomLibrary.IsSimple, n)
       }
     def hasArc[R](implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.HasArc.column[Boolean](n))
+        om.column(GeomLibrary.HasArc, n)
       }
     def area[R](implicit om: o#to[Float, R]) = {
-        om(GeomLibrary.Area.column(n))
+        om.column(GeomLibrary.Area, n)
       }
     def boundary[R](implicit om: o#to[GEOMETRY, R]) = {
-        om(GeomLibrary.Boundary.column[GEOMETRY](n))
+        om.column(GeomLibrary.Boundary, n)
       }
     def dimension[R](implicit om: o#to[Int, R]) = {
-        om(GeomLibrary.Dimension.column(n))
+        om.column(GeomLibrary.Dimension, n)
       }
     def coordDim[R](implicit om: o#to[Int, R]) = {
-        om(GeomLibrary.CoordDim.column(n))
+        om.column(GeomLibrary.CoordDim, n)
       }
     def nDims[R](implicit om: o#to[Int, R]) = {
-        om(GeomLibrary.NDims.column(n))
+        om.column(GeomLibrary.NDims, n)
       }
     def nPoints[R](implicit om: o#to[Int, R]) = {
-        om(GeomLibrary.NPoints.column(n))
+        om.column(GeomLibrary.NPoints, n)
       }
     def nRings[R](implicit om: o#to[Int, R]) = {
-        om(GeomLibrary.NRings.column(n))
+        om.column(GeomLibrary.NRings, n)
       }
 
     /** Geometry Outputs */
     def asBinary[R](NDRorXDR: Option[String] = None)(implicit om: o#to[Array[Byte], R]) =
       NDRorXDR match {
-        case Some(endian) => om(GeomLibrary.AsBinary.column(n, LiteralNode(endian)))
-        case None   => om(GeomLibrary.AsBinary.column(n))
+        case Some(endian) => om.column(GeomLibrary.AsBinary, n, LiteralNode(endian))
+        case None   => om.column(GeomLibrary.AsBinary, n)
       }
     def asText[R](implicit om: o#to[String, R]) = {
-        om(GeomLibrary.AsText.column(n))
+        om.column(GeomLibrary.AsText, n)
       }
     def asLatLonText[R](format: Option[String] = None)(implicit om: o#to[String, R]) =
       format match {
-        case Some(fmt) => om(GeomLibrary.AsLatLonText.column(n, LiteralNode(fmt)))
-        case None   => om(GeomLibrary.AsLatLonText.column(n))
+        case Some(fmt) => om.column(GeomLibrary.AsLatLonText, n, LiteralNode(fmt))
+        case None   => om.column(GeomLibrary.AsLatLonText, n)
       }
     def asEWKB[R](NDRorXDR: Option[String] = None)(implicit om: o#to[Array[Byte], R]) =
       NDRorXDR match {
-        case Some(endian) => om(GeomLibrary.AsEWKB.column(n, LiteralNode(endian)))
-        case None   => om(GeomLibrary.AsEWKB.column(n))
+        case Some(endian) => om.column(GeomLibrary.AsEWKB, n, LiteralNode(endian))
+        case None   => om.column(GeomLibrary.AsEWKB, n)
       }
     def asEWKT[R](implicit om: o#to[String, R]) = {
-        om(GeomLibrary.AsEWKT.column(n))
+        om.column(GeomLibrary.AsEWKT, n)
       }
     def asHEXEWKB[R](NDRorXDR: Option[String] = None)(implicit om: o#to[String, R]) =
       NDRorXDR match {
-        case Some(endian) => om(GeomLibrary.AsHEXEWKB.column(n, LiteralNode(endian)))
-        case None   => om(GeomLibrary.AsHEXEWKB.column(n))
+        case Some(endian) => om.column(GeomLibrary.AsHEXEWKB, n, LiteralNode(endian))
+        case None   => om.column(GeomLibrary.AsHEXEWKB, n)
       }
-    def asGeoJSON[R](maxDigits: Column[Int] = ConstColumn(15), options: Column[Int] = ConstColumn(0),
+    def asGeoJSON[R](maxDigits: Column[Int] = LiteralColumn(15), options: Column[Int] = LiteralColumn(0),
                      geoJsonVer: Option[Int] = None)(implicit om: o#to[String, R]) =
       geoJsonVer match {
-        case Some(ver) => om(GeomLibrary.AsGeoJSON.column(LiteralNode(ver), n, Node(maxDigits), Node(options)))
-        case None   => om(GeomLibrary.AsGeoJSON.column(n, Node(maxDigits), Node(options)))
+        case Some(ver) => om.column(GeomLibrary.AsGeoJSON, LiteralNode(ver), n, maxDigits.toNode, options.toNode)
+        case None   => om.column(GeomLibrary.AsGeoJSON, n, maxDigits.toNode, options.toNode)
       }
     def asGeoHash[R](maxChars: Option[Int] = None)(implicit om: o#to[String, R]) =
       maxChars match {
-        case Some(charNum) => om(GeomLibrary.AsHEXEWKB.column(n, LiteralNode(charNum)))
-        case None   => om(GeomLibrary.AsHEXEWKB.column(n))
+        case Some(charNum) => om.column(GeomLibrary.AsHEXEWKB, n, LiteralNode(charNum))
+        case None   => om.column(GeomLibrary.AsHEXEWKB, n)
       }
-    def asGML[R](maxDigits: Column[Int] = ConstColumn(15), options: Column[Int] = ConstColumn(0),
+    def asGML[R](maxDigits: Column[Int] = LiteralColumn(15), options: Column[Int] = LiteralColumn(0),
                  version: Option[Int] = None,  nPrefix: Option[String] = None)(implicit om: o#to[String, R]) =
       (version, nPrefix) match {
-        case (Some(ver), Some(prefix)) => om(GeomLibrary.AsGML.column(LiteralNode(ver), n, Node(maxDigits), Node(options), LiteralNode(prefix)))
-        case (Some(ver), None) => om(GeomLibrary.AsGML.column(LiteralNode(ver), n, Node(maxDigits), Node(options)))
-        case (_, _)   => om(GeomLibrary.AsGML.column(n, Node(maxDigits), Node(options)))
+        case (Some(ver), Some(prefix)) => om.column(GeomLibrary.AsGML, LiteralNode(ver), n, maxDigits.toNode, options.toNode, LiteralNode(prefix))
+        case (Some(ver), None) => om.column(GeomLibrary.AsGML, LiteralNode(ver), n, maxDigits.toNode, options.toNode)
+        case (_, _)   => om.column(GeomLibrary.AsGML, n, maxDigits.toNode, options.toNode)
       }
-    def asKML[R](maxDigits: Column[Int] = ConstColumn(15), version: Option[Int] = None,  nPrefix: Option[String] = None)(implicit om: o#to[String, R]) =
+    def asKML[R](maxDigits: Column[Int] = LiteralColumn(15), version: Option[Int] = None, nPrefix: Option[String] = None)(
+      implicit om: o#to[String, R]) =
       (version, nPrefix) match {
-        case (Some(ver), Some(prefix)) => om(GeomLibrary.AsKML.column(LiteralNode(ver), n, Node(maxDigits), LiteralNode(prefix)))
-        case (Some(ver), None) => om(GeomLibrary.AsKML.column(LiteralNode(ver), n, Node(maxDigits)))
-        case (_, _)   => om(GeomLibrary.AsKML.column(n, Node(maxDigits)))
+        case (Some(ver), Some(prefix)) => om.column(GeomLibrary.AsKML, LiteralNode(ver), n, maxDigits.toNode, LiteralNode(prefix))
+        case (Some(ver), None) => om.column(GeomLibrary.AsKML, LiteralNode(ver), n, maxDigits.toNode)
+        case (_, _)   => om.column(GeomLibrary.AsKML, n, maxDigits.toNode)
       }
-    def asSVG[R](rel: Column[Int] = ConstColumn(0), maxDigits: Column[Int] = ConstColumn(15))(implicit om: o#to[String, R]) = {
-        om(GeomLibrary.AsSVG.column(n, Node(rel), Node(maxDigits)))
+    def asSVG[R](rel: Column[Int] = LiteralColumn(0), maxDigits: Column[Int] = LiteralColumn(15))(implicit om: o#to[String, R]) = {
+        om.column(GeomLibrary.AsSVG, n, rel.toNode, maxDigits.toNode)
       }
-    def asX3D[R](maxDigits: Column[Int] = ConstColumn(15), options: Column[Int] = ConstColumn(0))(implicit om: o#to[String, R]) = {
-        om(GeomLibrary.AsX3D.column(n, Node(maxDigits), Node(options)))
+    def asX3D[R](maxDigits: Column[Int] = LiteralColumn(15), options: Column[Int] = LiteralColumn(0))(implicit om: o#to[String, R]) = {
+        om.column(GeomLibrary.AsX3D, n, maxDigits.toNode, options.toNode)
       }
 
     /** Spatial Relationships */
     def gEquals[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.Equals.column(n, Node(geom)))
+        om.column(GeomLibrary.Equals, n, geom.toNode)
       }
     def orderingEquals[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.OrderingEquals.column(n, Node(geom)))
+        om.column(GeomLibrary.OrderingEquals, n, geom.toNode)
       }
     def overlaps[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.Overlaps.column(n, Node(geom)))
+        om.column(GeomLibrary.Overlaps, n, geom.toNode)
       }
     def intersects[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.Intersects.column(n, Node(geom)))
+        om.column(GeomLibrary.Intersects, n, geom.toNode)
       }
     def crosses[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.Crosses.column(n, Node(geom)))
+        om.column(GeomLibrary.Crosses, n, geom.toNode)
       }
     def disjoint[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.Disjoint.column(n, Node(geom)))
+        om.column(GeomLibrary.Disjoint, n, geom.toNode)
       }
     def contains[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.Contains.column(n, Node(geom)))
+        om.column(GeomLibrary.Contains, n, geom.toNode)
       }
     def containsProperly[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.ContainsProperly.column(n, Node(geom)))
+        om.column(GeomLibrary.ContainsProperly, n, geom.toNode)
       }
     def within[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.Within.column(n, Node(geom)))
+        om.column(GeomLibrary.Within, n, geom.toNode)
       }
     def dWithin[P2, R](geom: Column[P2], distance: Column[Double])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.DWithin.column(n, Node(geom), Node(distance)))
+        om.column(GeomLibrary.DWithin, n, geom.toNode, distance.toNode)
       }
     def dFullyWithin[P2, R](geom: Column[P2], distance: Column[Double])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.DFullyWithin.column(n, Node(geom), Node(distance)))
+        om.column(GeomLibrary.DFullyWithin, n, geom.toNode, distance.toNode)
       }
     def touches[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.Touches.column(n, Node(geom)))
+        om.column(GeomLibrary.Touches, n, geom.toNode)
       }
     def relate[P2, R](geom: Column[P2], matrixPattern: Column[String])(implicit om: o#to[Boolean, R]) = {
-        om(GeomLibrary.Relate.column(n, Node(geom), Node(matrixPattern)))
+        om.column(GeomLibrary.Relate, n, geom.toNode, matrixPattern.toNode)
       }
     def relatePattern[P2, R](geom: Column[P2], boundaryNodeRule: Option[Int] = None)(implicit om: o#to[String, R]) =
       boundaryNodeRule match {
-        case Some(rule) => om(GeomLibrary.Relate.column(n, Node(geom), LiteralNode(rule)))
-        case None    => om(GeomLibrary.Relate.column(n, Node(geom)))
+        case Some(rule) => om.column(GeomLibrary.Relate, n, geom.toNode, LiteralNode(rule))
+        case None    => om.column(GeomLibrary.Relate, n, geom.toNode)
       }
 
     /** Spatial Measurements */
     def azimuth[P2, R](geom: Column[P2])(implicit om: o#to[Float, R]) = {
-        om(GeomLibrary.Azimuth.column(n, Node(geom)))
+        om.column(GeomLibrary.Azimuth, n, geom.toNode)
       }
     def centroid[R](implicit om: o#to[POINT, R]) = {
-        om(GeomLibrary.Centroid.column[POINT](n))
+        om.column(GeomLibrary.Centroid, n)
       }
     def closestPoint[P2, R](geom: Column[P2])(implicit om: o#to[POINT, R]) = {
-        om(GeomLibrary.ClosestPoint.column[POINT](n, Node(geom)))
+        om.column(GeomLibrary.ClosestPoint, n, geom.toNode)
       }
     def pointOnSurface[R](implicit om: o#to[POINT, R]) = {
-        om(GeomLibrary.PointOnSurface.column[POINT](n))
+        om.column(GeomLibrary.PointOnSurface, n)
       }
     def project[R](distance: Column[Float], azimuth: Column[Float])(implicit om: o#to[POINT, R]) = {
-        om(GeomLibrary.Project.column[POINT](n, Node(distance), Node(azimuth)))
+        om.column(GeomLibrary.Project, n, distance.toNode, azimuth.toNode)
       }
     def length[R](implicit om: o#to[Float, R]) = {
-        om(GeomLibrary.Length.column[Float](n))
+        om.column(GeomLibrary.Length, n)
       }
     def length3d[R](implicit om: o#to[Float, R]) = {
-        om(GeomLibrary.Length3D.column[Float](n))
+        om.column(GeomLibrary.Length3D, n)
       }
     def perimeter[R](implicit om: o#to[Float, R]) = {
-        om(GeomLibrary.Perimeter.column[Float](n))
+        om.column(GeomLibrary.Perimeter, n)
       }
     def distance[P2, R](geom: Column[P2])(implicit om: o#to[Float, R]) = {
-        om(GeomLibrary.Distance.column(n, Node(geom)))
+        om.column(GeomLibrary.Distance, n, geom.toNode)
       }
     def distanceSphere[P2, R](geom: Column[P2])(implicit om: o#to[Float, R]) = {
-        om(GeomLibrary.DistanceSphere.column(n, Node(geom)))
+        om.column(GeomLibrary.DistanceSphere, n, geom.toNode)
       }
     def maxDistance[P2, R](geom: Column[P2])(implicit om: o#to[Float, R]) = {
-        om(GeomLibrary.MaxDistance.column(n, Node(geom)))
+        om.column(GeomLibrary.MaxDistance, n, geom.toNode)
       }
     def hausdorffDistance[P2, R](geom: Column[P2], densifyFrac: Option[Float] = None)(implicit om: o#to[Float, R]) =
       densifyFrac match {
-        case Some(denFrac) => om(GeomLibrary.HausdorffDistance.column(n, Node(geom), LiteralNode(denFrac)))
-        case None   => om(GeomLibrary.HausdorffDistance.column(n, Node(geom)))
+        case Some(denFrac) => om.column(GeomLibrary.HausdorffDistance, n, geom.toNode, LiteralNode(denFrac))
+        case None   => om.column(GeomLibrary.HausdorffDistance, n, geom.toNode)
       }
     def longestLine[P2, R](geom: Column[P2])(implicit om: o#to[LINESTRING, R]) = {
-        om(GeomLibrary.LongestLine.column[LINESTRING](n, Node(geom)))
+        om.column(GeomLibrary.LongestLine, n, geom.toNode)
       }
     def shortestLine[P2, R](geom: Column[P2])(implicit om: o#to[LINESTRING, R]) = {
-        om(GeomLibrary.ShortestLine.column[LINESTRING](n, Node(geom)))
+        om.column(GeomLibrary.ShortestLine, n, geom.toNode)
       }
 
     /** Geometry Processing */
     def setSRID[R](srid: Column[Int])(implicit om: o#to[GEOMETRY, R]) = {
-        om(GeomLibrary.SetSRID.column[GEOMETRY](n, Node(srid)))
+        om.column(GeomLibrary.SetSRID, n, srid.toNode)
       }
     def transform[R](srid: Column[Int])(implicit om: o#to[GEOMETRY, R]) = {
-        om(GeomLibrary.Transform.column[GEOMETRY](n, Node(srid)))
+        om.column(GeomLibrary.Transform, n, srid.toNode)
       }
     def simplify[R](tolerance: Column[Float])(implicit om: o#to[GEOMETRY, R]) = {
-        om(GeomLibrary.Simplify.column[GEOMETRY](n, Node(tolerance)))
+        om.column(GeomLibrary.Simplify, n, tolerance.toNode)
       }
     def removeRepeatedPoints[R](implicit om: o#to[GEOMETRY, R]) = {
-        om(GeomLibrary.RemoveRepeatedPoints.column[GEOMETRY](n))
+        om.column(GeomLibrary.RemoveRepeatedPoints, n)
       }
     def simplifyPreserveTopology[R](tolerance: Column[Float])(implicit om: o#to[GEOMETRY, R]) = {
-        om(GeomLibrary.SimplifyPreserveTopology.column[GEOMETRY](n, Node(tolerance)))
+        om.column(GeomLibrary.SimplifyPreserveTopology, n, tolerance.toNode)
       }
     def difference[P2, R](geom: Column[P2])(implicit om: o#to[GEOMETRY, R]) = {
-        om(GeomLibrary.Difference.column[GEOMETRY](n, Node(geom)))
+        om.column(GeomLibrary.Difference, n, geom.toNode)
       }
     def symDifference[P2, R](geom: Column[P2])(implicit om: o#to[GEOMETRY, R]) = {
-        om(GeomLibrary.SymDifference.column[GEOMETRY](n, Node(geom)))
+        om.column(GeomLibrary.SymDifference, n, geom.toNode)
       }
     def intersection[P2, R](geom: Column[P2])(implicit om: o#to[GEOMETRY, R]) = {
-        om(GeomLibrary.Intersection.column[GEOMETRY](n, Node(geom)))
+        om.column(GeomLibrary.Intersection, n, geom.toNode)
       }
     def sharedPaths[P2, R](geom: Column[P2])(implicit om: o#to[GEOMETRY, R]) = {
-        om(GeomLibrary.SharedPaths.column[GEOMETRY](n, Node(geom)))
+        om.column(GeomLibrary.SharedPaths, n, geom.toNode)
       }
     def split[P2, R](blade: Column[P2])(implicit om: o#to[GEOMETRY, R]) = {
-        om(GeomLibrary.Split.column[GEOMETRY](n, Node(blade)))
+        om.column(GeomLibrary.Split, n, blade.toNode)
       }
-    def minBoundingCircle[R](segNumPerQtrCircle: Column[Int] = ConstColumn(48))(implicit om: o#to[GEOMETRY, R]) = {
-        om(GeomLibrary.MinBoundingCircle.column[GEOMETRY](n, Node(segNumPerQtrCircle)))
+    def minBoundingCircle[R](segNumPerQtrCircle: Column[Int] = LiteralColumn(48))(implicit om: o#to[GEOMETRY, R]) = {
+        om.column(GeomLibrary.MinBoundingCircle, n, segNumPerQtrCircle.toNode)
       }
 
     def buffer[R](radius: Column[Float], bufferStyles: Option[String] = None)(implicit om: o#to[GEOMETRY, R]) =
       bufferStyles match {
-        case Some(styles) => om(GeomLibrary.Buffer.column[GEOMETRY](n, Node(radius), Node(styles)))
-        case None   =>  om(GeomLibrary.Buffer.column[GEOMETRY](n, Node(radius)))
+        case Some(styles) => om.column(GeomLibrary.Buffer, n, radius.toNode, LiteralNode(styles))
+        case None   =>  om.column(GeomLibrary.Buffer, n, radius.toNode)
       }
     def multi[R](implicit om: o#to[GEOMETRY, R]) = {
-        om(GeomLibrary.Multi.column[GEOMETRY](n))
+        om.column(GeomLibrary.Multi, n)
       }
     def lineMerge[R](implicit om: o#to[GEOMETRY, R]) = {
-        om(GeomLibrary.LineMerge.column[GEOMETRY](n))
+        om.column(GeomLibrary.LineMerge, n)
       }
     def collectionExtract[R](tpe: Column[Int])(implicit om: o#to[GEOMETRY, R]) = {
-        om(GeomLibrary.CollectionExtract.column[GEOMETRY](n, Node(tpe)))
+        om.column(GeomLibrary.CollectionExtract, n, tpe.toNode)
       }
     def collectionHomogenize[R](implicit om: o#to[GEOMETRY, R]) = {
-        om(GeomLibrary.CollectionHomogenize.column[GEOMETRY](n))
+        om.column(GeomLibrary.CollectionHomogenize, n)
       }
     def addPoint[P2, R](point: Column[P2], position: Option[Int] = None)(implicit om: o#to[GEOMETRY, R]) =
       position match {
-        case Some(pos) => om(GeomLibrary.AddPoint.column[GEOMETRY](n, Node(point), Node(pos)))
-        case None   =>  om(GeomLibrary.AddPoint.column[GEOMETRY](n, Node(point)))
+        case Some(pos) => om.column(GeomLibrary.AddPoint, n, point.toNode, LiteralNode(pos))
+        case None   =>  om.column(GeomLibrary.AddPoint, n, point.toNode)
       }
     def setPoint[P2, R](point: Column[P2], position: Column[Int])(implicit om: o#to[GEOMETRY, R]) = {
-        om(GeomLibrary.SetPoint.column[GEOMETRY](n, Node(position), Node(point)))
+        om.column(GeomLibrary.SetPoint, n, position.toNode, point.toNode)
       }
     def removePoint[R](offset: Column[Int])(implicit om: o#to[GEOMETRY, R]) = {
-        om(GeomLibrary.RemovePoint.column[GEOMETRY](n, Node(offset)))
+        om.column(GeomLibrary.RemovePoint, n, offset.toNode)
       }
     def reverse[R](implicit om: o#to[GEOMETRY, R]) = {
-        om(GeomLibrary.Reverse.column[GEOMETRY](n))
+        om.column(GeomLibrary.Reverse, n)
       }
     def scale[R](xFactor: Column[Float], yFactor: Column[Float], zFactor: Option[Float] = None)(implicit om: o#to[GEOMETRY, R]) =
       zFactor match {
-        case Some(zFac) => om(GeomLibrary.Scale.column[GEOMETRY](n, Node(xFactor), Node(yFactor), LiteralNode(zFac)))
-        case None   =>  om(GeomLibrary.Scale.column[GEOMETRY](n, Node(xFactor), Node(yFactor)))
+        case Some(zFac) => om.column(GeomLibrary.Scale, n, xFactor.toNode, yFactor.toNode, LiteralNode(zFac))
+        case None   =>  om.column(GeomLibrary.Scale, n, xFactor.toNode, yFactor.toNode)
       }
     def segmentize[R](maxLength: Column[Float])(implicit om: o#to[GEOMETRY, R]) = {
-        om(GeomLibrary.Segmentize.column[GEOMETRY](n, Node(maxLength)))
+        om.column(GeomLibrary.Segmentize, n, maxLength.toNode)
       }
     def snap[P2, R](reference: Column[P2], tolerance: Column[Float])(implicit om: o#to[GEOMETRY, R]) = {
-        om(GeomLibrary.Snap.column[GEOMETRY](n, Node(reference), Node(tolerance)))
+        om.column(GeomLibrary.Snap, n, reference.toNode, tolerance.toNode)
       }
     def translate[R](deltaX: Column[Float], deltaY: Column[Float], deltaZ: Option[Float] = None)(implicit om: o#to[GEOMETRY, R]) =
       deltaZ match {
-        case Some(deltaZ) => om(GeomLibrary.Translate.column[GEOMETRY](n, Node(deltaX), Node(deltaY), LiteralNode(deltaZ)))
-        case None   =>  om(GeomLibrary.Translate.column[GEOMETRY](n, Node(deltaX), Node(deltaY)))
+        case Some(deltaZ) => om.column(GeomLibrary.Translate, n, deltaX.toNode, deltaY.toNode, LiteralNode(deltaZ))
+        case None   =>  om.column(GeomLibrary.Translate, n, deltaX.toNode, deltaY.toNode)
       }
   }
 }

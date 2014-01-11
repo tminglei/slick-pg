@@ -7,7 +7,7 @@ object SlickPgBuild extends Build {
     organizationName := "slick-pg",
     organization := "com.github.tminglei",
 
-    scalaVersion := "2.10.1",
+    scalaVersion := "2.10.3",
     scalaBinaryVersion <<= scalaVersion,
     scalacOptions ++= Seq("-deprecation", "-feature",
       "-language:implicitConversions",
@@ -58,28 +58,31 @@ object SlickPgBuild extends Build {
   lazy val coreSettings = Seq(
     name := "slick-pg_core",
     description := "Slick extensions for PostgreSQL - Core",
-    version := "0.2.0",
+    version := "0.5.0-RC1",
     libraryDependencies := Seq(
-      "com.typesafe.slick" % "slick_2.10" % "1.0.0",
-      "org.postgresql" % "postgresql" % "9.2-1003-jdbc4",
-      "com.vividsolutions" % "jts" % "1.13"
+      "org.scala-lang" % "scala-reflect" % "2.10.3",
+      "com.typesafe.slick" % "slick_2.10" % "2.0.0-RC1",
+      "org.postgresql" % "postgresql" % "9.3-1100-jdbc41",
+      "junit" % "junit" % "4.11" % "test",
+      "com.novocode" % "junit-interface" % "0.10" % "test"
     )
   )
 
   lazy val slickPgSettings = Seq(
     name := "slick-pg",
     description := "Slick extensions for PostgreSQL",
-    version := "0.2.2",
+    version := "0.5.0-RC1",
     libraryDependencies := Seq(
-      "com.typesafe.slick" % "slick_2.10" % "1.0.0",
-      "org.postgresql" % "postgresql" % "9.2-1003-jdbc4",
+      "org.scala-lang" % "scala-reflect" % "2.10.3",
+      "com.typesafe.slick" % "slick_2.10" % "2.0.0-RC1",
+      "org.postgresql" % "postgresql" % "9.3-1100-jdbc41",
       "com.vividsolutions" % "jts" % "1.13",
       "org.threeten" % "threetenbp" % "0.8.1",
       "joda-time" % "joda-time" % "2.3",
       "org.joda" % "joda-convert" % "1.5",
-      "org.json4s" % "json4s-ast_2.10" % "3.2.5",
-      "org.json4s" % "json4s-core_2.10" % "3.2.5",
-      "org.json4s" % "json4s-native_2.10" % "3.2.5" % "test",
+      "org.json4s" % "json4s-ast_2.10" % "3.2.6",
+      "org.json4s" % "json4s-core_2.10" % "3.2.6",
+      "org.json4s" % "json4s-native_2.10" % "3.2.6" % "test",
       "junit" % "junit" % "4.11" % "test",
       "com.novocode" % "junit-interface" % "0.10" % "test"
     )

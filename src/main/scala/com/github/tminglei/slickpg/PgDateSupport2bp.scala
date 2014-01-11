@@ -7,7 +7,7 @@ import java.util.Calendar
 import org.postgresql.util.PGInterval
 import scala.slick.lifted.Column
 
-trait PgDateSupport2bp extends date.PgDateExtensions { driver: PostgresDriver =>
+trait PgDateSupport2bp extends date.PgDateExtensions with date.PgDateJavaTypes with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
 
   type DATE   = LocalDate
   type TIME   = LocalTime
@@ -15,10 +15,10 @@ trait PgDateSupport2bp extends date.PgDateExtensions { driver: PostgresDriver =>
   type INTERVAL  = Duration
 
   trait DateTimeImplicits {
-    implicit val bpDateTypeMapper = new date.DateTypeMapper(sqlDate2bpDate, bpDate2sqlDate)
-    implicit val bpTimeTypeMapper = new date.TimeTypeMapper(sqlTime2bpTime, bpTime2sqlTime)
-    implicit val bpDateTimeTypeMapper = new date.TimestampTypeMapper(sqlTimestamp2bpDateTime, bpDateTime2sqlTimestamp)
-    implicit val bpDurationTypeMapper = new utils.GenericTypeMapper[Duration]("interval", pgIntervalStr2bpDuration)
+    implicit val bpDateTypeMapper = new DateJdbcType(sqlDate2bpDate, bpDate2sqlDate)
+    implicit val bpTimeTypeMapper = new TimeJdbcType(sqlTime2bpTime, bpTime2sqlTime)
+    implicit val bpDateTimeTypeMapper = new TimestampJdbcType(sqlTimestamp2bpDateTime, bpDateTime2sqlTimestamp)
+    implicit val bpDurationTypeMapper = new GenericJdbcType[Duration]("interval", pgIntervalStr2bpDuration)
 
     ///
     implicit def dateColumnExtensionMethods(c: Column[LocalDate]) = new DateColumnExtensionMethods(c)

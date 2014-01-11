@@ -26,12 +26,12 @@
         <dependency>
             <groupId>com.typesafe.slick</groupId>
             <artifactId>slick_2.10</artifactId>
-            <version>1.0.0</version>
+            <version>2.0.0-RC1</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>9.2-1003-jdbc4</version>
+            <version>9.3-1100-jdbc41</version>
         </dependency>
         <dependency>
             <groupId>com.vividsolutions</groupId>
@@ -56,17 +56,17 @@
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-ast_2.10</artifactId>
-            <version>3.2.5</version>
+            <version>3.2.6</version>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-core_2.10</artifactId>
-            <version>3.2.5</version>
+            <version>3.2.6</version>
         </dependency>
         <dependency>
             <groupId>org.json4s</groupId>
             <artifactId>json4s-native_2.10</artifactId>
-            <version>3.2.5</version>
+            <version>3.2.6</version>
             <scope>test</scope>
         </dependency>
         <dependency>

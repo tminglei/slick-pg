@@ -1,10 +1,11 @@
 package com.github.tminglei.slickpg
 
 import scala.slick.driver.PostgresDriver
-import scala.slick.lifted._
 import java.sql.{Timestamp, Time, Date}
+import scala.slick.lifted.Column
 
-trait PgDateSupport extends date.PgDateExtensions { driver: PostgresDriver =>
+trait PgDateSupport extends date.PgDateExtensions with date.PgDateJavaTypes with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+  import driver.Implicit._
 
   type DATE   = Date
   type TIME   = Time
@@ -12,7 +13,7 @@ trait PgDateSupport extends date.PgDateExtensions { driver: PostgresDriver =>
   type INTERVAL  = Interval
 
   trait DateTimeImplicits {
-    implicit val intervalTypeMapper = new utils.GenericTypeMapper[Interval]("interval", Interval.apply)
+    implicit val intervalTypeMapper = new GenericJdbcType[Interval]("interval", Interval.apply)
 
     ///
     implicit def dateColumnExtensionMethods(c: Column[Date]) = new DateColumnExtensionMethods(c)
