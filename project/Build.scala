@@ -72,7 +72,7 @@ object SlickPgBuild extends Build {
   lazy val slickPgSettings = Seq(
     name := "slick-pg",
     description := "Slick extensions for PostgreSQL",
-    version := "0.2.5",
+    version := "0.2.6",
     resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
     libraryDependencies := Seq(
       "org.scala-lang" % "scala-reflect" % "2.10.3",
