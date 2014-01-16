@@ -51,3 +51,12 @@ object MyPostgresDriver3 extends PostgresDriver
   override val Implicit = new Implicits with DateTimeImplicits
   override val simple = new Implicits with SimpleQL with DateTimeImplicits
 }
+
+///
+object MyPostgresDriver4 extends PostgresDriver
+                            with PgPlayJsonSupport
+                            with PgArraySupport {
+
+  override val Implicit = new Implicits with JsonImplicits with ArrayImplicits
+  override val simple = new Implicits with SimpleQL with JsonImplicits with ArrayImplicits
+}
