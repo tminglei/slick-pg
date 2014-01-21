@@ -1,31 +1,29 @@
-package com.example
+package my.utils
 
-import slick.driver.PostgresDriver
 import com.github.tminglei.slickpg._
+import slick.driver.PostgresDriver
 
 trait MyPostgresDriver extends PostgresDriver
                           with PgArraySupport
+                          with PgDateSupportJoda
                           with PgRangeSupport
                           with PgHStoreSupport
-//                          with PgJsonSupport[text.Document]
+//                          with PgPlayJsonSupport
                           with PgSearchSupport
-                          with PostGISSupport
-                          with PgDatetimeSupport {
-
-//  override val jsonMethods = org.json4s.native.JsonMethods
+                          with PgPostGISSupport {
 
   override val Implicit = new ImplicitsPlus {}
   override val simple = new SimpleQLPlus {}
 
   //////
   trait ImplicitsPlus extends Implicits
-                         with ArrayImplicits
-                         with RangeImplicits
-                         with HStoreImplicits
-//                         with JsonImplicits
-                         with SearchImplicits
-                         with PostGISImplicits
-                         with DatetimeImplicits
+                        with ArrayImplicits
+                        with DateTimeImplicits
+                        with RangeImplicits
+                        with HStoreImplicits
+//                        with JsonImplicits
+                        with SearchImplicits
+                        with PostGISImplicits
 
   trait SimpleQLPlus extends SimpleQL
                         with ImplicitsPlus

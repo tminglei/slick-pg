@@ -1,0 +1,20 @@
+@(osmWays: List[OsmWay])
+
+@main("Cat database") {
+  <h2>Insert a kitty cat here:</h2>
+
+  <form action="/insert" method="POST">
+    <input name="name" type="text" placeholder="name your feline friend"/>
+    <input name="color" type="text" placeholder="enter the color of this kitty cat"/>
+    <input type="submit"/>
+  </form>
+
+  <h2>Previously inserted cats:</h2>
+  <table>
+    <tr><th>Id</th><th>Location</th></tr>
+    @for(c <- osmWays){
+    <tr><td>@c.id</td><td>@c.location</td></tr>
+    }
+  <tabe/>
+    
+}
