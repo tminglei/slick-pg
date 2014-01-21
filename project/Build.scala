@@ -72,6 +72,7 @@ object SlickPgBuild extends Build {
     name := "slick-pg",
     description := "Slick extensions for PostgreSQL",
     version := "0.5.0-RC1",
+    resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
     libraryDependencies := Seq(
       "org.scala-lang" % "scala-reflect" % "2.10.3",
       "com.typesafe.slick" % "slick_2.10" % "2.0.0-RC1",
@@ -80,6 +81,7 @@ object SlickPgBuild extends Build {
       "org.threeten" % "threetenbp" % "0.8.1",
       "joda-time" % "joda-time" % "2.3",
       "org.joda" % "joda-convert" % "1.5",
+      "com.typesafe.play" % "play-json_2.10" % "2.2.1",
       "org.json4s" % "json4s-ast_2.10" % "3.2.6",
       "org.json4s" % "json4s-core_2.10" % "3.2.6",
       "org.json4s" % "json4s-native_2.10" % "3.2.6" % "test",
