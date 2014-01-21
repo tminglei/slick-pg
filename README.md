@@ -18,7 +18,7 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.3" % "0.2.5"
+libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.3" % "0.2.6"
 ```
 
 Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg` to your `pom.xml` like this:
@@ -26,7 +26,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.10.3</artifactId>
-    <version>0.2.5</version>
+    <version>0.2.6</version>
 </dependency>
 ```
 
@@ -124,7 +124,8 @@ Here's the related technical details:
 | threeten.bp.LocalDate/LocalTime/LocalDateTime/Duration | Pg Date/Time |
 | tminglei.slickpg.Range[T]           | Pg Range              |
 | Map[String,String]                  | Pg HStore             |
-| json4s.JValue                       | Pg JSON               |
+| json4s JValue                       | Pg JSON               |
+| play-json JsValue                   | Pg JSON               |
 | (TsQuery+TsVector)                  | Pg `text` Search      |
 | jts.geom.Geometry                   | Pg `postgis` Geometry |
 
@@ -165,6 +166,9 @@ Support details
 
 Version history
 ---------------
+v0.2.6 (17-Jan-2014):  
+1) add play-json support
+
 v0.2.5 (10-Jan-2014):  
 1) add basic composite type support  
 2) array support: allow nested composite type
