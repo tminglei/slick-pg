@@ -5,9 +5,9 @@ import play.api.data._
 import play.api.data.Forms._
 import play.api.mvc._
 import play.api.db.slick._
-import models._
 import play.api.Play.current
 import my.utils._
+import models._
 
 //stable imports to use play.api.Play.current outside of objects:
 import models.current.dao._
@@ -18,7 +18,7 @@ object Application extends Controller{
     Ok(views.html.index(Query(OsmWays).list))
   }
 
-  val catForm = Form(
+  val osmWayForm = Form(
     mapping(
       "id" -> number,
       "version" -> number,
@@ -32,8 +32,8 @@ object Application extends Controller{
   )
   
   def insert = DBAction{ implicit rs =>
-    val cat = catForm.bindFromRequest.get
-    OsmWays.insert(cat)
+    val osmWay = osmWayForm.bindFromRequest.get
+    OsmWays.insert(osmWay)
     Redirect(routes.Application.index)
   }
   
