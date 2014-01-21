@@ -127,7 +127,8 @@ Here's the related technical details:
 | threeten.bp.LocalDate/LocalTime/LocalDateTime/Duration | Pg Date/Time |
 | tminglei.slickpg.Range[T]           | Pg Range              |
 | Map[String,String]                  | Pg HStore             |
-| json4s.JValue                       | Pg JSON               |
+| json4s JValue                       | Pg JSON               |
+| play-json JsValue                   | Pg JSON               |
 | (TsQuery+TsVector)                  | Pg `text` Search      |
 | jts.geom.Geometry                   | Pg `postgis` Geometry |
 
@@ -170,7 +171,8 @@ Version history
 v0.5.0-RC1 (10-Jan-2014):  
 1) upgrade to slick v2.0.0-RC1  
 2) add basic composite type support  
-3) array support: allow nested composite type
+3) array support: allow nested composite type  
+4) add play-json support
 
 v0.2.2 (04-Nov-2013):  
 1) support Joda date/time, binding to Pg Date/Time  
