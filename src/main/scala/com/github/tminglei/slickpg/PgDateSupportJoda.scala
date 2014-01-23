@@ -1,9 +1,9 @@
 package com.github.tminglei.slickpg
 
 import scala.slick.driver.PostgresDriver
-import org.joda.time.{Period, LocalDateTime, LocalTime, LocalDate}
+import org.joda.time.{Period, LocalDateTime, LocalTime, LocalDate, DateTime}
 import java.sql.{Timestamp, Time, Date}
-import java.util.Calendar
+import java.util.{Calendar, TimeZone}
 import scala.slick.lifted.Column
 import org.postgresql.util.PGInterval
 
@@ -17,6 +17,7 @@ trait PgDateSupportJoda extends date.PgDateExtensions with date.PgDateJavaTypes 
   trait DateTimeImplicits {
     implicit val jodaDateTypeMapper = new DateJdbcType(sqlDate2jodaDate, jodaDate2sqlDate)
     implicit val jodaTimeTypeMapper = new TimeJdbcType(sqlTime2jodaTime, jodaTime2sqlTime)
+    implicit val jodaLocalDateTimeTypeMapper = new TimestampJdbcType(sqlTimestamp2jodaLocalDateTime, jodaLocalDateTime2sqlTimestamp)
     implicit val jodaDateTimeTypeMapper = new TimestampJdbcType(sqlTimestamp2jodaDateTime, jodaDateTime2sqlTimestamp)
     implicit val jodaPeriodTypeMapper = new GenericJdbcType[Period]("interval", pgIntervalStr2jodaPeriod)
 
@@ -27,8 +28,11 @@ trait PgDateSupportJoda extends date.PgDateExtensions with date.PgDateJavaTypes 
     implicit def timeColumnExtensionMethods(c: Column[LocalTime]) = new TimeColumnExtensionMethods(c)
     implicit def timeOptColumnExtensionMethods(c: Column[Option[LocalTime]]) = new TimeColumnExtensionMethods(c)
 
-    implicit def timestampColumnExtensionMethods(c: Column[LocalDateTime]) = new TimestampColumnExtensionMethods(c)
-    implicit def timestampOptColumnExtensionMethods(c: Column[Option[LocalDateTime]]) = new TimestampColumnExtensionMethods(c)
+    implicit def localTimestampColumnExtensionMethods(c: Column[LocalDateTime]) = new TimestampColumnExtensionMethods(c)
+    implicit def localTimestampOptColumnExtensionMethods(c: Column[Option[LocalDateTime]]) = new TimestampColumnExtensionMethods(c)
+
+    implicit def timestampColumnExtensionMethods(c: Column[DateTime]) = new TimestampColumnExtensionMethods(c)
+    implicit def timestampOptColumnExtensionMethods(c: Column[Option[DateTime]]) = new TimestampColumnExtensionMethods(c)
 
     implicit def intervalColumnExtensionMethods(c: Column[Period]) = new IntervalColumnExtensionMethods(c)
     implicit def intervalOptColumnExtensionMethods(c: Column[Option[Period]]) = new IntervalColumnExtensionMethods(c)
@@ -72,7 +76,7 @@ trait PgDateSupportJoda extends date.PgDateExtensions with date.PgDateJavaTypes 
   }
 
   /// sql.Timestamp <-> joda LocalDateTime
-  private def sqlTimestamp2jodaDateTime(ts: Timestamp): LocalDateTime = {
+  private def sqlTimestamp2jodaLocalDateTime(ts: Timestamp): LocalDateTime = {
     val cal = Calendar.getInstance()
     cal.setTime(ts)
     new LocalDateTime(
@@ -85,8 +89,29 @@ trait PgDateSupportJoda extends date.PgDateExtensions with date.PgDateJavaTypes 
       cal.get(Calendar.MILLISECOND)
     )
   }
-  private def jodaDateTime2sqlTimestamp(dt: LocalDateTime): Timestamp = {
+  private def jodaLocalDateTime2sqlTimestamp(dt: LocalDateTime): Timestamp = {
     val cal = Calendar.getInstance()
+    cal.set(dt.getYear, dt.getMonthOfYear, dt.getDayOfMonth, dt.getHourOfDay, dt.getMinuteOfHour, dt.getSecondOfMinute)
+    cal.set(Calendar.MILLISECOND, dt.getMillisOfSecond)
+    new Timestamp(cal.getTimeInMillis)
+  }
+
+  /// sql.Timestamp <-> joda DateTime
+  private def sqlTimestamp2jodaDateTime(ts: Timestamp): DateTime = {
+    val cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"))
+    cal.setTime(ts)
+    new DateTime(
+      cal.get(Calendar.YEAR),
+      cal.get(Calendar.MONTH),
+      cal.get(Calendar.DAY_OF_MONTH),
+      cal.get(Calendar.HOUR_OF_DAY),
+      cal.get(Calendar.MINUTE),
+      cal.get(Calendar.SECOND),
+      cal.get(Calendar.MILLISECOND)
+    )
+  }
+  private def jodaDateTime2sqlTimestamp(dt: DateTime): Timestamp = {
+    val cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"))
     cal.set(dt.getYear, dt.getMonthOfYear, dt.getDayOfMonth, dt.getHourOfDay, dt.getMinuteOfHour, dt.getSecondOfMinute)
     cal.set(Calendar.MILLISECOND, dt.getMillisOfSecond)
     new Timestamp(cal.getTimeInMillis)
