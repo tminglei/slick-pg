@@ -1,7 +1,8 @@
 package com.github.tminglei.slickpg
 
 import scala.slick.driver.PostgresDriver
-import org.joda.time.{Period, LocalDateTime, LocalTime, LocalDate}
+import org.joda.time._
+import org.joda.time.format.DateTimeFormat
 import java.sql.{Timestamp, Time, Date}
 import java.util.Calendar
 import scala.slick.lifted.Column
@@ -14,11 +15,17 @@ trait PgDateSupportJoda extends date.PgDateExtensions { driver: PostgresDriver =
   type TIMESTAMP = LocalDateTime
   type INTERVAL  = Period
 
+  type TIMESTAMP_TZ = DateTime
+
   trait DateTimeImplicits {
+    val tzDateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ssZ")
+
     implicit val jodaDateTypeMapper = new date.DateTypeMapper(sqlDate2jodaDate, jodaDate2sqlDate)
     implicit val jodaTimeTypeMapper = new date.TimeTypeMapper(sqlTime2jodaTime, jodaTime2sqlTime)
     implicit val jodaDateTimeTypeMapper = new date.TimestampTypeMapper(sqlTimestamp2jodaDateTime, jodaDateTime2sqlTimestamp)
     implicit val jodaPeriodTypeMapper = new utils.GenericTypeMapper[Period]("interval", pgIntervalStr2jodaPeriod)
+    implicit val timestampTZTypeMapper = new utils.GenericTypeMapper[DateTime]("timestamptz",
+      DateTime.parse(_, tzDateTimeFormatter), _.toString(tzDateTimeFormatter))
 
     ///
     implicit def dateColumnExtensionMethods(c: Column[LocalDate]) = new DateColumnExtensionMethods(c)
@@ -32,6 +39,9 @@ trait PgDateSupportJoda extends date.PgDateExtensions { driver: PostgresDriver =
 
     implicit def intervalColumnExtensionMethods(c: Column[Period]) = new IntervalColumnExtensionMethods(c)
     implicit def intervalOptColumnExtensionMethods(c: Column[Option[Period]]) = new IntervalColumnExtensionMethods(c)
+
+    implicit def timestampTZColumnExtensionMethods(c: Column[DateTime]) = new TimestampTZColumnExtensionMethods(c)
+    implicit def timestampTZOptColumnExtensionMethods(c: Column[Option[DateTime]]) = new TimestampTZColumnExtensionMethods(c)
   }
 
   //--------------------------------------------------------------------

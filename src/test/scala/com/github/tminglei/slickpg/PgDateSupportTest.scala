@@ -4,8 +4,9 @@ import org.junit._
 import org.junit.Assert._
 import java.sql.{Timestamp, Time, Date}
 import java.text.SimpleDateFormat
+import java.util.Calendar
 
-class PgDatetimeSupportTest {
+class PgDateSupportTest {
   import MyPostgresDriver.simple._
 
   val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=test", driver = "org.postgresql.Driver")
@@ -17,12 +18,14 @@ class PgDatetimeSupportTest {
   def date(str: String) = new Date(dateFormat.parse(str).getTime)
   def time(str: String) = new Time(timeFormat.parse(str).getTime)
   def ts(str: String) = new Timestamp(tsFormat.parse(str).getTime)
+  def tstz(str: String) = PgDateSupport.parseCalendar(str)
 
   case class DatetimeBean(
     id: Long,
     date: Date,
     time: Time,
     timestamp: Timestamp,
+    timestamptz: Calendar,
     interval: Interval
     )
 
@@ -31,16 +34,20 @@ class PgDatetimeSupportTest {
     def date = column[Date]("date")
     def time = column[Time]("time")
     def timestamp = column[Timestamp]("timestamp")
+    def timestamptz = column[Calendar]("timestamptz")
     def interval = column[Interval]("interval")
 
-    def * = id ~ date ~ time ~ timestamp ~ interval <> (DatetimeBean, DatetimeBean.unapply _)
+    def * = id ~ date ~ time ~ timestamp ~ timestamptz ~ interval <> (DatetimeBean, DatetimeBean.unapply _)
   }
 
   //------------------------------------------------------------------------------
 
-  val testRec1 = new DatetimeBean(101L, date("2010-11-3"), time("12:33:01"), ts("2001-1-3 13:21:00"), Interval("1 days 1 hours"))
-  val testRec2 = new DatetimeBean(102L, date("2011-3-2"), time("3:14:7"), ts("2012-5-8 11:31:06"), Interval("1 years 36 mons 127 days"))
-  val testRec3 = new DatetimeBean(103L, date("2000-5-19"), time("11:13:34"), ts("2019-11-3 13:19:03"), Interval("63 hours 16 mins 2 secs"))
+  val testRec1 = new DatetimeBean(101L, date("2010-11-3"), time("12:33:01"),
+    ts("2001-1-3 13:21:00"), tstz("2001-01-03 13:21:00+08:00"), Interval("1 days 1 hours"))
+  val testRec2 = new DatetimeBean(102L, date("2011-3-2"), time("3:14:7"),
+    ts("2012-5-8 11:31:06"), tstz("2012-05-08 11:31:06-05:00"), Interval("1 years 36 mons 127 days"))
+  val testRec3 = new DatetimeBean(103L, date("2000-5-19"), time("11:13:34"),
+    ts("2019-11-3 13:19:03"), tstz("2019-11-03 13:19:03+03:00"), Interval("63 hours 16 mins 2 secs"))
 
   @Test
   def testDatetimeFunctions(): Unit = {
@@ -161,6 +168,21 @@ class PgDatetimeSupportTest {
       val q28 = DatetimeTable.where(_.id === 103L.bind).map(r => r.interval.justifyInterval)
       println(s"'justifyInterval' sql = ${q28.selectStatement}")
       assertEquals(Interval("2 days 15 hours 16 mins 2 secs"), q28.first())
+
+      // timestamp with time zone cases
+      val q34 = DatetimeTable.filter(_.id === 101L.bind).map(r => r.timestamptz.age)
+      val q341 = DatetimeTable.filter(_.id === 101L.bind).map(r => r.timestamptz.age(Functions.currentDate.asColumnOf[Calendar]))
+      println(s"[date] 'age' sql = ${q34.selectStatement}")
+      println(s"[date] 'age' sql1 = ${q341.selectStatement}")
+      assertEquals(q341.first(), q34.first())
+
+      val q35 = DatetimeTable.filter(_.id === 101L.bind).map(r => r.timestamptz.part("year"))
+      println(s"[date] 'part' sql = ${q35.selectStatement}")
+      assertEquals(2001, q35.first(), 0.00001d)
+
+      val q36 = DatetimeTable.filter(_.id === 101L.bind).map(r => r.timestamptz.trunc("day"))
+      println(s"[date] 'trunc' sql = ${q36.selectStatement}")
+      assertEquals(tstz("2001-1-3 00:00:00+8:00"), q36.first())
     }
   }
 

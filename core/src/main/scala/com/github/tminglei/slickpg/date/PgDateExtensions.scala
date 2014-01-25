@@ -11,6 +11,8 @@ trait PgDateExtensions {
   type TIME
   type TIMESTAMP
   type INTERVAL
+  // timestamp with time zone
+  type TIMESTAMP_TZ
 
   object DateLibrary {
     val + = new SqlOperator("+")
@@ -28,35 +30,43 @@ trait PgDateExtensions {
     val JustifyInterval = new SqlFunction("justify_interval")
   }
 
-  class TimestampColumnExtensionMethods[P1](val c: Column[P1])(
-            implicit tm: TypeMapper[INTERVAL], tm1: TypeMapper[DATE], tm2: TypeMapper[TIME], tm3: TypeMapper[TIMESTAMP])
-                  extends ExtensionMethods[TIMESTAMP, P1] {
+  ///
+  trait TimestampExtensionMethods[TS, P1] extends ExtensionMethods[TS, P1] {
 
-    def +++[P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIMESTAMP, R]) = {
+    def +++[P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[TS, R]) = {
         om(DateLibrary.+.column(n, Node(e)))
       }
-    def - [P2, R](e: Column[P2])(implicit om: o#to[INTERVAL, R]) = {
+    def - [P2, R](e: Column[P2])(implicit om: o#to[INTERVAL, R], tm: TypeMapper[INTERVAL]) = {
         om(DateLibrary.-.column(n, Node(e)))
       }
-    def -- [P2, R](e: Column[P2])(implicit om: o#arg[TIME, P2]#to[TIMESTAMP, R]) = {
+    def -- [P2, R](e: Column[P2])(implicit om: o#arg[TIME, P2]#to[TS, R]) = {
         om(DateLibrary.-.column(n, Node(e)))
       }
-    def ---[P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIMESTAMP, R]) = {
+    def ---[P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[TS, R]) = {
         om(DateLibrary.-.column(n, Node(e)))
       }
 
-    def age[R](implicit om: o#to[INTERVAL, R]) = om(DateLibrary.Age.column(n))
-    def age[P2, R](e: Column[P2])(implicit om: o#arg[TIMESTAMP, P2]#to[INTERVAL, R]) = {
+    def age[R](implicit om: o#to[INTERVAL, R], tm: TypeMapper[INTERVAL]) = om(DateLibrary.Age.column(n))
+    def age[P2, R](e: Column[P2])(implicit om: o#arg[TS, P2]#to[INTERVAL, R], tm: TypeMapper[INTERVAL]) = {
         om(DateLibrary.Age.column(Node(e), n))
       }
     def part[R](field: Column[String])(implicit om: o#to[Double, R]) = {
         om(DateLibrary.Part.column(Node(field), n))
       }
-    def trunc[R](field: Column[String])(implicit om: o#to[TIMESTAMP, R]) = {
+    def trunc[R](field: Column[String])(implicit om: o#to[TS, R]) = {
         om(DateLibrary.Trunc.column(Node(field), n))
       }
   }
 
+  class TimestampColumnExtensionMethods[P1](val c: Column[P1])(
+          implicit tm: TypeMapper[INTERVAL], tm1: TypeMapper[DATE], tm2: TypeMapper[TIME], tm3: TypeMapper[TIMESTAMP])
+                extends TimestampExtensionMethods[TIMESTAMP, P1]
+
+  class TimestampTZColumnExtensionMethods[P1](val c: Column[P1])(
+          implicit tm: TypeMapper[INTERVAL], tm1: TypeMapper[DATE], tm2: TypeMapper[TIME], tm3: TypeMapper[TIMESTAMP_TZ])
+                extends TimestampExtensionMethods[TIMESTAMP_TZ, P1]
+
+  ///
   class TimeColumnExtensionMethods[P1](val c: Column[P1])(
             implicit tm: TypeMapper[INTERVAL], tm1: TypeMapper[DATE], tm2: TypeMapper[TIME], tm3: TypeMapper[TIMESTAMP])
                   extends ExtensionMethods[TIME, P1] {
@@ -75,6 +85,7 @@ trait PgDateExtensions {
       }
   }
 
+  ///
   class DateColumnExtensionMethods[P1](val c: Column[P1])(
               implicit tm: TypeMapper[INTERVAL], tm1: TypeMapper[DATE], tm2: TypeMapper[TIME], tm3: TypeMapper[TIMESTAMP])
                     extends ExtensionMethods[DATE, P1] {
@@ -99,6 +110,7 @@ trait PgDateExtensions {
       }
   }
 
+  ///
   class IntervalColumnExtensionMethods[P1](val c: Column[P1])(
               implicit tm: TypeMapper[INTERVAL], tm1: TypeMapper[DATE], tm2: TypeMapper[TIME], tm3: TypeMapper[TIMESTAMP])
                     extends ExtensionMethods[INTERVAL, P1] {
