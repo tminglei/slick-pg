@@ -121,16 +121,16 @@ Here's the related technical details:
 ####Built in supported type/mappers:
 |          scala Type                 |        pg Type        |
 | ----------------------------------- | --------------------- |
-| List[T]                             | Pg ARRAY              |
-| sql.Date/Time/Timestamp + tminglei.slickpg.Interval | Pg Date/Time |
-| jada.time.LocalDate/LocalTime/LocalDateTime/Period  | Pg Date/Time |
-| threeten.bp.LocalDate/LocalTime/LocalDateTime/Duration | Pg Date/Time |
-| tminglei.slickpg.Range[T]           | Pg Range              |
-| Map[String,String]                  | Pg HStore             |
-| json4s JValue                       | Pg JSON               |
-| play-json JsValue                   | Pg JSON               |
-| (TsQuery+TsVector)                  | Pg `text` Search      |
-| jts.geom.Geometry                   | Pg `postgis` Geometry |
+| List[T]                             | ARRAY                 |
+| sql Date<br> Time<br> Timestamp<br> slickpg Interval<br> Calendar | date<br> time<br> timestamp<br> interval<br> timestamptz |
+| jada LocalDate<br> LocalTime<br> LocalDateTime<br> Period<br> DateTime  | date<br> time<br> timestamp<br> interval<br> timestamptz |
+| threeten.bp LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz |
+| slickpg Range[T]                    | range                 |
+| Map[String,String]                  | hstore                |
+| json4s JValue                       | json                  |
+| play-json JsValue                   | json                  |
+| (TsQuery+TsVector)                  | `text` search         |
+| jts Geometry                        | `postgis` geometry    |
 
 
 Build instructions
@@ -172,7 +172,8 @@ v0.5.0-RC1 (10-Jan-2014):
 1) upgrade to slick v2.0.0-RC1  
 2) add basic composite type support  
 3) array support: allow nested composite type  
-4) add play-json support
+4) add play-json support  
+5) add timestamp with zone support
 
 v0.2.2 (04-Nov-2013):  
 1) support Joda date/time, binding to Pg Date/Time  
