@@ -1,6 +1,6 @@
 package com.github.tminglei.slickpg
 
-import org.joda.time.{Period, LocalDateTime, LocalTime, LocalDate}
+import org.joda.time.{Period, LocalDateTime, LocalTime, LocalDate, DateTime}
 import org.junit.{After, Before, Test}
 import org.junit.Assert._
 
@@ -14,6 +14,7 @@ class PgDateSupportJodaTest {
     date: LocalDate,
     time: LocalTime,
     dateTime: LocalDateTime,
+    dateTimetz: DateTime,
     interval: Period
     )
 
@@ -22,20 +23,21 @@ class PgDateSupportJodaTest {
     def date = column[LocalDate]("date")
     def time = column[LocalTime]("time")
     def datetime = column[LocalDateTime]("datetime")
+    def datetimetz = column[DateTime]("datetimetz")
     def interval = column[Period]("interval")
 
-    def * = (id, date, time, datetime, interval) <> (DatetimeBean.tupled, DatetimeBean.unapply)
+    def * = (id, date, time, datetime, datetimetz, interval) <> (DatetimeBean.tupled, DatetimeBean.unapply)
   }
   val Datetimes = TableQuery[DatetimeTable]
 
   //------------------------------------------------------------------------------
 
   val testRec1 = new DatetimeBean(101L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01"),
-    LocalDateTime.parse("2001-01-03T13:21:00"), Period.parse("P1DT1H"))
+    LocalDateTime.parse("2001-01-03T13:21:00"), DateTime.parse("2001-01-03 13:21:00+08", tzDateTimeFormatter), Period.parse("P1DT1H"))
   val testRec2 = new DatetimeBean(102L, LocalDate.parse("2011-03-02"), LocalTime.parse("03:14:07"),
-    LocalDateTime.parse("2012-05-08T11:31:06"), Period.parse("P1587D"))
+    LocalDateTime.parse("2012-05-08T11:31:06"), DateTime.parse("2012-05-08 11:31:06-05", tzDateTimeFormatter), Period.parse("P1587D"))
   val testRec3 = new DatetimeBean(103L, LocalDate.parse("2000-05-19"), LocalTime.parse("11:13:34"),
-    LocalDateTime.parse("2019-11-03T13:19:03"), Period.parse("PT63H16M2S"))
+    LocalDateTime.parse("2019-11-03T13:19:03"), DateTime.parse("2019-11-03 13:19:03+03", tzDateTimeFormatter), Period.parse("PT63H16M2S"))
 
   @Test
   def testDatetimeFunctions(): Unit = {
@@ -154,6 +156,21 @@ class PgDateSupportJodaTest {
       val q28 = Datetimes.filter(_.id === 103L.bind).map(r => r.interval.justifyInterval)
       println(s"[date] 'justifyInterval' sql = ${q28.selectStatement}")
       assertEquals(Period.parse("P2DT15H16M2S"), q28.first())
+      
+      // timestamp with time zone cases
+      val q34 = Datetimes.filter(_.id === 101L.bind).map(r => r.datetimetz.age)
+      val q341 = Datetimes.filter(_.id === 101L.bind).map(r => r.datetimetz.age(Functions.currentDate.asColumnOf[DateTime]))
+      println(s"[date] 'age' sql = ${q34.selectStatement}")
+      println(s"[date] 'age' sql1 = ${q341.selectStatement}")
+      assertEquals(q341.first(), q34.first())
+
+      val q35 = Datetimes.filter(_.id === 101L.bind).map(r => r.datetimetz.part("year"))
+      println(s"[date] 'part' sql = ${q35.selectStatement}")
+      assertEquals(2001, q35.first(), 0.00001d)
+
+      val q36 = Datetimes.filter(_.id === 101L.bind).map(r => r.datetimetz.trunc("day"))
+      println(s"[date] 'trunc' sql = ${q36.selectStatement}")
+      assertEquals(DateTime.parse("2001-01-03 00:00:00+08", tzDateTimeFormatter), q36.first())
     }
   }
 

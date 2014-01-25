@@ -1,7 +1,8 @@
 package com.github.tminglei.slickpg
 
 import scala.slick.driver.PostgresDriver
-import org.threeten.bp.{Duration, LocalDateTime, LocalTime, LocalDate}
+import org.threeten.bp.{Duration, LocalDateTime, LocalTime, LocalDate, ZonedDateTime}
+import org.threeten.bp.format.DateTimeFormatter
 import java.sql.{Timestamp, Time, Date}
 import java.util.Calendar
 import org.postgresql.util.PGInterval
@@ -13,12 +14,18 @@ trait PgDateSupport2bp extends date.PgDateExtensions with date.PgDateJavaTypes w
   type TIME   = LocalTime
   type TIMESTAMP = LocalDateTime
   type INTERVAL  = Duration
+  
+  type TIMESTAMP_TZ = ZonedDateTime
 
   trait DateTimeImplicits {
+    val tzDateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.SSS]X")
+    
     implicit val bpDateTypeMapper = new DateJdbcType(sqlDate2bpDate, bpDate2sqlDate)
     implicit val bpTimeTypeMapper = new TimeJdbcType(sqlTime2bpTime, bpTime2sqlTime)
     implicit val bpDateTimeTypeMapper = new TimestampJdbcType(sqlTimestamp2bpDateTime, bpDateTime2sqlTimestamp)
     implicit val bpDurationTypeMapper = new GenericJdbcType[Duration]("interval", pgIntervalStr2bpDuration)
+    implicit val timestampTZTypeMapper = new GenericJdbcType[ZonedDateTime]("timestamptz",
+        ZonedDateTime.parse(_, tzDateTimeFormatter), _.toString(tzDateTimeFormatter))
 
     ///
     implicit def dateColumnExtensionMethods(c: Column[LocalDate]) = new DateColumnExtensionMethods(c)
@@ -32,6 +39,9 @@ trait PgDateSupport2bp extends date.PgDateExtensions with date.PgDateJavaTypes w
 
     implicit def intervalColumnExtensionMethods(c: Column[Duration]) = new IntervalColumnExtensionMethods(c)
     implicit def intervalOptColumnExtensionMethods(c: Column[Option[Duration]]) = new IntervalColumnExtensionMethods(c)
+
+    implicit def timestampTZColumnExtensionMethods(c: Column[ZonedDateTime]) = new TimestampTZColumnExtensionMethods(c)
+    implicit def timestampTZOptColumnExtensionMethods(c: Column[Option[ZonedDateTime]]) = new TimestampTZColumnExtensionMethods(c)
   }
 
   //--------------------------------------------------------------------

@@ -2,9 +2,9 @@ package com.github.tminglei.slickpg
 
 import org.junit._
 import org.junit.Assert._
-import org.threeten.bp.{Duration, LocalDateTime, LocalTime, LocalDate}
+import org.threeten.bp.{Duration, LocalDateTime, LocalTime, LocalDate, ZonedDateTime}
 
-class PgDateTime2SupportTest {
+class PgDate2SupportTest {
   import MyPostgresDriver2.simple._
 
   val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=test", driver = "org.postgresql.Driver")
@@ -14,6 +14,7 @@ class PgDateTime2SupportTest {
     date: LocalDate,
     time: LocalTime,
     dateTime: LocalDateTime,
+    dateTimetz: ZonedDateTime,
     duration: Duration
     )
 
@@ -22,20 +23,21 @@ class PgDateTime2SupportTest {
     def date = column[LocalDate]("date")
     def time = column[LocalTime]("time")
     def datetime = column[LocalDateTime]("datetime")
+    def dateTimetz = column[ZonedDateTime]("dateTimetz")
     def duration = column[Duration]("duration")
 
-    def * = (id, date, time, datetime, duration) <> (DatetimeBean.tupled, DatetimeBean.unapply)
+    def * = (id, date, time, datetime, dateTimetz, duration) <> (DatetimeBean.tupled, DatetimeBean.unapply)
   }
   val Datetimes = TableQuery[DatetimeTable]
 
   //------------------------------------------------------------------------------
 
   val testRec1 = new DatetimeBean(101L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01"),
-    LocalDateTime.parse("2001-01-03T13:21:00"), Duration.parse("P1DT1H"))
+    LocalDateTime.parse("2001-01-03T13:21:00"), ZonedDateTime.parse("2001-01-03 13:21:00+08", tzDateTimeFormatter), Duration.parse("P1DT1H"))
   val testRec2 = new DatetimeBean(102L, LocalDate.parse("2011-03-02"), LocalTime.parse("03:14:07"),
-    LocalDateTime.parse("2012-05-08T11:31:06"), Duration.parse("P1587D"))
+    LocalDateTime.parse("2012-05-08T11:31:06"), ZonedDateTime.parse("2012-05-08 11:31:06-05", tzDateTimeFormatter), Duration.parse("P1587D"))
   val testRec3 = new DatetimeBean(103L, LocalDate.parse("2000-05-19"), LocalTime.parse("11:13:34"),
-    LocalDateTime.parse("2019-11-03T13:19:03"), Duration.parse("PT63H16M2S"))
+    LocalDateTime.parse("2019-11-03T13:19:03"), ZonedDateTime.parse("2019-11-03 13:19:03+03", tzDateTimeFormatter), Duration.parse("PT63H16M2S"))
 
   @Test
   def testDatetimeFunctions(): Unit = {
@@ -154,6 +156,21 @@ class PgDateTime2SupportTest {
       val q28 = Datetimes.filter(_.id === 103L.bind).map(r => r.duration.justifyInterval)
       println(s"[date] 'justifyInterval' sql = ${q28.selectStatement}")
       assertEquals(Duration.parse("P2DT15H16M2S"), q28.first())
+      
+      // timestamp with time zone cases
+      val q34 = Datetimes.filter(_.id === 101L.bind).map(r => r.dateTimetz.age)
+      val q341 = Datetimes.filter(_.id === 101L.bind).map(r => r.dateTimetz.age(Functions.currentDate.asColumnOf[ZonedDateTime]))
+      println(s"[date] 'age' sql = ${q34.selectStatement}")
+      println(s"[date] 'age' sql1 = ${q341.selectStatement}")
+      assertEquals(q341.first(), q34.first())
+
+      val q35 = Datetimes.filter(_.id === 101L.bind).map(r => r.dateTimetz.part("year"))
+      println(s"[date] 'part' sql = ${q35.selectStatement}")
+      assertEquals(2001, q35.first(), 0.00001d)
+
+      val q36 = Datetimes.filter(_.id === 101L.bind).map(r => r.dateTimetz.trunc("day"))
+      println(s"[date] 'trunc' sql = ${q36.selectStatement}")
+      assertEquals(ZonedDateTime.parse("2001-01-03 00:00:00+08", tzDateTimeFormatter), q36.first())
     }
   }
 
