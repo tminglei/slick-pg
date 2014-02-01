@@ -168,12 +168,13 @@ Support details
 
 Version history
 ------------------------------
-v0.5.0-beta2 (10-Jan-2014):
+v0.5.0-beta2 (2-Feb-2014):  
 1) upgrade to slick v2.0.0-RC1  
 2) add basic composite type support  
 3) array support: allow nested composite type  
 4) add play-json support  
-5) add timestamp with zone support
+5) add timestamp with zone support  
+6) modularization
 
 v0.2.2 (04-Nov-2013):  
 1) support Joda date/time, binding to Pg Date/Time  
