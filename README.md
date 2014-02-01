@@ -168,7 +168,7 @@ Support details
 
 Version history
 ------------------------------
-v0.5.0-RC1 (10-Jan-2014):  
+v0.5.0-beta2 (10-Jan-2014):
 1) upgrade to slick v2.0.0-RC1  
 2) add basic composite type support  
 3) array support: allow nested composite type  

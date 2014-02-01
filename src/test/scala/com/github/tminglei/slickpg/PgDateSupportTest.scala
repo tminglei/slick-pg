@@ -8,7 +8,7 @@ import java.text.SimpleDateFormat
 import javax.xml.bind.DatatypeConverter
 import com.github.tminglei.slickpg.date.PgDateJavaTypes
 
-class PgDateSupportTest {
+class gDateSupportTest {
   import MyPostgresDriver.simple._
 
   val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=test", driver = "org.postgresql.Driver")
