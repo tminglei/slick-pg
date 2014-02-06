@@ -6,6 +6,7 @@ import play.api.data._
 import play.api.data.format._
 import java.util.UUID
 import org.joda.time.{LocalDateTime, LocalDate}
+import play.api.libs.json.JsValue
 
 package object utils {
   type Range[T] = slickpg.Range[T]
@@ -34,6 +35,7 @@ package object utils {
   implicit val multiPolygonFormat = MyFormats.geometryFormat[MultiPolygon]
   implicit val multiLineStringFormat = MyFormats.geometryFormat[MultiLineString]
   implicit val strMapFormat = MyFormats.strMapFormat
+  implicit val jsonFormat = MyFormats.jsonFormat
 
   // play form mappings
   val uuid: Mapping[UUID] = Forms.of[UUID]
@@ -47,4 +49,5 @@ package object utils {
   val floatRange: Mapping[Range[Float]] = Forms.of[Range[Float]]
   val dateRange: Mapping[Range[LocalDate]] = Forms.of[Range[LocalDate]]
   val dateTimeRange: Mapping[Range[LocalDateTime]] = Forms.of[Range[LocalDateTime]]
+  val json: Mapping[JsValue] = Forms.of[JsValue]
 }

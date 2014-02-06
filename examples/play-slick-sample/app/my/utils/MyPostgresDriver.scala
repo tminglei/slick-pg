@@ -8,7 +8,7 @@ trait MyPostgresDriver extends PostgresDriver
                           with PgDateSupportJoda
                           with PgRangeSupport
                           with PgHStoreSupport
-//                          with PgPlayJsonSupport
+                          with PgPlayJsonSupport
                           with PgSearchSupport
                           with PgPostGISSupport {
 
@@ -21,7 +21,7 @@ trait MyPostgresDriver extends PostgresDriver
                         with DateTimeImplicits
                         with RangeImplicits
                         with HStoreImplicits
-//                        with JsonImplicits
+                        with JsonImplicits
                         with SearchImplicits
                         with PostGISImplicits
 

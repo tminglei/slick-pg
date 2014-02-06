@@ -2,6 +2,7 @@ package models
 
 import com.vividsolutions.jts.geom.Point
 import org.joda.time.LocalDateTime
+import play.api.libs.json.JsValue
 import my.utils.MyPostgresDriver
 
 case class OsmWay(
@@ -12,7 +13,8 @@ case class OsmWay(
   tstamp: LocalDateTime,
   changeSetId: Int,
   tags: Map[String, String],
-  nodes: List[Int]
+  nodes: List[Int],
+  others: Option[JsValue]
   )
 
 /**
@@ -48,7 +50,8 @@ trait OsmWaysComponent {
     def changeSetId = column[Int]("changeset_id")
     def tags = column[Map[String,String]]("tags")
     def nodes = column[List[Int]]("nodes")
+    def others = column[Option[JsValue]]("others")
 
-    def * = (id, version, userId, location, tstamp, changeSetId, tags, nodes) <> (OsmWay.tupled, OsmWay.unapply)
+    def * = (id, version, userId, location, tstamp, changeSetId, tags, nodes, others) <> (OsmWay.tupled, OsmWay.unapply)
   }
 }

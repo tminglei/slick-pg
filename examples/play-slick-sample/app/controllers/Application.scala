@@ -27,7 +27,8 @@ object Application extends Controller{
       "tstamp" -> datetime,
       "changeSetId" -> number,
       "tags" -> strMap,
-      "nodes" -> list(number)
+      "nodes" -> list(number),
+      "others" -> optional(json)
     )(OsmWay.apply)(OsmWay.unapply)
   )
   
