@@ -5,4 +5,4 @@ This file will be packaged with your application, when using `play dist`.
 
 
 ----------------------------------------------------------------------
-!!!NOTES: NOT ready, since `play-json` didn't support `slick2` by now
+!!!NOTES: NOT ready, since `play-slick` didn't support `slick2` by now
