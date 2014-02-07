@@ -12,7 +12,7 @@ Slick-pg
 - `postgis` Geometry
 - Composite type (`basic`)
 
-** _tested on `postgreSQL 9.3` with `Slick 2.0.0`._
+** _tested on `PostgreSQL` `v9.3` with `Slick` `v2.0.0`._
 
 Install
 -------
@@ -21,6 +21,32 @@ To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add t
 libraryDependencies += "com.github.tminglei" % "slick-pg_2.10" % "0.5.0"
 ```
 
+> If you need `play-json` support, pls append dependency:
+```scala
+libraryDependencies += "com.github.tminglei" % "slick-pg_play-json_2.10" % "0.5.0"
+```
+
+> If you need `joda-time` support, pls append dependency:
+```scala
+libraryDependencies += "com.github.tminglei" % "slick-pg_joda-time_2.10" % "0.5.0"
+```
+
+> If you need `jts` geom support, pls append dependency:
+```scala
+libraryDependencies += "com.github.tminglei" % "slick-pg_jts_2.10" % "0.5.0"
+```
+
+> If you need `json4s`  support, pls append dependency:
+```scala
+libraryDependencies += "com.github.tminglei" % "slick-pg_json4s_2.10" % "0.5.0"
+```
+
+> If you need `threeten` support, pls append dependency:
+```scala
+libraryDependencies += "com.github.tminglei" % "slick-pg_threeten_2.10" % "0.5.0"
+```
+
+
 Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg` to your `pom.xml` like this:
 ```xml
 <dependency>
@@ -28,7 +54,10 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
     <artifactId>slick-pg_2.10</artifactId>
     <version>0.5.0</version>
 </dependency>
+
+<!-- append play-json/json4s/joda-time/jts/threeten dependencies if needed -->
 ```
+
 
 Usage
 ------
@@ -112,7 +141,6 @@ Here's the related technical details:
 
 **So, if you need bind different scala type/mappers to a pg type oper/functions, you can do it as "slick-pg" currently did.**
 
-** _ps: existing app codes won't be impacted._
 
 ####Built in supported type/mappers:
 |          scala Type                 |        pg Type        |
@@ -164,13 +192,13 @@ Support details
 
 Version history
 ------------------------------
-v0.5.0 (7-Feb-2014):
-1) upgrade to slick v2.0.0
+v0.5.0 (7-Feb-2014):  
+1) upgrade to slick v2.0.0  
 2) add basic composite type support  
 3) array support: allow nested composite type  
 4) add play-json support  
 5) add timestamp with zone support  
-6) modularization
+6) modularization for third party scala type (e.g. `play-json`/`jts`) support
 
 v0.2.2 (04-Nov-2013):  
 1) support Joda date/time, binding to Pg Date/Time  
