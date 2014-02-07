@@ -18,7 +18,7 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.3" % "0.5.0-RC1"
+libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.3" % "0.5.0-beta2"
 ```
 
 Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg` to your `pom.xml` like this:
@@ -26,7 +26,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.10.3</artifactId>
-    <version>0.5.0-RC1</version>
+    <version>0.5.0-beta2</version>
 </dependency>
 ```
 
@@ -42,10 +42,10 @@ trait MyPostgresDriver extends PostgresDriver
                           with PgDateSupport
                           with PgRangeSupport
                           with PgHStoreSupport
-                          with PgJsonSupport
+                          with PgJson4sSupport
                           with PgSearchSupport
                           with PgPostGISSupport {
-  /// for json support
+  /// for json4s support
   type DOCType = text.Document
   override val jsonMethods = org.json4s.native.JsonMethods
 
