@@ -119,15 +119,15 @@ Here's the related technical details:
 |          scala Type                 |        pg Type        |
 | ----------------------------------- | --------------------- |
 | List[T]                             | ARRAY                 |
-| sql Date<br> Time<br> Timestamp<br> slickpg Interval<br> Calendar | date<br> time<br> timestamp<br> interval<br> timestamptz |
-| jada LocalDate<br> LocalTime<br> LocalDateTime<br> Period<br> DateTime | date<br> time<br> timestamp<br> interval<br> timestamptz |
-| threeten.bp LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz |
-| slickpg Range[T]                    | range                 |
+| `sql` Date<br> Time<br> Timestamp<br> slickpg Interval<br> Calendar | date<br> time<br> timestamp<br> interval<br> timestamptz |
+| `jada` LocalDate<br> LocalTime<br> LocalDateTime<br> Period<br> DateTime | date<br> time<br> timestamp<br> interval<br> timestamptz |
+| `threeten.bp` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz |
+| `slickpg` Range[T]                    | range                 |
 | Map[String,String]                  | hstore                |
-| json4s JValue                       | json                  |
-| play-json JsValue                   | json                  |
+| `json4s` JValue                       | json                  |
+| `play-json` JsValue                   | json                  |
 | (TsQuery+TsVector)                  | `text` search         |
-| jts Geometry                        | `postgis` geometry    |
+| `jts` Geometry                        | `postgis` geometry    |
 
 
 Build instructions
