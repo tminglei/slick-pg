@@ -12,21 +12,21 @@ Slick-pg
 - `postgis` Geometry
 - Composite type (`basic`)
 
-** _tested on `postgreSQL 9.3` with `Slick 2.0.0-RC1`._
+** _tested on `postgreSQL 9.3` with `Slick 2.0.0`._
 
 Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.3" % "0.5.0-RC1"
+libraryDependencies += "com.github.tminglei" % "slick-pg_2.10" % "0.5.0"
 ```
 
 Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg` to your `pom.xml` like this:
 ```xml
 <dependency>
     <groupId>com.github.tminglei</groupId>
-    <artifactId>slick-pg_2.10.3</artifactId>
-    <version>0.5.0-RC1</version>
+    <artifactId>slick-pg_2.10</artifactId>
+    <version>0.5.0</version>
 </dependency>
 ```
 
@@ -42,14 +42,10 @@ trait MyPostgresDriver extends PostgresDriver
                           with PgDateSupport
                           with PgRangeSupport
                           with PgHStoreSupport
-                          with PgJsonSupport
+                          with PgPlayJsonSupport
                           with PgSearchSupport
                           with PgPostGISSupport {
-  /// for json support
-  type DOCType = text.Document
-  override val jsonMethods = org.json4s.native.JsonMethods
 
-  ///
   override val Implicit = new ImplicitsPlus {}
   override val simple = new SimpleQLPlus {}
 
@@ -168,8 +164,8 @@ Support details
 
 Version history
 ------------------------------
-v0.5.0-beta2 (2-Feb-2014):  
-1) upgrade to slick v2.0.0-RC1  
+v0.5.0 (7-Feb-2014):
+1) upgrade to slick v2.0.0
 2) add basic composite type support  
 3) array support: allow nested composite type  
 4) add play-json support  

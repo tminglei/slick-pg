@@ -3,6 +3,3 @@ This is your new Play 2.2 application (init from `play-slick`)
 
 This file will be packaged with your application, when using `play dist`.
 
-
-----------------------------------------------------------------------
-!!!NOTES: NOT ready, since `play-json` didn't support `slick2` by now
