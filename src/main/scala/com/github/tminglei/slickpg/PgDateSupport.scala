@@ -17,9 +17,9 @@ trait PgDateSupport extends date.PgDateExtensions with date.PgDateJavaTypes with
   type TIMESTAMP_TZ = Calendar
 
   trait DateTimeImplicits {
-    implicit val intervalTypeMapper = new GenericJdbcType[Interval]("interval", Interval.apply)
+    implicit val intervalTypeMapper = new GenericJdbcType[Interval]("interval", Interval.apply, hasLiteralForm=false)
     implicit val timestampTZTypeMapper = new GenericJdbcType[Calendar]("timestamptz",
-        date.PgDateJavaTypes.parseCalendar, DatatypeConverter.printDateTime)
+        date.PgDateJavaTypes.parseCalendar, DatatypeConverter.printDateTime, hasLiteralForm=false)
 
     ///
     implicit def dateColumnExtensionMethods(c: Column[Date]) = new DateColumnExtensionMethods(c)
