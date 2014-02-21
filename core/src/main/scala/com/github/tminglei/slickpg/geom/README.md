@@ -1,6 +1,21 @@
 Supported Geometry Oper/Functions
 ---------------------------------
 
+#### Geometry Constructors
+| Slick Oper/Function | PostGIS Oper/Function |           Description                                  |            Example            |
+| ------------------- | --------------------- | ------------------------------------------------------ | ----------------------------- |
+| geomFromText        | ST_GeomFromText       | create a ST_Geometry from a Well-Known Text            | ST_GeomFromText(wkt)          |
+| geomFromWKB         | ST_GeomFromWKB        | create a geometry from a Well-Known Binary             | ST_GeomFromWKB(wkb)           |
+| geomFromEWKT        | ST_GeomFromEWKT       | create a ST_Geometry from a Extended Well-Known Text   | ST_GeomFromEWKT(ewkt)         |
+| geomFromEWKB        | ST_GeomFromWKB        | create a geometry from a Well-Known Binary             | ST_GeomFromWKB(ewkb)          |
+| geomFromGML         | ST_GeomFromGML        | create a geometry from input GML                       | ST_GeomFromGML(gml[, srid])   |
+| geomFromKML         | ST_GeomFromKML        | create a geometry from input KML                       | ST_GeomFromKML(kml)           |
+| geomFromGeoJSON     | ST_GeomFromGeoJSON    | create a geometry from input geojson                   | ST_GeomFromGeoJSON( json)     |
+| makeBox             | ST_MakeBox2D          | Creates a BOX2D defined by the given point geometries  | ST_MakeBox2D( pointLowLeft, pointUpRight)  |
+| makePoint           | ST_MakePoint<br/>ST_MakePointM | Creates a 2D,3DZ or 4D point geometry             | ST_MakePoint(x,y)<br/>ST_MakePointM(x,y,m) |
+| makeEnvelope        | ST_MakeEnvelope       | Creates a rectangular Polygon formed from the given minimums and maximums  | ST_MakeEnvelope(xmin, ymin, xmax, ymax, srid=unknown) | 
+
+#### Geometry Operators
 | Slick Oper/Function | PostGIS Oper/Function |           Description                                  |            Example            |
 | ------------------- | --------------------- | ------------------------------------------------------ | ----------------------------- |
 | @&&                 | &&                    | if A's 2D bounding box intersects B's 2D bounding box  | geomA && geomB                |
@@ -14,18 +29,13 @@ Supported Geometry Oper/Functions
 | &<&#124;            | &<&#124;              | if A's bounding box overlaps or is below B's           | geomA &<&#124; geomB          |
 | <<&#124;            | <<&#124;              | if A's bounding box is strictly below B's              | goemA <<&#124; geomB          |
 | &>                  | &>                    | if A' bounding box overlaps or is to the right of B's  | geomA &> geomB                |
-| >>                  | >>                    | if A's bounding box is strictly to the right of B's    | geomA >> geomB                |
+| &gt;>               | &gt;>                 | if A's bounding box is strictly to the right of B's    | geomA >> geomB                |
 | &#124;&>            | &#124;&>              | if A's bounding box overlaps or is above B's           | geomA &#124;&> geomB          |
 | &#124;>>            | &#124;>>              | if A's bounding box is strictly above B's              | geomA &#124;>> geomB          |
-| geomFromText        | ST_GeomFromText       | create a ST_Geometry from a Well-Known Text            | ST_GeomFromText(wkt)          |
-| geomFromWKB         | ST_GeomFromWKB        | create a geometry from a Well-Known Binary             | ST_GeomFromWKB(wkb)           |
-| geomFromEWKT        | ST_GeomFromEWKT       | create a ST_Geometry from a Extended Well-Known Text   | ST_GeomFromEWKT(ewkt)         |
-| geomFromEWKB        | ST_GeomFromWKB        | create a geometry from a Well-Known Binary             | ST_GeomFromWKB(ewkb)          |
-| geomFromGML         | ST_GeomFromGML        | create a geometry from input GML                       | ST_GeomFromGML(gml[, srid])   |
-| geomFromKML         | ST_GeomFromKML        | create a geometry from input KML                       | ST_GeomFromKML(kml)           |
-| geomFromGeoJSON     | ST_GeomFromGeoJSON    | create a geometry from input geojson                   | ST_GeomFromGeoJSON( json)     |
-| makeBox             | ST_MakeBox2D          | Creates a BOX2D defined by the given point geometries  | ST_MakeBox2D( pointLowLeft, pointUpRight)  |
-| makePoint           | ST_MakePoint<br/>ST_MakePointM | Creates a 2D,3DZ or 4D point geometry             | ST_MakePoint(x,y)<br/>ST_MakePointM(x,y,m) |
+
+#### Geometry Accessors
+| Slick Oper/Function | PostGIS Oper/Function |           Description                                  |            Example            |
+| ------------------- | --------------------- | ------------------------------------------------------ | ----------------------------- |
 | geomType            | ST_GeometryType       | the geometry type of the ST_Geometry value             | ST_GeometryType(geom)         |
 | srid                | ST_SRID               | the spatial reference identifier for the ST_Geometry   | ST_SRID(geom)                 |
 | isValid             | ST_IsValid            | if the ST_Geometry is well formed                      | ST_IsValid(geom[, flags])     |
@@ -42,6 +52,20 @@ Supported Geometry Oper/Functions
 | nDims               | ST_NDims              | coordinate dimension of the geometry                   | ST_NDims(geom)                |
 | nPoints             | ST_NPoints            | number of points (vertexes) in a geometry              | ST_NPoints(geom)              |
 | nRings              | ST_NRings             | number of rings if the geometry is a polygon or multi-polygon | ST_NRings(geom)        |
+| x                   | ST_X                  | Return the X coordinate of the point                   | ST_X(point)                   |
+| y                   | ST_Y                  | Return the Y coordinate of the point                   | ST_Y(point)                   |
+| z                   | ST_Z                  | Return the Z coordinate of the point                   | ST_Z(point)                   |
+| xmin                | ST_XMin               | Returns X minima of a bounding box 2d or 3d or a geometry | ST_XMin(Box3D(geom))       |
+| xmax                | ST_XMax               | Returns X maxima of a bounding box 2d or 3d or a geometry | ST_XMax(Box3D(geom))       |
+| ymin                | ST_YMin               | Returns Y minima of a bounding box 2d or 3d or a geometry | ST_YMin(Box3D(geom))       |
+| ymax                | ST_YMax               | Returns Y maxima of a bounding box 2d or 3d or a geometry | ST_YMax(Box3D(geom))       |
+| zmin                | ST_ZMin               | Returns Z minima of a bounding box 2d or 3d or a geometry | ST_ZMin(Box3D(geom))       |
+| zmax                | ST_ZMax               | Returns Z maxima of a bounding box 2d or 3d or a geometry | ST_ZMax(Box3D(geom))       |
+| zmflag              | ST_Zmflag             | Returns ZM (dimension semantic) flag of the geometries as a small int. Values are: 0=2d, 1=3dm, 2=3dz, 3=4d | ST_Zmflag(geom) |
+
+#### Geometry Outputs
+| Slick Oper/Function | PostGIS Oper/Function |           Description                                  |            Example            |
+| ------------------- | --------------------- | ------------------------------------------------------ | ----------------------------- |
 | asBinary            | ST_AsBinary           | Well-Known Binary of the geometry without SRID         | ST_AsBinary(geom[, NDRorXDR]  |
 | asText              | ST_AsText             | Well-Known Text of the geometry without SRID           | ST_AsText(geom)               |
 | asLatLonText        | ST_AsLatLonText       | Degrees, Minutes, Seconds representation of the point  | ST_AsLatLonText(geom[, format]) |
@@ -54,6 +78,10 @@ Supported Geometry Oper/Functions
 | asKML               | ST_AsKML              | KML format text of the geometry                        | ST_AsKML([ver, ]geom, maxdigits[, nprefix]) |
 | asSVG               | ST_AsSVG              | SVG format text of the geometry                        | ST_AsSVG(geom, rel, maxdigits)     |
 | asX3D               | ST_AsX3D              | X3D format text of the geometry                        | ST_AsX3D(geom, maxdigits, options) |
+
+#### Spatial Relationships
+| Slick Oper/Function | PostGIS Oper/Function |           Description                                  |            Example            |
+| ------------------- | --------------------- | ------------------------------------------------------ | ----------------------------- |
 | gEquals             | ST_Equals             | if the given geometries represent the same geometry    | ST_Equals(geomA, geomB)       |
 | orderingEquals      | ST_OrderingEquals     | if the given geometries represent the same geometry and points are in the same directional order | ST_OrderingEquals( geomA, geomB)   |
 | overlaps            | ST_Overlaps           | if the Geometries share space, are of the same dimension, but are not completely contained by each other | ST_Overlaps(geomA, geomB) |
@@ -68,6 +96,10 @@ Supported Geometry Oper/Functions
 | touches             | ST_Touches            | if the geometries have at least one point in common, but their interiors do not intersect | ST_Touches(geomA, geomB)|
 | relate              | ST_Relate             | if this geometry is spatially related to another       | ST_Relate(geomA, geomB, intersectionMatrixPattern)   |
 | relatePattern       | ST_Relate             | maximum intersectionMatrixPattern that relates the 2 geometries | ST_Relate(geomA, geomB[, boundaryNodeRule]) |
+
+#### Spatial Measurements
+| Slick Oper/Function | PostGIS Oper/Function |           Description                                  |            Example            |
+| ------------------- | --------------------- | ------------------------------------------------------ | ----------------------------- |
 | azimuth             | ST_Azimuth            | angle in radians from the horizontal of the vector defined by pointA and pointB | ST_Azimuth(pointA, pointB)  |
 | centroid            | ST_Centroid           | geometric center of the geometry                       | ST_Centroid(geom)             |
 | closestPoint        | ST_ClosestPoint       | the first point of the shortest line from geomA to geomB | ST_ClosestPoint( geomA, geomB) |
@@ -82,6 +114,10 @@ Supported Geometry Oper/Functions
 | hausdorffDistance   | ST_HausdorffDistance  | Hausdorff distance between two geometries, a measure of how similar or dissimilar they are.  | ST_HausdorffDistance( geomA, geomB[, densifyFrac]) |
 | longestLine         | ST_LongestLine        | longest line points of the two geometries              | ST_LongestLine(geomA, geomB)  |
 | shortestLine        | ST_ShortestLine       | shortest line between the two geometries               | ST_ShortestLine(geomA, geomB) |
+
+#### Geometry Processing
+| Slick Oper/Function | PostGIS Oper/Function |           Description                                  |            Example            |
+| ------------------- | --------------------- | ------------------------------------------------------ | ----------------------------- |
 | setSRID             | ST_SetSRID            | set the SRID on a geometry                             | ST_SetSRID(geom, srid)        |
 | transform           | ST_Transform          | new geometry with its coordinates transformed to the SRID | ST_Transform(geom, srid)   |
 | simplify            | ST_Simplify           | "simplified" version of the given geometry using the Douglas-Peucker algorithm   | ST_Simplify(geom, tolerance) |
