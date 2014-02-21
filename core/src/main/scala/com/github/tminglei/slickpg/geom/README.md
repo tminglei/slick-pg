@@ -12,8 +12,11 @@ Supported Geometry Oper/Functions
 | geomFromKML         | ST_GeomFromKML        | create a geometry from input KML                       | ST_GeomFromKML(kml)           |
 | geomFromGeoJSON     | ST_GeomFromGeoJSON    | create a geometry from input geojson                   | ST_GeomFromGeoJSON( json)     |
 | makeBox             | ST_MakeBox2D          | Creates a BOX2D defined by the given point geometries  | ST_MakeBox2D( pointLowLeft, pointUpRight)  |
-| makePoint           | ST_MakePoint<br/>ST_MakePointM | Creates a 2D,3DZ or 4D point geometry             | ST_MakePoint(x,y)<br/>ST_MakePointM(x,y,m) |
+| makeBox3d           | ST_3DMakeBox          | Creates a BOX3D defined by the given 3d point geometries | ST_3DMakeBox( point3dLowLeft, point3dUpRight)  |
 | makeEnvelope        | ST_MakeEnvelope       | Creates a rectangular Polygon formed from the given minimums and maximums  | ST_MakeEnvelope(xmin, ymin, xmax, ymax, srid=unknown) | 
+| makePoint           | ST_MakePoint<br/>ST_MakePointM | Creates a 2D,3DZ or 4D point geometry             | ST_MakePoint(x,y)<br/>ST_MakePointM(x,y,m) |
+| makeLine            | ST_MakeLine           | Creates a Linestring from point or line geometries     | ST_MakeLine(point1, point2)   |
+| makePolygon         | ST_MakePolygon        | Creates a Polygon formed by the given CLOSED linestring | ST_MakePolygon(linestring)   |
 
 #### Geometry Operators
 | Slick Oper/Function | PostGIS Oper/Function |           Description                                  |            Example            |
