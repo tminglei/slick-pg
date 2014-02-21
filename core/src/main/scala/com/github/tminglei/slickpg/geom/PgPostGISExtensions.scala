@@ -56,6 +56,10 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
       implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[G1, P1]#arg[G2, P2]#to[GEOMETRY, R]) = {
         om.column(GeomLibrary.MakeBox, lowLeftPoint.toNode, upRightPoint.toNode)
       }
+    def makeBox3d[G1 <: GEOMETRY, P1, G2 <: GEOMETRY, P2, R](lowLeftPoint: Column[P1], upRightPoint: Column[P2])(
+      implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[G1, P1]#arg[G2, P2]#to[GEOMETRY, R]) = {
+        om.column(GeomLibrary.MakeBox3D, lowLeftPoint.toNode, upRightPoint.toNode)
+      }
     def makeEnvelope(xmin: Column[Double], ymin: Column[Double], xmax: Column[Double], ymax: Column[Double], srid: Option[Int] = None)(
       implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[Double, Double]#arg[Double, Double]#to[GEOMETRY, GEOMETRY]) =
       srid match {
@@ -69,6 +73,14 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
         case (Some(z), None) => om.column(GeomLibrary.MakePoint, x.toNode, y.toNode, LiteralNode(z))
         case (None, Some(m)) => om.column(GeomLibrary.MakePointM, x.toNode, y.toNode, LiteralNode(m))
         case (None, None) => om.column(GeomLibrary.MakePoint, x.toNode, y.toNode)
+      }
+    def makeLine[G1 <: GEOMETRY, P1, G2 <: GEOMETRY, P2, R](point1: Column[P1], point2: Column[P2])(
+      implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[G1, P1]#arg[G2, P2]#to[GEOMETRY, R]) = {
+        om.column(GeomLibrary.MakeLine, point1.toNode, point2.toNode)
+      }
+    def makePolygon[G <: GEOMETRY, P, R](linestring: Column[P])(
+      implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[G, P]#to[GEOMETRY, R]) = {
+        om.column(GeomLibrary.MakePolygon, linestring.toNode)
       }
   }
 
@@ -102,9 +114,12 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     val GeomFromKML = new SqlFunction("ST_GeomFromKML")
     val GeomFromGeoJSON = new SqlFunction("ST_GeomFromGeoJSON")
     val MakeBox = new SqlFunction("ST_MakeBox2D")
+    val MakeBox3D = new SqlFunction("ST_3DMakeBox")
+    val MakeEnvelope = new SqlFunction("ST_MakeEnvelope")
     val MakePoint = new SqlFunction("ST_MakePoint")
     val MakePointM = new SqlFunction("ST_MakePointM")
-    val MakeEnvelope = new SqlFunction("ST_MakeEnvelope")
+    val MakeLine = new SqlFunction("ST_MakeLine")
+    val MakePolygon = new SqlFunction("ST_MakePolygon")
 
     /** Geometry Accessors */
     val GeometryType = new SqlFunction("ST_GeometryType")

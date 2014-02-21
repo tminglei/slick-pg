@@ -43,6 +43,7 @@ class PgPostGISSupportTest {
     val point = wktReader.read(POINT).asInstanceOf[Point]
     val point1 = wktReader.read("POINT(-81.064544 32.28787)").asInstanceOf[Point]
     val point2 = wktReader.read("POINT(-61.064544 52.28787)").asInstanceOf[Point]
+    val line = wktReader.read("LINESTRING(-10 0, 50 50, -100 -100, 10 -70, -10 0)")
 
     db withSession { implicit session: Session =>
       val bean = GeometryBean(101L, point)
@@ -78,12 +79,21 @@ class PgPostGISSupportTest {
 
       val q7 = GeomTests.filter(_.geom @&& makeBox(point1.bind, point2.bind)).map(t => t)
       assertEquals(bean, q7.first())
-      
-      val q71 = GeomTests.filter(_.geom @&& makeEnvelope(-61.064544.bind, 32.28787.bind, -81.064544.bind, 52.28787.bind)).map(t => t)
+
+      val q71 = GeomTests.filter(_.geom @&& makeBox3d(point1.bind, point2.bind)).map(t => t)
       assertEquals(bean, q71.first())
+      
+      val q72 = GeomTests.filter(_.geom @&& makeEnvelope(-61.064544.bind, 32.28787.bind, -81.064544.bind, 52.28787.bind)).map(t => t)
+      assertEquals(bean, q72.first())
 
       val q8 = GeomTests.filter(_.geom === makePoint((-71.064544D).bind, (42.28787D).bind)).map(t => t)
       assertEquals(bean, q8.first())
+
+      val q9 = GeomTests.filter(_.geom @&& makeLine(point1.bind, point2.bind)).map(t => t)
+      assertEquals(bean, q9.first())
+
+      val q10 = GeomTests.filter(_.geom @&& makePolygon(line.bind)).map(t => t)
+      assertEquals(bean, q10.first())
     }
   }
 
