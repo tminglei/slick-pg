@@ -51,7 +51,7 @@ trait PgPostGISSupport extends geom.PgPostGISExtensions { driver: PostgresDriver
 
     def updateValue(v: T, r: PositionedResult) = r.updateBytes(toBytes(v))
 
-    def hasLiteralForm: Boolean = true
+    def hasLiteralForm: Boolean = false
 
     override def valueToSQLLiteral(v: T) = toLiteral(v)
 

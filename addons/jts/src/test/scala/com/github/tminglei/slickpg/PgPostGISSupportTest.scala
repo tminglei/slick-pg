@@ -121,7 +121,7 @@ class PgPostGISSupportTest {
       val q4 = GeomTests.filter(r => { r.id === bean.id.bind && line3.bind <@ r.geom }).map(r => r)
       assertEquals(bean, q4.first())
 
-      val q5 = GeomTests.filter(r => { r.id === bean.id.bind && (r.geom <-> line2.bind) > 0.7d.bind }).map(r => r)
+      val q5 = GeomTests.filter(r => { r.id === bean.id.bind && (r.geom <-> line2) > 0.7d.bind }).map(r => r)
       assertEquals(bean, q5.first())
       val q51 = PointTests.sortBy(r => r.point <-> point.bind).map(r => r)
       assertEquals(List(pbean1, pbean2), q51.list())

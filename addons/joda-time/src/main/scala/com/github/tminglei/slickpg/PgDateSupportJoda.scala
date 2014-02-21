@@ -23,9 +23,9 @@ trait PgDateSupportJoda extends date.PgDateExtensions with date.PgDateJavaTypes 
     implicit val jodaDateTypeMapper = new DateJdbcType(sqlDate2jodaDate, jodaDate2sqlDate)
     implicit val jodaTimeTypeMapper = new TimeJdbcType(sqlTime2jodaTime, jodaTime2sqlTime)
     implicit val jodaDateTimeTypeMapper = new TimestampJdbcType(sqlTimestamp2jodaDateTime, jodaDateTime2sqlTimestamp)
-    implicit val jodaPeriodTypeMapper = new GenericJdbcType[Period]("interval", pgIntervalStr2jodaPeriod)
+    implicit val jodaPeriodTypeMapper = new GenericJdbcType[Period]("interval", pgIntervalStr2jodaPeriod, hasLiteralForm=false)
     implicit val timestampTZTypeMapper = new GenericJdbcType[DateTime]("timestamptz",
-        DateTime.parse(_, tzDateTimeFormatter), _.toString(tzDateTimeFormatter))
+        DateTime.parse(_, tzDateTimeFormatter), _.toString(tzDateTimeFormatter), hasLiteralForm=false)
 
     ///
     implicit def dateColumnExtensionMethods(c: Column[LocalDate]) = new DateColumnExtensionMethods(c)

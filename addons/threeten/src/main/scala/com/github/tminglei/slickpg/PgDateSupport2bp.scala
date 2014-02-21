@@ -23,9 +23,9 @@ trait PgDateSupport2bp extends date.PgDateExtensions with date.PgDateJavaTypes w
     implicit val bpDateTypeMapper = new DateJdbcType(sqlDate2bpDate, bpDate2sqlDate)
     implicit val bpTimeTypeMapper = new TimeJdbcType(sqlTime2bpTime, bpTime2sqlTime)
     implicit val bpDateTimeTypeMapper = new TimestampJdbcType(sqlTimestamp2bpDateTime, bpDateTime2sqlTimestamp)
-    implicit val bpDurationTypeMapper = new GenericJdbcType[Duration]("interval", pgIntervalStr2bpDuration)
+    implicit val bpDurationTypeMapper = new GenericJdbcType[Duration]("interval", pgIntervalStr2bpDuration, hasLiteralForm=false)
     implicit val timestampTZTypeMapper = new GenericJdbcType[ZonedDateTime]("timestamptz",
-        ZonedDateTime.parse(_, tzDateTimeFormatter), _.toString(tzDateTimeFormatter))
+        ZonedDateTime.parse(_, tzDateTimeFormatter), _.toString(tzDateTimeFormatter), hasLiteralForm=false)
 
     ///
     implicit def dateColumnExtensionMethods(c: Column[LocalDate]) = new DateColumnExtensionMethods(c)
