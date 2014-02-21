@@ -78,6 +78,9 @@ class PgPostGISSupportTest {
 
       val q7 = GeomTests.filter(_.geom @&& makeBox(point1.bind, point2.bind)).map(t => t)
       assertEquals(bean, q7.first())
+      
+      val q71 = GeomTests.filter(_.geom @&& makeEnvelope(-61.064544.bind, 32.28787.bind, -81.064544.bind, 52.28787.bind)).map(t => t)
+      assertEquals(bean, q71.first())
 
       val q8 = GeomTests.filter(_.geom === makePoint((-71.064544D).bind, (42.28787D).bind)).map(t => t)
       assertEquals(bean, q8.first())
@@ -157,15 +160,17 @@ class PgPostGISSupportTest {
 
   @Test
   def testGeomAccessors(): Unit = {
+    val point = wktReader.read("POINT(4 5 7)")
     val line = wktReader.read("LINESTRING(0 0, 3 3)")
     val polygon = wktReader.read("POLYGON((0 0, 1 1, 1 2, 1 1, 0 0))")
     val collection = wktReader.read("GEOMETRYCOLLECTION(LINESTRING(1 1,0 0),POINT(0 0))")
 
     db withSession { implicit session: Session =>
+      val pointbean = GeometryBean(130L, point)
       val linebean = GeometryBean(131L, line)
       val polygonbean = GeometryBean(132L, polygon)
       val collectionbean = GeometryBean(133L, collection)
-      GeomTests.forceInsertAll(linebean, polygonbean, collectionbean)
+      GeomTests.forceInsertAll(pointbean, linebean, polygonbean, collectionbean)
 
       val q1 = GeomTests.filter(_.id === linebean.id.bind).map(_.geom.geomType)
       assertEquals("ST_LineString", q1.first())
@@ -214,6 +219,33 @@ class PgPostGISSupportTest {
 
       val q16 = GeomTests.filter(_.id === polygonbean.id.bind).map(_.geom.nRings)
       assertEquals(1, q16.first())
+
+      val q17 = GeomTests.filter(_.id === pointbean.id.bind).map(_.geom.x)
+      assertEquals(4f, q17.first(), 0.001f)
+
+      val q18 = GeomTests.filter(_.id === pointbean.id.bind).map(_.geom.y)
+      assertEquals(5f, q18.first(), 0.001f)
+
+      val q19 = GeomTests.filter(_.id === pointbean.id.bind).map(_.geom.z.?)
+      assertEquals(None, q19.first())
+
+      val q20 = GeomTests.filter(_.id === polygonbean.id.bind).map(_.geom.xmin)
+      assertEquals(0f, q20.first(), 0.001f)
+
+      val q21 = GeomTests.filter(_.id === polygonbean.id.bind).map(_.geom.xmax)
+      assertEquals(1f, q21.first(), 0.001f)
+
+      val q22 = GeomTests.filter(_.id === polygonbean.id.bind).map(_.geom.ymin)
+      assertEquals(0f, q22.first(), 0.001f)
+
+      val q23 = GeomTests.filter(_.id === polygonbean.id.bind).map(_.geom.ymax)
+      assertEquals(2f, q23.first(), 0.001f)
+
+      val q24 = GeomTests.filter(_.id === polygonbean.id.bind).map(_.geom.zmin.?)
+      assertEquals(Some(0.0), q24.first())
+
+      val q25 = GeomTests.filter(_.id === polygonbean.id.bind).map(_.geom.zmax.?)
+      assertEquals(Some(0.0), q25.first())
     }
   }
 

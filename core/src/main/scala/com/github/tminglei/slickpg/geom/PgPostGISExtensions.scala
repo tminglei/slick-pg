@@ -5,6 +5,7 @@ import scala.slick.lifted._
 import scala.slick.ast.{LiteralNode}
 import scala.slick.ast.Library.{SqlFunction, SqlOperator}
 import scala.slick.driver.{JdbcTypesComponent, PostgresDriver}
+import scala.slick.lifted.FunctionSymbolExtensionMethods._
 
 trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   import driver.Implicit._
@@ -55,6 +56,12 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
       implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[G1, P1]#arg[G2, P2]#to[GEOMETRY, R]) = {
         om.column(GeomLibrary.MakeBox, lowLeftPoint.toNode, upRightPoint.toNode)
       }
+    def makeEnvelope(xmin: Column[Double], ymin: Column[Double], xmax: Column[Double], ymax: Column[Double], srid: Option[Int] = None)(
+      implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[Double, Double]#arg[Double, Double]#to[GEOMETRY, GEOMETRY]) =
+      srid match {
+        case Some(s) => om.column(GeomLibrary.MakeEnvelope, xmin.toNode, ymin.toNode, xmax.toNode, ymax.toNode, LiteralNode(s))
+        case None   =>  om.column(GeomLibrary.MakeEnvelope, xmin.toNode, ymin.toNode, xmax.toNode, ymax.toNode)
+      }
     def makePoint[P1, P2, R](x: Column[P1], y: Column[P2], z: Option[Double] = None, m: Option[Double] = None)(
       implicit tm: JdbcType[GEOMETRY], tm1: JdbcType[POINT], om: OptionMapperDSL.arg[Double, P1]#arg[Double, P2]#to[GEOMETRY, R]) =
       (z, m) match {
@@ -97,6 +104,7 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     val MakeBox = new SqlFunction("ST_MakeBox2D")
     val MakePoint = new SqlFunction("ST_MakePoint")
     val MakePointM = new SqlFunction("ST_MakePointM")
+    val MakeEnvelope = new SqlFunction("ST_MakeEnvelope")
 
     /** Geometry Accessors */
     val GeometryType = new SqlFunction("ST_GeometryType")
@@ -114,6 +122,17 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     val NDims = new SqlFunction("ST_NDims")
     val NPoints = new SqlFunction("ST_NPoints")
     val NRings = new SqlFunction("ST_NRings")
+    val X = new SqlFunction("ST_X")
+    val Y = new SqlFunction("ST_Y")
+    val Z = new SqlFunction("ST_Z")
+    val XMax = new SqlFunction("ST_XMax")
+    val XMin = new SqlFunction("ST_XMin")
+    val YMax = new SqlFunction("ST_YMax")
+    val YMin = new SqlFunction("ST_YMin")
+    val ZMax = new SqlFunction("ST_ZMax")
+    val ZMin = new SqlFunction("ST_ZMin")
+    val Zmflag = new SqlFunction("ST_Zmflag")
+    val Box3D = new SqlFunction("Box3D")
 
     /** Geometry Outputs */
     val AsBinary = new SqlFunction("ST_AsBinary")
@@ -287,6 +306,36 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
       }
     def nRings[R](implicit om: o#to[Int, R]) = {
         om.column(GeomLibrary.NRings, n)
+      }
+    def x[R](implicit om: o#to[Float, R]) = {
+        om.column(GeomLibrary.X, n)
+      }
+    def y[R](implicit om: o#to[Float, R]) = {
+        om.column(GeomLibrary.Y, n)
+      }
+    def z[R](implicit om: o#to[Float, R]) = {
+        om.column(GeomLibrary.Z, n)
+      }
+    def xmin[R](implicit om: o#to[Float, R]) = {
+        om.column(GeomLibrary.XMin, GeomLibrary.Box3D.column[GEOMETRY](n).toNode)
+      }
+    def xmax[R](implicit om: o#to[Float, R]) = {
+        om.column(GeomLibrary.XMax, GeomLibrary.Box3D.column[GEOMETRY](n).toNode)
+      }
+    def ymin[R](implicit om: o#to[Float, R]) = {
+        om.column(GeomLibrary.YMin, GeomLibrary.Box3D.column[GEOMETRY](n).toNode)
+      }
+    def ymax[R](implicit om: o#to[Float, R]) = {
+        om.column(GeomLibrary.YMax, GeomLibrary.Box3D.column[GEOMETRY](n).toNode)
+      }
+    def zmin[R](implicit om: o#to[Float, R]) = {
+        om.column(GeomLibrary.ZMin, GeomLibrary.Box3D.column[GEOMETRY](n).toNode)
+      }
+    def zmax[R](implicit om: o#to[Float, R]) = {
+        om.column(GeomLibrary.ZMax, GeomLibrary.Box3D.column[GEOMETRY](n).toNode)
+      }
+    def zmflag[R](implicit om: o#to[Int, R]) = {
+        om.column(GeomLibrary.Zmflag, n)
       }
 
     /** Geometry Outputs */
