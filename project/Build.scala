@@ -15,17 +15,17 @@ object SlickPgBuild extends Build {
       "-language:postfixOps"),
 
 //    resolvers += Resolver.mavenLocal,
-    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))),
+//    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))),
 //    publishMavenStyle := true,
 
     resolvers += Resolver.sonatypeRepo("snapshots"),
-//    publishTo <<= version { (v: String) =>
-//      val nexus = "https://oss.sonatype.org/"
-//      if (v.trim.endsWith("SNAPSHOT"))
-//        Some("snapshots" at nexus + "content/repositories/snapshots")
-//      else
-//        Some("releases"  at nexus + "service/local/staging/deploy/maven2")
-//    },
+    publishTo <<= version { (v: String) =>
+      val nexus = "https://oss.sonatype.org/"
+      if (v.trim.endsWith("SNAPSHOT"))
+        Some("snapshots" at nexus + "content/repositories/snapshots")
+      else
+        Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+    },
     publishMavenStyle := true,
     publishArtifact in Test := false,
     pomIncludeRepository := { _ => false },
@@ -56,7 +56,7 @@ object SlickPgBuild extends Build {
   
   lazy val mainDependencies = Seq (
     "org.scala-lang" % "scala-reflect" % "2.10.3",
-    "com.typesafe.slick" % "slick_2.10" % "2.0.0-snapshot",
+    "com.typesafe.slick" % "slick_2.10" % "2.0.0",
     "org.postgresql" % "postgresql" % "9.3-1100-jdbc41",
     "junit" % "junit" % "4.11" % "test",
     "com.novocode" % "junit-interface" % "0.10" % "test"
@@ -65,12 +65,12 @@ object SlickPgBuild extends Build {
   lazy val coreSettings = Seq(
     name := "slick-pg_core",
     description := "Slick extensions for PostgreSQL - Core",
-    version := "0.5.0-snapshot",
+    version := "0.5.1",
     libraryDependencies := mainDependencies
   )
 
   lazy val slickPgSettings = Seq(
-    version := "0.5.0-snapshot",
+    version := "0.5.1",
     resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
   )
 
