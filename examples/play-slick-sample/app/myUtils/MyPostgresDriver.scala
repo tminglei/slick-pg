@@ -1,8 +1,13 @@
-package my.utils
+package myUtils
 
 import com.github.tminglei.slickpg._
 import slick.driver.PostgresDriver
 
+trait WithMyDriver {
+  val driver: MyPostgresDriver
+}
+
+////////////////////////////////////////////////////////////
 trait MyPostgresDriver extends PostgresDriver
                           with PgArraySupport
                           with PgDateSupportJoda

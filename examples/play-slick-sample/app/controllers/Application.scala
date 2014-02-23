@@ -6,7 +6,7 @@ import play.api.data.Forms._
 import play.api.mvc._
 import play.api.db.slick._
 import play.api.Play.current
-import my.utils._
+import myUtils._
 import models._
 
 //stable imports to use play.api.Play.current outside of objects:

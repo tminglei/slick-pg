@@ -1,14 +1,14 @@
 package models
 
-import play.api.db.slick.Config
-import my.utils.MyPostgresDriver
+import play.api.db.slick.DB
+import myUtils.MyPostgresDriver
 
-class DAO(val driver: MyPostgresDriver) extends OsmWaysComponent {
+class DAO(override val driver: MyPostgresDriver) extends OsmWaysComponent {
   import driver.simple._
-  
-  val osmWays = TableQuery[OsmWays]
+
+  val osmWays = TableQuery(new OsmWays(_))
 }
 
 object current {
-  lazy val dao = new DAO(Config.driver.asInstanceOf[MyPostgresDriver])
+  val dao = new DAO(DB(play.api.Play.current).driver.asInstanceOf[MyPostgresDriver])
 }

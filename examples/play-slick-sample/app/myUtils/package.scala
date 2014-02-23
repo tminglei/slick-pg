@@ -1,5 +1,3 @@
-package my
-
 import com.github.tminglei.slickpg
 import com.vividsolutions.jts.geom._
 import play.api.data._
@@ -8,7 +6,7 @@ import java.util.UUID
 import org.joda.time.{LocalDateTime, LocalDate}
 import play.api.libs.json.JsValue
 
-package object utils {
+package object myUtils {
   type Range[T] = slickpg.Range[T]
   val Range = slickpg.Range
 

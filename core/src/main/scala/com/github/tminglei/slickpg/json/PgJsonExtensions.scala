@@ -11,10 +11,10 @@ trait PgJsonExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   type JSONType
 
   object JsonLibrary {
-    val ->  = new SqlOperator("->")
-    val ->> = new SqlOperator("->>")
-    val #>  = new SqlOperator("#>")
-    val #>> = new SqlOperator("#>>")
+    val Arrow  = new SqlOperator("->")
+    val BiArrow = new SqlOperator("->>")
+    val PoundArrow  = new SqlOperator("#>")
+    val PoundBiArrow = new SqlOperator("#>>")
 
     val arrayLength = new SqlFunction("json_array_length")
     val arrayElements = new SqlFunction("json_array_elements")
@@ -31,22 +31,22 @@ trait PgJsonExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
 
     /** Note: json array's index starts with 0   */
     def ~> [P2, R](index: Column[P2])(implicit om: o#arg[Int, P2]#to[JSONType, R]) = {
-        om.column(JsonLibrary.->, n, index.toNode)
+        om.column(JsonLibrary.Arrow, n, index.toNode)
       }
     def ~>>[P2, R](index: Column[P2])(implicit om: o#arg[Int, P2]#to[String, R]) = {
-        om.column(JsonLibrary.->>, n, index.toNode)
+        om.column(JsonLibrary.BiArrow, n, index.toNode)
       }
     def +> [P2, R](key: Column[P2])(implicit om: o#arg[String, P2]#to[JSONType, R]) = {
-        om.column(JsonLibrary.->, n, key.toNode)
+        om.column(JsonLibrary.Arrow, n, key.toNode)
       }
     def +>>[P2, R](key: Column[P2])(implicit om: o#arg[String, P2]#to[String, R]) = {
-        om.column(JsonLibrary.->>, n, key.toNode)
+        om.column(JsonLibrary.BiArrow, n, key.toNode)
       }
     def #> [P2, R](keyPath: Column[P2])(implicit om: o#arg[List[String], P2]#to[JSONType, R]) = {
-        om.column(JsonLibrary.#>, n, keyPath.toNode)
+        om.column(JsonLibrary.PoundArrow, n, keyPath.toNode)
       }
     def #>>[P2, R](keyPath: Column[P2])(implicit om: o#arg[List[String], P2]#to[String, R]) = {
-        om.column(JsonLibrary.#>>, n, keyPath.toNode)
+        om.column(JsonLibrary.PoundBiArrow, n, keyPath.toNode)
       }
 
     def arrayLength[R](implicit om: o#to[Int, R]) = om.column(JsonLibrary.arrayLength, n)

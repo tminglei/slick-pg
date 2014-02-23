@@ -16,10 +16,10 @@ trait PgDateExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   type TIMESTAMP_TZ
 
   object DateLibrary {
-    val + = new SqlOperator("+")
-    val - = new SqlOperator("-")
-    val * = new SqlOperator("*")
-    val / = new SqlOperator("/")
+    val Plus = new SqlOperator("+")
+    val Minus = new SqlOperator("-")
+    val Multiply = new SqlOperator("*")
+    val Divide = new SqlOperator("/")
 
     val Age = new SqlFunction("age")
     val Part = new SqlFunction("date_part")
@@ -35,16 +35,16 @@ trait PgDateExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   trait TimestampExtensionMethods[TS, P1] extends ExtensionMethods[TS, P1] {
     
     def +++[P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[TS, R]) = {
-        om.column(DateLibrary.+, n, e.toNode)
+        om.column(DateLibrary.Plus, n, e.toNode)
       }
     def - [P2, R](e: Column[P2])(implicit om: o#to[INTERVAL, R], tm: JdbcType[INTERVAL]) = {
-        om.column(DateLibrary.-, n, e.toNode)
+        om.column(DateLibrary.Minus, n, e.toNode)
       }
     def -- [P2, R](e: Column[P2])(implicit om: o#arg[TIME, P2]#to[TS, R]) = {
-        om.column(DateLibrary.-, n, e.toNode)
+        om.column(DateLibrary.Minus, n, e.toNode)
       }
     def ---[P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[TS, R]) = {
-        om.column(DateLibrary.-, n, e.toNode)
+        om.column(DateLibrary.Minus, n, e.toNode)
       }
 
     def age[R](implicit om: o#to[INTERVAL, R], tm: JdbcType[INTERVAL]) = om.column(DateLibrary.Age, n)
@@ -73,16 +73,16 @@ trait PgDateExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
                   extends ExtensionMethods[TIME, P1] {
 
     def + [P2, R](e: Column[P2])(implicit om: o#arg[DATE, P2]#to[TIMESTAMP, R]) = {
-        om.column(DateLibrary.+, n, e.toNode)
+        om.column(DateLibrary.Plus, n, e.toNode)
       }
     def +++[P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIME, R]) = {
-        om.column(DateLibrary.+, n, e.toNode)
+        om.column(DateLibrary.Plus, n, e.toNode)
       }
     def - [P2, R](e: Column[P2])(implicit om: o#arg[TIME, P2]#to[INTERVAL, R]) = {
-        om.column(DateLibrary.-, n, e.toNode)
+        om.column(DateLibrary.Minus, n, e.toNode)
       }
     def ---[P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIME, R]) = {
-        om.column(DateLibrary.-, n, e.toNode)
+        om.column(DateLibrary.Minus, n, e.toNode)
       }
   }
 
@@ -92,22 +92,22 @@ trait PgDateExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
                     extends ExtensionMethods[DATE, P1] {
 
     def + [P2, R](e: Column[P2])(implicit om: o#arg[TIME, P2]#to[TIMESTAMP, R]) = {
-        om.column(DateLibrary.+, n, e.toNode)
+        om.column(DateLibrary.Plus, n, e.toNode)
       }
     def ++ [P2, R](e: Column[P2])(implicit om: o#arg[Int, P2]#to[DATE, R]) = {
-        om.column(DateLibrary.+, n, e.toNode)
+        om.column(DateLibrary.Plus, n, e.toNode)
       }
     def +++[P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIMESTAMP, R]) = {
-        om.column(DateLibrary.+, n, e.toNode)
+        om.column(DateLibrary.Plus, n, e.toNode)
       }
     def - [P2, R](e: Column[P2])(implicit om: o#arg[DATE, P2]#to[Int, R]) = {
-        om.column(DateLibrary.-, n, e.toNode)
+        om.column(DateLibrary.Minus, n, e.toNode)
       }
     def -- [P2, R](e: Column[P2])(implicit om: o#arg[Int, P2]#to[DATE, R]) = {
-        om.column(DateLibrary.-, n, e.toNode)
+        om.column(DateLibrary.Minus, n, e.toNode)
       }
     def ---[P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIMESTAMP, R]) = {
-        om.column(DateLibrary.-, n, e.toNode)
+        om.column(DateLibrary.Minus, n, e.toNode)
       }
   }
 
@@ -117,17 +117,17 @@ trait PgDateExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
                     extends ExtensionMethods[INTERVAL, P1] {
 
     def + [P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[INTERVAL, R]) = {
-        om.column(DateLibrary.+, n, e.toNode)
+        om.column(DateLibrary.Plus, n, e.toNode)
       }
     def unary_-[R](implicit om: o#to[INTERVAL, R]) = om.column(DateLibrary.Negative, n)
     def - [P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[INTERVAL, R]) = {
-        om.column(DateLibrary.-, n, e.toNode)
+        om.column(DateLibrary.Minus, n, e.toNode)
       }
     def * [R](factor: Column[Double])(implicit om: o#to[INTERVAL, R]) = {
-        om.column(DateLibrary.*, n, factor.toNode)
+        om.column(DateLibrary.Multiply, n, factor.toNode)
       }
     def / [R](factor: Column[Double])(implicit om: o#to[INTERVAL, R]) = {
-        om.column(DateLibrary./, n, factor.toNode)
+        om.column(DateLibrary.Divide, n, factor.toNode)
       }
 
     def part[R](field: Column[String])(implicit om: o#to[Double, R]) = {

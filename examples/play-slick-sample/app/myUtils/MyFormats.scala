@@ -1,4 +1,4 @@
-package my.utils
+package myUtils
 
 import java.util.UUID
 import play.api.data.format.Formats
