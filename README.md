@@ -18,32 +18,32 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_2.10" % "0.5.1.1"
+libraryDependencies += "com.github.tminglei" % "slick-pg_2.10" % "0.5.1.2"
 ```
 
 > If you need `play-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_play-json_2.10" % "0.5.1.1"
+libraryDependencies += "com.github.tminglei" % "slick-pg_play-json_2.10" % "0.5.1.2"
 ```
 
 > If you need `joda-time` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_joda-time_2.10" % "0.5.1.1"
+libraryDependencies += "com.github.tminglei" % "slick-pg_joda-time_2.10" % "0.5.1.2"
 ```
 
 > If you need `jts` geom support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_jts_2.10" % "0.5.1.1"
+libraryDependencies += "com.github.tminglei" % "slick-pg_jts_2.10" % "0.5.1.2"
 ```
 
 > If you need `json4s`  support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_json4s_2.10" % "0.5.1.1"
+libraryDependencies += "com.github.tminglei" % "slick-pg_json4s_2.10" % "0.5.1.2"
 ```
 
 > If you need `threeten` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_threeten_2.10" % "0.5.1.1"
+libraryDependencies += "com.github.tminglei" % "slick-pg_threeten_2.10" % "0.5.1.2"
 ```
 
 
@@ -52,7 +52,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.10</artifactId>
-    <version>0.5.1.1</version>
+    <version>0.5.1.2</version>
 </dependency>
 
 <!-- append play-json/json4s/joda-time/jts/threeten dependencies if needed -->
@@ -192,6 +192,9 @@ Support details
 
 Version history
 ------------------------------
+v0.5.1 (22-Feb-2014):  
+1) added more postgis/geom functions
+
 v0.5.0 (7-Feb-2014):  
 1) upgrade to slick v2.0.0  
 2) add basic composite type support  
