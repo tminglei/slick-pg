@@ -37,10 +37,6 @@ class TypeConverterTest {
 
   @Test
   def testConverterUtil(): Unit = {
-    TypeConverters.register((v: String) => v.toInt)
-    TypeConverters.register((v: String) => v.toLong)
-    //    Converters.register((v: String) => v)
-
     // simple case
     val conv = mkConvFromElement[T]
     assertEquals(T(111,"test","test desc"),

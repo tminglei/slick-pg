@@ -79,15 +79,15 @@ class PgDateSupportJodaTest {
 
       val q8 = Datetimes.filter(_.id === 101L.bind).map(r => r.datetime - r.date)
       println(s"[date] '-' sql = ${q8.selectStatement}")
-      assertEquals(Period.parse("P-3589DT-10H-39M"), q8.first())
+      assertEquals(Period.parse("P-3590DT-10H-39M"), q8.first())
 
       val q801 = Datetimes.filter(_.id === 101L.bind).map(r => r.date.asColumnOf[LocalDateTime] - r.datetime)
       println(s"[date] '-' sql = ${q801.selectStatement}")
-      assertEquals(Period.parse("P3589DT10H39M"), q801.first())
+      assertEquals(Period.parse("P3590DT10H39M"), q801.first())
 
       val q9 = Datetimes.filter(_.id === 101L.bind).map(r => r.date - LocalDate.parse("2009-07-05"))
       println(s"[date] '-' sql = ${q9.selectStatement}")
-      assertEquals(485, q9.first())
+      assertEquals(486, q9.first())
 
       val q10 = Datetimes.filter(_.id === 101L.bind).map(r => r.time - LocalTime.parse("02:37:00").bind)
       println(s"[date] '-' sql = ${q10.selectStatement}")

@@ -47,29 +47,29 @@ trait PgDateSupportJoda extends date.PgDateExtensions with date.PgDateJavaTypes 
 
   /// sql.Date <-> joda LocalDate
   private def sqlDate2jodaDate(date: Date): LocalDate = {
-    new LocalDate(date)
+    new LocalDate(date.getTime)
   }
 
   private def jodaDate2sqlDate(date: LocalDate): Date = {
-    new Date(date.toDateTimeAtStartOfDay().toDate().getTime())
+    new Date(date.toDateTimeAtStartOfDay.toDate.getTime)
   }
 
   /// sql.Time <-> joda LocalTime
   private def sqlTime2jodaTime(time: Time): LocalTime = {
-    new LocalTime(time, DateTimeZone.UTC)
+    new LocalTime(time.getTime)
   }
 
   private def jodaTime2sqlTime(time: LocalTime): Time = {
-    new Time(time.getMillisOfDay)
+    new Time(time.toDateTimeToday.toDate.getTime)
   }
 
   /// sql.Timestamp <-> joda LocalDateTime
   private def sqlTimestamp2jodaDateTime(ts: Timestamp): LocalDateTime = {
-    new LocalDateTime(ts)
+    new LocalDateTime(ts.getTime)
   }
 
-  private def jodaDateTime2sqlTimestamp(dt: LocalDateTime): Timestamp = {
-    new Timestamp(dt.toDateTime.toDate.getTime)
+  private def jodaDateTime2sqlTimestamp(ts: LocalDateTime): Timestamp = {
+    new Timestamp(ts.toDateTime.toDate.getTime)
   }
 
   /// pg interval string <-> joda Duration

@@ -14,11 +14,9 @@ object SlickPgBuild extends Build {
       "-language:higherKinds",
       "-language:postfixOps"),
 
-//    resolvers += Resolver.mavenLocal,
-//    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))),
-//    publishMavenStyle := true,
-
+    resolvers += Resolver.mavenLocal,
     resolvers += Resolver.sonatypeRepo("snapshots"),
+//    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))),
     publishTo <<= version { (v: String) =>
       val nexus = "https://oss.sonatype.org/"
       if (v.trim.endsWith("SNAPSHOT"))
@@ -65,12 +63,12 @@ object SlickPgBuild extends Build {
   lazy val coreSettings = Seq(
     name := "slick-pg_core",
     description := "Slick extensions for PostgreSQL - Core",
-    version := "0.5.1.1.1",
+    version := "0.5.1.2",
     libraryDependencies := mainDependencies
   )
 
   lazy val slickPgSettings = Seq(
-    version := "0.5.1.1.1",
+    version := "0.5.1.2",
     resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
   )
 

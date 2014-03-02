@@ -19,11 +19,11 @@ object TypeConverters extends Logging {
   }
 
   ///////////////////////////////////////////////////////////////
-  private var converterMap = Map[CacheKey, TypeConverter[_, _]]()
+  private val converterMap = collection.concurrent.TrieMap[CacheKey, TypeConverter[_, _]]()
 
   private[utils] def internalGet(from: ru.Type, to: ru.Type) = {
     val cacheKey = CacheKey(from, to)
-    logger.debug(s"get converter for $from => $to")
+    logger.debug(s"get converter for ${from.erasure} => ${to.erasure}")
     converterMap.get(cacheKey).orElse({
       if (to <:< from) {
         converterMap += (cacheKey -> TypeConverter((v: Any) => v))
@@ -33,7 +33,7 @@ object TypeConverters extends Logging {
   }
 
   def register[FROM,TO](convert: (FROM => TO))(implicit from: ru.TypeTag[FROM], to: ru.TypeTag[TO]) = {
-    logger.info(s"register converter for ${from.tpe} => ${to.tpe}")
+    logger.info(s"register converter for ${from.tpe.erasure} => ${to.tpe.erasure}")
     converterMap += (CacheKey(from.tpe, to.tpe) -> TypeConverter(convert))
   }
 
@@ -45,7 +45,7 @@ object TypeConverters extends Logging {
   ///
   private[utils] case class CacheKey(val from: ru.Type, val to: ru.Type) {
     override def hashCode(): Int = {
-      from.toString.hashCode() * 31 + to.toString.hashCode()
+      from.erasure.hashCode() * 31 + to.erasure.hashCode()
     }
     override def equals(o: Any) = {
       if (o.isInstanceOf[CacheKey]) {
@@ -63,7 +63,7 @@ object TypeConverters extends Logging {
     private val timeFormatter = new java.text.SimpleDateFormat("HH:mm:ss")
     private val tsFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 
-    lazy val registerBasicTypeConverters = {
+    lazy val registerBasicTypeConverters = synchronized {
       register((v: String) => v.toInt)
       register((v: String) => v.toLong)
       register((v: String) => v.toShort)
@@ -173,7 +173,7 @@ object TypeConverters extends Logging {
 
     ///
     private[utils] def mkConvFromElement[T <: AnyRef](implicit ev: ru.TypeTag[T]): TypeConverter[Element, T] = {
-
+      registerBasicTypeConverters
       new TypeConverter[Element, T] {
         private val thisType = ru.typeOf[T]
         private val optType = ru.typeOf[Option[_]]
@@ -203,7 +203,7 @@ object TypeConverters extends Logging {
     }
 
     private[utils] def mkConvToElement[T](implicit ev: ru.TypeTag[T], ev1: ClassTag[T]): TypeConverter[T, Element] = {
-
+      registerBasicTypeConverters
       new TypeConverter[T, Element] {
         private val thisType = ru.typeOf[T]
 
@@ -231,7 +231,7 @@ object TypeConverters extends Logging {
 
     ////
     private[utils] def mkArrayConvFromElement[T](implicit ev: ru.TypeTag[T]): TypeConverter[Element, List[T]] = {
-
+      registerBasicTypeConverters
       new TypeConverter[Element, List[T]] {
         private val thisType = ru.typeOf[T]
         private val optType = ru.typeOf[Option[_]]
@@ -253,7 +253,7 @@ object TypeConverters extends Logging {
     }
 
     private[utils] def mkArrayConvToElement[T](implicit ev: ru.TypeTag[T], ev1: ClassTag[T]): TypeConverter[List[T], Element] = {
-
+      registerBasicTypeConverters
       new TypeConverter[List[T], Element] {
         private val thisType = ru.typeOf[T]
 
