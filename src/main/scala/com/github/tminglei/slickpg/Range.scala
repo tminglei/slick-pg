@@ -25,10 +25,10 @@ sealed trait EdgeType
 object Range {
 
   // regular expr matchers to range string
-  val `[_,_)Range`  = """\["?([^,]*)"?,[ ]*"?([^,]*)"?\)""".r   // matches: [_,_)
-  val `(_,_]Range`  = """\("?([^,]*)"?,[ ]*"?([^,]*)"?\]""".r   // matches: (_,_]
-  val `(_,_)Range`  = """\("?([^,]*)"?,[ ]*"?([^,]*)"?\)""".r   // matches: (_,_)
-  val `[_,_]Range`  = """\["?([^,]*)"?,[ ]*"?([^,]*)"?\]""".r   // matches: [_,_]
+  val `[_,_)Range`  = """\["?([^,"]*)"?,[ ]*"?([^,"]*)"?\)""".r   // matches: [_,_)
+  val `(_,_]Range`  = """\("?([^,"]*)"?,[ ]*"?([^,"]*)"?\]""".r   // matches: (_,_]
+  val `(_,_)Range`  = """\("?([^,"]*)"?,[ ]*"?([^,"]*)"?\)""".r   // matches: (_,_)
+  val `[_,_]Range`  = """\["?([^,"]*)"?,[ ]*"?([^,"]*)"?\]""".r   // matches: [_,_]
 
   def mkRangeFn[T](convert: (String => T)): (String => Range[T]) =
     (str: String) => str match {
