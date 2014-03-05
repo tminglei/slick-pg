@@ -18,15 +18,15 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_2.10.3" % "0.2.7"
+libraryDependencies += "com.github.tminglei" % "slick-pg_2.10" % "0.2.7.1"
 ```
 
 Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg` to your `pom.xml` like this:
 ```xml
 <dependency>
     <groupId>com.github.tminglei</groupId>
-    <artifactId>slick-pg_2.10.3</artifactId>
-    <version>0.2.7</version>
+    <artifactId>slick-pg_2.10</artifactId>
+    <version>0.2.7.1</version>
 </dependency>
 ```
 
@@ -166,7 +166,7 @@ Support details
 
 Version history
 ---------------
-v0.2.6-7 (25-Jan-2014):  
+v0.2.7 (25-Jan-2014):  
 1) add play-json support  
 2) add timestamp with time zone support
 
@@ -193,13 +193,6 @@ v0.1.0 (20-May-2013):
 3) support pg hstore  
 4) support pg search  
 5) support pg geometry  
-
-
-Existing issues
-----------------
-1) When using `slick-pg`'s uuid array support, you maybe encountered an exception said like 'Method `Jdbc4Array.getArrayImpl(long,int,Map)` is not yet implemented'.
-That's because uuid array is not supported by postgres jdbc driver yet.  
-I have submitted enhancement changes to postgres jdbc driver's development team, pls see [add uuid array support](https://github.com/pgjdbc/pgjdbc/pull/81 "add uuid array support") for details.
 
 
 License
