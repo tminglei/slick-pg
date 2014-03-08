@@ -17,7 +17,7 @@ trait PgDateSupportJoda extends date.PgDateExtensions with date.PgDateJavaTypes 
   type TIMESTAMP_TZ = DateTime
 
   trait DateTimeImplicits {
-    val tzDateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ssZ")
+    val tzDateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSSSSSZ")
 
     implicit val jodaDateTypeMapper = new DateJdbcType(sqlDate2jodaDate, jodaDate2sqlDate)
     implicit val jodaTimeTypeMapper = new TimeJdbcType(sqlTime2jodaTime, jodaTime2sqlTime)
