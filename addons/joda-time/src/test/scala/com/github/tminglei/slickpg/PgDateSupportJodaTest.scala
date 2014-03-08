@@ -33,11 +33,11 @@ class PgDateSupportJodaTest {
   //------------------------------------------------------------------------------
 
   val testRec1 = new DatetimeBean(101L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01"),
-    LocalDateTime.parse("2001-01-03T13:21:00"), DateTime.parse("2001-01-03 13:21:00+08", tzDateTimeFormatter), Period.parse("P1DT1H"))
+    LocalDateTime.parse("2001-01-03T13:21:00"), DateTime.parse("2001-01-03 13:21:00.000+08", tzDateTimeFormatter), Period.parse("P1DT1H"))
   val testRec2 = new DatetimeBean(102L, LocalDate.parse("2011-03-02"), LocalTime.parse("03:14:07"),
-    LocalDateTime.parse("2012-05-08T11:31:06"), DateTime.parse("2012-05-08 11:31:06-05", tzDateTimeFormatter), Period.parse("P1587D"))
+    LocalDateTime.parse("2012-05-08T11:31:06"), DateTime.parse("2012-05-08 11:31:06.000-05", tzDateTimeFormatter), Period.parse("P1587D"))
   val testRec3 = new DatetimeBean(103L, LocalDate.parse("2000-05-19"), LocalTime.parse("11:13:34"),
-    LocalDateTime.parse("2019-11-03T13:19:03"), DateTime.parse("2019-11-03 13:19:03+03", tzDateTimeFormatter), Period.parse("PT63H16M2S"))
+    LocalDateTime.parse("2019-11-03T13:19:03"), DateTime.parse("2019-11-03 13:19:03.000+03", tzDateTimeFormatter), Period.parse("PT63H16M2S"))
 
   @Test
   def testDatetimeFunctions(): Unit = {
@@ -170,7 +170,7 @@ class PgDateSupportJodaTest {
 
       val q36 = Datetimes.filter(_.id === 101L.bind).map(r => r.datetimetz.trunc("day"))
       println(s"[date] 'trunc' sql = ${q36.selectStatement}")
-      assertEquals(DateTime.parse("2001-01-03 00:00:00+08", tzDateTimeFormatter), q36.first())
+      assertEquals(DateTime.parse("2001-01-03 00:00:00.000+08", tzDateTimeFormatter), q36.first())
     }
   }
 
