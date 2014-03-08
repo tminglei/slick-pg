@@ -18,14 +18,16 @@ trait PgDateSupportJoda extends date.PgDateExtensions { driver: PostgresDriver =
   type TIMESTAMP_TZ = DateTime
 
   trait DateTimeImplicits {
-    val tzDateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ssZ")
+    val tzDateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSSSSSZ")
+    val tzDateTimeFormatter_NoFraction = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ssZ")
 
     implicit val jodaDateTypeMapper = new date.DateTypeMapper(sqlDate2jodaDate, jodaDate2sqlDate)
     implicit val jodaTimeTypeMapper = new date.TimeTypeMapper(sqlTime2jodaTime, jodaTime2sqlTime)
     implicit val jodaDateTimeTypeMapper = new date.TimestampTypeMapper(sqlTimestamp2jodaDateTime, jodaDateTime2sqlTimestamp)
     implicit val jodaPeriodTypeMapper = new utils.GenericTypeMapper[Period]("interval", pgIntervalStr2jodaPeriod)
     implicit val timestampTZTypeMapper = new utils.GenericTypeMapper[DateTime]("timestamptz",
-      DateTime.parse(_, tzDateTimeFormatter), _.toString(tzDateTimeFormatter))
+      fnFromString = (s) => DateTime.parse(s, if(s.indexOf(".") > 0 ) tzDateTimeFormatter else tzDateTimeFormatter_NoFraction),
+      fnToString = (v) => v.toString(tzDateTimeFormatter))
 
     ///
     implicit def dateColumnExtensionMethods(c: Column[LocalDate]) = new DateColumnExtensionMethods(c)

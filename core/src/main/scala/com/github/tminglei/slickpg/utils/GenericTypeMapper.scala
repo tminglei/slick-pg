@@ -7,7 +7,7 @@ import scala.slick.session.{PositionedResult, PositionedParameters}
 import org.postgresql.util.PGobject
 
 class GenericTypeMapper[T](val sqlTypeName: String,
-						   fnFromString: (String => T),
+						               fnFromString: (String => T),
                            fnToString: (T => String) = ((r: T) => r.toString),
                            val sqlType: Int = java.sql.Types.OTHER,
                            val zero: T = null.asInstanceOf[T])
