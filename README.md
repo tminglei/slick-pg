@@ -36,7 +36,7 @@ libraryDependencies += "com.github.tminglei" % "slick-pg_joda-time_2.10" % "0.5.
 libraryDependencies += "com.github.tminglei" % "slick-pg_jts_2.10" % "0.5.1.3"
 ```
 
-> If you need `json4s`  support, pls append dependency:
+> If you need `json4s` support, pls append dependency:
 ```scala
 libraryDependencies += "com.github.tminglei" % "slick-pg_json4s_2.10" % "0.5.1.3"
 ```
@@ -44,6 +44,11 @@ libraryDependencies += "com.github.tminglei" % "slick-pg_json4s_2.10" % "0.5.1.3
 > If you need `threeten` support, pls append dependency:
 ```scala
 libraryDependencies += "com.github.tminglei" % "slick-pg_threeten_2.10" % "0.5.1.3"
+```
+
+> If you need `spray-json` support, pls append dependency:
+```scala
+libraryDependencies += "com.github.tminglei" % "slick-pg_spray-json_2.10" % "0.5.1.3"
 ```
 
 
@@ -55,7 +60,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
     <version>0.5.1.3</version>
 </dependency>
 
-<!-- append play-json/json4s/joda-time/jts/threeten dependencies if needed -->
+<!-- append play-json/json4s/joda-time/jts/threeten/spray-json dependencies if needed -->
 ```
 
 
@@ -153,6 +158,7 @@ Here's the related technical details:
 | Map[String,String]                  | hstore                |
 | `json4s` JValue                       | json                  |
 | `play-json` JsValue                   | json                  |
+| `spray-json` JsValue                  | json                  |
 | (TsQuery+TsVector)                  | `text` search         |
 | `jts` Geometry                        | `postgis` geometry    |
 
