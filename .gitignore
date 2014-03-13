@@ -8,14 +8,11 @@
 /example/project/target
 /example/target
 /bin
-/modules/threeten/target
-/modules/json4s/target
-/modules/play-json/target
-/modules/jts/target
-/modules/common/target
-/modules/joda-time/target
+/addons/*/target
 
+*.sw[po]
 .cache
 .project
 .classpath
 .settings
+.DS_Store
