@@ -7,25 +7,24 @@ trait PgSprayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
   import spray.json._
   import DefaultJsonProtocol._ // !!! IMPORTANT, otherwise `convertTo` and `toJson` won't work correctly.
 
-  type DOCType
   type JSONType = JsValue
 
   trait JsonImplicits {
     implicit val jsonTypeMapper =
       new GenericJdbcType[JsValue](
         "json",
-        (v) => v.asJson,
-        (v) => v.toJson.prettyPrint,
+        (s) => s.asJson,
+        (v) => v.toJson.compactPrint,
         hasLiteralForm = false
       )
 
     implicit def jsonColumnExtensionMethods(c: Column[JsValue])(
       implicit tm: JdbcType[JsValue], tm1: JdbcType[List[String]]) = {
-      new JsonColumnExtensionMethods[JsValue](c)
-    }
+        new JsonColumnExtensionMethods[JsValue](c)
+      }
     implicit def jsonOptionColumnExtensionMethods(c: Column[Option[JsValue]])(
       implicit tm: JdbcType[JsValue], tm1: JdbcType[List[String]]) = {
-      new JsonColumnExtensionMethods[Option[JsValue]](c)
-    }
+        new JsonColumnExtensionMethods[Option[JsValue]](c)
+      }
   }
 }

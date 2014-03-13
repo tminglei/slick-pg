@@ -15,7 +15,7 @@ trait PgJson4sSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes
     implicit val jsonTypeMapper =
       new GenericJdbcType[JValue](
         "json",
-        (v) => jsonMethods.parse(v),
+        (s) => jsonMethods.parse(s),
         (v) => jsonMethods.compact(jsonMethods.render(v)),
         hasLiteralForm = false
       )

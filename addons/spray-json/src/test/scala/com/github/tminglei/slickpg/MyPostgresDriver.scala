@@ -6,8 +6,6 @@ import utils.TypeConverters.Util._
 object MyPostgresDriver extends PostgresDriver
                            with PgSprayJsonSupport
                            with array.PgArrayJavaTypes {
-  /// for json support
-  type DOCType = text.Document
 
   override val Implicit = new Implicits with JsonImplicits
   override val simple = new Implicits with SimpleQL with JsonImplicits {

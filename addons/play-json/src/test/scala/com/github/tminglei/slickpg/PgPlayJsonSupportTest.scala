@@ -33,7 +33,7 @@ class PgPlayJsonSupportTest {
       val json2 = Json.parse(""" {"a":"v5","b":3} """)
 
       val q0 = JsonTests.filter(_.id === testRec2.id.bind).map(_.json)
-      println(s"sql0 = ${q0.selectStatement}")
+      println(s"[play-json] sql0 = ${q0.selectStatement}")
       assertEquals(JsArray(List(json1,json2)), q0.first())
 
 // pretty(render(JsNumber(101))) will get "101", but parse("101") will fail, since json string must start with '{' or '['
@@ -41,40 +41,40 @@ class PgPlayJsonSupportTest {
 //      assertEquals(JsNumber(101), q1.first())
 
       val q11 = JsonTests.filter(_.json.+>>("a") === "101".bind).map(_.json.+>>("c"))
-      println(s"'+>>' sql = ${q11.selectStatement}")
+      println(s"[play-json] '+>>' sql = ${q11.selectStatement}")
       assertEquals("[3,4,5,9]", q11.first())
 
       val q12 = JsonTests.filter(_.json.+>>("a") === "101".bind).map(_.json.+>("c"))
-      println(s"'+>' sql = ${q12.selectStatement}")
+      println(s"[play-json] '+>' sql = ${q12.selectStatement}")
       assertEquals(JsArray(List(JsNumber(3), JsNumber(4), JsNumber(5), JsNumber(9))), q12.first())
 
       // json array's index starts with 0
       val q2 = JsonTests.filter(_.id === testRec2.id).map(_.json.~>(1))
-      println(s"'~>' sql = ${q2.selectStatement}")
+      println(s"[play-json] '~>' sql = ${q2.selectStatement}")
       assertEquals(json2, q2.first())
 
       val q21 = JsonTests.filter(_.id === testRec2.id).map(_.json.~>>(1))
-      println(s"'~>>' sql = ${q21.selectStatement}")
+      println(s"[play-json] '~>>' sql = ${q21.selectStatement}")
       assertEquals("""{"a":"v5","b":3}""", q21.first())
 
       val q3 = JsonTests.filter(_.id === testRec2.id).map(_.json.arrayLength)
-      println(s"'arrayLength' sql = ${q3.selectStatement}")
+      println(s"[play-json] 'arrayLength' sql = ${q3.selectStatement}")
       assertEquals(2, q3.first())
 
       val q4 = JsonTests.filter(_.id === testRec2.id).map(_.json.arrayElements)
-      println(s"'arrayElements' sql = ${q4.selectStatement}")
+      println(s"[play-json] 'arrayElements' sql = ${q4.selectStatement}")
       assertEquals(List(json1, json2), q4.list())
 
       val q41 = JsonTests.filter(_.id === testRec2.id).map(_.json.arrayElements)
-      println(s"'arrayElements' sql = ${q41.selectStatement}")
+      println(s"[play-json] 'arrayElements' sql = ${q41.selectStatement}")
       assertEquals(json1, q41.first())
 
       val q5 = JsonTests.filter(_.id === testRec1.id).map(_.json.objectKeys)
-      println(s"'objectKeys' sql = ${q5.selectStatement}")
+      println(s"[play-json] 'objectKeys' sql = ${q5.selectStatement}")
       assertEquals(List("a","b","c"), q5.list())
 
       val q51 = JsonTests.filter(_.id === testRec1.id).map(_.json.objectKeys)
-      println(s"'objectKeys' sql = ${q51.selectStatement}")
+      println(s"[play-json] 'objectKeys' sql = ${q51.selectStatement}")
       assertEquals("a", q51.first())
     }
   }
