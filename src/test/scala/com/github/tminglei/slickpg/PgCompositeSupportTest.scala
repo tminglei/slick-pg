@@ -16,7 +16,8 @@ object PgCompositeSupportTest {
   
   case class Composite2(
     id: Long,
-    comp1: Composite1
+    comp1: Composite1,
+    confirm: Boolean
     )
 
   //-------------------------------------------------------------
@@ -71,8 +72,8 @@ class PgCompositeSupportTest {
   val tsFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
   def ts(str: String) = new Timestamp(tsFormat.parse(str).getTime)
   
-  val rec1 = TestBean(333, List(Composite2(201, Composite1(101, "(test1'", ts("2001-1-3 13:21:00")))))
-  val rec2 = TestBean(335, List(Composite2(202, Composite1(102, "test2\\", ts("2012-5-8 11:31:06")))))
+  val rec1 = TestBean(333, List(Composite2(201, Composite1(101, "(test1'", ts("2001-1-3 13:21:00")), true)))
+  val rec2 = TestBean(335, List(Composite2(202, Composite1(102, "test2\\", ts("2012-5-8 11:31:06")), false)))
   
   @Test
   def testCompositeTypes(): Unit = {
@@ -94,7 +95,7 @@ class PgCompositeSupportTest {
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
       (Q[Int] + "create type composite1 as (id int8, txt text, date timestamp)").first
-      (Q[Int] + "create type composite2 as (id int8, comp1 composite1)").first
+      (Q[Int] + "create type composite2 as (id int8, comp1 composite1, confirm boolean)").first
       
       new MyPostgresDriver1.TableDDLBuilder(CompositeTests.baseTableRow).buildDDL create
     }
