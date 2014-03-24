@@ -63,13 +63,20 @@ object TypeConverters extends Logging {
     private val timeFormatter = new java.text.SimpleDateFormat("HH:mm:ss")
     private val tsFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 
+    private def pgAdjusted(s: String): String =
+      Option(s).map(_.toLowerCase) match {
+        case Some("t")  => "true"
+        case Some("f")  => "false"
+        case _ => s
+      }
+
     lazy val registerBasicTypeConverters = synchronized {
       register((v: String) => v.toInt)
       register((v: String) => v.toLong)
       register((v: String) => v.toShort)
       register((v: String) => v.toFloat)
       register((v: String) => v.toDouble)
-      register((v: String) => v.toBoolean)
+      register((v: String) => pgAdjusted(v).toBoolean)
       register((v: String) => v.toByte)
       register((v: String) => UUID.fromString(v))
       // register date/time converters

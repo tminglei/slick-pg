@@ -26,7 +26,7 @@ class TypeConverterTest {
     assertEquals(CacheKey(tpe1, tpe2).hashCode(), CacheKey(tpea, tpeb).hashCode())
     assertEquals(CacheKey(tpe1, tpe2), CacheKey(tpea, tpeb))
 
-    val t1 = T1(115,T(111,"test","test dd",Some("hi")),List(157))
+    val t1 = T1(115,T(111,"test","test dd",Some("hi")),List(157), true)
     val tt = ru.typeOf[T1].declaration(ru.newTermName("t")).asTerm
     val tpet = runtimeMirror.reflect(t1).reflectField(tt).symbol.typeSignature
 
@@ -61,7 +61,7 @@ class TypeConverterTest {
     // simple nested case
     TypeConverters.register(conv)
     val convt1 = mkConvFromElement[T1]
-    assertEquals(T1(115, T(111,"test","test dd",Some("hi")), List(157)),
+    assertEquals(T1(115, T(111,"test","test dd",Some("hi")), List(157), true),
       convt1(
         CompositeE(List(
           ValueE("115"),
@@ -72,7 +72,8 @@ class TypeConverterTest {
             ValueE("hi"))),
           ArrayE(List(
             ValueE("157")
-          ))
+          )),
+          ValueE("t")
         ))
       ))
 
@@ -89,14 +90,15 @@ class TypeConverterTest {
         ArrayE(List(
           ValueE("123"),
           ValueE("135")
-        ))
+        )),
+        ValueE("false")
       )),
-      convt11(T1(116, T(111, "test", "test 3"), List(123,135))))
+      convt11(T1(116, T(111, "test", "test 3"), List(123,135), false)))
 
     // composite array case
     TypeConverters.register(convt1)
     val convat = mkArrayConvFromElement[T1]
-    assertEquals(List(T1(115, T(111,"test","test dd",Some("hi")), List(157))),
+    assertEquals(List(T1(115, T(111,"test","test dd",Some("hi")), List(157), false)),
       convat(
         ArrayE(List(
           CompositeE(List(
@@ -109,7 +111,8 @@ class TypeConverterTest {
             ),
             ArrayE(List(
               ValueE("157")
-            ))
+            )),
+            ValueE("f")
           ))
         ))
       ))
@@ -127,15 +130,16 @@ class TypeConverterTest {
             ValueE("hi"))),
           ArrayE(List(
             ValueE("157")
-          ))
+          )),
+          ValueE("true")
         ))
       )),
-      convat1(List(T1(115, T(111,"test","test dd",Some("hi")), List(157)))))
+      convat1(List(T1(115, T(111,"test","test dd",Some("hi")), List(157), true))))
   }
 }
 
 object TypeConverterTest {
   // !!!NOTE: should use outer (in object) classes, instead of inner (in trait/class) classes
   case class T(id: Long, name: String, desc: String, opt: Option[String] = None)
-  case class T1(id: Long, t: T, childIds: List[Long])
+  case class T1(id: Long, t: T, childIds: List[Long], confirm: Boolean)
 }
