@@ -74,18 +74,22 @@ class PgCompositeSupportTest {
   
   val rec1 = TestBean(333, List(Composite2(201, Composite1(101, "(test1'", ts("2001-1-3 13:21:00")), true)))
   val rec2 = TestBean(335, List(Composite2(202, Composite1(102, "test2\\", ts("2012-5-8 11:31:06")), false)))
+  val rec3 = TestBean(337, List(Composite2(203, Composite1(103, "ABC ABC", ts("2015-3-8 17:17:03")), false)))
   
   @Test
   def testCompositeTypes(): Unit = {
     
     db withSession { implicit session: Session =>
-      CompositeTests forceInsertAll (rec1, rec2)
+      CompositeTests forceInsertAll (rec1, rec2, rec3)
       
       val q1 = CompositeTests.filter(_.id === 333L.bind).map(r => r)
       assertEquals(rec1, q1.first)
       
       val q2 = CompositeTests.filter(_.id === 335L.bind).map(r => r)
       assertEquals(rec2, q2.first)
+
+      val q3 = CompositeTests.filter(_.id === 337L.bind).map(r => r)
+      assertEquals(rec3, q3.first)
     }
   }
   
