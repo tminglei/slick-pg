@@ -20,6 +20,12 @@ object PgCompositeSupportTest {
     confirm: Boolean
     )
 
+  case class Composite3(
+    txt: String,
+    id: Long,
+    date: Timestamp
+    )
+
   //-------------------------------------------------------------
   trait MyCompositeSupport extends utils.PgCommonJdbcTypes with array.PgArrayJavaTypes { driver: PostgresDriver =>
 
@@ -30,15 +36,21 @@ object PgCompositeSupportTest {
       utils.TypeConverters.register(mkCompositeConvToString[Composite1])
       utils.TypeConverters.register(mkCompositeConvFromString[Composite2])
       utils.TypeConverters.register(mkCompositeConvToString[Composite2])
+      utils.TypeConverters.register(mkCompositeConvFromString[Composite3])
+      utils.TypeConverters.register(mkCompositeConvToString[Composite3])
       
       implicit val composite1TypeMapper = new GenericJdbcType[Composite1]("composite1",
         mkCompositeConvFromString[Composite1], mkCompositeConvToString[Composite1])
       implicit val composite2TypeMapper = new GenericJdbcType[Composite2]("composite2",
         mkCompositeConvFromString[Composite2], mkCompositeConvToString[Composite2])
+      implicit val composite3TypeMapper = new GenericJdbcType[Composite3]("composite3",
+        mkCompositeConvFromString[Composite3], mkCompositeConvToString[Composite3])
       implicit val composite1ArrayTypeMapper = new ArrayListJavaType[Composite1]("composite1",
         mkArrayConvFromString[Composite1], mkArrayConvToString[Composite1])
       implicit val composite2ArrayTypeMapper = new ArrayListJavaType[Composite2]("composite2",
         mkArrayConvFromString[Composite2], mkArrayConvToString[Composite2])
+      implicit val composite3ArrayTypeMapper = new ArrayListJavaType[Composite3]("composite3",
+        mkArrayConvFromString[Composite3], mkArrayConvToString[Composite3])
     }
   }
   
@@ -60,6 +72,11 @@ class PgCompositeSupportTest {
     comps: List[Composite2]
     )
   
+  case class TestBean1(
+    id: Long,
+    comps: List[Composite3]
+    )
+  
   class TestTable(tag: Tag) extends Table[TestBean](tag, "CompositeTest") {
     def id = column[Long]("id")
     def comps = column[List[Composite2]]("comps", O.DBType("composite2[]"))
@@ -67,6 +84,14 @@ class PgCompositeSupportTest {
     def * = (id,comps) <> (TestBean.tupled, TestBean.unapply)
   }
   val CompositeTests = TableQuery[TestTable]
+  
+  class TestTable1(tag: Tag) extends Table[TestBean1](tag, "CompositeTest1") {
+    def id = column[Long]("id")
+    def comps = column[List[Composite3]]("comps", O.DBType("composite3[]"))
+    
+    def * = (id,comps) <> (TestBean1.tupled, TestBean1.unapply)
+  }
+  val CompositeTests1 = TableQuery[TestTable1]
   
   //-------------------------------------------------------------------
   val tsFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
@@ -93,6 +118,28 @@ class PgCompositeSupportTest {
     }
   }
   
+  ///
+  val rec11 = TestBean1(111, List(Composite3("(test1'", 101, ts("2001-1-3 13:21:00"))))
+  val rec12 = TestBean1(112, List(Composite3("test2\\", 102, ts("2012-5-8 11:31:06"))))
+  val rec13 = TestBean1(113, List(Composite3("ABC ABC", 103, ts("2015-3-8 17:17:03"))))
+  
+  @Test
+  def testCompositeTypes1(): Unit = {
+    
+    db withSession { implicit session: Session =>
+      CompositeTests1 forceInsertAll (rec11, rec12, rec13)
+      
+      val q1 = CompositeTests1.filter(_.id === 111L.bind).map(r => r)
+      assertEquals(rec11, q1.first)
+      
+      val q2 = CompositeTests1.filter(_.id === 112L.bind).map(r => r)
+      assertEquals(rec12, q2.first)
+
+      val q3 = CompositeTests1.filter(_.id === 113L.bind).map(r => r)
+      assertEquals(rec13, q3.first)
+    }
+  }
+  
   //////////////////////////////////////////////////////////////////////
 
   @Before
@@ -100,16 +147,20 @@ class PgCompositeSupportTest {
     db withSession { implicit session: Session =>
       (Q[Int] + "create type composite1 as (id int8, txt text, date timestamp)").first
       (Q[Int] + "create type composite2 as (id int8, comp1 composite1, confirm boolean)").first
+      (Q[Int] + "create type composite3 as (txt text, id int8, date timestamp)").first
       
-      new MyPostgresDriver1.TableDDLBuilder(CompositeTests.baseTableRow).buildDDL create
+      new MyPostgresDriver1.TableDDLBuilder(CompositeTests.baseTableRow).buildDDL create;
+      new MyPostgresDriver1.TableDDLBuilder(CompositeTests1.baseTableRow).buildDDL create
     }
   }
 
   @After
   def dropTables(): Unit = {
     db withSession { implicit session: Session =>
+      new MyPostgresDriver1.TableDDLBuilder(CompositeTests1.baseTableRow).buildDDL drop;
       new MyPostgresDriver1.TableDDLBuilder(CompositeTests.baseTableRow).buildDDL drop
       
+      (Q[Int] + "drop type composite3").first
       (Q[Int] + "drop type composite2").first
       (Q[Int] + "drop type composite1").first
     }
