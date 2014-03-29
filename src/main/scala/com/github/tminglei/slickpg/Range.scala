@@ -38,6 +38,14 @@ object Range {
       case `[_,_]Range`(start, end) => Range(convert(start), convert(end), `[_,_]`)
     }
 
+  def toStringFn[T](toString: (T => String)): (Range[T] => String) = 
+    (r: Range[T]) => r.edge match {
+      case `[_,_)` => s"[${toString(r.start)},${toString(r.end)})"
+      case `(_,_]` => s"(${toString(r.start)},${toString(r.end)}]"
+      case `(_,_)` => s"(${toString(r.start)},${toString(r.end)})"
+      case `[_,_]` => s"[${toString(r.start)},${toString(r.end)}]"
+    }
+
   ///
   def mkWithLength[T](start: T, length: Double, edge: EdgeType = `[_,_)`) = {
     val upper = (start.asInstanceOf[Double] + length).asInstanceOf[T]

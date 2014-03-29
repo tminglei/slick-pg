@@ -21,7 +21,6 @@ class PGObjectTokenizer extends RegexParsers {
     case class BracketOpen(marker: String, l: Int)  extends BorderToken
     case class BracketClose(marker: String, l: Int) extends BorderToken
     case class Marker(marker: String, l: Int)   extends BorderToken
-    case object SingleQuote                     extends BorderToken
 
     trait ValueToken extends Token {
       def value: String
@@ -54,7 +53,7 @@ class PGObjectTokenizer extends RegexParsers {
             case Chunk(v) => mergeString(list.tail, tally + v)
             case Quote(v) => mergeString(list.tail, tally + v)
             case Escape(v, _) => mergeString(list.tail, tally + v)
-            case Comma  => mergeString(list.tail, tally)
+            case Comma    => mergeString(list.tail, tally)
             case token => throw new IllegalArgumentException(s"unsupported token $token")
           }
       }
@@ -135,7 +134,6 @@ class PGObjectTokenizer extends RegexParsers {
         case BraceOpen(_,_) => true
         case ParenOpen(_,_) => true
         case BracketOpen(_,_)=> true
-        case SingleQuote  => true
         case _ => false
       } }
 
@@ -173,7 +171,6 @@ class PGObjectTokenizer extends RegexParsers {
                 case BracketOpen(sm, sl) if cm == sm && sl == cl  && isRange(target) => (CTString(rangeTokens("[", target, "]")), consumeCount +1)
                 case _ => throw new Exception (s"open and close tags don't match: $borderToken - $x")
               }
-              case SingleQuote if borderToken == SingleQuote => (CTString(target :+ x), consumeCount +1)
               // the else porting of this should be caught by the isOpen case below
               // OPENING CASES -> The results of these are siblings.
               case xx if isOpen(x) => {
@@ -317,7 +314,7 @@ class PGObjectTokenizer extends RegexParsers {
     val pow = scala.math.pow(2,level).toInt
     if(x.length % pow == 0) {
       x.length / pow match {
-        case 1 => SingleQuote
+        case 1 => Quote("\"")
         case _ => Quote("\"" * (x.length/pow -1))
       }
     }
