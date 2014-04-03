@@ -196,6 +196,26 @@ Support details
 - Geometry's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/geom "Geometry's oper/functions")
 - `basic` Composite type [support](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/composite "Composite type Support")
 
+
+> Note: to reduce complexity of pg string parsing, `slick-pg` escape/unescape some pg key chars when processing `text array` and `text in composite type`. Here's the mapping table:  
+
+> | original char |   escaped     |
+|---------------|---------------|
+|   `'`         |   `&#39;`     |
+|   `"`         |   `&#34;`     |
+|   `\`         |   `&#92;`     |
+|   `,`         |   `&#44;`     |
+|   `(`         |   `&#40;`     |
+|   `)`         |   `&#41;`     |
+|   `{`         |   `&#123;`    |
+|   `}`         |   `&#125;`    |
+|   `[`         |   `&#91;`     |
+|   `]`         |   `&#93;`     |
+
+> `*` These escaped chars will be stored to db. But what we got is, `slick-pg` can safely process very complex/nested composite type and array of composite type, including arrange type member.  
+> `**` Not all of these chars must be escaped currently, but I chose to treat them in a unified way.
+
+
 Version history
 ------------------------------
 v0.5.2 (13-Mar-2014):  
