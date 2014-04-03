@@ -171,8 +171,8 @@ class PgPostGISSupportTest {
         val distanceQuery = PointTests.filter(_.id === pbean1.id.bind)
         val distance = distanceQuery.map(_.point.setSRID(4326).distanceSphere(latLongPoint)).first
         distanceQuery.map { p =>
-          ( p.point.setSRID(4326).dWithin(latLongPoint, distance * 1.01, true),
-            p.point.setSRID(4326).dWithin(latLongPoint, distance * 0.99, true)) }.first
+          ( p.point.setSRID(4326).dWithin(latLongPoint, distance * 1.01, Some(true)),
+            p.point.setSRID(4326).dWithin(latLongPoint, distance * 0.99, Some(true))) }.first
       }
       assertEquals((true, false), q15)
     }
