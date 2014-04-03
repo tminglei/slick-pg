@@ -212,7 +212,7 @@ Support details
 |   `[`         |   `&#91;`     |
 |   `]`         |   `&#93;`     |
 
-> `*` These escaped chars will be stored to db. But what we got is, `slick-pg` can safely process very complex/nested composite type and array of composite type, including arrange type member.  
+> `*` These escaped chars will be stored to db. But what we got is, `slick-pg` can safely process very complex/nested composite type and array of composite type, including `range type` member.  
 > `**` Not all of these chars must be escaped currently, but I chose to treat them in a unified way.
 
 
