@@ -7,6 +7,7 @@ import java.util.Calendar
 import java.text.SimpleDateFormat
 import javax.xml.bind.DatatypeConverter
 import com.github.tminglei.slickpg.date.PgDateJavaTypes
+import scala.slick.jdbc.StaticQuery
 
 class gDateSupportTest {
   import MyPostgresDriver.simple._
@@ -55,6 +56,7 @@ class gDateSupportTest {
   @Test
   def testDatetimeFunctions(): Unit = {
     db withSession { implicit session: Session =>
+      (StaticQuery.u + "SET TIMEZONE TO '+8';").execute
       Datetimes forceInsertAll (testRec1, testRec2, testRec3)
 
       // datetime - '+'/'-'

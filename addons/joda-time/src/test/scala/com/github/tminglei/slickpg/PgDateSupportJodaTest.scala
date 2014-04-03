@@ -3,6 +3,7 @@ package com.github.tminglei.slickpg
 import org.joda.time.{Period, LocalDateTime, LocalTime, LocalDate, DateTime}
 import org.junit.{After, Before, Test}
 import org.junit.Assert._
+import scala.slick.jdbc.StaticQuery
 
 class PgDateSupportJodaTest {
   import MyPostgresDriver.simple._
@@ -42,6 +43,7 @@ class PgDateSupportJodaTest {
   @Test
   def testDatetimeFunctions(): Unit = {
     db withSession { implicit session: Session =>
+      (StaticQuery.u + "SET TIMEZONE TO '+8';").execute
       Datetimes forceInsertAll (testRec1, testRec2, testRec3)
 
       // datetime - '+'/'-'

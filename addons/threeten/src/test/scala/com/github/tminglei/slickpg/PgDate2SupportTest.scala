@@ -3,6 +3,7 @@ package com.github.tminglei.slickpg
 import org.junit._
 import org.junit.Assert._
 import org.threeten.bp.{Duration, LocalDateTime, LocalTime, LocalDate, ZonedDateTime}
+import scala.slick.jdbc.StaticQuery
 
 class PgDate2SupportTest {
   import MyPostgresDriver.simple._
@@ -42,6 +43,7 @@ class PgDate2SupportTest {
   @Test
   def testDatetimeFunctions(): Unit = {
     db withSession { implicit session: Session =>
+      (StaticQuery.u + "SET TIMEZONE TO '+8';").execute
       Datetimes forceInsertAll (testRec1, testRec2, testRec3)
 
       // datetime - '+'/'-'
