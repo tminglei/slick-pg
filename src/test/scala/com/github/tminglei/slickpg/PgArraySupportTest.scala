@@ -30,7 +30,7 @@ class PgArraySupportTest {
 
   val testRec1 = ArrayBean(33L, List(101, 102, 103), List(1L, 3L, 5L, 7L), Some(List("str1", "str3")))
   val testRec2 = ArrayBean(37L, List(101, 103), List(11L, 31L, 5L), Some(List("str11", "str3")))
-  val testRec3 = ArrayBean(41L, List(103, 101), List(11L, 5L, 31L), Some(List("str11", "str5", "str3")))
+  val testRec3 = ArrayBean(41L, List(103, 101), List(11L, 5L, 31L), Some(List("(s)", "str5", "str3")))
 
   @Test
   def testArrayFunctions(): Unit = {
@@ -67,7 +67,8 @@ class PgArraySupportTest {
 
       val q6 = ArrayTests.filter(5L.bind <= _.longArr.all).map(_.strArr.unnest)
       println(s"[array] 'unnest' sql = ${q6.selectStatement}")
-      assertEquals((testRec2.strArr.get ++ testRec3.strArr.get).toList, q6.list().map(_.orNull))
+      assertEquals((testRec2.strArr.get ++ testRec3.strArr.get).toList,
+          q6.list().map(_.map(utils.PGObjectTokenizer.unescaped).orNull))
 
       val q7 = ArrayTests.filter(_.id === 33L.bind).map(_.intArr ++ List(105, 107).bind)
       println(s"[array] concatenate1 sql = ${q7.selectStatement}")
