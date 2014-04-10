@@ -79,7 +79,7 @@ object SlickPgBuild extends Build {
       libraryDependencies := mainDependencies
     ) 
   ).dependsOn (slickPgCore)
-   .aggregate (slickPgCore, slickPgJoda, slickPgJson4s, slickPgJts, slickPgPlayJson, slickPgSprayJson, slickPgThreeten)
+   .aggregate (slickPgCore, slickPgJoda, slickPgJson4s, slickPgJts, slickPgPlayJson, slickPgSprayJson, slickPgThreeten, slickPgDate2)
 
   lazy val slickPgCore = Project(id = "slick-pg_core", base = file("./core"),
     settings = Project.defaultSettings ++ commonSettings ++ coreSettings)
@@ -146,5 +146,13 @@ object SlickPgBuild extends Build {
       )
     )
   ) dependsOn (slickPgCore)
-      
+
+  lazy val slickPgDate2 = Project(id = "slick-pg_date2", base = file("./addons/date2"),
+    settings = Project.defaultSettings ++ commonSettings ++ slickPgSettings ++ Seq(
+      name := "slick-pg_date2",
+      description := "Slick extensions for PostgreSQL - date2 module (jdk8 time)",
+      libraryDependencies := mainDependencies
+    )
+  ) dependsOn (slickPgCore)
+
 }
