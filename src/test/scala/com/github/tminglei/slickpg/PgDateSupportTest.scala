@@ -5,7 +5,6 @@ import org.junit.Assert._
 import java.sql.{Timestamp, Time, Date}
 import java.util.Calendar
 import java.text.SimpleDateFormat
-import com.github.tminglei.slickpg.date.PgDateJdbcTypeUtils
 import scala.slick.jdbc.StaticQuery
 
 class gDateSupportTest {
