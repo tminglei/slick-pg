@@ -8,6 +8,7 @@ import scala.slick.lifted.Column
 import org.postgresql.util.PGInterval
 
 trait PgDateSupportJoda extends date.PgDateExtensions with date.PgDateJavaTypes with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+  import PgJodaSupportUtils._
 
   type DATE   = LocalDate
   type TIME   = LocalTime
@@ -45,38 +46,39 @@ trait PgDateSupportJoda extends date.PgDateExtensions with date.PgDateJavaTypes 
     implicit def timestampTZColumnExtensionMethods(c: Column[DateTime]) = new TimestampTZColumnExtensionMethods(c)
     implicit def timestampTZOptColumnExtensionMethods(c: Column[Option[DateTime]]) = new TimestampTZColumnExtensionMethods(c)
   }
+}
 
-  //--------------------------------------------------------------------
+object PgJodaSupportUtils {
 
   /// sql.Date <-> joda LocalDate
-  private def sqlDate2jodaDate(date: Date): LocalDate = {
+  def sqlDate2jodaDate(date: Date): LocalDate = {
     new LocalDate(date.getTime)
   }
 
-  private def jodaDate2sqlDate(date: LocalDate): Date = {
+  def jodaDate2sqlDate(date: LocalDate): Date = {
     new Date(date.toDateTimeAtStartOfDay.toDate.getTime)
   }
 
   /// sql.Time <-> joda LocalTime
-  private def sqlTime2jodaTime(time: Time): LocalTime = {
+  def sqlTime2jodaTime(time: Time): LocalTime = {
     new LocalTime(time.getTime)
   }
 
-  private def jodaTime2sqlTime(time: LocalTime): Time = {
+  def jodaTime2sqlTime(time: LocalTime): Time = {
     new Time(time.toDateTimeToday.toDate.getTime)
   }
 
   /// sql.Timestamp <-> joda LocalDateTime
-  private def sqlTimestamp2jodaDateTime(ts: Timestamp): LocalDateTime = {
+  def sqlTimestamp2jodaDateTime(ts: Timestamp): LocalDateTime = {
     new LocalDateTime(ts.getTime)
   }
 
-  private def jodaDateTime2sqlTimestamp(ts: LocalDateTime): Timestamp = {
+  def jodaDateTime2sqlTimestamp(ts: LocalDateTime): Timestamp = {
     new Timestamp(ts.toDateTime.toDate.getTime)
   }
 
   /// pg interval string <-> joda Duration
-  private def pgIntervalStr2jodaPeriod(intervalStr: String): Period = {
+  def pgIntervalStr2jodaPeriod(intervalStr: String): Period = {
     val pgInterval = new PGInterval(intervalStr)
     val seconds = Math.floor(pgInterval.getSeconds) .asInstanceOf[Int]
     val millis  = ((pgInterval.getSeconds - seconds) * 1000) .asInstanceOf[Int]

@@ -4,13 +4,10 @@ package date
 import scala.slick.driver.{PostgresDriver, JdbcTypesComponent}
 import java.sql.{Timestamp, Time, Date}
 import java.util.Calendar
-import javax.xml.bind.DatatypeConverter
 import org.postgresql.jdbc2.TimestampUtils
-import org.postgresql.util.PGobject
 import scala.slick.ast.{ScalaBaseType, ScalaType, BaseTypedType}
 import scala.slick.jdbc.{PositionedResult, PositionedParameters}
 import scala.reflect.ClassTag
-import java.lang.reflect.{Field, Method}
 
 trait PgDateJavaTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
@@ -93,49 +90,10 @@ trait PgDateJavaTypes extends JdbcTypesComponent { driver: PostgresDriver =>
     override def valueToSQLLiteral(v: TIMESTAMP) = s"{ts '${fnToTimestamp(v)}'}"
 
   }
-
-  ///
-  class TimestampTZJdbcType[TIMESTAMP_TZ](fnFromCalendar: (Calendar => TIMESTAMP_TZ),
-                                      fnToCalendar: (TIMESTAMP_TZ => Calendar))(
-                      implicit tag: ClassTag[TIMESTAMP_TZ]) extends JdbcType[TIMESTAMP_TZ] with BaseTypedType[TIMESTAMP_TZ] {
-
-    def scalaType: ScalaType[TIMESTAMP_TZ] = ScalaBaseType[TIMESTAMP_TZ]
-
-    def zero: TIMESTAMP_TZ = null.asInstanceOf[TIMESTAMP_TZ]
-
-    def sqlType: Int = java.sql.Types.OTHER
-
-    def sqlTypeName: String = "timestamptz"
-
-    def setValue(v: TIMESTAMP_TZ, p: PositionedParameters) =
-      p.setObject(mkPgObject(fnToCalendar(v)), sqlType)
-
-    def setOption(v: Option[TIMESTAMP_TZ], p: PositionedParameters) =
-      p.setObjectOption(v.map(fnToCalendar).map(mkPgObject), sqlType)
-
-    def nextValue(r: PositionedResult): TIMESTAMP_TZ = r.nextStringOption()
-      .map(PgDateJavaTypes.parseCalendar).map(fnFromCalendar).getOrElse(zero)
-
-    def updateValue(v: TIMESTAMP_TZ, r: PositionedResult) =
-      r.updateObject(mkPgObject(fnToCalendar(v)))
-
-    def hasLiteralForm: Boolean = true
-
-    override def valueToSQLLiteral(v: TIMESTAMP_TZ) =
-      s"{ts '${DatatypeConverter.printDateTime(fnToCalendar(v))}'}"
-
-    ///
-    private def mkPgObject(v: Calendar) = {
-      val obj = new PGobject
-      obj.setType(sqlTypeName)
-      obj.setValue(DatatypeConverter.printDateTime(v))
-      obj
-    }
-
-  }
 }
 
-object PgDateJavaTypes {
+object PgDateJavaTypeUtils {
+  import java.lang.reflect.{Field, Method}
 
   /** related codes hacked from [[org.postgresql.jdbc2.TimestampUtils]] */
   def parseCalendar(tsStr: String): Calendar = {

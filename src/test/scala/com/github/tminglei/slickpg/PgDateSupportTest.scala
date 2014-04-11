@@ -5,8 +5,7 @@ import org.junit.Assert._
 import java.sql.{Timestamp, Time, Date}
 import java.util.Calendar
 import java.text.SimpleDateFormat
-import javax.xml.bind.DatatypeConverter
-import com.github.tminglei.slickpg.date.PgDateJavaTypes
+import com.github.tminglei.slickpg.date.PgDateJavaTypeUtils
 import scala.slick.jdbc.StaticQuery
 
 class gDateSupportTest {
@@ -21,7 +20,7 @@ class gDateSupportTest {
   def date(str: String) = new Date(dateFormat.parse(str).getTime)
   def time(str: String) = new Time(timeFormat.parse(str).getTime)
   def ts(str: String) = new Timestamp(tsFormat.parse(str).getTime)
-  def tstz(str: String) = PgDateJavaTypes.parseCalendar(str)
+  def tstz(str: String) = PgDateJavaTypeUtils.parseCalendar(str)
 
   case class DatetimeBean(
     id: Long,
