@@ -6,7 +6,7 @@ import javax.xml.bind.DatatypeConverter
 import scala.slick.lifted.Column
 import java.util.Calendar
 
-trait PgDateSupport extends date.PgDateExtensions with date.PgDateJavaTypes with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+trait PgDateSupport extends date.PgDateExtensions with date.PgDateJdbcTypes with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import driver.Implicit._
 
   type DATE   = Date
@@ -19,7 +19,7 @@ trait PgDateSupport extends date.PgDateExtensions with date.PgDateJavaTypes with
   trait DateTimeImplicits {
     implicit val intervalTypeMapper = new GenericJdbcType[Interval]("interval", Interval.apply, hasLiteralForm=false)
     implicit val timestampTZTypeMapper = new GenericJdbcType[Calendar]("timestamptz",
-        date.PgDateJavaTypeUtils.parseCalendar, DatatypeConverter.printDateTime, hasLiteralForm=false)
+        date.PgDateJdbcTypeUtils.parseCalendar, DatatypeConverter.printDateTime, hasLiteralForm=false)
 
     ///
     implicit def dateColumnExtensionMethods(c: Column[Date]) = new DateColumnExtensionMethods(c)

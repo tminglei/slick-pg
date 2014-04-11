@@ -9,7 +9,7 @@ import scala.slick.ast.{ScalaBaseType, ScalaType, BaseTypedType}
 import scala.slick.jdbc.{PositionedResult, PositionedParameters}
 import scala.reflect.ClassTag
 
-trait PgDateJavaTypes extends JdbcTypesComponent { driver: PostgresDriver =>
+trait PgDateJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
   class DateJdbcType[DATE](fnFromDate: (Date => DATE),
                            fnToDate: (DATE => Date))(
@@ -92,7 +92,7 @@ trait PgDateJavaTypes extends JdbcTypesComponent { driver: PostgresDriver =>
   }
 }
 
-object PgDateJavaTypeUtils {
+object PgDateJdbcTypeUtils {
   import java.lang.reflect.{Field, Method}
 
   /** related codes hacked from [[org.postgresql.jdbc2.TimestampUtils]] */

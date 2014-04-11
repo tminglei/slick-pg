@@ -7,7 +7,7 @@ import java.sql.{Timestamp, Time, Date}
 import scala.slick.lifted.Column
 import org.postgresql.util.PGInterval
 
-trait PgDateSupportJoda extends date.PgDateExtensions with date.PgDateJavaTypes with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+trait PgDateSupportJoda extends date.PgDateExtensions with date.PgDateJdbcTypes with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import PgJodaSupportUtils._
 
   type DATE   = LocalDate
