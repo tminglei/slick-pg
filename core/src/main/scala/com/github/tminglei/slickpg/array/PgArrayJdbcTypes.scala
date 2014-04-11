@@ -7,9 +7,9 @@ import scala.slick.jdbc.{PositionedResult, PositionedParameters}
 import scala.slick.ast.{ScalaBaseType, ScalaType, BaseTypedType}
 import scala.slick.driver.{PostgresDriver, JdbcTypesComponent}
 
-trait PgArrayJavaTypes extends JdbcTypesComponent { driver: PostgresDriver =>
+trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
-  class ArrayListJavaType[T: ClassTag](sqlBaseType: String,
+  class ArrayListJdbcType[T: ClassTag](sqlBaseType: String,
                                        fnFromString: (String => List[T]),
                                        fnToString: (List[T] => String))
                            extends JdbcType[List[T]] with BaseTypedType[List[T]] {

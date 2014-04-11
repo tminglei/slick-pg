@@ -19,7 +19,7 @@ trait PgDateSupport extends date.PgDateExtensions with date.PgDateJdbcTypes with
   trait DateTimeImplicits {
     implicit val intervalTypeMapper = new GenericJdbcType[Interval]("interval", Interval.apply, hasLiteralForm=false)
     implicit val timestampTZTypeMapper = new GenericJdbcType[Calendar]("timestamptz",
-        PgDateJdbcTypeUtils.parseCalendar, DatatypeConverter.printDateTime, hasLiteralForm=false)
+        PgDateSupportUtils.parseCalendar, DatatypeConverter.printDateTime, hasLiteralForm=false)
 
     ///
     implicit def dateColumnExtensionMethods(c: Column[Date]) = new DateColumnExtensionMethods(c)
@@ -39,7 +39,7 @@ trait PgDateSupport extends date.PgDateExtensions with date.PgDateJdbcTypes with
   }
 }
 
-object PgDateJdbcTypeUtils {
+object PgDateSupportUtils {
   import org.postgresql.jdbc2.TimestampUtils
   import java.lang.reflect.{Field, Method}
 

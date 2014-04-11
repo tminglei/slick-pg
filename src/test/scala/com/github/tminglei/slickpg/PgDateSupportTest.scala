@@ -19,7 +19,7 @@ class gDateSupportTest {
   def date(str: String) = new Date(dateFormat.parse(str).getTime)
   def time(str: String) = new Time(timeFormat.parse(str).getTime)
   def ts(str: String) = new Timestamp(tsFormat.parse(str).getTime)
-  def tstz(str: String) = PgDateJdbcTypeUtils.parseCalendar(str)
+  def tstz(str: String) = PgDateSupportUtils.parseCalendar(str)
 
   case class DatetimeBean(
     id: Long,
