@@ -2,7 +2,7 @@ package com.github.tminglei.slickpg
 
 import org.junit._
 import org.junit.Assert._
-import slick.driver.PostgresDriver
+import scala.slick.driver.PostgresDriver
 import scala.slick.jdbc.{StaticQuery => Q}
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
@@ -11,7 +11,7 @@ object PgCompositeSupportTest {
   val tsFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
   def ts(str: String) = new Timestamp(tsFormat.parse(str).getTime)
 
-case class Composite1(
+  case class Composite1(
     id: Long,
     txt: String,
     date: Timestamp,
@@ -31,11 +31,14 @@ case class Composite1(
     )
 
   //-------------------------------------------------------------
-  trait MyCompositeSupport extends utils.PgCommonJdbcTypes with array.PgArrayJdbcTypes { driver: PostgresDriver =>
+  object MyPostgresDriver1 extends MyPostgresDriver {
+    override val Implicit = new ImplicitsPlus with CompositeImplicts {}
+    override val simple = new SimpleQLPlus with CompositeImplicts {}
 
+    ///
     trait CompositeImplicts {
       import utils.TypeConverters.Util._
-      
+
       utils.TypeConverters.register(Range.mkRangeFn(ts))
       utils.TypeConverters.register(Range.toStringFn[Timestamp](tsFormat.format))
 
@@ -45,7 +48,7 @@ case class Composite1(
       utils.TypeConverters.register(mkCompositeConvToString[Composite2])
       utils.TypeConverters.register(mkCompositeConvFromString[Composite3])
       utils.TypeConverters.register(mkCompositeConvToString[Composite3])
-      
+
       implicit val composite1TypeMapper = new GenericJdbcType[Composite1]("composite1",
         mkCompositeConvFromString[Composite1], mkCompositeConvToString[Composite1])
       implicit val composite2TypeMapper = new GenericJdbcType[Composite2]("composite2",
@@ -59,11 +62,6 @@ case class Composite1(
       implicit val composite3ArrayTypeMapper = new ArrayListJdbcType[Composite3]("composite3",
         mkArrayConvFromString[Composite3], mkArrayConvToString[Composite3])
     }
-  }
-  
-  object MyPostgresDriver1 extends MyPostgresDriver with MyCompositeSupport {
-    override val Implicit = new ImplicitsPlus with CompositeImplicts {}
-    override val simple = new SimpleQLPlus with CompositeImplicts {}
   }
 }
 
@@ -90,7 +88,7 @@ class PgCompositeSupportTest {
     
     def * = (id,comps) <> (TestBean.tupled, TestBean.unapply)
   }
-  val CompositeTests = TableQuery[TestTable]
+  val CompositeTests = TableQuery(new TestTable(_))
   
   class TestTable1(tag: Tag) extends Table[TestBean1](tag, "CompositeTest1") {
     def id = column[Long]("id")
@@ -98,7 +96,7 @@ class PgCompositeSupportTest {
     
     def * = (id,comps) <> (TestBean1.tupled, TestBean1.unapply)
   }
-  val CompositeTests1 = TableQuery[TestTable1]
+  val CompositeTests1 = TableQuery(new TestTable1(_))
   
   //-------------------------------------------------------------------
   
@@ -152,24 +150,22 @@ class PgCompositeSupportTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
-      (Q[Int] + "create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)").first
-      (Q[Int] + "create type composite2 as (id int8, comp1 composite1, confirm boolean)").first
-      (Q[Int] + "create type composite3 as (txt text, id int4, code int4)").first
+      (Q[Int] + "create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)").execute
+      (Q[Int] + "create type composite2 as (id int8, comp1 composite1, confirm boolean)").execute
+      (Q[Int] + "create type composite3 as (txt text, id int4, code int4)").execute
       
-      new MyPostgresDriver1.TableDDLBuilder(CompositeTests.baseTableRow).buildDDL create;
-      new MyPostgresDriver1.TableDDLBuilder(CompositeTests1.baseTableRow).buildDDL create
+      (CompositeTests.ddl ++ CompositeTests1.ddl) create
     }
   }
 
   @After
   def dropTables(): Unit = {
     db withSession { implicit session: Session =>
-      new MyPostgresDriver1.TableDDLBuilder(CompositeTests1.baseTableRow).buildDDL drop;
-      new MyPostgresDriver1.TableDDLBuilder(CompositeTests.baseTableRow).buildDDL drop
+      (CompositeTests.ddl ++ CompositeTests1.ddl) drop
       
-      (Q[Int] + "drop type composite3").first
-      (Q[Int] + "drop type composite2").first
-      (Q[Int] + "drop type composite1").first
+      (Q[Int] + "drop type composite3").execute
+      (Q[Int] + "drop type composite2").execute
+      (Q[Int] + "drop type composite1").execute
     }
   }
 }

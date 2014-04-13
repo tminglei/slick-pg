@@ -9,9 +9,9 @@ import scala.reflect.ClassTag
 
 trait PgDateJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
-  class DateJdbcType[DATE](fnFromDate: (Date => DATE),
-                           fnToDate: (DATE => Date))(
-                     implicit tag: ClassTag[DATE]) extends JdbcType[DATE] with BaseTypedType[DATE] {
+  class DateJdbcType[DATE : ClassTag](
+              fnFromDate: (Date => DATE),
+              fnToDate: (DATE => Date)) extends JdbcType[DATE] with BaseTypedType[DATE] {
 
     def scalaType: ScalaType[DATE] = ScalaBaseType[DATE]
 
@@ -36,9 +36,9 @@ trait PgDateJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
   }
 
   ///
-  class TimeJdbcType[TIME](fnFromTime: (Time => TIME),
-                           fnToTime: (TIME => Time))(
-                     implicit tag: ClassTag[TIME]) extends JdbcType[TIME] with BaseTypedType[TIME] {
+  class TimeJdbcType[TIME : ClassTag](
+              fnFromTime: (Time => TIME),
+              fnToTime: (TIME => Time)) extends JdbcType[TIME] with BaseTypedType[TIME] {
 
     def scalaType: ScalaType[TIME] = ScalaBaseType[TIME]
 
@@ -63,9 +63,9 @@ trait PgDateJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
   }
 
   ///
-  class TimestampJdbcType[TIMESTAMP](fnFromTimestamp: (Timestamp => TIMESTAMP),
-                                     fnToTimestamp: (TIMESTAMP => Timestamp))(
-                      implicit tag: ClassTag[TIMESTAMP]) extends JdbcType[TIMESTAMP] with BaseTypedType[TIMESTAMP] {
+  class TimestampJdbcType[TIMESTAMP : ClassTag](
+              fnFromTimestamp: (Timestamp => TIMESTAMP),
+              fnToTimestamp: (TIMESTAMP => Timestamp)) extends JdbcType[TIMESTAMP] with BaseTypedType[TIMESTAMP] {
 
     def scalaType: ScalaType[TIMESTAMP] = ScalaBaseType[TIMESTAMP]
 

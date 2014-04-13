@@ -34,7 +34,7 @@ trait PgPostGISSupport extends geom.PgPostGISExtensions { driver: PostgresDriver
   }
 
   ////// geometry jdbc type
-  class GeometryJdbcType[T <: Geometry](implicit tag: ClassTag[T]) extends JdbcType[T] with BaseTypedType[T] {
+  class GeometryJdbcType[T <: Geometry : ClassTag] extends JdbcType[T] with BaseTypedType[T] {
 
     def scalaType: ScalaType[T] = ScalaBaseType[T]
 

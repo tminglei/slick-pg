@@ -223,7 +223,7 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     val Translate = new SqlFunction("ST_Translate")
   }
 
-  /** Extension methods for hstore Columns */
+  /** Extension methods for postgis Columns */
   class GeometryColumnExtensionMethods[G1 <: GEOMETRY, P1](val c: Column[P1])(
             implicit tm: JdbcType[GEOMETRY], tm1: JdbcType[POINT], tm2: JdbcType[LINESTRING], tm3: JdbcType[POLYGON], tm4: JdbcType[GEOMETRYCOLLECTION])
                   extends ExtensionMethods[G1, P1] {

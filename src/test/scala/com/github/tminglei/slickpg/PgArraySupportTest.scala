@@ -37,6 +37,10 @@ class PgArraySupportTest {
     db withSession { implicit session: Session =>
       ArrayTests forceInsertAll (testRec1, testRec2, testRec3)
 
+      val q0 = ArrayTests.sortBy(_.id).map(r => r)
+      println(s"[array] sql = ${q0.selectStatement}")
+      assertEquals(List(testRec1, testRec2, testRec3), q0.list())
+
       val q1 = ArrayTests.filter(101.bind === _.intArr.any).sortBy(_.id).map(r => r)
       println(s"[array] 'any' sql = ${q1.selectStatement}")
       assertEquals(List(testRec1, testRec2, testRec3), q1.list())

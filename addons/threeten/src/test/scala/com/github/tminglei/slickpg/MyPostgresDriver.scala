@@ -1,6 +1,6 @@
 package com.github.tminglei.slickpg
 
-import slick.driver.PostgresDriver
+import scala.slick.driver.PostgresDriver
 
 object MyPostgresDriver extends PostgresDriver
                            with PgDateSupport2bp {
