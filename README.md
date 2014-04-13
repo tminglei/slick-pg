@@ -5,6 +5,7 @@ Slick-pg
 ####Currently supported pg types:
 - ARRAY
 - Date/Time
+- Enum
 - Range
 - Hstore
 - JSON
@@ -12,43 +13,48 @@ Slick-pg
 - `postgis` Geometry
 - Composite type (`basic`)
 
-** _tested on `PostgreSQL` `v9.3` with `Slick` `v2.0.0`._
+** _tested on `PostgreSQL` `v9.3` with `Slick` `v2.0.1`._
 
 Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_2.10" % "0.5.2.3"
+libraryDependencies += "com.github.tminglei" % "slick-pg_2.10" % "0.5.3"
 ```
 
 > If you need `play-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_play-json_2.10" % "0.5.2.3"
+libraryDependencies += "com.github.tminglei" % "slick-pg_play-json_2.10" % "0.5.3"
 ```
 
 > If you need `joda-time` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_joda-time_2.10" % "0.5.2.3"
+libraryDependencies += "com.github.tminglei" % "slick-pg_joda-time_2.10" % "0.5.3"
 ```
 
 > If you need `jts` geom support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_jts_2.10" % "0.5.2.3"
+libraryDependencies += "com.github.tminglei" % "slick-pg_jts_2.10" % "0.5.3"
 ```
 
 > If you need `json4s` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_json4s_2.10" % "0.5.2.3"
+libraryDependencies += "com.github.tminglei" % "slick-pg_json4s_2.10" % "0.5.3"
 ```
 
-> If you need `threeten` support, pls append dependency:
+> If you need `jdk8 date` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_threeten_2.10" % "0.5.2.3"
+libraryDependencies += "com.github.tminglei" % "slick-pg_date2_2.10" % "0.5.3"
+```
+
+> If you need `threeten-bp` support, pls append dependency:
+```scala
+libraryDependencies += "com.github.tminglei" % "slick-pg_threeten_2.10" % "0.5.3"
 ```
 
 > If you need `spray-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_spray-json_2.10" % "0.5.2.3"
+libraryDependencies += "com.github.tminglei" % "slick-pg_spray-json_2.10" % "0.5.3"
 ```
 
 
@@ -57,7 +63,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.10</artifactId>
-    <version>0.5.2.3</version>
+    <version>0.5.3</version>
 </dependency>
 
 <!-- append play-json/json4s/joda-time/jts/threeten/spray-json dependencies if needed -->
@@ -153,6 +159,7 @@ Here's the related technical details:
 | List[T]                             | ARRAY                 |
 | `sql` Date<br> Time<br> Timestamp<br> slickpg Interval<br> Calendar | date<br> time<br> timestamp<br> interval<br> timestamptz |
 | `jada` LocalDate<br> LocalTime<br> LocalDateTime<br> Period<br> DateTime  | date<br> time<br> timestamp<br> interval<br> timestamptz |
+| `java.time` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz |
 | `threeten.bp` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz |
 | `slickpg` Range[T]                    | range                 |
 | Map[String,String]                  | hstore                |
@@ -199,6 +206,10 @@ Support details
 
 Version history
 ------------------------------
+v0.5.3 (13-Apr-2014):  
+1) added jdk8 time support  
+2) added pg enum support
+
 v0.5.2 (13-Mar-2014):  
 1) added spray-json support
 
