@@ -54,7 +54,7 @@ object SlickPgBuild extends Build {
   
   lazy val mainDependencies = Seq (
     "org.scala-lang" % "scala-reflect" % "2.10.3",
-    "com.typesafe.slick" % "slick_2.10" % "2.0.0",
+    "com.typesafe.slick" % "slick_2.10" % "2.0.1",
     "org.postgresql" % "postgresql" % "9.3-1100-jdbc41",
     "junit" % "junit" % "4.11" % "test",
     "com.novocode" % "junit-interface" % "0.10" % "test"
@@ -63,12 +63,12 @@ object SlickPgBuild extends Build {
   lazy val coreSettings = Seq(
     name := "slick-pg_core",
     description := "Slick extensions for PostgreSQL - Core",
-    version := "0.5.2.3",
+    version := "0.5.3",
     libraryDependencies := mainDependencies
   )
 
   lazy val slickPgSettings = Seq(
-    version := "0.5.2.3",
+    version := "0.5.3",
     resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
   )
 

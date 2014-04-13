@@ -23,12 +23,5 @@ trait PgEnumExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     def range[P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[List[B0], R]) = {
         om.column(EnumLibrary.range, n, e.toNode)
       }
-//
-//    def <++>[P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[List[B0], R]) = {
-//        om.column(EnumLibrary.range, n, e.toNode)
-//      }
-//    def <++>:[P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[List[B0], R]) = {
-//        om.column(EnumLibrary.range, e.toNode, n)
-//      }
   }
 }
