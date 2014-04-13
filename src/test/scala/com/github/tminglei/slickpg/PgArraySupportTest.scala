@@ -71,8 +71,7 @@ class PgArraySupportTest {
 
       val q6 = ArrayTests.filter(5L.bind <= _.longArr.all).map(_.strArr.unnest)
       println(s"[array] 'unnest' sql = ${q6.selectStatement}")
-      assertEquals((testRec2.strArr.get ++ testRec3.strArr.get).toList,
-          q6.list().map(_.map(utils.PGObjectTokenizer.unescaped).orNull))
+      assertEquals((testRec2.strArr.get ++ testRec3.strArr.get).toList, q6.list().map(_.orNull))
 
       val q7 = ArrayTests.filter(_.id === 33L.bind).map(_.intArr ++ List(105, 107).bind)
       println(s"[array] concatenate1 sql = ${q7.selectStatement}")
