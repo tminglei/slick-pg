@@ -3,13 +3,14 @@ package com.github.tminglei.slickpg
 import scala.slick.driver.PostgresDriver
 import scala.slick.lifted.Column
 import java.sql.{Date, Timestamp}
+import java.text.SimpleDateFormat
 
 trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
 
   type RANGEType[T] = Range[T]
 
-  private val tsFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-  private val dateFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd")
+  private def tsFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+  private def dateFormatter = new SimpleDateFormat("yyyy-MM-dd")
   private def toTimestamp(str: String) = new Timestamp(tsFormatter.parse(str).getTime)
   private def toSQLDate(str: String) = new Date(dateFormatter.parse(str).getTime)
 
