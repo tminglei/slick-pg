@@ -173,7 +173,7 @@ Here's the related technical details:
 
 Build instructions
 ------------------
-`slick-pg` uses sbt for building. Assume you have already installed sbt, then you can simply clone the git repository and build `slick-pg` in the following way:
+`slick-pg` uses SBT for building and requires Java 8. Assume you have already installed SBT, then you can simply clone the git repository and build `slick-pg` in the following way:
 ```
 ./sbt update
 ./sbt compile

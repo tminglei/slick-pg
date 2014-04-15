@@ -6,6 +6,7 @@ import scala.reflect.ClassTag
 import scala.slick.util.Logging
 import java.sql.{Timestamp, Time, Date}
 import java.util.UUID
+import java.text.SimpleDateFormat
 
 object TypeConverters extends Logging {
   @scala.annotation.implicitNotFound(msg = "No converter available for ${FROM} to ${TO}")
@@ -58,10 +59,21 @@ object TypeConverters extends Logging {
   //////////////////////////////////////////////////////////////////////////
   object Util {
     import PGObjectTokenizer.PGElements._
+    
+    private[this] val tsFormatterLocal = new ThreadLocal[SimpleDateFormat](){
+      override def initialValue() = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    }
+    def tsFormatter() = tsFormatterLocal.get()
 
-    private val dateFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd")
-    private val timeFormatter = new java.text.SimpleDateFormat("HH:mm:ss")
-    private val tsFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    private[this] val dateFormatterLocal = new ThreadLocal[SimpleDateFormat](){
+        override def initialValue() = new SimpleDateFormat("yyyy-MM-dd")
+    }
+    def dateFormatter() = dateFormatterLocal.get()
+
+    private[this] val timeFormatterLocal = new ThreadLocal[SimpleDateFormat](){
+        override def initialValue() = new SimpleDateFormat("HH:mm:ss")
+    }
+    def timeFormatter() = timeFormatterLocal.get()
 
     private def pgBoolAdjust(s: String): String =
       Option(s).map(_.toLowerCase) match {
