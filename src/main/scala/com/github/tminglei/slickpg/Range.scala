@@ -16,7 +16,7 @@ case class Range[T](start: T, end: T, edge: EdgeType = `[_,_)`) {
 
 // edge type definitions
 sealed trait EdgeType
-  case object `[_,_)` extends EdgeType
-  case object `(_,_]` extends EdgeType
-  case object `(_,_)` extends EdgeType
-  case object `[_,_]` extends EdgeType
+case object `[_,_)` extends EdgeType
+case object `(_,_]` extends EdgeType
+case object `(_,_)` extends EdgeType
+case object `[_,_]` extends EdgeType
