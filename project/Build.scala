@@ -3,6 +3,7 @@ import Keys._
 
 object SlickPgBuild extends Build {
 
+  lazy val distDictionary = file("./../quickfish/dist")
   lazy val commonSettings = Seq(
     organizationName := "slick-pg",
     organization := "com.github.tminglei",
@@ -14,16 +15,17 @@ object SlickPgBuild extends Build {
       "-language:higherKinds",
       "-language:postfixOps"),
 
+    resolvers += "local dist" at "file:///" + distDictionary.getAbsolutePath,
     resolvers += Resolver.mavenLocal,
     resolvers += Resolver.sonatypeRepo("snapshots"),
-//    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))),
-    publishTo <<= version { (v: String) =>
-      val nexus = "https://oss.sonatype.org/"
-      if (v.trim.endsWith("SNAPSHOT"))
-        Some("snapshots" at nexus + "content/repositories/snapshots")
-      else
-        Some("releases"  at nexus + "service/local/staging/deploy/maven2")
-    },
+    publishTo := Some(Resolver.file("file",  distDictionary)),
+//    publishTo <<= version { (v: String) =>
+//      val nexus = "https://oss.sonatype.org/"
+//      if (v.trim.endsWith("SNAPSHOT"))
+//        Some("snapshots" at nexus + "content/repositories/snapshots")
+//      else
+//        Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+//    },
     publishMavenStyle := true,
     publishArtifact in Test := false,
     pomIncludeRepository := { _ => false },
@@ -54,7 +56,7 @@ object SlickPgBuild extends Build {
   
   lazy val mainDependencies = Seq (
     "org.scala-lang" % "scala-reflect" % "2.10.3",
-    "com.typesafe.slick" % "slick_2.10" % "2.0.1",
+    "com.typesafe.slick" % "slick_2.10" % "2.1.0-SNAPSHOT",
     "org.postgresql" % "postgresql" % "9.3-1100-jdbc41",
     "junit" % "junit" % "4.11" % "test",
     "com.novocode" % "junit-interface" % "0.10" % "test"

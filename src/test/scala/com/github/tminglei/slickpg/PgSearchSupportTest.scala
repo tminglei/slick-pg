@@ -31,27 +31,27 @@ class PgSearchSupportTest {
 
       val q1 = Tests.filter(r => tsVector(r.text) @@ tsQuery("cat & rat".bind)).sortBy(_.id).map(t => t)
       println(s"[search] '@@' sql = ${q1.selectStatement}")
-      assertEquals(List(testRec1), q1.list())
+      assertEquals(List(testRec1), q1.list)
 
       val q2 = Tests.filter(r => (tsVector(r.text) @+ tsVector(r.comment)) @@ tsQuery("cat & fat".bind)).sortBy(_.id).map(t => t)
       println(s"[search] '@+' sql = ${q2.selectStatement}")
-      assertEquals(List(testRec1, testRec2), q2.list())
+      assertEquals(List(testRec1, testRec2), q2.list)
 
       val q3 = Tests.filter(r => tsVector(r.text) @@ (tsQuery("cat".bind) @& tsQuery("rat".bind))).sortBy(_.id).map(t => t)
       println(s"[search] '@&' sql = ${q3.selectStatement}")
-      assertEquals(List(testRec1), q3.list())
+      assertEquals(List(testRec1), q3.list)
 
       val q4 = Tests.filter(r => tsVector(r.text) @@ (tsQuery("cat".bind) @| tsQuery("rat".bind))).sortBy(_.id).map(t => t)
       println(s"[search] '@|' sql = ${q4.selectStatement}")
-      assertEquals(List(testRec1, testRec2), q4.list())
+      assertEquals(List(testRec1, testRec2), q4.list)
 
       val q5 = Tests.filter(r => tsVector(r.text) @@ (tsQuery("cat".bind) @& tsQuery("rat".bind).!!)).sortBy(_.id).map(t => t)
       println(s"[search] '!!' sql = ${q5.selectStatement}")
-      assertEquals(List(testRec2), q5.list())
+      assertEquals(List(testRec2), q5.list)
 
       val q6 = Tests.filter(r => tsPlainQuery(r.text) @> tsQuery(r.comment)).sortBy(_.id).map(t => t)
       println(s"[search] '@>' sql = ${q6.selectStatement}")
-      assertEquals(List(testRec1), q6.list())
+      assertEquals(List(testRec1), q6.list)
     }
   }
 
@@ -73,15 +73,15 @@ class PgSearchSupportTest {
 
       val q1 = Tests.filter(r => tsVector(r.text) @@ query).map(r => (r.id, r.text, tsRank(tsVector(r.text), query))).sortBy(_._3)
       println(s"[search] 'ts_rank' sql = ${q1.selectStatement}")
-      q1.list().map(r => println(s"${r._1}  |  ${r._2} | ${r._3}"))
+      q1.list.map(r => println(s"${r._1}  |  ${r._2} | ${r._3}"))
 
       val q2 = Tests.filter(r => tsVector(r.text) @@ query).map(r => (r.id, r.text, tsRankCD(tsVector(r.text), query))).sortBy(_._3)
       println(s"[search] 'ts_rank_cd' sql = ${q2.selectStatement}")
-      q2.list().map(r => println(s"${r._1}  |  ${r._2} | ${r._3}"))
+      q2.list.map(r => println(s"${r._1}  |  ${r._2} | ${r._3}"))
 
       val q3 = Tests.filter(r => tsVector(r.text) @@ query).map(r => (r.id, r.text, tsHeadline(r.text, query)))
       println(s"[search] 'ts_headline' sql = ${q3.selectStatement}")
-      q3.list().map(r => println(s"${r._1}  |  ${r._2} | ${r._3}"))
+      q3.list.map(r => println(s"${r._1}  |  ${r._2} | ${r._3}"))
     }
   }
 

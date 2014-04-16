@@ -4,6 +4,7 @@ package enums
 import scala.slick.ast.Library.SqlFunction
 import scala.slick.driver.{PostgresDriver, JdbcTypesComponent}
 import scala.slick.lifted.{ExtensionMethods, Column}
+import scala.slick.jdbc.JdbcType
 
 trait PgEnumExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   import driver.Implicit._

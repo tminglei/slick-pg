@@ -32,7 +32,7 @@ object PgCompositeSupportTest {
 
   //-------------------------------------------------------------
   object MyPostgresDriver1 extends MyPostgresDriver {
-    override val Implicit = new ImplicitsPlus with CompositeImplicts {}
+    override lazy val Implicit = new ImplicitsPlus with CompositeImplicts {}
     override val simple = new SimpleQLPlus with CompositeImplicts {}
 
     ///

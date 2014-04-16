@@ -5,6 +5,7 @@ import scala.slick.lifted.{FunctionSymbolExtensionMethods, OptionMapperDSL, Colu
 import scala.slick.ast.{Library, LiteralNode}
 import scala.slick.ast.Library.{SqlFunction, SqlOperator}
 import scala.slick.driver.{JdbcTypesComponent, PostgresDriver}
+import scala.slick.jdbc.JdbcType
 
 trait PgSearchExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   import driver.Implicit._

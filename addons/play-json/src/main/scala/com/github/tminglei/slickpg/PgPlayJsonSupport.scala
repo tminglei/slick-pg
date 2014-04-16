@@ -2,6 +2,7 @@ package com.github.tminglei.slickpg
 
 import scala.slick.driver.PostgresDriver
 import scala.slick.lifted.Column
+import scala.slick.jdbc.JdbcType
 
 trait PgPlayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import play.api.libs.json._

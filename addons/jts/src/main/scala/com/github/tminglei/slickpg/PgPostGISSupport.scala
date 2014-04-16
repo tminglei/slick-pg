@@ -4,12 +4,10 @@ import scala.slick.driver.PostgresDriver
 import com.vividsolutions.jts.geom._
 import scala.slick.lifted.Column
 import scala.reflect.ClassTag
-import scala.slick.ast.{ScalaBaseType, ScalaType, BaseTypedType}
-import scala.slick.jdbc.{PositionedResult, PositionedParameters}
 import com.vividsolutions.jts.io.{WKBReader, WKBWriter, WKTReader, WKTWriter}
+import java.sql.{PreparedStatement, ResultSet}
 
 trait PgPostGISSupport extends geom.PgPostGISExtensions { driver: PostgresDriver =>
-  import PgPostGISSupportUtils._
 
   type GEOMETRY   = Geometry
   type POINT      = Point
@@ -34,25 +32,23 @@ trait PgPostGISSupport extends geom.PgPostGISExtensions { driver: PostgresDriver
   }
 
   ////// geometry jdbc type
-  class GeometryJdbcType[T <: Geometry : ClassTag] extends JdbcType[T] with BaseTypedType[T] {
+  class GeometryJdbcType[T <: Geometry](implicit override val classTag: ClassTag[T]) extends DriverJdbcType[T] {
+    import PgPostGISSupportUtils._
 
-    def scalaType: ScalaType[T] = ScalaBaseType[T]
+    override def sqlType: Int = java.sql.Types.OTHER
 
-    def zero: T = null.asInstanceOf[T]
+    override def sqlTypeName: String = "geometry"
 
-    def sqlType: Int = java.sql.Types.OTHER
+    override def getValue(r: ResultSet, idx: Int): T = {
+      val value = r.getString(idx)
+      if (r.wasNull) null.asInstanceOf[T] else fromLiteral[T](value)
+    }
 
-    def sqlTypeName: String = "geometry"
+    override def setValue(v: T, p: PreparedStatement, idx: Int): Unit = p.setBytes(idx, toBytes(v))
 
-    def setValue(v: T, p: PositionedParameters) = p.setBytes(toBytes(v))
+    override def updateValue(v: T, r: ResultSet, idx: Int): Unit = r.updateBytes(idx, toBytes(v))
 
-    def setOption(v: Option[T], p: PositionedParameters) = if (v.isDefined) setValue(v.get, p) else p.setNull(sqlType)
-
-    def nextValue(r: PositionedResult): T = r.nextStringOption().map(fromLiteral[T]).getOrElse(zero)
-
-    def updateValue(v: T, r: PositionedResult) = r.updateBytes(toBytes(v))
-
-    def hasLiteralForm: Boolean = false
+    override def hasLiteralForm: Boolean = false
 
     override def valueToSQLLiteral(v: T) = toLiteral(v)
   }

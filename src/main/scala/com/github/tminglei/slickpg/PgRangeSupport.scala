@@ -3,6 +3,7 @@ package com.github.tminglei.slickpg
 import scala.slick.driver.PostgresDriver
 import scala.slick.lifted.Column
 import java.sql.{Date, Timestamp}
+import scala.slick.jdbc.JdbcType
 
 trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import PgRangeSupportUtils._

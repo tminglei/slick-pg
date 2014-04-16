@@ -6,6 +6,7 @@ import scala.slick.ast.{LiteralNode}
 import scala.slick.ast.Library.{SqlFunction, SqlOperator}
 import scala.slick.driver.{JdbcTypesComponent, PostgresDriver}
 import scala.slick.lifted.FunctionSymbolExtensionMethods._
+import scala.slick.jdbc.JdbcType
 
 trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   import driver.Implicit._
