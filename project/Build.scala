@@ -55,7 +55,7 @@ object SlickPgBuild extends Build {
   lazy val mainDependencies = Seq (
     "org.scala-lang" % "scala-reflect" % "2.10.3",
     "com.typesafe.slick" % "slick_2.10" % "2.0.1",
-    "org.postgresql" % "postgresql" % "9.3-1100-jdbc41",
+    "org.postgresql" % "postgresql" % "9.3-1101-jdbc41",
     "junit" % "junit" % "4.11" % "test",
     "com.novocode" % "junit-interface" % "0.10" % "test"
   )
