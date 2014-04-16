@@ -39,8 +39,8 @@ object PgCompositeSupportTest {
     trait CompositeImplicts {
       import utils.TypeConverters.Util._
 
-      utils.TypeConverters.register(Range.mkRangeFn(ts))
-      utils.TypeConverters.register(Range.toStringFn[Timestamp](tsFormat.format))
+      utils.TypeConverters.register(PgRangeSupportUtils.mkRangeFn(ts))
+      utils.TypeConverters.register(PgRangeSupportUtils.toStringFn[Timestamp](tsFormat.format))
 
       utils.TypeConverters.register(mkCompositeConvFromString[Composite1])
       utils.TypeConverters.register(mkCompositeConvToString[Composite1])
