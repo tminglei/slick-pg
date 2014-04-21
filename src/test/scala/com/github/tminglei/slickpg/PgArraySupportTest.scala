@@ -30,12 +30,16 @@ class PgArraySupportTest {
 
   val testRec1 = ArrayBean(33L, List(101, 102, 103), List(1L, 3L, 5L, 7L), Some(List("str1", "str3")))
   val testRec2 = ArrayBean(37L, List(101, 103), List(11L, 31L, 5L), Some(List("str11", "str3")))
-  val testRec3 = ArrayBean(41L, List(103, 101), List(11L, 5L, 31L), Some(List("str11", "str5", "str3")))
+  val testRec3 = ArrayBean(41L, List(103, 101), List(11L, 5L, 31L), Some(List("(s)", "str5", "str3")))
 
   @Test
   def testArrayFunctions(): Unit = {
     db withSession { implicit session: Session =>
       ArrayTests forceInsertAll (testRec1, testRec2, testRec3)
+
+      val q0 = ArrayTests.sortBy(_.id).map(r => r)
+      println(s"[array] sql = ${q0.selectStatement}")
+      assertEquals(List(testRec1, testRec2, testRec3), q0.list())
 
       val q1 = ArrayTests.filter(101.bind === _.intArr.any).sortBy(_.id).map(r => r)
       println(s"[array] 'any' sql = ${q1.selectStatement}")

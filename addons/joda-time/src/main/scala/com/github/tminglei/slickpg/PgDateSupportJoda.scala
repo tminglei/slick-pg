@@ -1,31 +1,34 @@
 package com.github.tminglei.slickpg
 
 import scala.slick.driver.PostgresDriver
-import org.joda.time.{Period, LocalDateTime, LocalTime, LocalDate, DateTime}
+import org.joda.time._
 import org.joda.time.format.DateTimeFormat
 import java.sql.{Timestamp, Time, Date}
-import java.util.Calendar
 import scala.slick.lifted.Column
 import org.postgresql.util.PGInterval
 
-trait PgDateSupportJoda extends date.PgDateExtensions with date.PgDateJavaTypes with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+trait PgDateSupportJoda extends date.PgDateExtensions with date.PgDateJdbcTypes with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+  import PgJodaSupportUtils._
 
   type DATE   = LocalDate
   type TIME   = LocalTime
   type TIMESTAMP = LocalDateTime
   type INTERVAL  = Period
-  
+
   type TIMESTAMP_TZ = DateTime
 
   trait DateTimeImplicits {
-    val tzDateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ssZ")
-    
+    val tzDateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSSSSSZ")
+    val tzDateTimeFormatter_NoFraction = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ssZ")
+
     implicit val jodaDateTypeMapper = new DateJdbcType(sqlDate2jodaDate, jodaDate2sqlDate)
     implicit val jodaTimeTypeMapper = new TimeJdbcType(sqlTime2jodaTime, jodaTime2sqlTime)
     implicit val jodaDateTimeTypeMapper = new TimestampJdbcType(sqlTimestamp2jodaDateTime, jodaDateTime2sqlTimestamp)
     implicit val jodaPeriodTypeMapper = new GenericJdbcType[Period]("interval", pgIntervalStr2jodaPeriod, hasLiteralForm=false)
     implicit val timestampTZTypeMapper = new GenericJdbcType[DateTime]("timestamptz",
-        DateTime.parse(_, tzDateTimeFormatter), _.toString(tzDateTimeFormatter), hasLiteralForm=false)
+      fnFromString = (s) => DateTime.parse(s, if(s.indexOf(".") > 0 ) tzDateTimeFormatter else tzDateTimeFormatter_NoFraction),
+      fnToString = (v) => v.toString(tzDateTimeFormatter),
+      hasLiteralForm = false)
 
     ///
     implicit def dateColumnExtensionMethods(c: Column[LocalDate]) = new DateColumnExtensionMethods(c)
@@ -43,71 +46,43 @@ trait PgDateSupportJoda extends date.PgDateExtensions with date.PgDateJavaTypes 
     implicit def timestampTZColumnExtensionMethods(c: Column[DateTime]) = new TimestampTZColumnExtensionMethods(c)
     implicit def timestampTZOptColumnExtensionMethods(c: Column[Option[DateTime]]) = new TimestampTZColumnExtensionMethods(c)
   }
+}
 
-  //--------------------------------------------------------------------
+object PgJodaSupportUtils {
 
   /// sql.Date <-> joda LocalDate
-  private def sqlDate2jodaDate(date: Date): LocalDate = {
-    val cal = Calendar.getInstance()
-    cal.setTime(date)
-    new LocalDate(
-      cal.get(Calendar.YEAR),
-      cal.get(Calendar.MONTH),
-      cal.get(Calendar.DAY_OF_MONTH)
-    )
+  def sqlDate2jodaDate(date: Date): LocalDate = {
+    new LocalDate(date.getTime)
   }
-  private def jodaDate2sqlDate(date: LocalDate): Date = {
-    val cal = Calendar.getInstance()
-    cal.set(date.getYear, date.getMonthOfYear, date.getDayOfMonth, 0, 0, 0)
-    cal.set(Calendar.MILLISECOND, 0)
-    new Date(cal.getTimeInMillis)
+
+  def jodaDate2sqlDate(date: LocalDate): Date = {
+    new Date(date.toDateTimeAtStartOfDay.toDate.getTime)
   }
 
   /// sql.Time <-> joda LocalTime
-  private def sqlTime2jodaTime(time: Time): LocalTime = {
-    val cal = Calendar.getInstance()
-    cal.setTime(time)
-    new LocalTime(
-      cal.get(Calendar.HOUR_OF_DAY),
-      cal.get(Calendar.MINUTE),
-      cal.get(Calendar.SECOND),
-      cal.get(Calendar.MILLISECOND) * 1000
-    )
+  def sqlTime2jodaTime(time: Time): LocalTime = {
+    new LocalTime(time.getTime)
   }
-  private def jodaTime2sqlTime(time: LocalTime): Time = {
-    val cal = Calendar.getInstance()
-    cal.set(0, 0, 0, time.getHourOfDay, time.getMinuteOfHour, time.getSecondOfMinute)
-    cal.set(Calendar.MILLISECOND, time.getMillisOfSecond)
-    new Time(cal.getTimeInMillis)
+
+  def jodaTime2sqlTime(time: LocalTime): Time = {
+    new Time(time.toDateTimeToday.toDate.getTime)
   }
 
   /// sql.Timestamp <-> joda LocalDateTime
-  private def sqlTimestamp2jodaDateTime(ts: Timestamp): LocalDateTime = {
-    val cal = Calendar.getInstance()
-    cal.setTime(ts)
-    new LocalDateTime(
-      cal.get(Calendar.YEAR),
-      cal.get(Calendar.MONTH),
-      cal.get(Calendar.DAY_OF_MONTH),
-      cal.get(Calendar.HOUR_OF_DAY),
-      cal.get(Calendar.MINUTE),
-      cal.get(Calendar.SECOND),
-      cal.get(Calendar.MILLISECOND)
-    )
+  def sqlTimestamp2jodaDateTime(ts: Timestamp): LocalDateTime = {
+    new LocalDateTime(ts.getTime)
   }
-  private def jodaDateTime2sqlTimestamp(dt: LocalDateTime): Timestamp = {
-    val cal = Calendar.getInstance()
-    cal.set(dt.getYear, dt.getMonthOfYear, dt.getDayOfMonth, dt.getHourOfDay, dt.getMinuteOfHour, dt.getSecondOfMinute)
-    cal.set(Calendar.MILLISECOND, dt.getMillisOfSecond)
-    new Timestamp(cal.getTimeInMillis)
+
+  def jodaDateTime2sqlTimestamp(ts: LocalDateTime): Timestamp = {
+    new Timestamp(ts.toDateTime.toDate.getTime)
   }
 
   /// pg interval string <-> joda Duration
-  private def pgIntervalStr2jodaPeriod(intervalStr: String): Period = {
+  def pgIntervalStr2jodaPeriod(intervalStr: String): Period = {
     val pgInterval = new PGInterval(intervalStr)
     val seconds = Math.floor(pgInterval.getSeconds) .asInstanceOf[Int]
     val millis  = ((pgInterval.getSeconds - seconds) * 1000) .asInstanceOf[Int]
-    
+
     new Period(
       pgInterval.getYears,
       pgInterval.getMonths,

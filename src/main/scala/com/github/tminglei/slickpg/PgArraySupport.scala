@@ -5,29 +5,20 @@ import scala.slick.lifted.Column
 import scala.slick.driver.PostgresDriver
 import java.sql.{Timestamp, Time, Date}
 
-trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJavaTypes { driver: PostgresDriver =>
-  import utils.TypeConverters.Util._
+trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes { driver: PostgresDriver =>
 
   trait ArrayImplicits {
     /** for type/name, @see [[org.postgresql.core.Oid]] and [[org.postgresql.jdbc2.TypeInfoCache]]*/
-    implicit val uuidListTypeMapper = new ArrayListJavaType[UUID]("uuid",
-      mkArrayConvFromString[UUID], mkArrayConvToString[UUID])
-    implicit val strListTypeMapper = new ArrayListJavaType[String]("text",
-      mkArrayConvFromString[String], mkArrayConvToString[String])
-    implicit val longListTypeMapper = new ArrayListJavaType[Long]("int8",
-      mkArrayConvFromString[Long], mkArrayConvToString[Long])
-    implicit val intListTypeMapper = new ArrayListJavaType[Int]("int4",
-      mkArrayConvFromString[Int], mkArrayConvToString[Int])
-    implicit val floatListTypeMapper = new ArrayListJavaType[Float]("float8",
-      mkArrayConvFromString[Float], mkArrayConvToString[Float])
-    implicit val boolListTypeMapper = new ArrayListJavaType[Boolean]("bool",
-      mkArrayConvFromString[Boolean], mkArrayConvToString[Boolean])
-    implicit val dateListTypeMapper = new ArrayListJavaType[Date]("date",
-      mkArrayConvFromString[Date], mkArrayConvToString[Date])
-    implicit val timeListTypeMapper = new ArrayListJavaType[Time]("time",
-      mkArrayConvFromString[Time], mkArrayConvToString[Time])
-    implicit val tsListTypeMapper = new ArrayListJavaType[Timestamp]("timestamp",
-      mkArrayConvFromString[Timestamp], mkArrayConvToString[Timestamp])
+    implicit val uuidListTypeMapper = new SimpleArrayListJdbcType[UUID]("uuid")
+    implicit val strListTypeMapper = new SimpleArrayListJdbcType[String]("text")
+    implicit val longListTypeMapper = new SimpleArrayListJdbcType[Long]("int8")
+    implicit val intListTypeMapper = new SimpleArrayListJdbcType[Int]("int4")
+    implicit val floatListTypeMapper = new SimpleArrayListJdbcType[Float]("float4")
+    implicit val doubleListTypeMapper = new SimpleArrayListJdbcType[Double]("float8")
+    implicit val boolListTypeMapper = new SimpleArrayListJdbcType[Boolean]("bool")
+    implicit val dateListTypeMapper = new SimpleArrayListJdbcType[Date]("date")
+    implicit val timeListTypeMapper = new SimpleArrayListJdbcType[Time]("time")
+    implicit val tsListTypeMapper = new SimpleArrayListJdbcType[Timestamp]("timestamp")
 
     ///
     implicit def arrayColumnExtensionMethods[B1](c: Column[List[B1]])(

@@ -165,6 +165,16 @@ class PgPostGISSupportTest {
 
       val q14 = GeomTests.filter(r => { r.id === bean.id.bind && (point.bind |>> r.geom) }).map(r => r)
       assertEquals(bean, q14.first())
+
+      val q15 = {
+        val latLongPoint = makePoint(point2.getX, point2.getY).setSRID(4326)
+        val distanceQuery = PointTests.filter(_.id === pbean1.id.bind)
+        val distance = distanceQuery.map(_.point.setSRID(4326).distanceSphere(latLongPoint)).first
+        distanceQuery.map { p =>
+          ( p.point.setSRID(4326).dWithin(latLongPoint, distance * 1.01, Some(true)),
+            p.point.setSRID(4326).dWithin(latLongPoint, distance * 0.99, Some(true))) }.first
+      }
+      assertEquals((true, false), q15)
     }
   }
 

@@ -21,7 +21,6 @@ class PGObjectTokenizer extends RegexParsers {
     case class BracketOpen(marker: String, l: Int)  extends BorderToken
     case class BracketClose(marker: String, l: Int) extends BorderToken
     case class Marker(marker: String, l: Int)   extends BorderToken
-    case object SingleQuote                     extends BorderToken
 
     trait ValueToken extends Token {
       def value: String
@@ -40,6 +39,7 @@ class PGObjectTokenizer extends RegexParsers {
 
   ////////////////////////////////////
   import PGTokens._
+  import PGObjectTokenizer._
   import PGObjectTokenizer.PGElements._
 
   object PGTokenReducer {
@@ -54,26 +54,11 @@ class PGObjectTokenizer extends RegexParsers {
             case Chunk(v) => mergeString(list.tail, tally + v)
             case Quote(v) => mergeString(list.tail, tally + v)
             case Escape(v, _) => mergeString(list.tail, tally + v)
-            case Comma  => mergeString(list.tail, tally)
+            case Comma    => mergeString(list.tail, tally)
             case token => throw new IllegalArgumentException(s"unsupported token $token")
           }
       }
       
-      def unescape(str: String): String =
-        if (str.contains("&#")) {
-          str
-            .replaceAllLiterally("&#39;", "'")
-            .replaceAllLiterally("&#34;", "\"")
-            .replaceAllLiterally("&#92;", "\\")
-            .replaceAllLiterally("&#40;", "(")
-            .replaceAllLiterally("&#41;", ")")
-            .replaceAllLiterally("&#123;", "{")
-            .replaceAllLiterally("&#125;", "}")
-            .replaceAllLiterally("&#91;", "[")
-            .replaceAllLiterally("&#93;", "]")
-            .replaceAllLiterally("&#44;", ",")
-        } else str
-
       // postgres should never return any ws between chunks and commas. for example: (1, ,2, )
       // This case class would handle that:
       // case Chunk(v) if v.trim.isEmpty => null
@@ -84,8 +69,8 @@ class PGObjectTokenizer extends RegexParsers {
           composite.value.collect {
             case v: CTArray   => mergeComposite(v)
             case v: CTRecord  => mergeComposite(v)
-            case CTString(v)  => ValueE(unescape(mergeString(v.filterNot(_.isInstanceOf[BorderToken]))))
-            case Chunk(v) => ValueE(unescape(v))
+            case CTString(v)  => ValueE(unescaped(mergeString(v.filterNot(_.isInstanceOf[BorderToken]))))
+            case Chunk(v) => ValueE(unescaped(v))
             case null => NullE
           }
 
@@ -135,7 +120,6 @@ class PGObjectTokenizer extends RegexParsers {
         case BraceOpen(_,_) => true
         case ParenOpen(_,_) => true
         case BracketOpen(_,_)=> true
-        case SingleQuote  => true
         case _ => false
       } }
 
@@ -173,7 +157,6 @@ class PGObjectTokenizer extends RegexParsers {
                 case BracketOpen(sm, sl) if cm == sm && sl == cl  && isRange(target) => (CTString(rangeTokens("[", target, "]")), consumeCount +1)
                 case _ => throw new Exception (s"open and close tags don't match: $borderToken - $x")
               }
-              case SingleQuote if borderToken == SingleQuote => (CTString(target :+ x), consumeCount +1)
               // the else porting of this should be caught by the isOpen case below
               // OPENING CASES -> The results of these are siblings.
               case xx if isOpen(x) => {
@@ -210,21 +193,6 @@ class PGObjectTokenizer extends RegexParsers {
 
       def markRequired(str: String): Boolean = MARK_LETTERS findFirstIn str isDefined
       def bypassEscape(str: String): Boolean = RANGE_STRING findFirstIn str isDefined
-
-      def addEscaped(buf: StringBuilder, ch: Char, level: Int, dual: Boolean): Unit =
-        ch match {
-          case '\''  => buf append "&#39;"
-          case '"'   => buf append "&#34;"
-          case '\\'  => buf append "&#92;"
-          case '('   => buf append "&#40;"
-          case ')'   => buf append "&#41;"
-          case '{'   => buf append "&#123;"
-          case '}'   => buf append "&#125;"
-          case '['   => buf append "&#91;"
-          case ']'   => buf append "&#93;"
-          case ','   => buf append "&#44;"
-          case _  =>  buf append ch
-        }
 
       def addMark(buf: StringBuilder, level: Int, dual: Boolean): Unit =
         level match {
@@ -268,11 +236,11 @@ class PGObjectTokenizer extends RegexParsers {
               addMark(buf, level, dual)
               if (bypassEscape(v)) buf append v
               else {
-                for(ch <- v) addEscaped(buf, ch, level + 1, dual)
+                for(ch <- v) buf append escaped(ch)
               }
               addMark(buf, level, dual)
             } else {
-              for(ch <- v) addEscaped(buf, ch, level + 1, dual)
+              for(ch <- v) buf append escaped(ch)
             }
           }
           case NullE  =>  // do nothing
@@ -317,7 +285,7 @@ class PGObjectTokenizer extends RegexParsers {
     val pow = scala.math.pow(2,level).toInt
     if(x.length % pow == 0) {
       x.length / pow match {
-        case 1 => SingleQuote
+        case 1 => Quote("\"")
         case _ => Quote("\"" * (x.length/pow -1))
       }
     }
@@ -359,4 +327,36 @@ object PGObjectTokenizer {
   def reverse(elem: PGElements.Element): String = {
     new PGObjectTokenizer().reverse(elem)
   }
+
+  /// helper methods ///////////////////////
+
+  def escaped(ch: Char): String =
+    ch match {
+      case '\''  => "&#39;"
+      case '"'   => "&#34;"
+      case '\\'  => "&#92;"
+      case '('   => "&#40;"
+      case ')'   => "&#41;"
+      case '{'   => "&#123;"
+      case '}'   => "&#125;"
+      case '['   => "&#91;"
+      case ']'   => "&#93;"
+      case ','   => "&#44;"
+      case _  =>  String.valueOf(ch)
+    }
+
+  def unescaped(str: String): String =
+    if (str.contains("&#")) {
+      str
+        .replaceAllLiterally("&#39;", "'")
+        .replaceAllLiterally("&#34;", "\"")
+        .replaceAllLiterally("&#92;", "\\")
+        .replaceAllLiterally("&#40;", "(")
+        .replaceAllLiterally("&#41;", ")")
+        .replaceAllLiterally("&#123;", "{")
+        .replaceAllLiterally("&#125;", "}")
+        .replaceAllLiterally("&#91;", "[")
+        .replaceAllLiterally("&#93;", "]")
+        .replaceAllLiterally("&#44;", ",")
+    } else str
 }

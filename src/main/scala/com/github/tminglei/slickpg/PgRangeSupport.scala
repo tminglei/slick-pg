@@ -5,20 +5,19 @@ import scala.slick.lifted.Column
 import java.sql.{Date, Timestamp}
 
 trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+  import PgRangeSupportUtils._
 
   type RANGEType[T] = Range[T]
 
-  private val tsFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-  private val dateFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd")
   private def toTimestamp(str: String) = new Timestamp(tsFormatter.parse(str).getTime)
   private def toSQLDate(str: String) = new Date(dateFormatter.parse(str).getTime)
 
   trait RangeImplicits {
-    implicit val intRangeTypeMapper = new GenericJdbcType[Range[Int]]("int4range", Range.mkRangeFn(_.toInt))
-    implicit val longRangeTypeMapper = new GenericJdbcType[Range[Long]]("int8range", Range.mkRangeFn(_.toLong))
-    implicit val floatRangeTypeMapper = new GenericJdbcType[Range[Float]]("numrange", Range.mkRangeFn(_.toFloat))
-    implicit val timestampRangeTypeMapper = new GenericJdbcType[Range[Timestamp]]("tsrange", Range.mkRangeFn(toTimestamp))
-    implicit val dateRangeTypeMapper = new GenericJdbcType[Range[Date]]("daterange", Range.mkRangeFn(toSQLDate))
+    implicit val intRangeTypeMapper = new GenericJdbcType[Range[Int]]("int4range", mkRangeFn(_.toInt))
+    implicit val longRangeTypeMapper = new GenericJdbcType[Range[Long]]("int8range", mkRangeFn(_.toLong))
+    implicit val floatRangeTypeMapper = new GenericJdbcType[Range[Float]]("numrange", mkRangeFn(_.toFloat))
+    implicit val timestampRangeTypeMapper = new GenericJdbcType[Range[Timestamp]]("tsrange", mkRangeFn(toTimestamp))
+    implicit val dateRangeTypeMapper = new GenericJdbcType[Range[Date]]("daterange", mkRangeFn(toSQLDate))
 
     implicit def rangeColumnExtensionMethods[B0, Range[B0]](c: Column[Range[B0]])(
       implicit tm: JdbcType[B0], tm1: JdbcType[RANGEType[B0]]) = {
@@ -28,5 +27,52 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
       implicit tm: JdbcType[B0], tm1: JdbcType[RANGEType[B0]]) = {
         new RangeColumnExtensionMethods[B0, Option[Range[B0]]](c)
       }
+  }
+}
+
+object PgRangeSupportUtils {
+  import java.text.SimpleDateFormat
+
+  private[this] val tsFormatterLocal = new ThreadLocal[SimpleDateFormat](){
+    override def initialValue() = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+  }
+  def tsFormatter() = tsFormatterLocal.get()
+
+  private[this] val dateFormatterLocal = new ThreadLocal[SimpleDateFormat](){
+    override def initialValue() = new SimpleDateFormat("yyyy-MM-dd")
+  }
+  def dateFormatter() = dateFormatterLocal.get()
+
+  // regular expr matchers to range string
+  val `[_,_)Range`  = """\["?([^,"]*)"?,[ ]*"?([^,"]*)"?\)""".r   // matches: [_,_)
+  val `(_,_]Range`  = """\("?([^,"]*)"?,[ ]*"?([^,"]*)"?\]""".r   // matches: (_,_]
+  val `(_,_)Range`  = """\("?([^,"]*)"?,[ ]*"?([^,"]*)"?\)""".r   // matches: (_,_)
+  val `[_,_]Range`  = """\["?([^,"]*)"?,[ ]*"?([^,"]*)"?\]""".r   // matches: [_,_]
+
+  def mkRangeFn[T](convert: (String => T)): (String => Range[T]) =
+    (str: String) => str match {
+      case `[_,_)Range`(start, end) => Range(convert(start), convert(end), `[_,_)`)
+      case `(_,_]Range`(start, end) => Range(convert(start), convert(end), `(_,_]`)
+      case `(_,_)Range`(start, end) => Range(convert(start), convert(end), `(_,_)`)
+      case `[_,_]Range`(start, end) => Range(convert(start), convert(end), `[_,_]`)
+    }
+
+  def toStringFn[T](toString: (T => String)): (Range[T] => String) =
+    (r: Range[T]) => r.edge match {
+      case `[_,_)` => s"[${toString(r.start)},${toString(r.end)})"
+      case `(_,_]` => s"(${toString(r.start)},${toString(r.end)}]"
+      case `(_,_)` => s"(${toString(r.start)},${toString(r.end)})"
+      case `[_,_]` => s"[${toString(r.start)},${toString(r.end)}]"
+    }
+
+  ///
+  def mkWithLength[T](start: T, length: Double, edge: EdgeType = `[_,_)`) = {
+    val upper = (start.asInstanceOf[Double] + length).asInstanceOf[T]
+    new Range[T](start, upper, edge)
+  }
+
+  def mkWithInterval[T <: java.util.Date](start: T, interval: Interval, edge: EdgeType = `[_,_)`) = {
+    val end = (start +: interval).asInstanceOf[T]
+    new Range[T](start, end, edge)
   }
 }

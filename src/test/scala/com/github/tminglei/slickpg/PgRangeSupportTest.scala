@@ -10,7 +10,7 @@ class PgRangeSupportTest {
   val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=test", driver = "org.postgresql.Driver")
 
   val tsFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-  def timestamp(str: String) = new Timestamp(tsFormatter.parse(str).getTime)
+  def ts(str: String) = new Timestamp(tsFormatter.parse(str).getTime)
 
   case class RangeBean(
     id: Long,
@@ -21,9 +21,9 @@ class PgRangeSupportTest {
 
   class RangeTestTable(tag: Tag) extends Table[RangeBean](tag, "RangeTest") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
-    def intRange = column[Range[Int]]("intRange", O.DBType("int4range"))
-    def floatRange = column[Range[Float]]("floatRange", O.DBType("numrange"))
-    def tsRange = column[Option[Range[Timestamp]]]("tsRange", O.DBType("tsrange"))
+    def intRange = column[Range[Int]]("int_range")
+    def floatRange = column[Range[Float]]("float_range")
+    def tsRange = column[Option[Range[Timestamp]]]("ts_range")
 
     def * = (id, intRange, floatRange, tsRange) <> (RangeBean.tupled, RangeBean.unapply)
   }
@@ -32,9 +32,9 @@ class PgRangeSupportTest {
   //-------------------------------------------------------------------------------
 
   val testRec1 = RangeBean(33L, Range(3, 5), Range(1.5f, 3.3f),
-    Some(Range(timestamp("2010-01-01 14:30:00"), timestamp("2010-01-03 15:30:00"))))
+    Some(Range(ts("2010-01-01 14:30:00"), ts("2010-01-03 15:30:00"))))
   val testRec2 = RangeBean(35L, Range(31, 59), Range(11.5f, 33.3f),
-    Some(Range(timestamp("2011-01-01 14:30:00"), timestamp("2011-11-01 15:30:00"))))
+    Some(Range(ts("2011-01-01 14:30:00"), ts("2011-11-01 15:30:00"))))
   val testRec3 = RangeBean(41L, Range(1, 5), Range(7.5f, 15.3f), None)
 
   @Test
@@ -42,11 +42,11 @@ class PgRangeSupportTest {
     db withSession { implicit session: Session =>
       RangeTests.forceInsertAll(testRec1, testRec2, testRec3)
 
-      val q0 = RangeTests.filter(_.tsRange @>^ timestamp("2011-10-01 15:30:00")).sortBy(_.id).map(t => t)
+      val q0 = RangeTests.filter(_.tsRange @>^ ts("2011-10-01 15:30:00")).sortBy(_.id).map(t => t)
       println(s"[range] '@>^' sql = ${q0.selectStatement}")
       assertEquals(List(testRec2), q0.list())
 
-      val q01 = RangeTests.filter(timestamp("2011-10-01 15:30:00").bind <@^: _.tsRange).sortBy(_.id).map(t => t)
+      val q01 = RangeTests.filter(ts("2011-10-01 15:30:00").bind <@^: _.tsRange).sortBy(_.id).map(t => t)
       println(s"[range] '<@^' sql = ${q01.selectStatement}")
       assertEquals(List(testRec2), q01.list())
 

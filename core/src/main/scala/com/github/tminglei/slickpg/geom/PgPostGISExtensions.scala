@@ -223,7 +223,7 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     val Translate = new SqlFunction("ST_Translate")
   }
 
-  /** Extension methods for hstore Columns */
+  /** Extension methods for postgis Columns */
   class GeometryColumnExtensionMethods[G1 <: GEOMETRY, P1](val c: Column[P1])(
             implicit tm: JdbcType[GEOMETRY], tm1: JdbcType[POINT], tm2: JdbcType[LINESTRING], tm3: JdbcType[POLYGON], tm4: JdbcType[GEOMETRYCOLLECTION])
                   extends ExtensionMethods[G1, P1] {
@@ -440,8 +440,10 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     def within[P2, R](geom: Column[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.Within, n, geom.toNode)
       }
-    def dWithin[P2, R](geom: Column[P2], distance: Column[Double])(implicit om: o#to[Boolean, R]) = {
-        om.column(GeomLibrary.DWithin, n, geom.toNode, distance.toNode)
+    def dWithin[P2, R](geom: Column[P2], distance: Column[Double], useSpheroid: Option[Boolean] = None)(
+      implicit om: o#to[Boolean, R]) = useSpheroid match {
+        case Some(_) => om.column(GeomLibrary.DWithin, n, geom.toNode, distance.toNode, LiteralNode(useSpheroid.get))
+        case _    =>    om.column(GeomLibrary.DWithin, n, geom.toNode, distance.toNode)
       }
     def dFullyWithin[P2, R](geom: Column[P2], distance: Column[Double])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.DFullyWithin, n, geom.toNode, distance.toNode)

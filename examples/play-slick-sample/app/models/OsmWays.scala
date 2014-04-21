@@ -3,7 +3,7 @@ package models
 import com.vividsolutions.jts.geom.Point
 import org.joda.time.LocalDateTime
 import play.api.libs.json.JsValue
-import my.utils.MyPostgresDriver
+import myUtils.WithMyDriver
 
 case class OsmWay(
   id: Int,
@@ -35,11 +35,8 @@ case class OsmWay(
   * we imagine we have multiple different databases for production
   * and tests
   */
-trait OsmWaysComponent {
-  
-  val driver: MyPostgresDriver //<- step 1: you must add this "self-type"
-  
-  import driver.simple._ //<- step 2: then import the correct Table, ... from the profile
+trait OsmWaysComponent extends WithMyDriver {
+  import driver.simple._
 
   class OsmWays(tag: Tag) extends Table[OsmWay](tag, "WAYS") {
     def id = column[Int]("id")
