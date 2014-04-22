@@ -60,21 +60,6 @@ object TypeConverters extends Logging {
   object Util {
     import PGObjectTokenizer.PGElements._
     
-    private[this] val tsFormatterLocal = new ThreadLocal[SimpleDateFormat](){
-      override def initialValue() = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-    }
-    def tsFormatter() = tsFormatterLocal.get()
-
-    private[this] val dateFormatterLocal = new ThreadLocal[SimpleDateFormat](){
-        override def initialValue() = new SimpleDateFormat("yyyy-MM-dd")
-    }
-    def dateFormatter() = dateFormatterLocal.get()
-
-    private[this] val timeFormatterLocal = new ThreadLocal[SimpleDateFormat](){
-        override def initialValue() = new SimpleDateFormat("HH:mm:ss")
-    }
-    def timeFormatter() = timeFormatterLocal.get()
-
     private def pgBoolAdjust(s: String): String =
       Option(s).map(_.toLowerCase) match {
         case Some("t")  => "true"
@@ -92,12 +77,12 @@ object TypeConverters extends Logging {
       register((v: String) => v.toByte)
       register((v: String) => UUID.fromString(v))
       // register date/time converters
-      register((v: String) => new Date(dateFormatter.parse(v).getTime))
-      register((v: String) => new Time(timeFormatter.parse(v).getTime))
-      register((v: String) => new Timestamp(tsFormatter.parse(v).getTime))
-      register((v: Date) => dateFormatter.format(v))
-      register((v: Time) => timeFormatter.format(v))
-      register((v: Timestamp) => tsFormatter.format(v))
+      register((v: String) => Date.valueOf(v))
+      register((v: String) => Time.valueOf(v))
+      register((v: String) => Timestamp.valueOf(v))
+      register((v: Date) => v.toString)
+      register((v: Time) => v.toString)
+      register((v: Timestamp) => v.toString)
       true
     }
 

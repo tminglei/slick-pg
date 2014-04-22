@@ -9,8 +9,8 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
 
   type RANGEType[T] = Range[T]
 
-  private def toTimestamp(str: String) = new Timestamp(tsFormatter.parse(str).getTime)
-  private def toSQLDate(str: String) = new Date(dateFormatter.parse(str).getTime)
+  private def toTimestamp(str: String) = Timestamp.valueOf(str)
+  private def toSQLDate(str: String) = Date.valueOf(str)
 
   trait RangeImplicits {
     implicit val intRangeTypeMapper = new GenericJdbcType[Range[Int]]("int4range", mkRangeFn(_.toInt))
@@ -31,17 +31,6 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
 }
 
 object PgRangeSupportUtils {
-  import java.text.SimpleDateFormat
-
-  private[this] val tsFormatterLocal = new ThreadLocal[SimpleDateFormat](){
-    override def initialValue() = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-  }
-  def tsFormatter() = tsFormatterLocal.get()
-
-  private[this] val dateFormatterLocal = new ThreadLocal[SimpleDateFormat](){
-    override def initialValue() = new SimpleDateFormat("yyyy-MM-dd")
-  }
-  def dateFormatter() = dateFormatterLocal.get()
 
   // regular expr matchers to range string
   val `[_,_)Range`  = """\["?([^,"]*)"?,[ ]*"?([^,"]*)"?\)""".r   // matches: [_,_)
