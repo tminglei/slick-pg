@@ -26,7 +26,7 @@ object ApplicationBuild extends Build {
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
     resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
-    scalaVersion := "2.11.0"
+    scalaVersion := "2.10.4"
     // Add your own project settings here      
   )
 
