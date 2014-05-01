@@ -7,10 +7,13 @@ trait MyPostgresDriver extends PostgresDriver
                           with PgDateSupport
                           with PgRangeSupport
                           with PgHStoreSupport
-                          with PgSearchSupport {
+                          with PgSearchSupport
+                          with agg.PgAggregateExtensions {
   ///
   override lazy val Implicit = new ImplicitsPlus {}
-  override val simple = new SimpleQLPlus {}
+  override val simple = new SimpleQLPlus {
+    object PgAggregateFunctions extends PgAggregateFunctions
+  }
 
   //////
   trait ImplicitsPlus extends Implicits
