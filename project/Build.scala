@@ -3,7 +3,6 @@ import Keys._
 
 object SlickPgBuild extends Build {
 
-  lazy val distDictionary = file("./../quickfish/dist")
   lazy val commonSettings = Seq(
     organizationName := "slick-pg",
     organization := "com.github.tminglei",
@@ -15,10 +14,9 @@ object SlickPgBuild extends Build {
       "-language:higherKinds",
       "-language:postfixOps"),
 
-    resolvers += "local dist" at "file:///" + distDictionary.getAbsolutePath,
     resolvers += Resolver.mavenLocal,
     resolvers += Resolver.sonatypeRepo("snapshots"),
-    publishTo := Some(Resolver.file("file",  distDictionary)),
+    publishTo := Some(Resolver.file("file", file(Path.userHome+"/.m2/repository"))),
 //    publishTo <<= version { (v: String) =>
 //      val nexus = "https://oss.sonatype.org/"
 //      if (v.trim.endsWith("SNAPSHOT"))

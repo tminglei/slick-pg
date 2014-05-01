@@ -2,6 +2,7 @@ package com.github.tminglei.slickpg
 
 import org.junit._
 import org.junit.Assert._
+import scala.slick.driver.PostgresDriver
 
 class PgEnumSupportTest {
   object WeekDays extends Enumeration {
@@ -16,9 +17,9 @@ class PgEnumSupportTest {
   import WeekDays._
   import Rainbows._
 
-  object MyPostgresDriver1 extends MyPostgresDriver with PgEnumSupport {
-    override lazy val Implicit = new ImplicitsPlus with MyEnumImplicits {}
-    override val simple = new SimpleQLPlus with MyEnumImplicits {}
+  object MyPostgresDriver1 extends PostgresDriver with PgEnumSupport {
+    override lazy val Implicit = new Implicits with MyEnumImplicits {}
+    override val simple = new SimpleQL with MyEnumImplicits {}
 
     trait MyEnumImplicits {
       implicit val weekDayTypeMapper = createEnumJdbcType("weekday", WeekDays)
