@@ -34,12 +34,25 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
     override def valueToSQLLiteral(vList: List[T]) = buildArrayStr(vList)
 
+    ///
+    def basedOn[U](tmap: T => U, tcomap: U => T): JdbcType[List[T]] with BaseTypedType[List[T]] =
+      new SimpleArrayListJdbcType[T](sqlBaseType) {
+
+        override def nextValue(r: PositionedResult): List[T] =
+          r.nextObjectOption().map(_.asInstanceOf[java.sql.Array])
+            .map(_.getArray.asInstanceOf[Array[Any]].map(e => tcomap(e.asInstanceOf[U])).toList)
+            .getOrElse(zero)
+
+        //--
+        override protected def buildArrayStr[E](v: List[E]): String = super.buildArrayStr(v.map(e => tmap(e.asInstanceOf[T])))
+      }
+
     //--
     private def mkArray(v: List[T]): java.sql.Array = new SimpleArray(sqlBaseType, v, buildArrayStr)
 
     /** copy from [[org.postgresql.jdbc4.AbstractJdbc4Connection#createArrayOf(..)]]
       * and [[org.postgresql.jdbc2.AbstractJdbc2Array#escapeArrayElement(..)]] */
-    private def buildArrayStr(vList: List[T]): String = {
+    protected def buildArrayStr[E](vList: List[E]): String = {
       def escape(s: String) = {
         StringBuilder.newBuilder + '"' appendAll (
           s map {
@@ -56,6 +69,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
     }
   }
 
+  ///-- can be used to map complex composite/nested array
   class ArrayListJdbcType[T : ClassTag](sqlBaseType: String,
                                        fnFromString: (String => List[T]),
                                        fnToString: (List[T] => String))
