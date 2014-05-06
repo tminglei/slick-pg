@@ -19,7 +19,7 @@ class PgDate2bpSupportTest {
     duration: Duration
     )
 
-  class DatetimeTable(tag: Tag) extends Table[DatetimeBean](tag,"Datetime2Test") {
+  class DatetimeTable(tag: Tag) extends Table[DatetimeBean](tag,"Datetimebp_Test") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def date = column[LocalDate]("date")
     def time = column[LocalTime]("time")
