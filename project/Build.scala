@@ -15,10 +15,10 @@ object SlickPgBuild extends Build {
       "-language:higherKinds",
       "-language:postfixOps"),
 
+    resolvers += toSbtResolver(s3resolver.value("My Amazon S3 bucket", s3("quickfish/snapshots")) withIvyPatterns),
     resolvers += Resolver.mavenLocal,
     resolvers += Resolver.sonatypeRepo("snapshots"),
-    resolvers += s3resolver.value("My Amazon S3 bucket", s3("quickfish/snapshots")) withIvyPatterns,
-    publishTo := Some(s3resolver.value("My Amazon S3 bucket", s3("quickfish/snapshots")) withIvyPatterns),
+    publishTo := Some(s3resolver.value("My Amazon S3 bucket 1", s3("quickfish/snapshots")) withIvyPatterns),
     publishMavenStyle := false,
 //    publishTo <<= version { (v: String) =>
 //      val nexus = "https://oss.sonatype.org/"
