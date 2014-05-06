@@ -5,7 +5,26 @@ import org.junit.Assert._
 import java.util.UUID
 
 class PgArraySupportTest {
-  import MyPostgresDriver.simple._
+
+  //-- additional definitions
+  case class Institution(value: Long)
+  case class MarketFinancialProduct(value: String)
+
+  object MyPostgresDriver1 extends MyPostgresDriver {
+    override val Implicit = new ImplicitsPlus with MyArrayImplicitsPlus {}
+    override val simple = new SimpleQLPlus with MyArrayImplicitsPlus {}
+
+    ///
+    trait MyArrayImplicitsPlus {
+      implicit val institutionListTypeWrapper =  new SimpleArrayListJdbcType[Institution]("int8")
+        .basedOn[Long](_.value, new Institution(_))
+      implicit val marketFinancialProductWrapper = new SimpleArrayListJdbcType[MarketFinancialProduct]("text")
+        .basedOn[String](_.value, new MarketFinancialProduct(_))
+    }
+  }
+
+  //////////////////////////////////////////////////////////////////////////
+  import MyPostgresDriver1.simple._
 
   val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=test", driver = "org.postgresql.Driver")
 
@@ -13,7 +32,9 @@ class PgArraySupportTest {
     id: Long,
     intArr: List[Int],
     longArr: List[Long],
-    strArr: Option[List[String]]
+    strArr: Option[List[String]],
+    institutions: List[Institution],
+    mktFinancialProducts: Option[List[MarketFinancialProduct]]
     )
 
   class ArrayTestTable(tag: Tag) extends Table[ArrayBean](tag, "ArrayTest") {
@@ -21,16 +42,21 @@ class PgArraySupportTest {
     def intArr = column[List[Int]]("intArray")
     def longArr = column[List[Long]]("longArray")
     def strArr = column[Option[List[String]]]("stringArray")
+    def institutions = column[List[Institution]]("institutions")
+    def mktFinancialProducts = column[Option[List[MarketFinancialProduct]]]("mktFinancialProducts")
 
-    def * = (id, intArr, longArr, strArr) <> (ArrayBean.tupled, ArrayBean.unapply)
+    def * = (id, intArr, longArr, strArr, institutions, mktFinancialProducts) <> (ArrayBean.tupled, ArrayBean.unapply)
   }
   val ArrayTests = TableQuery[ArrayTestTable]
 
   //------------------------------------------------------------------------------
 
-  val testRec1 = ArrayBean(33L, List(101, 102, 103), List(1L, 3L, 5L, 7L), Some(List("str1", "str3")))
-  val testRec2 = ArrayBean(37L, List(101, 103), List(11L, 31L, 5L), Some(List("str11", "str3")))
-  val testRec3 = ArrayBean(41L, List(103, 101), List(11L, 5L, 31L), Some(List("(s)", "str5", "str3")))
+  val testRec1 = ArrayBean(33L, List(101, 102, 103), List(1L, 3L, 5L, 7L), Some(List("str1", "str3")),
+    List(Institution(113)), None)
+  val testRec2 = ArrayBean(37L, List(101, 103), List(11L, 31L, 5L), Some(List("str11", "str3")),
+    List(Institution(579)), Some(List(MarketFinancialProduct("product1"))))
+  val testRec3 = ArrayBean(41L, List(103, 101), List(11L, 5L, 31L), Some(List("(s)", "str5", "str3")),
+    Nil, Some(List(MarketFinancialProduct("product3"), MarketFinancialProduct("product x"))))
 
   @Test
   def testArrayFunctions(): Unit = {

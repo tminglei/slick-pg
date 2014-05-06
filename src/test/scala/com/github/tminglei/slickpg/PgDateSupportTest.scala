@@ -7,7 +7,7 @@ import java.util.Calendar
 import java.text.SimpleDateFormat
 import scala.slick.jdbc.StaticQuery
 
-class gDateSupportTest {
+class PgDateSupportTest {
   import MyPostgresDriver.simple._
 
   val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=test", driver = "org.postgresql.Driver")
