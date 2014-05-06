@@ -1,5 +1,6 @@
 import sbt._
 import Keys._
+import ohnosequences.sbt.SbtS3Resolver._
 
 object SlickPgBuild extends Build {
 
@@ -16,7 +17,9 @@ object SlickPgBuild extends Build {
 
     resolvers += Resolver.mavenLocal,
     resolvers += Resolver.sonatypeRepo("snapshots"),
-    publishTo := Some(Resolver.file("file", file(Path.userHome+"/.m2/repository"))),
+    resolvers += s3resolver.value("My Amazon S3 bucket", s3("quickfish/snapshots")) withIvyPatterns,
+    publishTo := Some(s3resolver.value("My Amazon S3 bucket", s3("quickfish/snapshots")) withIvyPatterns),
+    publishMavenStyle := false,
 //    publishTo <<= version { (v: String) =>
 //      val nexus = "https://oss.sonatype.org/"
 //      if (v.trim.endsWith("SNAPSHOT"))
@@ -24,7 +27,7 @@ object SlickPgBuild extends Build {
 //      else
 //        Some("releases"  at nexus + "service/local/staging/deploy/maven2")
 //    },
-    publishMavenStyle := true,
+//    publishMavenStyle := true,
     publishArtifact in Test := false,
     pomIncludeRepository := { _ => false },
     makePomConfiguration ~= { _.copy(configurations = Some(Seq(Compile, Runtime, Optional))) },
@@ -50,6 +53,8 @@ object SlickPgBuild extends Build {
         </developer>
       </developers>
     )
+  ) ++ S3Resolver.defaults ++ Seq(
+    s3region := com.amazonaws.services.s3.model.Region.US_West_2
   )
   
   lazy val mainDependencies = Seq (

@@ -33,13 +33,13 @@ class PgAggFunctionTest {
         Tab("bar", 11, 73.75, 28.57)
       )
 
-      val q = tabs.map(t => (t.name ^: StringAgg(",").forDistinct().orderBy(t.name), t.count ^: Avg[Int]))
-      println(s"q = ${q.selectStatement}")
-      assertEquals(("bar,foo,quux", 4), q.first)
-
-      val q1 = tabs.map(t => (t.y, t.x) ^: Corr())
-      println(s"q = ${q1.selectStatement}")
-      assertEquals(0.45, q1.first, 0.01)
+//      val q = tabs.map(t => (t.name ^: StringAgg(",").forDistinct().orderBy(t.name), t.count ^: Avg[Int]))
+//      println(s"q = ${q.selectStatement}")
+//      assertEquals(("bar,foo,quux", 4), q.first)
+//
+//      val q1 = tabs.map(t => (t.y, t.x) ^: Corr())
+//      println(s"q = ${q1.selectStatement}")
+//      assertEquals(0.45, q1.first, 0.01)
     }
   }
 
