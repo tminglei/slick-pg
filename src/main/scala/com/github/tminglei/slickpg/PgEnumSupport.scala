@@ -7,7 +7,7 @@ import scala.slick.lifted.Column
 import scala.reflect.ClassTag
 import java.sql.{PreparedStatement, ResultSet}
 
-trait PgEnumSupport extends enums.PgEnumExtensions { driver: PostgresDriver =>
+trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes { driver: PostgresDriver =>
   
   def createEnumColumnExtensionMethodsBuilder[T <: Enumeration](enumObject: T)(
       implicit tm: JdbcType[enumObject.Value], tm1: JdbcType[List[enumObject.Value]]) = 
@@ -25,29 +25,8 @@ trait PgEnumSupport extends enums.PgEnumExtensions { driver: PostgresDriver =>
   def createEnumListJdbcType[T <: Enumeration](sqlEnumTypeName: String, enumObject: T)(
              implicit tag: ClassTag[List[enumObject.Value]]): JdbcType[List[enumObject.Value]] = {
 
-    new DriverJdbcType[List[enumObject.Value]] {
-
-      override val classTag: ClassTag[List[enumObject.Value]] = tag
-
-      override def sqlType: Int = java.sql.Types.ARRAY
-
-      override def sqlTypeName: String = s"$sqlEnumTypeName ARRAY"
-
-      override def getValue(r: ResultSet, idx: Int): List[enumObject.Value] = {
-        val value = r.getArray(idx)
-        if (r.wasNull) Nil
-        else value.getArray.asInstanceOf[Array[String]]
-          .map(s => enumObject.withName(s)).toList
-      }
-
-      override def setValue(vList: List[enumObject.Value], p: PreparedStatement, idx: Int): Unit = ???
-
-      override def updateValue(vList: List[enumObject.Value], r: ResultSet, idx: Int): Unit = ???
-
-      override def hasLiteralForm: Boolean = false
-
-      override def valueToSQLLiteral(vList: List[enumObject.Value]) = ???
-    }
+    new SimpleArrayListJdbcType[enumObject.Value](sqlEnumTypeName)
+      .basedOn[String](tmap = _.toString, tcomap = enumObject.withName(_))
   }
 
   def createEnumJdbcType[T <: Enumeration](sqlEnumTypeName: String, enumObject: T)(

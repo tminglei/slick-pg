@@ -3,6 +3,7 @@ package com.github.tminglei.slickpg
 import org.junit._
 import org.junit.Assert._
 import java.util.UUID
+import scala.slick.driver.PostgresDriver
 
 class PgArraySupportTest {
 
@@ -10,9 +11,9 @@ class PgArraySupportTest {
   case class Institution(value: Long)
   case class MarketFinancialProduct(value: String)
 
-  object MyPostgresDriver1 extends MyPostgresDriver {
-    override val Implicit = new ImplicitsPlus with MyArrayImplicitsPlus {}
-    override val simple = new SimpleQLPlus with MyArrayImplicitsPlus {}
+  object MyPostgresDriver1 extends PostgresDriver with PgArraySupport {
+    override lazy val Implicit = new Implicits with ArrayImplicits with MyArrayImplicitsPlus {}
+    override val simple = new SimpleQL with ArrayImplicits with MyArrayImplicitsPlus {}
 
     ///
     trait MyArrayImplicitsPlus {

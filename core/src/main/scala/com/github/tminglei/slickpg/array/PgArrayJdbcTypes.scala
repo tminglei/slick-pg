@@ -18,7 +18,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
     override def getValue(r: ResultSet, idx: Int): List[T] = {
       val value = r.getArray(idx)
-      if (r.wasNull) Nil else value.getArray.asInstanceOf[Array[Any]].map(_.asInstanceOf[T]).toList
+      if (r.wasNull) null else value.getArray.asInstanceOf[Array[Any]].map(_.asInstanceOf[T]).toList
     }
 
     override def setValue(vList: List[T], p: PreparedStatement, idx: Int): Unit = p.setArray(idx, mkArray(vList))
@@ -29,12 +29,26 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
     override def valueToSQLLiteral(vList: List[T]) = buildArrayStr(vList)
 
+    ///
+    def basedOn[U](tmap: T => U, tcomap: U => T): DriverJdbcType[List[T]] =
+      new SimpleArrayListJdbcType[T](sqlBaseType) {
+
+        override def getValue(r: ResultSet, idx: Int): List[T] = {
+          val value = r.getArray(idx)
+          if (r.wasNull) null else value.getArray.asInstanceOf[Array[Any]]
+            .map(e => tcomap(e.asInstanceOf[U])).toList
+        }
+
+        //--
+        override protected def buildArrayStr(v: List[Any]): String = super.buildArrayStr(v.map(e => tmap(e.asInstanceOf[T])))
+      }
+
     //--
     private def mkArray(v: List[T]): java.sql.Array = new SimpleArray(sqlBaseType, v, buildArrayStr)
 
     /** copy from [[org.postgresql.jdbc4.AbstractJdbc4Connection#createArrayOf(..)]]
       * and [[org.postgresql.jdbc2.AbstractJdbc2Array#escapeArrayElement(..)]] */
-    private def buildArrayStr(vList: List[T]): String = {
+    protected def buildArrayStr(vList: List[Any]): String = {
       def escape(s: String) = {
         StringBuilder.newBuilder + '"' appendAll (
           s map {
@@ -51,6 +65,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
     }
   }
 
+  ///-- can be used to map complex composite/nested array
   class ArrayListJdbcType[T](sqlBaseType: String,
                             fnFromString: (String => List[T]),
                             fnToString: (List[T] => String))(
@@ -63,7 +78,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
     override def getValue(r: ResultSet, idx: Int): List[T] = {
       val value = r.getString(idx)
-      if (r.wasNull) Nil else fnFromString(value)
+      if (r.wasNull) null else fnFromString(value)
     }
 
     override def setValue(vList: List[T], p: PreparedStatement, idx: Int): Unit = p.setArray(idx, mkArray(vList))
