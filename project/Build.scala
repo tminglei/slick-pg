@@ -79,7 +79,7 @@ object SlickPgBuild extends Build {
       libraryDependencies := mainDependencies
     ) 
   ).dependsOn (slickPgCore)
-   .aggregate (slickPgCore, slickPgJoda, slickPgJson4s, slickPgJts, slickPgPlayJson, slickPgSprayJson, slickPgThreeten, slickPgDate2)
+   .aggregate (slickPgCore, slickPgJoda, slickPgJson4s, slickPgJts, slickPgPlayJson, slickPgSprayJson, slickPgArgonaut, slickPgThreeten, slickPgDate2)
 
   lazy val slickPgCore = Project(id = "slick-pg_core", base = file("./core"),
     settings = Project.defaultSettings ++ commonSettings ++ coreSettings)
@@ -133,6 +133,16 @@ object SlickPgBuild extends Build {
       description := "Slick extensions for PostgreSQL - spray-json module",
       libraryDependencies := mainDependencies ++ Seq(
         "io.spray" %%  "spray-json" % "1.2.5"
+      )
+    )
+  ) dependsOn (slickPgCore)
+
+  lazy val slickPgArgonaut = Project(id = "slick-pg_argonaut", base = file("./addons/argonaut"),
+    settings = Project.defaultSettings ++ commonSettings ++ slickPgSettings ++ Seq(
+      name := "slick-pg_argonaut",
+      description := "Slick extensions for PostgreSQL - argonaut module",
+      libraryDependencies := mainDependencies ++ Seq(
+        "io.argonaut" %% "argonaut" % "6.0.4"
       )
     )
   ) dependsOn (slickPgCore)
