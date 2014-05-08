@@ -11,7 +11,7 @@ class PgArgonautSupportTest {
 
   case class JsonBean(id: Long, json: Json)
 
-  class JsonTestTable(tag: Tag) extends Table[JsonBean](tag, "JsonTest3") {
+  class JsonTestTable(tag: Tag) extends Table[JsonBean](tag, "JsonTest4") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def json = column[Json]("json")
 
