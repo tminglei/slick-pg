@@ -13,7 +13,7 @@ class PgPlayJsonSupportTest {
 
   class JsonTestTable(tag: Tag) extends Table[JsonBean](tag, "JsonTest2") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
-    def json = column[JsValue]("json")
+    def json = column[JsValue]("json", O.Default(Json.parse(""" {"a":"v1","b":2} """)))
 
     def * = (id, json) <> (JsonBean.tupled, JsonBean.unapply)
   }

@@ -14,7 +14,7 @@ class PgPostGISSupportTest {
 
   class GeomTestTable(tag: Tag) extends Table[GeometryBean](tag, "geom_test") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
-    def geom = column[Geometry]("geom")
+    def geom = column[Geometry]("geom", O.Default(new WKTReader().read("POINT(-71.064544 42.28787)")))
 
     def * = (id, geom) <> (GeometryBean.tupled, GeometryBean.unapply)
   }
@@ -543,6 +543,7 @@ class PgPostGISSupportTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
+      (GeomTests.ddl ++ PointTests.ddl).createStatements.foreach(s => println(s"[jts] $s"))
       (GeomTests.ddl ++ PointTests.ddl) create
     }
   }

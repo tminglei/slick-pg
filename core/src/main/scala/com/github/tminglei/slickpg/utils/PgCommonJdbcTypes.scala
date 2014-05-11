@@ -25,13 +25,13 @@ trait PgCommonJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
     override def updateValue(v: T, r: ResultSet, idx: Int): Unit = r.updateObject(idx, mkPgObject(v))
 
-    override def valueToSQLLiteral(v: T) = fnToString(v)
+    override def valueToSQLLiteral(v: T) = if(v == null) "NULL" else s"'${fnToString(v)}'"
 
     ///
     private def mkPgObject(v: T) = {
       val obj = new PGobject
       obj.setType(sqlTypeName)
-      obj.setValue(valueToSQLLiteral(v))
+      obj.setValue(if(v == null) null else fnToString(v))
       obj
     }
   }

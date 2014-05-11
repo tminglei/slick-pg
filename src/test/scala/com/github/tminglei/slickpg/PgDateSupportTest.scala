@@ -33,7 +33,7 @@ class PgDateSupportTest {
   class DatetimeTable(tag: Tag) extends Table[DatetimeBean](tag, "DatetimeTest") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def date = column[Date]("date")
-    def time = column[Time]("time")
+    def time = column[Time]("time", O.Default(PgDateSupportTest.this.time("00:00:00")))
     def timestamp = column[Timestamp]("timestamp")
     def timestamptz = column[Calendar]("timestamptz")
     def interval = column[Interval]("interval")
@@ -192,6 +192,7 @@ class PgDateSupportTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
+      Datetimes.ddl.createStatements.foreach(s => println(s"[date] $s"))
       Datetimes.ddl create
     }
   }

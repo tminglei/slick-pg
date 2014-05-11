@@ -12,7 +12,7 @@ class PgHStoreSupportTest {
 
   class HStoreTestTable(tag: Tag) extends Table[MapBean](tag, "HStoreTest") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
-    def hstore = column[Map[String, String]]("hstoreMap")
+    def hstore = column[Map[String, String]]("hstoreMap", O.Default(Map.empty))
 
     def * = (id, hstore) <> (MapBean.tupled, MapBean.unapply)
   }
@@ -88,6 +88,7 @@ class PgHStoreSupportTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
+      HStoreTests.ddl.createStatements.foreach(s => println(s"[hstore] $s"))
       HStoreTests.ddl create
     }
   }

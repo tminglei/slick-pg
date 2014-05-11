@@ -50,7 +50,7 @@ trait PgPostGISSupport extends geom.PgPostGISExtensions { driver: PostgresDriver
 
     override def hasLiteralForm: Boolean = false
 
-    override def valueToSQLLiteral(v: T) = toLiteral(v)
+    override def valueToSQLLiteral(v: T) = if(v eq null) "NULL" else s"'${toLiteral(v)}'"
   }
 }
 

@@ -27,7 +27,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
     override def hasLiteralForm: Boolean = false
 
-    override def valueToSQLLiteral(vList: List[T]) = buildArrayStr(vList)
+    override def valueToSQLLiteral(vList: List[T]) = if(vList eq null) "NULL" else s"'${buildArrayStr(vList)}'"
 
     ///
     def basedOn[U](tmap: T => U, tcomap: U => T): DriverJdbcType[List[T]] =
@@ -87,7 +87,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
     override def hasLiteralForm: Boolean = false
 
-    override def valueToSQLLiteral(vList: List[T]) = fnToString(vList)
+    override def valueToSQLLiteral(vList: List[T]) = if(vList eq null) "NULL" else s"'${fnToString(vList)}'"
 
     //--
     private def mkArray(v: List[T]): java.sql.Array = new SimpleArray(sqlBaseType, v, fnToString)

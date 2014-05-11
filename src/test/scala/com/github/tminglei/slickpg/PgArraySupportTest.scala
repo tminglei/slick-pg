@@ -40,7 +40,7 @@ class PgArraySupportTest {
 
   class ArrayTestTable(tag: Tag) extends Table[ArrayBean](tag, "ArrayTest") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
-    def intArr = column[List[Int]]("intArray")
+    def intArr = column[List[Int]]("intArray", O.Default(Nil))
     def longArr = column[List[Long]]("longArray")
     def strArr = column[Option[List[String]]]("stringArray")
     def institutions = column[List[Institution]]("institutions")
@@ -166,16 +166,15 @@ class PgArraySupportTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
-      ArrayTests.ddl create;
-      ArrayTests1.ddl create
+      (ArrayTests.ddl ++ ArrayTests1.ddl).createStatements.foreach(s => println(s"[array] $s"))
+      (ArrayTests.ddl ++ ArrayTests1.ddl) create
     }
   }
 
   @After
   def dropTables(): Unit = {
     db withSession { implicit session: Session =>
-      ArrayTests.ddl drop;
-      ArrayTests1.ddl drop
+      (ArrayTests.ddl ++ ArrayTests1.ddl) drop
     }
   }
 }

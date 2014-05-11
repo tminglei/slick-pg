@@ -21,7 +21,7 @@ class PgRangeSupportTest {
 
   class RangeTestTable(tag: Tag) extends Table[RangeBean](tag, "RangeTest") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
-    def intRange = column[Range[Int]]("int_range")
+    def intRange = column[Range[Int]]("int_range", O.Default(Range(3, 5)))
     def floatRange = column[Range[Float]]("float_range")
     def tsRange = column[Option[Range[Timestamp]]]("ts_range")
 
@@ -101,6 +101,7 @@ class PgRangeSupportTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
+      RangeTests.ddl.createStatements.foreach(s => println(s"[range] $s"))
       RangeTests.ddl create
     }
   }

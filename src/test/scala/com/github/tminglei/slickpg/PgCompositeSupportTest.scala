@@ -84,7 +84,7 @@ class PgCompositeSupportTest {
   
   class TestTable(tag: Tag) extends Table[TestBean](tag, "CompositeTest") {
     def id = column[Long]("id")
-    def comps = column[List[Composite2]]("comps", O.DBType("composite2[]"))
+    def comps = column[List[Composite2]]("comps", O.DBType("composite2[]"), O.Default(Nil))
     
     def * = (id,comps) <> (TestBean.tupled, TestBean.unapply)
   }
@@ -153,7 +153,8 @@ class PgCompositeSupportTest {
       (Q[Int] + "create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)").execute
       (Q[Int] + "create type composite2 as (id int8, comp1 composite1, confirm boolean)").execute
       (Q[Int] + "create type composite3 as (txt text, id int4, code int4)").execute
-      
+
+      (CompositeTests.ddl ++ CompositeTests1.ddl).createStatements.foreach(s => println(s"[composite] $s"))
       (CompositeTests.ddl ++ CompositeTests1.ddl) create
     }
   }

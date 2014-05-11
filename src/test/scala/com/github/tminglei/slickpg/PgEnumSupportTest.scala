@@ -43,7 +43,7 @@ class PgEnumSupportTest {
   
   class TestEnumTable(tag: Tag) extends Table[TestEnumBean](tag, "test_enum_table") {
     def id = column[Long]("id")
-    def weekday = column[WeekDay]("weekday")
+    def weekday = column[WeekDay]("weekday", O.Default(Mon))
     def rainbow = column[Option[Rainbow]]("rainbow")
     
     def * = (id, weekday, rainbow) <> (TestEnumBean.tupled, TestEnumBean.unapply)
@@ -93,7 +93,8 @@ class PgEnumSupportTest {
     db withSession { implicit session: Session =>
       PgEnumSupportUtils.buildCreateSql("weekday", WeekDays).execute
       PgEnumSupportUtils.buildCreateSql("rainbow", Rainbows).execute
-      
+
+      TestEnums.ddl.createStatements.foreach(s => println(s"[enum] $s"))
       TestEnums.ddl create
     }
   }

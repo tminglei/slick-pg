@@ -51,13 +51,13 @@ trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes {
 
       override def hasLiteralForm: Boolean = true
 
-      override def valueToSQLLiteral(v: enumObject.Value) = if (v eq null) null else v.toString
+      override def valueToSQLLiteral(v: enumObject.Value) = if (v eq null) "NULL" else s"'$v'"
 
       ///
       private def mkPgObject(v: enumObject.Value) = {
         val obj = new PGobject
         obj.setType(sqlTypeName)
-        obj.setValue(valueToSQLLiteral(v))
+        obj.setValue(if (v eq null) null else v.toString)
         obj
       }
     }
@@ -69,7 +69,7 @@ object PgEnumSupportUtils {
 
   def buildCreateSql[T <: Enumeration](sqlTypeName: String, enumObject: T): Invoker[Int] = {
     // `toStream` to prevent re-ordering after `map(e => s"'${e.toString}'")`
-    val enumValuesString = enumObject.values.toStream.map(e => s"'${e.toString}'").mkString(",")
+    val enumValuesString = enumObject.values.toStream.map(e => s"'$e'").mkString(",")
     Q[Int] + s"create type $sqlTypeName as enum ($enumValuesString)"
   }
   
