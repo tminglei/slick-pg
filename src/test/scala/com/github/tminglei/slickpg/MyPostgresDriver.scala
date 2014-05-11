@@ -9,7 +9,7 @@ trait MyPostgresDriver extends PostgresDriver
                           with PgHStoreSupport
                           with PgSearchSupport {
   ///
-  override val Implicit = new ImplicitsPlus {}
+  override lazy val Implicit = new ImplicitsPlus {}
   override val simple = new SimpleQLPlus {}
 
   //////

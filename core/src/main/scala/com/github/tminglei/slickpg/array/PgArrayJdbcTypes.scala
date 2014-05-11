@@ -3,48 +3,44 @@ package array
 
 import scala.reflect.ClassTag
 import java.util.{Map => JMap}
-import scala.slick.jdbc.{PositionedResult, PositionedParameters}
-import scala.slick.ast.{ScalaBaseType, ScalaType, BaseTypedType}
 import scala.slick.driver.{PostgresDriver, JdbcTypesComponent}
+import java.sql.{ResultSet, PreparedStatement}
 
 trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
-  class SimpleArrayListJdbcType[T : ClassTag](sqlBaseType: String) extends JdbcType[List[T]] with BaseTypedType[List[T]] {
+  class SimpleArrayListJdbcType[T](sqlBaseType: String)(
+              implicit override val classTag: ClassTag[List[T]], tag: ClassTag[T])
+                    extends DriverJdbcType[List[T]] {
 
-    def scalaType: ScalaType[List[T]] = ScalaBaseType[List[T]]
+    override def sqlType: Int = java.sql.Types.ARRAY
 
-    def zero: List[T] = Nil
+    override def sqlTypeName: String = s"$sqlBaseType ARRAY"
 
-    def sqlType: Int = java.sql.Types.ARRAY
+    override def getValue(r: ResultSet, idx: Int): List[T] = {
+      val value = r.getArray(idx)
+      if (r.wasNull) null else value.getArray.asInstanceOf[Array[Any]].map(_.asInstanceOf[T]).toList
+    }
 
-    def sqlTypeName: String = s"$sqlBaseType ARRAY"
+    override def setValue(vList: List[T], p: PreparedStatement, idx: Int): Unit = p.setArray(idx, mkArray(vList))
 
-    def setValue(vList: List[T], p: PositionedParameters) = p.setObject(mkArray(vList), sqlType)
+    override def updateValue(vList: List[T], r: ResultSet, idx: Int): Unit = r.updateArray(idx, mkArray(vList))
 
-    def setOption(vList: Option[List[T]], p: PositionedParameters) = p.setObjectOption(vList.map(mkArray), sqlType)
-
-    def nextValue(r: PositionedResult): List[T] =
-      r.nextObjectOption().map(_.asInstanceOf[java.sql.Array])
-        .map(_.getArray.asInstanceOf[Array[Any]].map(_.asInstanceOf[T]).toList)
-        .getOrElse(zero)
-
-    def updateValue(vList: List[T], r: PositionedResult) = r.updateObject(mkArray(vList))
-
-    def hasLiteralForm: Boolean = false
+    override def hasLiteralForm: Boolean = false
 
     override def valueToSQLLiteral(vList: List[T]) = buildArrayStr(vList)
 
     ///
-    def basedOn[U](tmap: T => U, tcomap: U => T): JdbcType[List[T]] with BaseTypedType[List[T]] =
+    def basedOn[U](tmap: T => U, tcomap: U => T): DriverJdbcType[List[T]] =
       new SimpleArrayListJdbcType[T](sqlBaseType) {
 
-        override def nextValue(r: PositionedResult): List[T] =
-          r.nextObjectOption().map(_.asInstanceOf[java.sql.Array])
-            .map(_.getArray.asInstanceOf[Array[Any]].map(e => tcomap(e.asInstanceOf[U])).toList)
-            .getOrElse(zero)
+        override def getValue(r: ResultSet, idx: Int): List[T] = {
+          val value = r.getArray(idx)
+          if (r.wasNull) null else value.getArray.asInstanceOf[Array[Any]]
+            .map(e => tcomap(e.asInstanceOf[U])).toList
+        }
 
         //--
-        override protected def buildArrayStr[E](v: List[E]): String = super.buildArrayStr(v.map(e => tmap(e.asInstanceOf[T])))
+        override protected def buildArrayStr(v: List[Any]): String = super.buildArrayStr(v.map(e => tmap(e.asInstanceOf[T])))
       }
 
     //--
@@ -52,7 +48,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
     /** copy from [[org.postgresql.jdbc4.AbstractJdbc4Connection#createArrayOf(..)]]
       * and [[org.postgresql.jdbc2.AbstractJdbc2Array#escapeArrayElement(..)]] */
-    protected def buildArrayStr[E](vList: List[E]): String = {
+    protected def buildArrayStr(vList: List[Any]): String = {
       def escape(s: String) = {
         StringBuilder.newBuilder + '"' appendAll (
           s map {
@@ -70,33 +66,31 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
   }
 
   ///-- can be used to map complex composite/nested array
-  class ArrayListJdbcType[T : ClassTag](sqlBaseType: String,
-                                       fnFromString: (String => List[T]),
-                                       fnToString: (List[T] => String))
-                           extends JdbcType[List[T]] with BaseTypedType[List[T]] {
+  class ArrayListJdbcType[T](sqlBaseType: String,
+                            fnFromString: (String => List[T]),
+                            fnToString: (List[T] => String))(
+              implicit override val classTag: ClassTag[List[T]], tag: ClassTag[T])
+                    extends DriverJdbcType[List[T]] {
 
-    def scalaType: ScalaType[List[T]] = ScalaBaseType[List[T]]
+    override def sqlType: Int = java.sql.Types.ARRAY
 
-    def zero: List[T] = Nil
+    override def sqlTypeName: String = s"$sqlBaseType ARRAY"
 
-    def sqlType: Int = java.sql.Types.ARRAY
+    override def getValue(r: ResultSet, idx: Int): List[T] = {
+      val value = r.getString(idx)
+      if (r.wasNull) null else fnFromString(value)
+    }
 
-    def sqlTypeName: String = s"$sqlBaseType ARRAY"
+    override def setValue(vList: List[T], p: PreparedStatement, idx: Int): Unit = p.setArray(idx, mkArray(vList))
 
-    def setValue(vList: List[T], p: PositionedParameters) = p.setObject(mkArray(vList), sqlType)
+    override def updateValue(vList: List[T], r: ResultSet, idx: Int): Unit = r.updateArray(idx, mkArray(vList))
 
-    def setOption(vList: Option[List[T]], p: PositionedParameters) = p.setObjectOption(vList.map(mkArray), sqlType)
-
-    def nextValue(r: PositionedResult): List[T] = r.nextStringOption().map(fnFromString).getOrElse(zero)
-
-    def updateValue(vList: List[T], r: PositionedResult) = r.updateObject(mkArray(vList))
-
-    def hasLiteralForm: Boolean = false
+    override def hasLiteralForm: Boolean = false
 
     override def valueToSQLLiteral(vList: List[T]) = fnToString(vList)
 
     //--
-    private def mkArray(vList: List[T]): java.sql.Array = new SimpleArray(sqlBaseType, vList, fnToString)
+    private def mkArray(v: List[T]): java.sql.Array = new SimpleArray(sqlBaseType, v, fnToString)
   }
 
   /** only used to transfer array data into driver/preparedStatement */

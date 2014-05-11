@@ -2,6 +2,7 @@ package com.github.tminglei.slickpg
 
 import scala.slick.driver.PostgresDriver
 import scala.slick.lifted.Column
+import scala.slick.jdbc.JdbcType
 
 trait PgArgonautSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import argonaut._, Argonaut._

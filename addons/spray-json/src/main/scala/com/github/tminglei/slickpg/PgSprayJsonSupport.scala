@@ -2,6 +2,7 @@ package com.github.tminglei.slickpg
 
 import scala.slick.driver.PostgresDriver
 import scala.slick.lifted.Column
+import scala.slick.jdbc.JdbcType
 
 trait PgSprayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import spray.json._
@@ -13,7 +14,7 @@ trait PgSprayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
     implicit val jsonTypeMapper =
       new GenericJdbcType[JsValue](
         "json",
-        (s) => s.asJson,
+        (s) => s.parseJson,
         (v) => v.toJson.compactPrint,
         hasLiteralForm = false
       )

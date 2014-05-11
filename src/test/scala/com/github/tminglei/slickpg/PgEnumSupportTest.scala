@@ -2,6 +2,7 @@ package com.github.tminglei.slickpg
 
 import org.junit._
 import org.junit.Assert._
+import scala.slick.driver.PostgresDriver
 
 class PgEnumSupportTest {
   object WeekDays extends Enumeration {
@@ -16,9 +17,9 @@ class PgEnumSupportTest {
   import WeekDays._
   import Rainbows._
 
-  object MyPostgresDriver1 extends MyPostgresDriver with PgEnumSupport {
-    override val Implicit = new ImplicitsPlus with MyEnumImplicits {}
-    override val simple = new SimpleQLPlus with MyEnumImplicits {}
+  object MyPostgresDriver1 extends PostgresDriver with PgEnumSupport {
+    override lazy val Implicit = new Implicits with MyEnumImplicits {}
+    override val simple = new SimpleQL with MyEnumImplicits {}
 
     trait MyEnumImplicits {
       implicit val weekDayTypeMapper = createEnumJdbcType("weekday", WeekDays)
@@ -61,27 +62,27 @@ class PgEnumSupportTest {
       TestEnums insertAll (testRec1, testRec2, testRec3)
       
       val q0 = TestEnums.sortBy(_.id).map(t => t)
-      assertEquals(List(testRec1, testRec2, testRec3), q0.list())
+      assertEquals(List(testRec1, testRec2, testRec3), q0.list)
       
       val q1 = TestEnums.filter(_.id === 101L.bind).map(t => t.weekday.first)
       println(s"[enum] 'first' sql = ${q1.selectStatement}")
-      assertEquals(Mon, q1.first())
+      assertEquals(Mon, q1.first)
       
       val q2 = TestEnums.filter(_.id === 101L.bind).map(t => t.rainbow.last)
       println(s"[enum] 'last' sql = ${q2.selectStatement}")
-      assertEquals(Some(purple), q2.first())
+      assertEquals(Some(purple), q2.first)
 
       val q3 = TestEnums.filter(_.id === 101L.bind).map(t => t.weekday.all)
       println(s"[enum] 'all' sql = ${q3.selectStatement}")
-      assertEquals(WeekDays.values.toList, q3.first())
+      assertEquals(WeekDays.values.toList, q3.first)
 
       val q4 = TestEnums.filter(_.id === 102L.bind).map(t => t.weekday range null.asInstanceOf[WeekDay])
       println(s"[enum] 'range' sql = ${q4.selectStatement}")
-      assertEquals(List(Wed, Thu, Fri, Sat, Sun), q4.first())
+      assertEquals(List(Wed, Thu, Fri, Sat, Sun), q4.first)
 
       val q41 = TestEnums.filter(_.id === 102L.bind).map(t => null.asInstanceOf[WeekDay].bind range t.weekday)
       println(s"[enum] 'range' sql.1 = ${q41.selectStatement}")
-      assertEquals(List(Mon, Tue, Wed), q41.first())
+      assertEquals(List(Mon, Tue, Wed), q41.first)
     }
   }
   

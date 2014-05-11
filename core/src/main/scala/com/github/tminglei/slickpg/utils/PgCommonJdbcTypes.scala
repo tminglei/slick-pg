@@ -2,30 +2,28 @@ package com.github.tminglei.slickpg
 package utils
 
 import org.postgresql.util.PGobject
-import scala.slick.jdbc.{PositionedResult, PositionedParameters}
-import scala.slick.ast.{ScalaBaseType, ScalaType, BaseTypedType}
 import scala.slick.driver.{PostgresDriver, JdbcTypesComponent}
 import scala.reflect.ClassTag
+import java.sql.{PreparedStatement, ResultSet}
 
 trait PgCommonJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
-  class GenericJdbcType[T : ClassTag](
-              val sqlTypeName: String,
-              fnFromString: (String => T),
-              fnToString: (T => String) = ((r: T) => r.toString),
-              val sqlType: Int = java.sql.Types.OTHER,
-              val zero: T = null.asInstanceOf[T],
-              val hasLiteralForm: Boolean = true) extends JdbcType[T] with BaseTypedType[T] {
+  class GenericJdbcType[T](override val sqlTypeName: String,
+                           fnFromString: (String => T),
+                           fnToString: (T => String) = ((r: T) => r.toString),
+                           val sqlType: Int = java.sql.Types.OTHER,
+                           zero: T = null.asInstanceOf[T],
+                           override val hasLiteralForm: Boolean = true)(
+                  implicit override val classTag: ClassTag[T]) extends DriverJdbcType[T] {
 
-    def scalaType: ScalaType[T] = ScalaBaseType[T]
+    override def getValue(r: ResultSet, idx: Int): T = {
+      val value = r.getString(idx)
+      if (r.wasNull) zero else fnFromString(value)
+    }
 
-    def setValue(v: T, p: PositionedParameters) = p.setObject(mkPgObject(v), sqlType)
+    override def setValue(v: T, p: PreparedStatement, idx: Int): Unit = p.setObject(idx, mkPgObject(v))
 
-    def setOption(v: Option[T], p: PositionedParameters) = p.setObjectOption(v.map(mkPgObject), sqlType)
-
-    def nextValue(r: PositionedResult): T = r.nextStringOption().map(fnFromString).getOrElse(zero)
-
-    def updateValue(v: T, r: PositionedResult) = r.updateObject(mkPgObject(v))
+    override def updateValue(v: T, r: ResultSet, idx: Int): Unit = r.updateObject(idx, mkPgObject(v))
 
     override def valueToSQLLiteral(v: T) = fnToString(v)
 

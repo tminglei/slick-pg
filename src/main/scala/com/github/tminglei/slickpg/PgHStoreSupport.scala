@@ -4,6 +4,7 @@ import scala.collection.convert.{WrapAsJava, WrapAsScala}
 import scala.slick.driver.PostgresDriver
 import scala.slick.lifted.Column
 import org.postgresql.util.HStoreConverter
+import scala.slick.jdbc.JdbcType
 
 trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
 

@@ -1,13 +1,17 @@
 import sbt._
-import Keys._
+import sbt.Keys._
+import scala.Some
 
 object SlickPgBuild extends Build {
+
+  val prjScalaVersion = "2.10.4"
 
   lazy val commonSettings = Seq(
     organizationName := "slick-pg",
     organization := "com.github.tminglei",
 
-    scalaVersion := "2.10.3",
+    scalaVersion := prjScalaVersion,
+    crossScalaVersions := Seq("2.10.0", "2.11.0"),
     scalacOptions ++= Seq("-deprecation", "-feature",
       "-language:implicitConversions",
       "-language:reflectiveCalls",
@@ -53,9 +57,9 @@ object SlickPgBuild extends Build {
   )
   
   lazy val mainDependencies = Seq (
-    "org.scala-lang" % "scala-reflect" % "2.10.3",
-    "com.typesafe.slick" % "slick_2.10" % "2.0.1",
-    "org.postgresql" % "postgresql" % "9.3-1101-jdbc41",
+    "org.scala-lang" % "scala-reflect" % prjScalaVersion,
+    "com.typesafe.slick" % "slick_2.10" % "2.1.0-M1",
+    "org.postgresql" % "postgresql" % "9.3-1100-jdbc41",
     "junit" % "junit" % "4.11" % "test",
     "com.novocode" % "junit-interface" % "0.10" % "test"
   )
@@ -63,12 +67,12 @@ object SlickPgBuild extends Build {
   lazy val coreSettings = Seq(
     name := "slick-pg_core",
     description := "Slick extensions for PostgreSQL - Core",
-    version := "0.5.3",
+    version := "0.6.0-M1",
     libraryDependencies := mainDependencies
   )
 
   lazy val slickPgSettings = Seq(
-    version := "0.5.3",
+    version := "0.6.0-M1",
     resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
   )
 
@@ -100,9 +104,9 @@ object SlickPgBuild extends Build {
       name := "slick-pg_json4s",
       description := "Slick extensions for PostgreSQL - json4s module",
       libraryDependencies := mainDependencies ++ Seq(
-        "org.json4s" % "json4s-ast_2.10" % "3.2.6",
-        "org.json4s" % "json4s-core_2.10" % "3.2.6",
-        "org.json4s" % "json4s-native_2.10" % "3.2.6" % "test"
+        "org.json4s" %% "json4s-ast" % "3.2.9",
+        "org.json4s" %% "json4s-core" % "3.2.9",
+        "org.json4s" %% "json4s-native" % "3.2.9" % "test"
       )
     )
   ) dependsOn (slickPgCore)
@@ -122,7 +126,7 @@ object SlickPgBuild extends Build {
       name := "slick-pg_play-json",
       description := "Slick extensions for PostgreSQL - play-json module",
       libraryDependencies := mainDependencies ++ Seq(
-        "com.typesafe.play" % "play-json_2.10" % "2.2.1"
+        "com.typesafe.play" %% "play-json" % "2.2.3"
       )
     )
   ) dependsOn (slickPgCore)
@@ -132,7 +136,7 @@ object SlickPgBuild extends Build {
       name := "slick-pg_spray-json",
       description := "Slick extensions for PostgreSQL - spray-json module",
       libraryDependencies := mainDependencies ++ Seq(
-        "io.spray" %%  "spray-json" % "1.2.5"
+        "io.spray" %%  "spray-json" % "1.2.6"
       )
     )
   ) dependsOn (slickPgCore)

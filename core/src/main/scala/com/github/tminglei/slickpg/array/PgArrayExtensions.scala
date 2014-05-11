@@ -4,6 +4,7 @@ package array
 import scala.slick.ast.Library.{SqlOperator, SqlFunction}
 import scala.slick.lifted.{LiteralColumn, ExtensionMethods, Column}
 import scala.slick.driver.{JdbcTypesComponent, PostgresDriver}
+import scala.slick.jdbc.JdbcType
 
 trait PgArrayExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   import driver.Implicit._

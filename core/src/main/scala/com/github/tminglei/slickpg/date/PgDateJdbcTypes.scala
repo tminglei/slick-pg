@@ -2,90 +2,64 @@ package com.github.tminglei.slickpg
 package date
 
 import scala.slick.driver.{PostgresDriver, JdbcTypesComponent}
-import java.sql.{Timestamp, Time, Date}
-import scala.slick.ast.{ScalaBaseType, ScalaType, BaseTypedType}
-import scala.slick.jdbc.{PositionedResult, PositionedParameters}
+import java.sql.{PreparedStatement, ResultSet, Date, Time, Timestamp}
 import scala.reflect.ClassTag
 
 trait PgDateJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
-  class DateJdbcType[DATE : ClassTag](
-              fnFromDate: (Date => DATE),
-              fnToDate: (DATE => Date)) extends JdbcType[DATE] with BaseTypedType[DATE] {
+  class DateJdbcType[DATE](fnFromDate: (Date => DATE),
+                           fnToDate: (DATE => Date))(
+                implicit override val classTag: ClassTag[DATE]) extends DriverJdbcType[DATE] {
 
-    def scalaType: ScalaType[DATE] = ScalaBaseType[DATE]
+    override def sqlType: Int = java.sql.Types.DATE
 
-    def zero: DATE = null.asInstanceOf[DATE]
+    override def getValue(r: ResultSet, idx: Int): DATE = {
+      val value = r.getDate(idx)
+      if (r.wasNull) null.asInstanceOf[DATE] else fnFromDate(value)
+    }
 
-    def sqlType: Int = java.sql.Types.DATE
+    override def setValue(v: DATE, p: PreparedStatement, idx: Int): Unit = p.setDate(idx, fnToDate(v))
 
-    def sqlTypeName: String = "date"
-
-    def setValue(v: DATE, p: PositionedParameters) = p.setDate(fnToDate(v))
-
-    def setOption(v: Option[DATE], p: PositionedParameters) = p.setDateOption(v.map(fnToDate))
-
-    def nextValue(r: PositionedResult): DATE = r.nextDateOption().map(fnFromDate).getOrElse(zero)
-
-    def updateValue(v: DATE, r: PositionedResult) = r.updateDate(fnToDate(v))
-
-    def hasLiteralForm: Boolean = true
+    override def updateValue(v: DATE, r: ResultSet, idx: Int): Unit = r.updateDate(idx, fnToDate(v))
 
     override def valueToSQLLiteral(v: DATE) = s"{d '${fnToDate(v)}'}"
-
   }
 
   ///
-  class TimeJdbcType[TIME : ClassTag](
-              fnFromTime: (Time => TIME),
-              fnToTime: (TIME => Time)) extends JdbcType[TIME] with BaseTypedType[TIME] {
+  class TimeJdbcType[TIME](fnFromTime: (Time => TIME),
+                           fnToTime: (TIME => Time))(
+                implicit override val classTag: ClassTag[TIME]) extends DriverJdbcType[TIME] {
 
-    def scalaType: ScalaType[TIME] = ScalaBaseType[TIME]
+    override def sqlType: Int = java.sql.Types.TIME
 
-    def zero: TIME = null.asInstanceOf[TIME]
+    override def getValue(r: ResultSet, idx: Int): TIME = {
+      val value = r.getTime(idx)
+      if (r.wasNull) null.asInstanceOf[TIME] else fnFromTime(value)
+    }
 
-    def sqlType: Int = java.sql.Types.TIME
+    override def setValue(v: TIME, p: PreparedStatement, idx: Int): Unit = p.setTime(idx, fnToTime(v))
 
-    def sqlTypeName: String = "time"
+    override def updateValue(v: TIME, r: ResultSet, idx: Int): Unit = r.updateTime(idx, fnToTime(v))
 
-    def setValue(v: TIME, p: PositionedParameters) = p.setTime(fnToTime(v))
-
-    def setOption(v: Option[TIME], p: PositionedParameters) = p.setTimeOption(v.map(fnToTime))
-
-    def nextValue(r: PositionedResult): TIME = r.nextTimeOption().map(fnFromTime).getOrElse(zero)
-
-    def updateValue(v: TIME, r: PositionedResult) = r.updateTime(fnToTime(v))
-
-    def hasLiteralForm: Boolean = true
-
-    override def valueToSQLLiteral(v: TIME) = s"{t '${fnToTime(v)}'}"
-
+    override def valueToSQLLiteral(v: TIME) = s"{d '${fnToTime(v)}'}"
   }
 
   ///
-  class TimestampJdbcType[TIMESTAMP : ClassTag](
-              fnFromTimestamp: (Timestamp => TIMESTAMP),
-              fnToTimestamp: (TIMESTAMP => Timestamp)) extends JdbcType[TIMESTAMP] with BaseTypedType[TIMESTAMP] {
+  class TimestampJdbcType[TIMESTAMP](fnFromTimestamp: (Timestamp => TIMESTAMP),
+                                     fnToTimestamp: (TIMESTAMP => Timestamp))(
+                  implicit override val classTag: ClassTag[TIMESTAMP]) extends DriverJdbcType[TIMESTAMP] {
 
-    def scalaType: ScalaType[TIMESTAMP] = ScalaBaseType[TIMESTAMP]
+    override def sqlType: Int = java.sql.Types.TIMESTAMP
 
-    def zero: TIMESTAMP = null.asInstanceOf[TIMESTAMP]
+    override def getValue(r: ResultSet, idx: Int): TIMESTAMP = {
+      val value = r.getTimestamp(idx)
+      if (r.wasNull) null.asInstanceOf[TIMESTAMP] else fnFromTimestamp(value)
+    }
 
-    def sqlType: Int = java.sql.Types.TIMESTAMP
+    override def setValue(v: TIMESTAMP, p: PreparedStatement, idx: Int): Unit = p.setTimestamp(idx, fnToTimestamp(v))
 
-    def sqlTypeName: String = "timestamp"
+    override def updateValue(v: TIMESTAMP, r: ResultSet, idx: Int): Unit = r.updateTimestamp(idx, fnToTimestamp(v))
 
-    def setValue(v: TIMESTAMP, p: PositionedParameters) = p.setTimestamp(fnToTimestamp(v))
-
-    def setOption(v: Option[TIMESTAMP], p: PositionedParameters) = p.setTimestampOption(v.map(fnToTimestamp))
-
-    def nextValue(r: PositionedResult): TIMESTAMP = r.nextTimestampOption().map(fnFromTimestamp).getOrElse(zero)
-
-    def updateValue(v: TIMESTAMP, r: PositionedResult) = r.updateTimestamp(fnToTimestamp(v))
-
-    def hasLiteralForm: Boolean = true
-
-    override def valueToSQLLiteral(v: TIMESTAMP) = s"{ts '${fnToTimestamp(v)}'}"
-
+    override def valueToSQLLiteral(v: TIMESTAMP) = s"{d '${fnToTimestamp(v)}'}"
   }
 }
