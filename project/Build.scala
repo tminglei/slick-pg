@@ -4,14 +4,14 @@ import scala.Some
 
 object SlickPgBuild extends Build {
 
-  val prjScalaVersion = "2.10.4"
+  val prjScalaVersion = "2.11.0"
 
   lazy val commonSettings = Seq(
     organizationName := "slick-pg",
     organization := "com.github.tminglei",
 
     scalaVersion := prjScalaVersion,
-    crossScalaVersions := Seq("2.10.0", "2.11.0"),
+//    crossScalaVersions := Seq("2.10.0", "2.11.0"),
     scalacOptions ++= Seq("-deprecation", "-feature",
       "-language:implicitConversions",
       "-language:reflectiveCalls",
@@ -58,7 +58,8 @@ object SlickPgBuild extends Build {
   
   lazy val mainDependencies = Seq (
     "org.scala-lang" % "scala-reflect" % prjScalaVersion,
-    "com.typesafe.slick" % "slick_2.10" % "2.1.0-M1",
+    "org.scala-lang.modules" % "scala-parser-combinators_2.11" % "1.0.1",
+    "com.typesafe.slick" % "slick_2.11.0-RC4" % "2.1.0-M1",
     "org.postgresql" % "postgresql" % "9.3-1100-jdbc41",
     "junit" % "junit" % "4.11" % "test",
     "com.novocode" % "junit-interface" % "0.10" % "test"
@@ -126,7 +127,7 @@ object SlickPgBuild extends Build {
       name := "slick-pg_play-json",
       description := "Slick extensions for PostgreSQL - play-json module",
       libraryDependencies := mainDependencies ++ Seq(
-        "com.typesafe.play" %% "play-json" % "2.2.3"
+        "com.typesafe.play" %% "play-json" % "2.3.0-RC1"
       )
     )
   ) dependsOn (slickPgCore)
@@ -136,7 +137,7 @@ object SlickPgBuild extends Build {
       name := "slick-pg_spray-json",
       description := "Slick extensions for PostgreSQL - spray-json module",
       libraryDependencies := mainDependencies ++ Seq(
-        "io.spray" %%  "spray-json" % "1.2.6"
+        "io.spray" %  "spray-json_2.11.0-RC4" % "1.2.6"
       )
     )
   ) dependsOn (slickPgCore)
