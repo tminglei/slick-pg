@@ -12,7 +12,6 @@ object MyPostgresDriver extends PostgresDriver
 
   override lazy val Implicit = new Implicits with JsonImplicits
   override val simple = new Implicits with SimpleQL with JsonImplicits {
-    implicit val strListTypeMapper = new ArrayListJdbcType[String]("text",
-      mkArrayConvFromString[String], mkArrayConvToString[String])
+    implicit val strListTypeMapper = new SimpleArrayListJdbcType[String]("text")
   }
 }

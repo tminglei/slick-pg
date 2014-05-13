@@ -5,6 +5,27 @@ import scala.slick.lifted.Column
 import java.sql.{Date, Timestamp}
 import scala.slick.jdbc.JdbcType
 
+// edge type definitions
+sealed trait EdgeType
+case object `[_,_)` extends EdgeType
+case object `(_,_]` extends EdgeType
+case object `(_,_)` extends EdgeType
+case object `[_,_]` extends EdgeType
+
+case class Range[T](start: T, end: T, edge: EdgeType = `[_,_)`) {
+
+  def as[A](convert: (T => A)): Range[A] = {
+    new Range[A](convert(start), convert(end), edge)
+  }
+
+  override def toString = edge match {
+    case `[_,_)` => s"[$start,$end)"
+    case `(_,_]` => s"($start,$end]"
+    case `(_,_)` => s"($start,$end)"
+    case `[_,_]` => s"[$start,$end]"
+  }
+}
+
 trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import PgRangeSupportUtils._
 

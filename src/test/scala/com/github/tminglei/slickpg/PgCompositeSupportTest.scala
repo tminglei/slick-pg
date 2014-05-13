@@ -55,11 +55,11 @@ object PgCompositeSupportTest {
         mkCompositeConvFromString[Composite2], mkCompositeConvToString[Composite2])
       implicit val composite3TypeMapper = new GenericJdbcType[Composite3]("composite3",
         mkCompositeConvFromString[Composite3], mkCompositeConvToString[Composite3])
-      implicit val composite1ArrayTypeMapper = new ArrayListJdbcType[Composite1]("composite1",
+      implicit val composite1ArrayTypeMapper = new NestedArrayListJdbcType[Composite1]("composite1",
         mkArrayConvFromString[Composite1], mkArrayConvToString[Composite1])
-      implicit val composite2ArrayTypeMapper = new ArrayListJdbcType[Composite2]("composite2",
+      implicit val composite2ArrayTypeMapper = new NestedArrayListJdbcType[Composite2]("composite2",
         mkArrayConvFromString[Composite2], mkArrayConvToString[Composite2])
-      implicit val composite3ArrayTypeMapper = new ArrayListJdbcType[Composite3]("composite3",
+      implicit val composite3ArrayTypeMapper = new NestedArrayListJdbcType[Composite3]("composite3",
         mkArrayConvFromString[Composite3], mkArrayConvToString[Composite3])
     }
   }
