@@ -3,6 +3,7 @@ package com.github.tminglei.slickpg
 import org.junit._
 import org.junit.Assert._
 import play.api.libs.json._
+import scala.util.Try
 
 class PgPlayJsonSupportTest {
   import MyPostgresDriver.simple._
@@ -84,14 +85,8 @@ class PgPlayJsonSupportTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
-      JsonTests.ddl create
-    }
-  }
-
-  @After
-  def dropTables(): Unit = {
-    db withSession { implicit session: Session =>
-      JsonTests.ddl drop
+      Try { JsonTests.ddl drop }
+      Try { JsonTests.ddl create }
     }
   }
 }

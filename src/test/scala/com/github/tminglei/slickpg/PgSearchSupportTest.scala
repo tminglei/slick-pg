@@ -2,6 +2,7 @@ package com.github.tminglei.slickpg
 
 import org.junit._
 import org.junit.Assert._
+import scala.util.Try
 
 class PgSearchSupportTest {
   import MyPostgresDriver.simple._
@@ -90,14 +91,8 @@ class PgSearchSupportTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
-      Tests.ddl create
-    }
-  }
-
-  @After
-  def dropTables(): Unit = {
-    db withSession { implicit session: Session =>
-      Tests.ddl drop
+      Try { Tests.ddl drop }
+      Try { Tests.ddl create }
     }
   }
 }

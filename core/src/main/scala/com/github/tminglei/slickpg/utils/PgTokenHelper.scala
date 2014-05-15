@@ -11,7 +11,7 @@ object PgTokenHelper {
   sealed trait Token {
     def value: String
   }
-  case class GroupToken(members: List[Token]) extends Token { val value = ??? }
+  case class GroupToken(members: List[Token]) extends Token { val value = "" }
 
   case object Comma                           extends Token { val value = "," }
   case object Null                            extends Token { val value = "" }
@@ -88,7 +88,7 @@ object PgTokenHelper {
     def appendEscaped(buf: mutable.StringBuilder, ch: Char, level: Int) = 
       if (level < 0) buf append ch
       else {
-        val escapeLen = math.pow(2, level).toInt
+        val escapeLen = math.pow(2, level +1).toInt
         ch match {
           case '\\' => buf append ("\\" * escapeLen)
           case '\'' => buf append "''"
@@ -142,14 +142,18 @@ object PgTokenHelper {
     stack.push(WorkingGroup(Marker(""), -1))
     for(i <- 0 until tokens.length) {
       tokens(i) match {
-        case t: Open  if i == 0 => stack.push(WorkingGroup(t, stack.top.level +1))
+        //-- process head and last tokens
+        case t: Open  if (i == 0) => stack.push(WorkingGroup(t, stack.top.level +1))
         case t if (i == 0) => stack.top.tokens += t
-        case t: Close if i+1 == tokens.length => {
+        case t: Close if (i == tokens.length -1) => {
           stack.top.tokens += t
-          stack.top.tokens += GroupToken(stack.pop.tokens.toList)
+          val toBeMerged = GroupToken(stack.pop.tokens.toList)
+          stack.top.tokens += toBeMerged
         }
-        case t if (i+1 == tokens.length) => stack.top.tokens += t
+        case t if (i == tokens.length -1) => stack.top.tokens += t
+        //-- insert Null token if necessary
         case Comma if (tokens(i-1) == Comma) => stack.top.tokens += Null += Comma
+        //-- process open tokens
         // matches: ',"tt(a...' <--> ',"(tt...' (normal)
         case Open("(", "")  => stack.top.tokens += Chunk("(")
         // matches: ',"tt[1,..' <--> ',"[1,3)",'(normal)
@@ -172,19 +176,21 @@ object PgTokenHelper {
             stack.top.tokens += t
           } else stack.top.tokens += Escape(m) += Chunk(v)
         }
+        //-- process marker tokens
         case Marker(m) if (level(m) != math.round(level(m)) && tokens(i-1) == Comma) => {
           val index = math.pow(2, stack.top.level).toInt
           stack.push(WorkingGroup(Marker(m.substring(0, index)), stack.top.level +1))
           stack.top.tokens += Marker(m.substring(0, index)) += Escape(m.substring(index))
         }
         case Marker(m) if (level(m) != math.round(level(m)) && tokens(i+1) == Comma) => {
-          val existed = stack.reverse.find(g => m.endsWith(g.border.marker)).get
-          for (_ <- 0 until (stack.length - stack.lastIndexOf(existed))) {
+          val existed = stack.find(g => m.endsWith(g.border.marker)).get
+          for (_ <- 0 to stack.lastIndexOf(existed)) {
             if (stack.top == existed) {
               val index = m.length - stack.top.border.marker.length
               stack.top.tokens += Escape(m.substring(0, index)) += Marker(m.substring(index))
             }
-            stack.top.tokens += GroupToken(stack.pop.tokens.toList)
+            val toBeMerged = GroupToken(stack.pop.tokens.toList)
+            stack.top.tokens += toBeMerged
           }
         }
         case Marker(m) if (tokens(i-1) == Comma && tokens(i+1) == Comma) => {
@@ -194,11 +200,12 @@ object PgTokenHelper {
           } else stack.top.tokens += Escape(m)
         }
         case t @ Marker(m) => {
-          val existed = stack.reverse.find(g => g.border.marker == m)
+          val existed = stack.find(g => g.border.marker == m)
           if (existed.isDefined) {
-            for (_ <- 0 until (stack.length - stack.lastIndexOf(existed.get))) {
+            for (_ <- 0 to stack.lastIndexOf(existed.get)) {
               if (stack.top == existed.get) stack.top.tokens += t
-              stack.top.tokens += GroupToken(stack.pop.tokens.toList)
+              val toBeMerged = GroupToken(stack.pop.tokens.toList)
+              stack.top.tokens += toBeMerged
             }
           } else {
             if (level(m) == stack.top.level && (tokens(i-1) == Comma || tokens(i-1).isInstanceOf[Open])) {
@@ -207,7 +214,7 @@ object PgTokenHelper {
             } else stack.top.tokens += Escape(m)
           }
         }
-        //
+        //-- process close tokens
         case Close(")", "") => stack.top.tokens += Chunk(")")
         //
         case Close("]", "") => stack.top.tokens += Chunk("]")
@@ -216,24 +223,28 @@ object PgTokenHelper {
         case Close("}", m)  if (m != "" && tokens(i+1) != Comma) => stack.top.tokens += Chunk("}")
         // matches: '...tt)\"",' <--> '...tt)",..' (normal)
         case Close(v, m)  if (m != "" && level(m) != math.round(level(m)) && tokens(i+1) == Comma) => {
-          val existed = stack.reverse.find(b => m.endsWith(b.border.marker)).get
-          for (_ <- 0 until (stack.length - stack.lastIndexOf(existed))) {
+          val existed = stack.find(b => m.endsWith(b.border.marker)).get
+          for (_ <- 0 to stack.lastIndexOf(existed)) {
             if (stack.top == existed) {
               val index = m.length - stack.top.border.marker.length
               stack.top.tokens += Chunk(v) += Escape(m.substring(0, index)) += Marker(m.substring(index))
             }
-            stack.top.tokens += GroupToken(stack.pop.tokens.toList)
+            val toBeMerged = GroupToken(stack.pop.tokens.toList)
+            stack.top.tokens += toBeMerged
           }
         }
         case t @ Close(v, m) => {
           if (isCompatible(stack.top.border, t)) {
             stack.top.tokens += t
-            stack.top.tokens += GroupToken(stack.pop.tokens.toList)
+            val toBeMerged = GroupToken(stack.pop.tokens.toList)
+            stack.top.tokens += toBeMerged
           } else { // e.g. ',"}ttt...'
             stack.top.tokens += Chunk(v) += Escape(m)
-            stack.top.tokens += GroupToken(stack.pop.tokens.toList)
+            val toBeMerged = GroupToken(stack.pop.tokens.toList)
+            stack.top.tokens += toBeMerged
           }
         }
+        //-- process other tokens
         case t => stack.top.tokens += t
       }
     }
@@ -247,9 +258,9 @@ object PgTokenHelper {
 
     override def skipWhitespace = false
 
-    val MARKER = "[\\|\"]+".r
-    val ESCAPE = "\\+[^\"\\]".r
-    val CHUNK  = "[^}){(\\,\"]+".r
+    val MARKER = """[\\|"]+""".r
+    val ESCAPE = """\\+[^"\\]""".r
+    val CHUNK  = """[^}){(\[\]\\,"]+""".r
 
     def open: Parser[Token] = opt(MARKER) ~ (elem('{') | elem('(') | elem('[')) ^^ {
       case (x ~ y) => Open(String.valueOf(y), x.getOrElse(""))

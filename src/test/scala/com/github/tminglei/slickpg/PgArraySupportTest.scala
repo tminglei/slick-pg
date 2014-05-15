@@ -4,6 +4,7 @@ import org.junit._
 import org.junit.Assert._
 import java.util.UUID
 import scala.slick.driver.PostgresDriver
+import scala.util.Try
 
 class PgArraySupportTest {
 
@@ -166,15 +167,9 @@ class PgArraySupportTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
-      (ArrayTests.ddl ++ ArrayTests1.ddl).createStatements.foreach(s => println(s"[array] $s"))
-      (ArrayTests.ddl ++ ArrayTests1.ddl) create
-    }
-  }
-
-  @After
-  def dropTables(): Unit = {
-    db withSession { implicit session: Session =>
-      (ArrayTests.ddl ++ ArrayTests1.ddl) drop
+      Try { (ArrayTests.ddl ++ ArrayTests1.ddl) drop }
+      Try { (ArrayTests.ddl ++ ArrayTests1.ddl).createStatements.foreach(s => println(s"[array] $s")) }
+      Try { (ArrayTests.ddl ++ ArrayTests1.ddl) create }
     }
   }
 }

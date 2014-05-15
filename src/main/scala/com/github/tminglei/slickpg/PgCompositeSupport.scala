@@ -12,11 +12,11 @@ trait PgCompositeSupport extends utils.PgCommonJdbcTypes with array.PgArrayJdbcT
 
   def createCompositeJdbcType[T <: Struct](sqlTypeName: String)(
             implicit ev: u.TypeTag[T], tag: ClassTag[T]): JdbcType[T] =
-    new GenericJdbcType[T](sqlTypeName, mkCompositeFromString, mkStringFromComposite)
+    new GenericJdbcType[T](sqlTypeName, mkCompositeFromString[T], mkStringFromComposite[T])
 
   def createCompositeListJdbcType[T <: Struct](sqlTypeName: String)(
             implicit ev: u.TypeTag[T], tag: ClassTag[T], tag1: ClassTag[List[T]]): JdbcType[List[T]] =
-    new NestedArrayListJdbcType[T](sqlTypeName, mkCompositeListFromString, mkStringFromCompositeList)
+    new NestedArrayListJdbcType[T](sqlTypeName, mkCompositeListFromString[T], mkStringFromCompositeList[T])
 
 }
 
@@ -38,42 +38,44 @@ object PgCompositeSupportUtils {
     }
   }
 
-  def mkCompositeListFromString[T <: Struct](implicit ev: u.TypeTag[T]): (String => List[T]) = {
-    val converter = ListConverter(mkTokenConverter(u.typeOf[T], 0))
+  def mkCompositeListFromString[T <: Struct](implicit ev: u.TypeTag[List[T]]): (String => List[T]) = {
+    val converter = mkTokenConverter(u.typeOf[List[T]])
     (input: String) => {
       converter.fromToken(tokenize(input)).asInstanceOf[List[T]]
     }
   }
 
-  def mkStringFromCompositeList[T <: Struct](implicit ev: u.TypeTag[T]): (List[T] => String) = {
-    val converter = ListConverter(mkTokenConverter(u.typeOf[T], 0))
+  def mkStringFromCompositeList[T <: Struct](implicit ev: u.TypeTag[List[T]]): (List[T] => String) = {
+    val converter = mkTokenConverter(u.typeOf[List[T]])
     (vList: List[T]) => {
       genString(converter.toToken(vList))
     }
   }
 
   ///
-  def mkTokenConverter(theType: u.Type, level: Int = -1): TokenConverter = {
-    val constructor = theType.decl(u.termNames.CONSTRUCTOR).asMethod
-    val convList = constructor.paramLists.head.map(_.typeSignature).map({
-      case tpe if tpe <:< u.typeOf[Struct] => mkTokenConverter(tpe, level +1)
+  def mkTokenConverter(theType: u.Type, level: Int = -1)(implicit ev: u.TypeTag[String]): TokenConverter = {
+    theType match {
+      case tpe if tpe <:< u.typeOf[Struct] => {
+        val constructor = tpe.decl(u.termNames.CONSTRUCTOR).asMethod
+        val convList = constructor.paramLists.head.map(_.typeSignature).map(mkTokenConverter(_, level +1))
+        CompositeConverter(tpe, convList)
+      }
       case tpe if tpe.typeConstructor =:= u.typeOf[Option[_]].typeConstructor => {
         val pType = tpe.asInstanceOf[u.TypeRef].args(0)
-        OptionConverter(mkTokenConverter(pType, level +1))
+        OptionConverter(mkTokenConverter(pType, level))
       }
       case tpe if tpe.typeConstructor =:= u.typeOf[List[_]].typeConstructor => {
         val eType = tpe.asInstanceOf[u.TypeRef].args(0)
-        ListConverter(mkTokenConverter(eType, level +2))
+        ListConverter(mkTokenConverter(eType, level +1))
       }
       case tpe => {
-        val fromString = find(u.typeOf[String], tpe).map(_.asInstanceOf[(String => Any)])
+        val fromString = find(u.typeOf[String], tpe).map(_.conv.asInstanceOf[(String => Any)])
           .getOrElse(throw new IllegalArgumentException(s"Converter NOT FOUND for 'String' => '$tpe'"))
-        val ToString = find(tpe, u.typeOf[String]).map(_.asInstanceOf[(Any => String)])
+        val ToString = find(tpe, u.typeOf[String]).map(_.conv.asInstanceOf[(Any => String)])
           .getOrElse((v: Any) => v.toString)
-        SimpleConverter(fromString, ToString, level +1)
+        SimpleConverter(fromString, ToString, level)
       }
-    })
-    CompositeConverter(theType, convList)
+    }
   }
 
   //////////////////////////////////////////////////////////////////////////////////////

@@ -7,7 +7,9 @@ import java.sql.{Timestamp, Time, Date}
 import java.util.UUID
 
 object TypeConverters extends Logging {
-  private var converterMap = Map[Key, (_ => _)]()
+  case class ConvConfig(from: u.Type, to: u.Type, var conv: (_ => _))
+
+  private var convConfigList = List[ConvConfig]()
 
   // register basic converters
   register((v: String) => v.toInt)
@@ -28,11 +30,14 @@ object TypeConverters extends Logging {
 
   def register[FROM,TO](convert: (FROM => TO))(implicit from: u.TypeTag[FROM], to: u.TypeTag[TO]) = {
     logger.info(s"register converter for ${from.tpe.erasure} => ${to.tpe.erasure}")
-    converterMap += (Key(from.tpe, to.tpe) -> convert)
+    find(from.tpe, to.tpe).map(_.conv = convert).orElse({
+      convConfigList :+= ConvConfig(from.tpe, to.tpe, convert)
+      None
+    })
   }
 
   def converter[FROM,TO](implicit from: u.TypeTag[FROM], to: u.TypeTag[TO]): (FROM => TO) = {
-    find(from.tpe, to.tpe).map(_.asInstanceOf[(FROM => TO)])
+    find(from.tpe, to.tpe).map(_.conv.asInstanceOf[(FROM => TO)])
       .getOrElse(throw new IllegalArgumentException(s"Converter NOT FOUND for ${from.tpe} => ${to.tpe}"))
   }
 
@@ -44,27 +49,12 @@ object TypeConverters extends Logging {
       case _ => s
     }
 
-  def find(from: u.Type, to: u.Type) = {
-    val cacheKey = Key(from, to)
+  def find(from: u.Type, to: u.Type): Option[ConvConfig] = {
     logger.debug(s"get converter for ${from.erasure} => ${to.erasure}")
-    converterMap.get(cacheKey).orElse({
-      if (to <:< from) {
-        converterMap += (cacheKey -> ((v: Any) => v))
-        converterMap.get(cacheKey)
+    convConfigList.find(e => (e.from =:= from && e.to =:= to)).orElse({
+      if (from <:< to) {
+        Some(ConvConfig(from, to, (v: Any) => v))
       } else None
     })
-  }
-
-  ////////////////////////////////////////////////////////////////////////////
-  private[utils] case class Key(val from: u.Type, val to: u.Type) {
-    override def hashCode(): Int = {
-      from.erasure.hashCode() * 31 + to.erasure.hashCode()
-    }
-    override def equals(o: Any) = {
-      if (o.isInstanceOf[Key]) {
-        val that = o.asInstanceOf[Key]
-        from =:= that.from && to =:= that.to
-      } else false
-    }
   }
 }

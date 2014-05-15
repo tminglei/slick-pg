@@ -6,6 +6,7 @@ import scala.slick.driver.PostgresDriver
 import scala.slick.jdbc.{StaticQuery => Q}
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
+import scala.util.Try
 
 object PgCompositeSupportTest {
   val tsFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
@@ -41,7 +42,7 @@ object PgCompositeSupportTest {
       utils.TypeConverters.register(PgRangeSupportUtils.toStringFn[Timestamp](tsFormat.format))
 
       implicit val composite1TypeMapper = createCompositeJdbcType[Composite1]("composite1")
-      implicit val composite2TypeMapper = createCompositeJdbcType("composite2")
+      implicit val composite2TypeMapper = createCompositeJdbcType[Composite2]("composite2")
       implicit val composite3TypeMapper = createCompositeJdbcType[Composite3]("composite3")
       implicit val composite1ArrayTypeMapper = createCompositeListJdbcType[Composite1]("composite1")
       implicit val composite2ArrayTypeMapper = createCompositeListJdbcType[Composite2]("composite2")
@@ -135,23 +136,18 @@ class PgCompositeSupportTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
-      (Q[Int] + "create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)").execute
-      (Q[Int] + "create type composite2 as (id int8, comp1 composite1, confirm boolean)").execute
-      (Q[Int] + "create type composite3 as (txt text, id int4, code int4)").execute
+      // clear first
+      Try { (CompositeTests.ddl ++ CompositeTests1.ddl) drop }
+      Try { (Q[Int] + "drop type composite3").execute }
+      Try { (Q[Int] + "drop type composite2").execute }
+      Try { (Q[Int] + "drop type composite1").execute }
 
-      (CompositeTests.ddl ++ CompositeTests1.ddl).createStatements.foreach(s => println(s"[composite] $s"))
-      (CompositeTests.ddl ++ CompositeTests1.ddl) create
-    }
-  }
-
-  @After
-  def dropTables(): Unit = {
-    db withSession { implicit session: Session =>
-      (CompositeTests.ddl ++ CompositeTests1.ddl) drop
-      
-      (Q[Int] + "drop type composite3").execute
-      (Q[Int] + "drop type composite2").execute
-      (Q[Int] + "drop type composite1").execute
+      // then create
+      Try { (Q[Int] + "create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)").execute }
+      Try { (Q[Int] + "create type composite2 as (id int8, comp1 composite1, confirm boolean)").execute }
+      Try { (Q[Int] + "create type composite3 as (txt text, id int4, code int4)").execute }
+      Try { (CompositeTests.ddl ++ CompositeTests1.ddl).createStatements.foreach(s => println(s"[composite] $s")) }
+      Try { (CompositeTests.ddl ++ CompositeTests1.ddl) create }
     }
   }
 }

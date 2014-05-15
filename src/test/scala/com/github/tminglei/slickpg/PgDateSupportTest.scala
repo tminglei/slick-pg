@@ -6,6 +6,7 @@ import java.sql.{Timestamp, Time, Date}
 import java.util.Calendar
 import java.text.SimpleDateFormat
 import scala.slick.jdbc.StaticQuery
+import scala.util.Try
 
 class PgDateSupportTest {
   import MyPostgresDriver.simple._
@@ -192,15 +193,9 @@ class PgDateSupportTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
-      Datetimes.ddl.createStatements.foreach(s => println(s"[date] $s"))
-      Datetimes.ddl create
-    }
-  }
-
-  @After
-  def dropTables(): Unit = {
-    db withSession { implicit session: Session =>
-      Datetimes.ddl drop
+      Try { Datetimes.ddl drop }
+      Try { Datetimes.ddl.createStatements.foreach(s => println(s"[date] $s")) }
+      Try { Datetimes.ddl create }
     }
   }
 }

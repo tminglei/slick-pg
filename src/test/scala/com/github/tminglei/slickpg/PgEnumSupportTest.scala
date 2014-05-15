@@ -3,6 +3,7 @@ package com.github.tminglei.slickpg
 import org.junit._
 import org.junit.Assert._
 import scala.slick.driver.PostgresDriver
+import scala.util.Try
 
 class PgEnumSupportTest {
   object WeekDays extends Enumeration {
@@ -91,21 +92,17 @@ class PgEnumSupportTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
-      PgEnumSupportUtils.buildCreateSql("weekday", WeekDays).execute
-      PgEnumSupportUtils.buildCreateSql("rainbow", Rainbows).execute
+      // clear first
+      Try { TestEnums.ddl drop }
+      Try { PgEnumSupportUtils.buildDropSql("weekday").execute }
+      Try { PgEnumSupportUtils.buildDropSql("rainbow").execute }
 
-      TestEnums.ddl.createStatements.foreach(s => println(s"[enum] $s"))
-      TestEnums.ddl create
-    }
-  }
+      // then create
+      Try { PgEnumSupportUtils.buildCreateSql("weekday", WeekDays).execute }
+      Try { PgEnumSupportUtils.buildCreateSql("rainbow", Rainbows).execute }
 
-  @After
-  def dropTables(): Unit = {
-    db withSession { implicit session: Session =>
-      TestEnums.ddl drop
-      
-      PgEnumSupportUtils.buildDropSql("weekday").execute
-      PgEnumSupportUtils.buildDropSql("rainbow").execute
+      Try { TestEnums.ddl.createStatements.foreach(s => println(s"[enum] $s")) }
+      Try { TestEnums.ddl create }
     }
   }
 }

@@ -4,6 +4,7 @@ import org.junit._
 import org.junit.Assert._
 import org.threeten.bp.{Duration, LocalDateTime, LocalTime, LocalDate, ZonedDateTime}
 import scala.slick.jdbc.StaticQuery
+import scala.util.Try
 
 class PgDate2bpSupportTest {
   import MyPostgresDriver.simple._
@@ -181,14 +182,8 @@ class PgDate2bpSupportTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
-      Datetimes.ddl create
-    }
-  }
-
-  @After
-  def dropTables(): Unit = {
-    db withSession { implicit session: Session =>
-      Datetimes.ddl drop
+      Try { Datetimes.ddl drop }
+      Try { Datetimes.ddl create }
     }
   }
 }

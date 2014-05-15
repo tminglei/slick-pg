@@ -16,7 +16,8 @@ object SlickPgBuild extends Build {
       "-language:implicitConversions",
       "-language:reflectiveCalls",
       "-language:higherKinds",
-      "-language:postfixOps"),
+      "-language:postfixOps",
+      "-language:existentials"),
 
     resolvers += Resolver.mavenLocal,
     resolvers += Resolver.sonatypeRepo("snapshots"),
