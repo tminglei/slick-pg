@@ -1,7 +1,6 @@
 package com.github.tminglei.slickpg
 
 import scala.slick.driver.PostgresDriver
-import utils.TypeConverters.Util._
 
 object MyPostgresDriver extends PostgresDriver
                            with PgArgonautSupport

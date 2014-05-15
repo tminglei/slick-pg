@@ -3,138 +3,34 @@ package utils
 
 import org.junit._
 import org.junit.Assert._
-import scala.reflect.runtime.{universe => ru, currentMirror => runtimeMirror}
+import scala.reflect.runtime.{universe => u, currentMirror => rm}
 
 class TypeConverterTest {
-  import TypeConverters.Util._
-  import PGObjectTokenizer.PGElements._
   import TypeConverterTest._
 
   @Test
   def testCacheKey(): Unit = {
-    import TypeConverters.CacheKey
+    import TypeConverters.Key
 
-    val tpe1 = ru.typeOf[T]
-    val tpe2 = ru.typeOf[Element]
+    val tpe1 = u.typeOf[T]
+    val tpe2 = u.typeOf[String]
 
-    assertEquals(CacheKey(tpe1, tpe2).hashCode(), CacheKey(tpe1, tpe2).hashCode())
-    assertEquals(CacheKey(tpe1, tpe2), CacheKey(tpe1, tpe2))
+    assertEquals(Key(tpe1, tpe2).hashCode(), Key(tpe1, tpe2).hashCode())
+    assertEquals(Key(tpe1, tpe2), Key(tpe1, tpe2))
 
-    val tpea = ru.typeOf[TypeConverterTest.T]
-    val tpeb = ru.typeOf[PGObjectTokenizer.PGElements.Element]
+    val tpea = u.typeOf[TypeConverterTest.T]
+    val tpeb = u.typeOf[java.lang.String]
 
-    assertEquals(CacheKey(tpe1, tpe2).hashCode(), CacheKey(tpea, tpeb).hashCode())
-    assertEquals(CacheKey(tpe1, tpe2), CacheKey(tpea, tpeb))
+    assertEquals(Key(tpe1, tpe2).hashCode(), Key(tpea, tpeb).hashCode())
+    assertEquals(Key(tpe1, tpe2), Key(tpea, tpeb))
 
     val t1 = T1(115,T(111,"test","test dd",Some("hi")),List(157), true)
-    val tt = ru.typeOf[T1].declaration(ru.newTermName("t")).asTerm
-    val tpet = runtimeMirror.reflect(t1).reflectField(tt).symbol.typeSignature
+    val tt = u.typeOf[T1].decl(u.TermName("t")).asTerm
+    val tpet = rm.reflect(t1).reflectField(tt).symbol.typeSignature
 
     assertTrue(tpe1 =:= tpet)
-    assertEquals(CacheKey(tpe1, tpe2).hashCode(), CacheKey(tpet, tpe2).hashCode())
-    assertEquals(CacheKey(tpe1, tpe2), CacheKey(tpet, tpe2))
-  }
-
-  @Test
-  def testConverterUtil(): Unit = {
-    // simple case
-    val conv = mkConvFromElement[T]
-    assertEquals(T(111,"test","test desc"),
-      conv(
-        CompositeE(List(
-          ValueE("111"),
-          ValueE("test"),
-          ValueE("test desc"),
-          NullE
-        ))
-      ))
-
-    val conv1 = mkConvToElement[T]
-    assertEquals(
-      CompositeE(List(
-        ValueE("112"),
-        ValueE("test"),
-        ValueE("test 2"),
-        NullE)),
-      conv1(T(112, "test", "test 2")))
-
-    // simple nested case
-    TypeConverters.register(conv)
-    val convt1 = mkConvFromElement[T1]
-    assertEquals(T1(115, T(111,"test","test dd",Some("hi")), List(157), true),
-      convt1(
-        CompositeE(List(
-          ValueE("115"),
-          CompositeE(List(
-            ValueE("111"),
-            ValueE("test"),
-            ValueE("test dd"),
-            ValueE("hi"))),
-          ArrayE(List(
-            ValueE("157")
-          )),
-          ValueE("t")
-        ))
-      ))
-
-    TypeConverters.register(conv1)
-    val convt11 = mkConvToElement[T1]
-    assertEquals(
-      CompositeE(List(
-        ValueE("116"),
-        CompositeE(List(
-          ValueE("111"),
-          ValueE("test"),
-          ValueE("test 3"),
-          NullE)),
-        ArrayE(List(
-          ValueE("123"),
-          ValueE("135")
-        )),
-        ValueE("false")
-      )),
-      convt11(T1(116, T(111, "test", "test 3"), List(123,135), false)))
-
-    // composite array case
-    TypeConverters.register(convt1)
-    val convat = mkArrayConvFromElement[T1]
-    assertEquals(List(T1(115, T(111,"test","test dd",Some("hi")), List(157), false)),
-      convat(
-        ArrayE(List(
-          CompositeE(List(
-            ValueE("115"),
-            CompositeE(List(
-              ValueE("111"),
-              ValueE("test"),
-              ValueE("test dd"),
-              ValueE("hi"))
-            ),
-            ArrayE(List(
-              ValueE("157")
-            )),
-            ValueE("F")
-          ))
-        ))
-      ))
-
-    TypeConverters.register(convt11)
-    val convat1 = mkArrayConvToElement[T1]
-    assertEquals(
-      ArrayE(List(
-        CompositeE(List(
-          ValueE("115"),
-          CompositeE(List(
-            ValueE("111"),
-            ValueE("test"),
-            ValueE("test dd"),
-            ValueE("hi"))),
-          ArrayE(List(
-            ValueE("157")
-          )),
-          ValueE("true")
-        ))
-      )),
-      convat1(List(T1(115, T(111,"test","test dd",Some("hi")), List(157), true))))
+    assertEquals(Key(tpe1, tpe2).hashCode(), Key(tpet, tpe2).hashCode())
+    assertEquals(Key(tpe1, tpe2), Key(tpet, tpe2))
   }
 }
 

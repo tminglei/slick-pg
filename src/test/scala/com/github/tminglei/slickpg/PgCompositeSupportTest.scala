@@ -16,51 +16,36 @@ object PgCompositeSupportTest {
     txt: String,
     date: Timestamp,
     tsRange: Option[Range[Timestamp]]
-    )
+    ) extends Struct
   
   case class Composite2(
     id: Long,
     comp1: Composite1,
     confirm: Boolean
-    )
+    ) extends Struct
 
   case class Composite3(
     name: String,
     code: Int,
     num: Int
-    )
+    ) extends Struct
 
   //-------------------------------------------------------------
-  object MyPostgresDriver1 extends PostgresDriver with PgArraySupport with utils.PgCommonJdbcTypes {
+  object MyPostgresDriver1 extends PostgresDriver with PgCompositeSupport with PgArraySupport with utils.PgCommonJdbcTypes {
     override lazy val Implicit = new Implicits with ArrayImplicits with CompositeImplicts {}
     override val simple = new SimpleQL with ArrayImplicits with CompositeImplicts {}
 
     ///
     trait CompositeImplicts {
-      import utils.TypeConverters.Util._
-
       utils.TypeConverters.register(PgRangeSupportUtils.mkRangeFn(ts))
       utils.TypeConverters.register(PgRangeSupportUtils.toStringFn[Timestamp](tsFormat.format))
 
-      utils.TypeConverters.register(mkCompositeConvFromString[Composite1])
-      utils.TypeConverters.register(mkCompositeConvToString[Composite1])
-      utils.TypeConverters.register(mkCompositeConvFromString[Composite2])
-      utils.TypeConverters.register(mkCompositeConvToString[Composite2])
-      utils.TypeConverters.register(mkCompositeConvFromString[Composite3])
-      utils.TypeConverters.register(mkCompositeConvToString[Composite3])
-
-      implicit val composite1TypeMapper = new GenericJdbcType[Composite1]("composite1",
-        mkCompositeConvFromString[Composite1], mkCompositeConvToString[Composite1])
-      implicit val composite2TypeMapper = new GenericJdbcType[Composite2]("composite2",
-        mkCompositeConvFromString[Composite2], mkCompositeConvToString[Composite2])
-      implicit val composite3TypeMapper = new GenericJdbcType[Composite3]("composite3",
-        mkCompositeConvFromString[Composite3], mkCompositeConvToString[Composite3])
-      implicit val composite1ArrayTypeMapper = new NestedArrayListJdbcType[Composite1]("composite1",
-        mkArrayConvFromString[Composite1], mkArrayConvToString[Composite1])
-      implicit val composite2ArrayTypeMapper = new NestedArrayListJdbcType[Composite2]("composite2",
-        mkArrayConvFromString[Composite2], mkArrayConvToString[Composite2])
-      implicit val composite3ArrayTypeMapper = new NestedArrayListJdbcType[Composite3]("composite3",
-        mkArrayConvFromString[Composite3], mkArrayConvToString[Composite3])
+      implicit val composite1TypeMapper = createCompositeJdbcType[Composite1]("composite1")
+      implicit val composite2TypeMapper = createCompositeJdbcType("composite2")
+      implicit val composite3TypeMapper = createCompositeJdbcType[Composite3]("composite3")
+      implicit val composite1ArrayTypeMapper = createCompositeListJdbcType[Composite1]("composite1")
+      implicit val composite2ArrayTypeMapper = createCompositeListJdbcType[Composite2]("composite2")
+      implicit val composite3ArrayTypeMapper = createCompositeListJdbcType[Composite3]("composite3")
     }
   }
 }

@@ -13,7 +13,7 @@ trait PgCommonJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
                            fnToString: (T => String) = ((r: T) => r.toString),
                            val sqlType: Int = java.sql.Types.OTHER,
                            zero: T = null.asInstanceOf[T],
-                           override val hasLiteralForm: Boolean = true)(
+                           override val hasLiteralForm: Boolean = false)(
                   implicit override val classTag: ClassTag[T]) extends DriverJdbcType[T] {
 
     override def getValue(r: ResultSet, idx: Int): T = {
