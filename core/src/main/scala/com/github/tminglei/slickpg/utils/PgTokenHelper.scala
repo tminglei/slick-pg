@@ -91,7 +91,6 @@ object PgTokenHelper {
         val escapeLen = math.pow(2, level +1).toInt
         ch match {
           case '\\' => buf append ("\\" * escapeLen)
-          case '\'' => buf append "''"
           case '"'  => buf append ("\\" * (escapeLen -1)) append '"'
           case _  =>   buf append ch
         }
@@ -121,7 +120,13 @@ object PgTokenHelper {
     buf.toString
   }
 
-  def tokenize(input: String): Token = {
+  def printToken(token: Token, level: Int = 0): Unit =
+    token match {
+      case g: GroupToken => g.members.foreach(printToken(_, level +1))
+      case _ => println(s"${(" " * 2 * level)}$token")
+    }
+
+  def grouping(tokens: List[Token]): Token = {
     def level(marker: String): Double =
       math.log(marker.length) / math.log(2)
 
@@ -136,52 +141,47 @@ object PgTokenHelper {
       }
 
     ///
-    val tokens = Tokenizer.parseStr(input)
     val stack = mutable.Stack[WorkingGroup]()
-
     stack.push(WorkingGroup(Marker(""), -1))
+
     for(i <- 0 until tokens.length) {
       tokens(i) match {
         //-- process head and last tokens
-        case t: Open  if (i == 0) => stack.push(WorkingGroup(t, stack.top.level +1))
-        case t if (i == 0) => stack.top.tokens += t
-        case t: Close if (i == tokens.length -1) => {
-          stack.top.tokens += t
-          val toBeMerged = GroupToken(stack.pop.tokens.toList)
-          stack.top.tokens += toBeMerged
-        }
-        case t if (i == tokens.length -1) => stack.top.tokens += t
+        case t if (i == 0 || i == tokens.length -1) => stack.top.tokens += t
         //-- insert Null token if necessary
         case Comma if (tokens(i-1) == Comma) => stack.top.tokens += Null += Comma
+        case Comma if (tokens(i+1).isInstanceOf[Close]) => stack.top.tokens += Comma += Null
         //-- process open tokens
-        // matches: ',"tt(a...' <--> ',"(tt...' (normal)
-        case Open("(", "")  => stack.top.tokens += Chunk("(")
-        // matches: ',"tt[1,..' <--> ',"[1,3)",'(normal)
-        case Open("[", "")  => stack.top.tokens += Chunk("[")
-        // matches: '"ttt{...'  <--> ',"{{aa..' (normal)
-        case Open("{", "") if (tokens(i-1).value != "{") => stack.top.tokens += Chunk("{")
-        case Open("{", m)  if (m != "" && tokens(i-1) != Comma) => stack.top.tokens += Chunk("{")
-        case Open(v, m)    if (m != "" && level(m) != math.round(level(m)) && tokens(i-1) == Comma) => {
+        // '{' + '{' -> multi-dimension array, 'ttt{' -> normal string
+        case t @ Open("{", "") => {
+          if (tokens(i-1).value == "{") {
+            stack.push(WorkingGroup(t, stack.top.level))
+            stack.top.tokens += t
+          } else stack.top.tokens += Chunk("{")
+        }
+        // open border should prefix a marker, negative case: ',"tt(a...' <--> ',"(tt...' (normal)
+        case Open(v, "") => stack.top.tokens += Chunk(v)
+        // mark + escape, case: ',"\"(...",' <--> ',"...",' (normal)
+        case Open(v, m) if (level(m) != math.round(level(m))) => {
           val index = math.pow(2, stack.top.level).toInt
           stack.push(WorkingGroup(Marker(m.substring(0, index)), stack.top.level +1))
           stack.top.tokens += Marker(m.substring(0, index)) += Escape(m.substring(index)) += Chunk(v)
-        }
-        case t @ Open("{", "") if (tokens(i-1).value == "{") => {
-          stack.push(WorkingGroup(t, stack.top.level))
-          stack.top.tokens += t
         }
         case t @ Open(v, m) => {
           if (tokens(i-1) == Comma || tokens(i-1).isInstanceOf[Open]) {
             stack.push(WorkingGroup(t, stack.top.level +1))
             stack.top.tokens += t
-          } else stack.top.tokens += Escape(m) += Chunk(v)
+          } // case: 'tt\"(...'
+          else stack.top.tokens += Escape(m) += Chunk(v)
         }
         //-- process marker tokens
+        // mark + escape
         case Marker(m) if (level(m) != math.round(level(m)) && tokens(i-1) == Comma) => {
           val index = math.pow(2, stack.top.level).toInt
           stack.push(WorkingGroup(Marker(m.substring(0, index)), stack.top.level +1))
           stack.top.tokens += Marker(m.substring(0, index)) += Escape(m.substring(index))
         }
+        // escape + mark
         case Marker(m) if (level(m) != math.round(level(m)) && tokens(i+1) == Comma) => {
           val existed = stack.find(g => m.endsWith(g.border.marker)).get
           for (_ <- 0 to stack.lastIndexOf(existed)) {
@@ -193,6 +193,7 @@ object PgTokenHelper {
             stack.top.tokens += toBeMerged
           }
         }
+        // mark + escape + mark
         case Marker(m) if (tokens(i-1) == Comma && tokens(i+1) == Comma) => {
           val topMarker = stack.top.border.marker
           if ((m.length > topMarker.length * 2) && m.startsWith(topMarker) && m.endsWith(topMarker)) {
@@ -208,21 +209,17 @@ object PgTokenHelper {
               stack.top.tokens += toBeMerged
             }
           } else {
-            if (level(m) == stack.top.level && (tokens(i-1) == Comma || tokens(i-1).isInstanceOf[Open])) {
-              stack.push(WorkingGroup(t, stack.top.level +1))
-              stack.top.tokens += t
-            } else stack.top.tokens += Escape(m)
+            stack.push(WorkingGroup(t, stack.top.level +1))
+            stack.top.tokens += t
           }
         }
         //-- process close tokens
-        case Close(")", "") => stack.top.tokens += Chunk(")")
-        //
-        case Close("]", "") => stack.top.tokens += Chunk("]")
-        //
+        // '{' + '{' -> multi-dimension array, 'ttt{' -> normal string
         case Close("}", "") if (tokens(i+1).value != "}") => stack.top.tokens += Chunk("}")
-        case Close("}", m)  if (m != "" && tokens(i+1) != Comma) => stack.top.tokens += Chunk("}")
-        // matches: '...tt)\"",' <--> '...tt)",..' (normal)
-        case Close(v, m)  if (m != "" && level(m) != math.round(level(m)) && tokens(i+1) == Comma) => {
+        // close border should postfix a marker, negative case: ',"...)ttt' <--> ',"...)\",' (normal)
+        case Close(v, "") if (v != "}") => stack.top.tokens += Chunk(v)
+        // escape + mark, case: '...tt)\"",' <--> '...tt)",..' (normal)
+        case Close(v, m)  if (level(m) != math.round(level(m))) => {
           val existed = stack.find(b => m.endsWith(b.border.marker)).get
           for (_ <- 0 to stack.lastIndexOf(existed)) {
             if (stack.top == existed) {
@@ -234,15 +231,12 @@ object PgTokenHelper {
           }
         }
         case t @ Close(v, m) => {
-          if (isCompatible(stack.top.border, t)) {
+          if ((tokens(i+1) == Comma || tokens(i+1).isInstanceOf[Close]) && isCompatible(stack.top.border, t)) {
             stack.top.tokens += t
             val toBeMerged = GroupToken(stack.pop.tokens.toList)
             stack.top.tokens += toBeMerged
-          } else { // e.g. ',"}ttt...'
-            stack.top.tokens += Chunk(v) += Escape(m)
-            val toBeMerged = GroupToken(stack.pop.tokens.toList)
-            stack.top.tokens += toBeMerged
-          }
+          } // case: ',"}ttt...'
+          else stack.top.tokens += Chunk(v) += Escape(m)
         }
         //-- process other tokens
         case t => stack.top.tokens += t
@@ -255,7 +249,6 @@ object PgTokenHelper {
 
   ////////////////////////////////////////////////////////////////////////////
   object Tokenizer extends RegexParsers {
-
     override def skipWhitespace = false
 
     val MARKER = """[\\|"]+""".r
@@ -278,7 +271,7 @@ object PgTokenHelper {
     def patterns = open | close | escape | marker | comma | chunk
 
     //--
-    def parseStr(input: String) =
+    def tokenize(input: String) =
       parseAll(rep(patterns), new CharSequenceReader(input)) match {
         case Success(result, _) => result
         case failure: NoSuccess => throw new SlickException(failure.msg)

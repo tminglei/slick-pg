@@ -33,11 +33,11 @@ object PgCompositeSupportTest {
 
   //-------------------------------------------------------------
   object MyPostgresDriver1 extends PostgresDriver with PgCompositeSupport with PgArraySupport with utils.PgCommonJdbcTypes {
-    override lazy val Implicit = new Implicits with ArrayImplicits with CompositeImplicts {}
-    override val simple = new SimpleQL with ArrayImplicits with CompositeImplicts {}
+    override lazy val Implicit = new Implicits with ArrayImplicits with CompositeImplicits {}
+    override val simple = new SimpleQL with ArrayImplicits with CompositeImplicits {}
 
     ///
-    trait CompositeImplicts {
+    trait CompositeImplicits {
       utils.TypeConverters.register(PgRangeSupportUtils.mkRangeFn(ts))
       utils.TypeConverters.register(PgRangeSupportUtils.toStringFn[Timestamp](tsFormat.format))
 
@@ -116,7 +116,7 @@ class PgCompositeSupportTest {
   
   @Test
   def testCompositeTypes1(): Unit = {
-    
+
     db withSession { implicit session: Session =>
       CompositeTests1 forceInsertAll (rec11, rec12, rec13)
       
