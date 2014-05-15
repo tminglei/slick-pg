@@ -3,6 +3,7 @@ package com.github.tminglei.slickpg
 import org.junit._
 import org.junit.Assert._
 import org.json4s._
+import scala.util.Try
 
 class PgJson4sSupportTest {
   import MyPostgresDriver.simple._
@@ -99,14 +100,8 @@ class PgJson4sSupportTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
-      JsonTests.ddl create
-    }
-  }
-
-  @After
-  def dropTables(): Unit = {
-    db withSession { implicit session: Session =>
-      JsonTests.ddl drop
+      Try { JsonTests.ddl drop }
+      Try { JsonTests.ddl create }
     }
   }
 }

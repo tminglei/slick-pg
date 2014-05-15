@@ -3,6 +3,7 @@ package com.github.tminglei.slickpg
 import org.junit._
 import org.junit.Assert._
 import java.sql.Timestamp
+import scala.util.Try
 
 class PgRangeSupportTest {
   import MyPostgresDriver.simple._
@@ -101,15 +102,9 @@ class PgRangeSupportTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
-      RangeTests.ddl.createStatements.foreach(s => println(s"[range] $s"))
-      RangeTests.ddl create
-    }
-  }
-
-  @After
-  def dropTables(): Unit = {
-    db withSession { implicit session: Session =>
-      RangeTests.ddl drop
+      Try { RangeTests.ddl drop }
+      Try { RangeTests.ddl.createStatements.foreach(s => println(s"[range] $s")) }
+      Try { RangeTests.ddl create }
     }
   }
 }

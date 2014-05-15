@@ -4,6 +4,7 @@ import org.joda.time.{Period, LocalDateTime, LocalTime, LocalDate, DateTime}
 import org.junit.{After, Before, Test}
 import org.junit.Assert._
 import scala.slick.jdbc.StaticQuery
+import scala.util.Try
 
 class PgDateSupportJodaTest {
   import MyPostgresDriver.simple._
@@ -181,14 +182,8 @@ class PgDateSupportJodaTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
-      Datetimes.ddl create
-    }
-  }
-
-  @After
-  def dropTables(): Unit = {
-    db withSession { implicit session: Session =>
-      Datetimes.ddl drop
+      Try { Datetimes.ddl drop }
+      Try { Datetimes.ddl create }
     }
   }
 }

@@ -6,6 +6,7 @@ import scala.slick.driver.PostgresDriver
 import scala.slick.jdbc.{StaticQuery => Q}
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
+import scala.util.Try
 
 object PgCompositeSupportTest {
   val tsFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
@@ -16,51 +17,36 @@ object PgCompositeSupportTest {
     txt: String,
     date: Timestamp,
     tsRange: Option[Range[Timestamp]]
-    )
+    ) extends Struct
   
   case class Composite2(
     id: Long,
     comp1: Composite1,
     confirm: Boolean
-    )
+    ) extends Struct
 
   case class Composite3(
     name: String,
     code: Int,
     num: Int
-    )
+    ) extends Struct
 
   //-------------------------------------------------------------
-  object MyPostgresDriver1 extends PostgresDriver with PgArraySupport with utils.PgCommonJdbcTypes {
-    override lazy val Implicit = new Implicits with ArrayImplicits with CompositeImplicts {}
-    override val simple = new SimpleQL with ArrayImplicits with CompositeImplicts {}
+  object MyPostgresDriver1 extends PostgresDriver with PgCompositeSupport with PgArraySupport with utils.PgCommonJdbcTypes {
+    override lazy val Implicit = new Implicits with ArrayImplicits with CompositeImplicits {}
+    override val simple = new SimpleQL with ArrayImplicits with CompositeImplicits {}
 
     ///
-    trait CompositeImplicts {
-      import utils.TypeConverters.Util._
-
+    trait CompositeImplicits {
       utils.TypeConverters.register(PgRangeSupportUtils.mkRangeFn(ts))
       utils.TypeConverters.register(PgRangeSupportUtils.toStringFn[Timestamp](tsFormat.format))
 
-      utils.TypeConverters.register(mkCompositeConvFromString[Composite1])
-      utils.TypeConverters.register(mkCompositeConvToString[Composite1])
-      utils.TypeConverters.register(mkCompositeConvFromString[Composite2])
-      utils.TypeConverters.register(mkCompositeConvToString[Composite2])
-      utils.TypeConverters.register(mkCompositeConvFromString[Composite3])
-      utils.TypeConverters.register(mkCompositeConvToString[Composite3])
-
-      implicit val composite1TypeMapper = new GenericJdbcType[Composite1]("composite1",
-        mkCompositeConvFromString[Composite1], mkCompositeConvToString[Composite1])
-      implicit val composite2TypeMapper = new GenericJdbcType[Composite2]("composite2",
-        mkCompositeConvFromString[Composite2], mkCompositeConvToString[Composite2])
-      implicit val composite3TypeMapper = new GenericJdbcType[Composite3]("composite3",
-        mkCompositeConvFromString[Composite3], mkCompositeConvToString[Composite3])
-      implicit val composite1ArrayTypeMapper = new ArrayListJdbcType[Composite1]("composite1",
-        mkArrayConvFromString[Composite1], mkArrayConvToString[Composite1])
-      implicit val composite2ArrayTypeMapper = new ArrayListJdbcType[Composite2]("composite2",
-        mkArrayConvFromString[Composite2], mkArrayConvToString[Composite2])
-      implicit val composite3ArrayTypeMapper = new ArrayListJdbcType[Composite3]("composite3",
-        mkArrayConvFromString[Composite3], mkArrayConvToString[Composite3])
+      implicit val composite1TypeMapper = createCompositeJdbcType[Composite1]("composite1")
+      implicit val composite2TypeMapper = createCompositeJdbcType[Composite2]("composite2")
+      implicit val composite3TypeMapper = createCompositeJdbcType[Composite3]("composite3")
+      implicit val composite1ArrayTypeMapper = createCompositeListJdbcType[Composite1]("composite1")
+      implicit val composite2ArrayTypeMapper = createCompositeListJdbcType[Composite2]("composite2")
+      implicit val composite3ArrayTypeMapper = createCompositeListJdbcType[Composite3]("composite3")
     }
   }
 }
@@ -130,7 +116,7 @@ class PgCompositeSupportTest {
   
   @Test
   def testCompositeTypes1(): Unit = {
-    
+
     db withSession { implicit session: Session =>
       CompositeTests1 forceInsertAll (rec11, rec12, rec13)
       
@@ -150,23 +136,18 @@ class PgCompositeSupportTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
-      (Q[Int] + "create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)").execute
-      (Q[Int] + "create type composite2 as (id int8, comp1 composite1, confirm boolean)").execute
-      (Q[Int] + "create type composite3 as (txt text, id int4, code int4)").execute
+      // clear first
+      Try { (CompositeTests.ddl ++ CompositeTests1.ddl) drop }
+      Try { (Q[Int] + "drop type composite3").execute }
+      Try { (Q[Int] + "drop type composite2").execute }
+      Try { (Q[Int] + "drop type composite1").execute }
 
-      (CompositeTests.ddl ++ CompositeTests1.ddl).createStatements.foreach(s => println(s"[composite] $s"))
-      (CompositeTests.ddl ++ CompositeTests1.ddl) create
-    }
-  }
-
-  @After
-  def dropTables(): Unit = {
-    db withSession { implicit session: Session =>
-      (CompositeTests.ddl ++ CompositeTests1.ddl) drop
-      
-      (Q[Int] + "drop type composite3").execute
-      (Q[Int] + "drop type composite2").execute
-      (Q[Int] + "drop type composite1").execute
+      // then create
+      Try { (Q[Int] + "create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)").execute }
+      Try { (Q[Int] + "create type composite2 as (id int8, comp1 composite1, confirm boolean)").execute }
+      Try { (Q[Int] + "create type composite3 as (txt text, id int4, code int4)").execute }
+      Try { (CompositeTests.ddl ++ CompositeTests1.ddl).createStatements.foreach(s => println(s"[composite] $s")) }
+      Try { (CompositeTests.ddl ++ CompositeTests1.ddl) create }
     }
   }
 }

@@ -4,6 +4,7 @@ import org.junit._
 import org.junit.Assert._
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import com.vividsolutions.jts.io.{WKTWriter, WKBWriter, WKTReader}
+import scala.util.Try
 
 class PgPostGISSupportTest {
   import MyPostgresDriver.simple._
@@ -543,15 +544,9 @@ class PgPostGISSupportTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
-      (GeomTests.ddl ++ PointTests.ddl).createStatements.foreach(s => println(s"[jts] $s"))
-      (GeomTests.ddl ++ PointTests.ddl) create
-    }
-  }
-
-  @After
-  def dropTables(): Unit = {
-    db withSession { implicit session: Session =>
-      (GeomTests.ddl ++ PointTests.ddl) drop
+      Try { (GeomTests.ddl ++ PointTests.ddl) drop }
+      Try { (GeomTests.ddl ++ PointTests.ddl).createStatements.foreach(s => println(s"[jts] $s")) }
+      Try { (GeomTests.ddl ++ PointTests.ddl) create }
     }
   }
 }

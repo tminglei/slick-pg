@@ -16,7 +16,8 @@ object SlickPgBuild extends Build {
       "-language:implicitConversions",
       "-language:reflectiveCalls",
       "-language:higherKinds",
-      "-language:postfixOps"),
+      "-language:postfixOps",
+      "-language:existentials"),
 
     resolvers += Resolver.mavenLocal,
     resolvers += Resolver.sonatypeRepo("snapshots"),
@@ -105,9 +106,9 @@ object SlickPgBuild extends Build {
       name := "slick-pg_json4s",
       description := "Slick extensions for PostgreSQL - json4s module",
       libraryDependencies := mainDependencies ++ Seq(
-        "org.json4s" %% "json4s-ast" % "3.2.9",
-        "org.json4s" %% "json4s-core" % "3.2.9",
-        "org.json4s" %% "json4s-native" % "3.2.9" % "test"
+        "org.json4s" %% "json4s-ast" % "3.2.10",
+        "org.json4s" %% "json4s-core" % "3.2.10",
+        "org.json4s" %% "json4s-native" % "3.2.10" % "test"
       )
     )
   ) dependsOn (slickPgCore)

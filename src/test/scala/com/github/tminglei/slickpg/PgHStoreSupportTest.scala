@@ -2,6 +2,7 @@ package com.github.tminglei.slickpg
 
 import org.junit._
 import org.junit.Assert._
+import scala.util.Try
 
 class PgHStoreSupportTest {
   import MyPostgresDriver.simple._
@@ -88,15 +89,9 @@ class PgHStoreSupportTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
-      HStoreTests.ddl.createStatements.foreach(s => println(s"[hstore] $s"))
-      HStoreTests.ddl create
-    }
-  }
-
-  @After
-  def dropTables(): Unit = {
-    db withSession { implicit session: Session =>
-      HStoreTests.ddl drop
+      Try { HStoreTests.ddl drop }
+      Try { HStoreTests.ddl.createStatements.foreach(s => println(s"[hstore] $s")) }
+      Try { HStoreTests.ddl create }
     }
   }
 }
