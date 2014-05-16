@@ -120,12 +120,6 @@ object PgTokenHelper {
     buf.toString
   }
 
-  def printToken(token: Token, level: Int = 0): Unit =
-    token match {
-      case g: GroupToken => g.members.foreach(printToken(_, level +1))
-      case _ => println(s"${(" " * 2 * level)}$token")
-    }
-
   def grouping(tokens: List[Token]): Token = {
     def level(marker: String): Double =
       math.log(marker.length) / math.log(2)
