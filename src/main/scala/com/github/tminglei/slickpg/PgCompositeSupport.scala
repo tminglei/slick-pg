@@ -4,8 +4,7 @@ import scala.slick.driver.PostgresDriver
 import scala.reflect.runtime.{universe => u, currentMirror => rm}
 import scala.slick.jdbc.JdbcType
 import scala.reflect.ClassTag
-
-trait Struct extends AnyRef
+import composite.Struct
 
 trait PgCompositeSupport extends utils.PgCommonJdbcTypes with array.PgArrayJdbcTypes { driver: PostgresDriver =>
   import PgCompositeSupportUtils._

@@ -6,6 +6,7 @@ import scala.slick.driver.PostgresDriver
 import scala.slick.jdbc.{StaticQuery => Q}
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
+import composite.Struct
 import scala.util.Try
 
 object PgCompositeSupportTest {
