@@ -1,8 +1,6 @@
 package com.github.tminglei.slickpg
 
-import scala.slick.driver.PostgresDriver
-
-trait MyPostgresDriver extends PostgresDriver
+trait MyPostgresDriver extends ExPostgresDriver
                           with PgArraySupport
                           with PgDateSupport
                           with PgRangeSupport
