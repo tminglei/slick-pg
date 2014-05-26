@@ -138,7 +138,7 @@ class PgTokenHelperTest {
   }
 
   @Test
-  def testGenString(): Unit = {
+  def testCreateString(): Unit = {
     val input =
       GroupToken(List(
         Open("{"),
@@ -179,7 +179,7 @@ class PgTokenHelperTest {
         )),
         Close("}")
       ))
-    val pgStr = genString(input)
+    val pgStr = createString(input)
 
     val expected = """{"(201,\"(101,\"\"(test1'\"\",\"\"2001-01-03 13:21:00\"\",\"\"[\\\\\"\"2010-01-01 14:30:00\\\\\"\",\\\\\"\"2010-01-03 15:30:00\\\\\"\")\"\")\",t)"}"""
 
@@ -222,7 +222,7 @@ class PgTokenHelperTest {
         Chunk("t"),
         Close(")","\"")
       ))
-    val pgStr1 = genString(input1)
+    val pgStr1 = createString(input1)
 
     val expected1 = """(201,"(101,""(test1'"",""2001-01-03 13:21:00"",""[\\""2010-01-01 14:30:00\\"",\\""2010-01-03 15:30:00\\"")"")",t)"""
     assertEquals(expected1, pgStr1)

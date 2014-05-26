@@ -34,7 +34,7 @@ object PgCompositeSupportUtils {
   def mkStringFromComposite[T <: Struct](implicit ev: u.TypeTag[T]): (T => String) = {
     val converter = mkTokenConverter(u.typeOf[T])
     (value: T) => {
-      genString(converter.toToken(value))
+      createString(converter.toToken(value))
     }
   }
 
@@ -49,7 +49,7 @@ object PgCompositeSupportUtils {
   def mkStringFromCompositeList[T <: Struct](implicit ev: u.TypeTag[List[T]]): (List[T] => String) = {
     val converter = mkTokenConverter(u.typeOf[List[T]])
     (vList: List[T]) => {
-      genString(converter.toToken(vList))
+      createString(converter.toToken(vList))
     }
   }
 

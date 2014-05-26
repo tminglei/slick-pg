@@ -56,7 +56,7 @@ object PgTokenHelper {
     case _ => throw new IllegalArgumentException("WRONG token type: " + token)
   }
 
-  def genString(root: Token): String = {
+  def createString(root: Token): String = {
     val MARK_REQUIRED_CHAR_LIST = List('\\', '"', ',', '(', ')')
     val rootIsArray = root match {
       case GroupToken(mList) =>
