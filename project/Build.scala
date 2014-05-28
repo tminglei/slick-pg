@@ -19,6 +19,7 @@ object SlickPgBuild extends Build {
 
     resolvers += Resolver.mavenLocal,
     resolvers += Resolver.sonatypeRepo("snapshots"),
+    resolvers += "spray" at "http://repo.spray.io/",
 //    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))),
     publishTo <<= version { (v: String) =>
       val nexus = "https://oss.sonatype.org/"
