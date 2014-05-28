@@ -56,7 +56,7 @@ object SlickPgBuild extends Build {
     )
   )
   
-  def mainDependencies(scalaVersion:String) = {
+  def mainDependencies(scalaVersion: String) = {
     val extractedLibs = CrossVersion.partialVersion(scalaVersion) match {
       case Some((2, scalaMajor)) if scalaMajor >= 11 =>
         Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.1")
@@ -75,12 +75,12 @@ object SlickPgBuild extends Build {
   lazy val coreSettings = Seq(
     name := "slick-pg_core",
     description := "Slick extensions for PostgreSQL - Core",
-    version := "0.6.0-M1",
+    version := "0.6.0-M2",
     libraryDependencies := mainDependencies(scalaVersion.value)
   )
 
   lazy val slickPgSettings = Seq(
-    version := "0.6.0-M1",
+    version := "0.6.0-M2",
     resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
   )
 

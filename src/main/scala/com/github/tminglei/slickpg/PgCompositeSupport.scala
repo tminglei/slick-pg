@@ -58,7 +58,7 @@ object PgCompositeSupportUtils {
     theType match {
       case tpe if tpe <:< u.typeOf[Struct] => {
         val constructor = tpe.declaration(u.nme.CONSTRUCTOR).asMethod
-        val convList = constructor.asMethod.paramss.head.map(_.typeSignature).map(mkTokenConverter(_, level +1))
+        val convList = constructor.paramss.head.map(_.typeSignature).map(mkTokenConverter(_, level +1))
         CompositeConverter(tpe, convList)
       }
       case tpe if tpe.typeConstructor =:= u.typeOf[Option[_]].typeConstructor => {
@@ -94,7 +94,7 @@ object PgCompositeSupportUtils {
 
   case class CompositeConverter(theType: u.Type, convList: List[TokenConverter]) extends TokenConverter {
     private val constructor = theType.declaration(u.nme.CONSTRUCTOR).asMethod
-    private val fieldList = constructor.asMethod.paramss.head.map(t => theType.declaration(t.name).asTerm)
+    private val fieldList = constructor.paramss.head.map(t => theType.declaration(t.name).asTerm)
 
     def fromToken(token: Token): Any =
       if (token == Null) null
