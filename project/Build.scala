@@ -4,14 +4,12 @@ import scala.Some
 
 object SlickPgBuild extends Build {
 
-  val prjScalaVersion = "2.11.0"
-
   lazy val commonSettings = Seq(
     organizationName := "slick-pg",
     organization := "com.github.tminglei",
 
-    scalaVersion := prjScalaVersion,
-//    crossScalaVersions := Seq("2.10.0", "2.11.0"),
+    scalaVersion := "2.11.1",
+    crossScalaVersions := Seq("2.11.1", "2.10.4"),
     scalacOptions ++= Seq("-deprecation", "-feature",
       "-language:implicitConversions",
       "-language:reflectiveCalls",
@@ -57,20 +55,27 @@ object SlickPgBuild extends Build {
     )
   )
   
-  lazy val mainDependencies = Seq (
-    "org.scala-lang" % "scala-reflect" % prjScalaVersion,
-    "org.scala-lang.modules" % "scala-parser-combinators_2.11" % "1.0.1",
-    "com.typesafe.slick" % "slick_2.11.0-RC4" % "2.1.0-M1",
-    "org.postgresql" % "postgresql" % "9.3-1100-jdbc41",
-    "junit" % "junit" % "4.11" % "test",
-    "com.novocode" % "junit-interface" % "0.10" % "test"
-  )
+  def mainDependencies(scalaVersion:String) = {
+    val extractedLibs = CrossVersion.partialVersion(scalaVersion) match {
+      case Some((2, scalaMajor)) if scalaMajor >= 11 =>
+        Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.1")
+      case _ =>
+        Seq()
+    }
+    Seq (
+      "org.scala-lang" % "scala-reflect" % scalaVersion,
+      "com.typesafe.slick" %% "slick" % "2.1.0-M2",
+      "org.postgresql" % "postgresql" % "9.3-1100-jdbc41",
+      "junit" % "junit" % "4.11" % "test",
+      "com.novocode" % "junit-interface" % "0.10" % "test"
+    ) ++ extractedLibs
+  }
 
   lazy val coreSettings = Seq(
     name := "slick-pg_core",
     description := "Slick extensions for PostgreSQL - Core",
     version := "0.6.0-M1",
-    libraryDependencies := mainDependencies
+    libraryDependencies := mainDependencies(scalaVersion.value)
   )
 
   lazy val slickPgSettings = Seq(
@@ -82,7 +87,7 @@ object SlickPgBuild extends Build {
     settings = Project.defaultSettings ++ commonSettings ++ slickPgSettings ++ Seq(
       name := "slick-pg",
       description := "Slick extensions for PostgreSQL",
-      libraryDependencies := mainDependencies
+      libraryDependencies := mainDependencies(scalaVersion.value)
     ) 
   ).dependsOn (slickPgCore)
    .aggregate (slickPgCore, slickPgJoda, slickPgJson4s, slickPgJts, slickPgPlayJson, slickPgSprayJson, slickPgArgonaut, slickPgThreeten, slickPgDate2)
@@ -94,7 +99,7 @@ object SlickPgBuild extends Build {
     settings = Project.defaultSettings ++ commonSettings ++ slickPgSettings ++ Seq(
       name := "slick-pg_joda-time",
       description := "Slick extensions for PostgreSQL - joda time module",
-      libraryDependencies := mainDependencies ++ Seq(
+      libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
         "joda-time" % "joda-time" % "2.3",
         "org.joda" % "joda-convert" % "1.5"
       )
@@ -105,7 +110,7 @@ object SlickPgBuild extends Build {
     settings = Project.defaultSettings ++ commonSettings ++ slickPgSettings ++ Seq(
       name := "slick-pg_json4s",
       description := "Slick extensions for PostgreSQL - json4s module",
-      libraryDependencies := mainDependencies ++ Seq(
+      libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
         "org.json4s" %% "json4s-ast" % "3.2.10",
         "org.json4s" %% "json4s-core" % "3.2.10",
         "org.json4s" %% "json4s-native" % "3.2.10" % "test"
@@ -117,7 +122,7 @@ object SlickPgBuild extends Build {
     settings = Project.defaultSettings ++ commonSettings ++ slickPgSettings ++ Seq(
       name := "slick-pg_jts",
       description := "Slick extensions for PostgreSQL - jts module",
-      libraryDependencies := mainDependencies ++ Seq(
+      libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
         "com.vividsolutions" % "jts" % "1.13"
       )
     )
@@ -127,8 +132,8 @@ object SlickPgBuild extends Build {
     settings = Project.defaultSettings ++ commonSettings ++ slickPgSettings ++ Seq(
       name := "slick-pg_play-json",
       description := "Slick extensions for PostgreSQL - play-json module",
-      libraryDependencies := mainDependencies ++ Seq(
-        "com.typesafe.play" %% "play-json" % "2.3.0-RC1"
+      libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
+        "com.typesafe.play" %% "play-json" % "2.3.0-RC2"
       )
     )
   ) dependsOn (slickPgCore)
@@ -137,8 +142,8 @@ object SlickPgBuild extends Build {
     settings = Project.defaultSettings ++ commonSettings ++ slickPgSettings ++ Seq(
       name := "slick-pg_spray-json",
       description := "Slick extensions for PostgreSQL - spray-json module",
-      libraryDependencies := mainDependencies ++ Seq(
-        "io.spray" %  "spray-json_2.11.0-RC4" % "1.2.6"
+      libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
+        "io.spray" %%  "spray-json" % "1.2.6"
       )
     )
   ) dependsOn (slickPgCore)
@@ -147,7 +152,7 @@ object SlickPgBuild extends Build {
     settings = Project.defaultSettings ++ commonSettings ++ slickPgSettings ++ Seq(
       name := "slick-pg_argonaut",
       description := "Slick extensions for PostgreSQL - argonaut module",
-      libraryDependencies := mainDependencies ++ Seq(
+      libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
         "io.argonaut" %% "argonaut" % "6.0.4"
       )
     )
@@ -157,7 +162,7 @@ object SlickPgBuild extends Build {
     settings = Project.defaultSettings ++ commonSettings ++ slickPgSettings ++ Seq(
       name := "slick-pg_threeten",
       description := "Slick extensions for PostgreSQL - threeten module",
-      libraryDependencies := mainDependencies ++ Seq(
+      libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
         "org.threeten" % "threetenbp" % "0.8.1"
       )
     )
@@ -167,7 +172,7 @@ object SlickPgBuild extends Build {
     settings = Project.defaultSettings ++ commonSettings ++ slickPgSettings ++ Seq(
       name := "slick-pg_date2",
       description := "Slick extensions for PostgreSQL - date2 module (jdk8 time)",
-      libraryDependencies := mainDependencies
+      libraryDependencies := mainDependencies(scalaVersion.value)
     )
   ) dependsOn (slickPgCore)
 
