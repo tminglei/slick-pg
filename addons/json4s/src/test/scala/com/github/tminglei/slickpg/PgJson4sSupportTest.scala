@@ -9,7 +9,7 @@ class PgJson4sSupportTest {
   import MyPostgresDriver.simple._
   import MyPostgresDriver.jsonMethods._
 
-  val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=test", driver = "org.postgresql.Driver")
+  val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=postgres", driver = "org.postgresql.Driver")
 
   case class JsonBean(id: Long, json: JValue)
 

@@ -189,7 +189,7 @@ Then you can run the tests like this:
 ```
 _ps: in the code of unit tests, the `slick` database is setup like this:_
 ```scala
-val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=test", driver = "org.postgresql.Driver")
+val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=postgres", driver = "org.postgresql.Driver")
 ```
 
 

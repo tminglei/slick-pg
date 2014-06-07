@@ -9,7 +9,7 @@ import scala.util.Try
 class PgPostGISSupportTest {
   import MyPostgresDriver.simple._
 
-  val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=test", driver = "org.postgresql.Driver")
+  val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=postgres", driver = "org.postgresql.Driver")
 
   case class GeometryBean(id: Long, geom: Geometry)
 
