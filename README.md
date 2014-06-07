@@ -1,5 +1,7 @@
 Slick-pg
 ========
+[![Build Status](https://travis-ci.org/tminglei/slick-pg.svg?branch=master)](https://travis-ci.org/tminglei/slick-pg)
+
 [Slick](https://github.com/slick/slick "Slick") extensions for PostgreSQL, to support a series of pg data types and related operators/functions.
 
 ####Currently supported pg types:
