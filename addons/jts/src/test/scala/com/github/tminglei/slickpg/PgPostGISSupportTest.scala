@@ -248,7 +248,7 @@ class PgPostGISSupportTest {
       assertEquals(5f, q18.first, 0.001f)
 
       val q19 = GeomTests.filter(_.id === pointbean.id.bind).map(_.geom.z.?)
-      assertEquals(None, q19.first)
+      assertEquals(Some(7f), q19.first)
 
       val q20 = GeomTests.filter(_.id === polygonbean.id.bind).map(_.geom.xmin)
       assertEquals(0f, q20.first, 0.001f)

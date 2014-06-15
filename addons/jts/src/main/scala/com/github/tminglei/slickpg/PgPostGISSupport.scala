@@ -58,6 +58,7 @@ object PgPostGISSupportUtils {
   private val wktWriterHolder = new ThreadLocal[WKTWriter]
   private val wktReaderHolder = new ThreadLocal[WKTReader]
   private val wkbWriterHolder = new ThreadLocal[WKBWriter]
+  private val wkb3DWriterHolder = new ThreadLocal[WKBWriter]
   private val wkbReaderHolder = new ThreadLocal[WKBReader]
 
   def toLiteral(geom: Geometry): String = {
@@ -80,8 +81,13 @@ object PgPostGISSupportUtils {
   }
 
   def toBytes(geom: Geometry): Array[Byte] = {
-    if (wkbWriterHolder.get == null) wkbWriterHolder.set(new WKBWriter(2, true))
-    wkbWriterHolder.get.write(geom)
+    if (geom != null && geom.getCoordinate != null && !(java.lang.Double.isNaN(geom.getCoordinate.z))) {
+      if (wkb3DWriterHolder.get == null) wkb3DWriterHolder.set(new WKBWriter(3, true))
+      wkb3DWriterHolder.get.write(geom)
+    } else {
+      if (wkbWriterHolder.get == null) wkbWriterHolder.set(new WKBWriter(2, true))
+      wkbWriterHolder.get.write(geom)
+    }
   }
   private def fromBytes[T](bytes: Array[Byte]): T = {
     if (wkbReaderHolder.get == null) wkbReaderHolder.set(new WKBReader())
