@@ -1,6 +1,7 @@
 package myUtils
 
 import java.util.UUID
+import com.github.tminglei.slickpg.PgRangeSupportUtils
 import play.api.data.format.Formats
 import play.api.data.format.Formatter
 import play.api.data.FormError
@@ -44,7 +45,7 @@ object MyFormats {
     override val format = Some(("format.range", Nil))
 
     def bind(key: String, data: Map[String, String]) =
-      parsing(Range.mkRangeFn(parseFn), "error.range", Nil)(key, data)
+      parsing(PgRangeSupportUtils.mkRangeFn(parseFn), "error.range", Nil)(key, data)
     def unbind(key: String, value: Range[T]) = Map(key -> value.toString)
   }
 
