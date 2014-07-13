@@ -4,12 +4,13 @@
 /project/target
 /target
 /core/target
-/example/.idea
-/example/project/project
-/example/project/target
-/example/target
 /bin
 /addons/*/target
+/examples/play-slick-sample/.idea
+/examples/play-slick-sample/.idea_modules
+/examples/play-slick-sample/project/project
+/examples/play-slick-sample/project/target
+/examples/play-slick-sample/target
 
 *.sw[po]
 .cache
