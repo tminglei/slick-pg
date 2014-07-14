@@ -4,7 +4,7 @@ Slick-pg
 
 [Slick](https://github.com/slick/slick "Slick") extensions for PostgreSQL, to support a series of pg data types and related operators/functions.
 
-####Currently supported pg types:
+#### Currently supported pg types:
 - ARRAY
 - Date/Time
 - Enum
@@ -13,50 +13,54 @@ Slick-pg
 - JSON
 - `text` Search
 - `postgis` Geometry
-- Composite type (`basic`)
 
-** _tested on `PostgreSQL` `v9.3` with `Slick` `v2.0.1`._
+#### Currently supported pg features:
+- inherits
+- composite type (`basic`)
+
+
+** _tested on `PostgreSQL` `v9.3` with `Slick` `v2.1.0-RC1`._
 
 Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_2.10" % "0.5.3"
+libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.6.0-RC1"
 ```
 
 > If you need `play-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_play-json_2.10" % "0.5.3"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.6.0-RC1"
 ```
 
 > If you need `joda-time` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_joda-time_2.10" % "0.5.3"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.6.0-RC1"
 ```
 
 > If you need `jts` geom support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_jts_2.10" % "0.5.3"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.6.0-RC1"
 ```
 
 > If you need `json4s` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_json4s_2.10" % "0.5.3"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.6.0-RC1"
 ```
 
 > If you need `jdk8 date` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_date2_2.10" % "0.5.3"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_date2" % "0.6.0-RC1"
 ```
 
 > If you need `threeten-bp` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_threeten_2.10" % "0.5.3"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_threeten" % "0.6.0-RC1"
 ```
 
 > If you need `spray-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" % "slick-pg_spray-json_2.10" % "0.5.3"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.6.0-RC1"
 ```
 
 
@@ -65,7 +69,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.10</artifactId>
-    <version>0.5.3</version>
+    <version>0.6.0-RC1</version>
 </dependency>
 
 <!-- append play-json/json4s/joda-time/jts/threeten/spray-json dependencies if needed -->
@@ -128,17 +132,17 @@ class TestTable(tag: Tag) extends Table[Test](tag, Some("xxx"), "Test") {
 
 object tests extends TableQuery(new TestTable(_)) {
   ///
-  def byId(ids: Long*) = tests.where(_.id inSetBind ids).map(t => t)
+  def byId(ids: Long*) = tests.filter(_.id inSetBind ids).map(t => t)
   // will generate sql like: select * from test where tags && ?
-  def byTag(tags: String*) = tests.where(_.tags @& tags.toList.bind).map(t => t)
+  def byTag(tags: String*) = tests.filter(_.tags @& tags.toList.bind).map(t => t)
   // will generate sql like: select * from test where during && ?
-  def byTsRange(tsRange: Range[Timestamp]) = tests.where(_.during @& tsRange.bind).map(t => t)
+  def byTsRange(tsRange: Range[Timestamp]) = tests.filter(_.during @& tsRange.bind).map(t => t)
   // will generate sql like: select * from test where case(props -> ? as [T]) == ?
-  def byProperty[T](key: String, value: T) = tests.where(_.props.>>[T](key.bind) === value.bind).map(t => t)
+  def byProperty[T](key: String, value: T) = tests.filter(_.props.>>[T](key.bind) === value.bind).map(t => t)
   // will generate sql like: select * from test where ST_DWithin(location, ?, ?)
-  def byDistance(point: Point, distance: Int) = tests.where(r => r.location.dWithin(point.bind, distance.bind)).map(t => t)
+  def byDistance(point: Point, distance: Int) = tests.filter(r => r.location.dWithin(point.bind, distance.bind)).map(t => t)
   // will generate sql like: select id, text, ts_rank(to_tsvector(text), to_tsquery(?)) from test where to_tsvector(text) @@ to_tsquery(?) order by ts_rank(to_tsvector(text), to_tsquery(?))
-  def search(queryStr: String) = tests.where(tsVector(_.text) @@ tsQuery(queryStr.bind)).map(r => (r.id, r.text, tsRank(tsVector(r.text), tsQuery(queryStr.bind)))).sortBy(_._3)
+  def search(queryStr: String) = tests.filter(tsVector(_.text) @@ tsQuery(queryStr.bind)).map(r => (r.id, r.text, tsRank(tsVector(r.text), tsQuery(queryStr.bind)))).sortBy(_._3)
 }
 
 ...
@@ -210,6 +214,12 @@ Support details
 
 Version history
 ------------------------------
+v0.6.0 (14-July-2014):  
+1) upgrade to slick v2.1.0-RC1  
+2) added pg inherits support  
+3) add argonaut json support  
+4) re-implement composite support
+
 v0.5.3 (13-Apr-2014):  
 1) added jdk8 time support  
 2) added pg enum support
