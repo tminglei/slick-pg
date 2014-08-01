@@ -6,11 +6,19 @@
 /core/target
 /bin
 /addons/*/target
-/examples/play-slick-sample/.idea
-/examples/play-slick-sample/.idea_modules
-/examples/play-slick-sample/project/project
-/examples/play-slick-sample/project/target
-/examples/play-slick-sample/target
+/examples/play-slick-example/.idea
+/examples/play-slick-example/.idea_modules
+/examples/play-slick-example/project/project
+/examples/play-slick-example/project/target
+/examples/play-slick-example/target
+/examples/play-slick-example/conf
+/examples/play-slick-example/logs
+/examples/codegen-customization/.idea
+/examples/codegen-customization/.idea_modules
+/examples/codegen-customization/project/project
+/examples/codegen-customization/project/target
+/examples/codegen-customization/target
+/examples/codegen-customization/codegen/target
 
 *.sw[po]
 .cache

@@ -1,0 +1,18 @@
+<html>
+<head>
+    <title>Using a customized Slick code generator</title>
+</head>
+<body>
+
+<div>
+    <h2>Using a customized Slick code generator</h2>
+    <p>
+This code example shows how to setup sbt to use a customized Slick code-generator for working with an existing database schema. <code>project/Build.scala</code> enables automatically as well as manually triggered code-generation. <code>codegen/CustomizedCodeGenerator.scala</code> contains the code customizing Slick's code-generator. <code>codegen/Config.scala</code> contains some shared configuration code between the code-generator and the main project. <code>src/main/scala/Example.scala</code> uses the generated code. The code is generated into file <code>target/scala-2.10/src_managed/slick/demo/Tables.scala</code>. The location can be changed in the sbt script. It is usally wise to keep the generated Slick code under version control.
+</p>
+<p>
+More info about Slick on <a href="http://slick.typesafe.com/docs/">http://slick.typesafe.com/docs/</a>
+    </p>
+</div>
+
+</body>
+</html>
