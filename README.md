@@ -214,8 +214,8 @@ Support details
 
 Version history
 ------------------------------
-v0.6.0-RC1 (14-July-2014):  
-1) upgrade to slick v2.1.0-RC1  
+v0.6.0 (4-Aug-2014):  
+1) upgrade to slick v2.1.0  
 2) added pg inherits support  
 3) add argonaut json support  
 4) re-implement composite support
