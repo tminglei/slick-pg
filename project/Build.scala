@@ -8,8 +8,8 @@ object SlickPgBuild extends Build {
     organizationName := "slick-pg",
     organization := "com.github.tminglei",
 
-    scalaVersion := "2.11.1",
-    crossScalaVersions := Seq("2.11.1", "2.10.4"),
+    scalaVersion := "2.11.2",
+    crossScalaVersions := Seq("2.11.2", "2.10.4"),
     scalacOptions ++= Seq("-deprecation", "-feature",
       "-language:implicitConversions",
       "-language:reflectiveCalls",
@@ -65,22 +65,15 @@ object SlickPgBuild extends Build {
     }
     Seq (
       "org.scala-lang" % "scala-reflect" % scalaVersion,
-      "com.typesafe.slick" %% "slick" % "2.1.0-RC1",
+      "com.typesafe.slick" %% "slick" % "2.1.0",
       "org.postgresql" % "postgresql" % "9.3-1100-jdbc41",
       "junit" % "junit" % "4.11" % "test",
       "com.novocode" % "junit-interface" % "0.10" % "test"
     ) ++ extractedLibs
   }
 
-  lazy val coreSettings = Seq(
-    name := "slick-pg_core",
-    description := "Slick extensions for PostgreSQL - Core",
-    version := "0.6.0-R1",
-    libraryDependencies := mainDependencies(scalaVersion.value)
-  )
-
   lazy val slickPgSettings = Seq(
-    version := "0.6.0-R1",
+    version := "0.6.0",
     resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
   )
 
@@ -94,7 +87,13 @@ object SlickPgBuild extends Build {
    .aggregate (slickPgCore, slickPgJoda, slickPgJson4s, slickPgJts, slickPgPlayJson, slickPgSprayJson, slickPgArgonaut, slickPgThreeten, slickPgDate2)
 
   lazy val slickPgCore = Project(id = "slick-pg_core", base = file("./core"),
-    settings = Project.defaultSettings ++ commonSettings ++ coreSettings)
+    settings = Project.defaultSettings ++ commonSettings ++ Seq(
+      name := "slick-pg_core",
+      description := "Slick extensions for PostgreSQL - Core",
+      version := "0.6.0",
+      libraryDependencies := mainDependencies(scalaVersion.value)
+    )
+  )
 
   lazy val slickPgJoda = Project(id = "slick-pg_joda-time", base = file("./addons/joda-time"),
     settings = Project.defaultSettings ++ commonSettings ++ slickPgSettings ++ Seq(
