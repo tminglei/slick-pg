@@ -60,6 +60,6 @@ trait PgDateJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
     override def updateValue(v: TIMESTAMP, r: ResultSet, idx: Int): Unit = r.updateTimestamp(idx, fnToTimestamp(v))
 
-    override def valueToSQLLiteral(v: TIMESTAMP) = s"{d '${fnToTimestamp(v)}'}"
+    override def valueToSQLLiteral(v: TIMESTAMP) = s"{ts '${fnToTimestamp(v)}'}"
   }
 }
