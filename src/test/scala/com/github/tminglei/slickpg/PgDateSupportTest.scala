@@ -5,6 +5,7 @@ import org.junit.Assert._
 import java.sql.{Timestamp, Time, Date}
 import java.util.Calendar
 import java.text.SimpleDateFormat
+import scala.slick.jdbc.StaticQuery
 import scala.util.Try
 
 class PgDateSupportTest {
@@ -54,6 +55,7 @@ class PgDateSupportTest {
   @Test
   def testDatetimeFunctions(): Unit = {
     db withSession { implicit session: Session =>
+      (StaticQuery.u + "SET TIMEZONE TO '+8';").execute
       Datetimes forceInsertAll (testRec1, testRec2, testRec3)
 
       // basic test
