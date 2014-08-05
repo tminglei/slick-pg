@@ -5,7 +5,6 @@ import org.junit.Assert._
 import java.sql.{Timestamp, Time, Date}
 import java.util.Calendar
 import java.text.SimpleDateFormat
-import scala.slick.jdbc.StaticQuery
 import scala.util.Try
 
 class PgDateSupportTest {
@@ -55,8 +54,21 @@ class PgDateSupportTest {
   @Test
   def testDatetimeFunctions(): Unit = {
     db withSession { implicit session: Session =>
-      (StaticQuery.u + "SET TIMEZONE TO '+8';").execute
       Datetimes forceInsertAll (testRec1, testRec2, testRec3)
+
+      // basic test
+//      assertEquals(List(testRec1, testRec2, testRec3), Datetimes.list)
+
+      val q0 = Datetimes.filter(_.date === date("2010-11-3")).map(r => r)
+      assertEquals(testRec1, q0.first)
+      val q01 = Datetimes.filter(_.time === time("12:33:01")).map(r => r)
+      assertEquals(testRec1, q01.first)
+      val q02 = Datetimes.filter(_.timestamp === ts("2001-1-3 13:21:00")).map(r => r)
+      assertEquals(testRec1, q02.first)
+      val q03 = Datetimes.filter(_.timestamptz === tstz("2012-05-08 11:31:06-05:00")).map(_.timestamptz)
+      assertEquals(testRec2.timestamptz.getTimeInMillis, q03.first.getTimeInMillis)
+      val q04 = Datetimes.filter(_.interval === Interval("1 days 1 hours")).map(r => r)
+      assertEquals(testRec1, q04.first)
 
       // datetime - '+'/'-'
       val q1 = Datetimes.filter(_.id === 101L.bind).map(r => r.date + r.time)

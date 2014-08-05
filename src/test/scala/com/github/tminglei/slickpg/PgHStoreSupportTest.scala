@@ -31,6 +31,8 @@ class PgHStoreSupportTest {
     db withSession { implicit session: Session =>
       HStoreTests forceInsertAll (testRec1, testRec2, testRec3, testRec4)
 
+      assertEquals(List(testRec1, testRec2, testRec3, testRec4), HStoreTests.list)
+
       val q1 = HStoreTests.filter(_.id === testRec1.id.bind).map(_.hstore.+>("a"))
       println(s"[hstore] '+>' sql = ${q1.selectStatement}")
       assertEquals("val1", q1.first)
