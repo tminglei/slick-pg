@@ -9,8 +9,6 @@ import scala.slick.jdbc.JdbcType
 trait PgJsonExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   import driver.Implicit._
 
-  type JSONType
-
   object JsonLibrary {
     val Arrow  = new SqlOperator("->")
     val BiArrow = new SqlOperator("->>")
@@ -27,7 +25,7 @@ trait PgJsonExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
 //    val jsonPopulateRecordset = new SqlFunction("json_populate_recordset")  //not support, since "row" type not supported by slick/slick-pg yet
   }
 
-  class JsonColumnExtensionMethods[P1](val c: Column[P1])(
+  class JsonColumnExtensionMethods[JSONType, P1](val c: Column[P1])(
                 implicit tm: JdbcType[JSONType], tm1: JdbcType[List[String]]) extends ExtensionMethods[JSONType, P1] {
 
     /** Note: json array's index starts with 0   */

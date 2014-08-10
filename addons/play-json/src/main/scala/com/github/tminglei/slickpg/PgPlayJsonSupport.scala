@@ -7,8 +7,6 @@ import scala.slick.jdbc.JdbcType
 trait PgPlayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import play.api.libs.json._
 
-  type JSONType = JsValue
-
   trait JsonImplicits {
     implicit val jsonTypeMapper =
       new GenericJdbcType[JsValue]("json",
@@ -19,11 +17,11 @@ trait PgPlayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
 
     implicit def jsonColumnExtensionMethods(c: Column[JsValue])(
       implicit tm: JdbcType[JsValue], tm1: JdbcType[List[String]]) = {
-        new JsonColumnExtensionMethods[JsValue](c)
+        new JsonColumnExtensionMethods[JsValue, JsValue](c)
       }
     implicit def jsonOptionColumnExtensionMethods(c: Column[Option[JsValue]])(
       implicit tm: JdbcType[JsValue], tm1: JdbcType[List[String]]) = {
-        new JsonColumnExtensionMethods[Option[JsValue]](c)
+        new JsonColumnExtensionMethods[JsValue, Option[JsValue]](c)
       }
   }
 }

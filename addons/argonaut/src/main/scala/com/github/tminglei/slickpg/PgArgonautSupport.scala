@@ -7,8 +7,6 @@ import scala.slick.jdbc.JdbcType
 trait PgArgonautSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import argonaut._, Argonaut._
 
-  type JSONType = argonaut.Json
-
   trait JsonImplicits {
     implicit val jsonTypeMapper =
       new GenericJdbcType[Json](
@@ -20,11 +18,11 @@ trait PgArgonautSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
 
     implicit def jsonColumnExtensionMethods(c: Column[Json])(
       implicit tm: JdbcType[Json], tm1: JdbcType[List[String]]) = {
-        new JsonColumnExtensionMethods[Json](c)
+        new JsonColumnExtensionMethods[Json, Json](c)
       }
     implicit def jsonOptionColumnExtensionMethods(c: Column[Option[Json]])(
       implicit tm: JdbcType[Json], tm1: JdbcType[List[String]]) = {
-        new JsonColumnExtensionMethods[Option[Json]](c)
+        new JsonColumnExtensionMethods[Json, Option[Json]](c)
       }
   }
 }

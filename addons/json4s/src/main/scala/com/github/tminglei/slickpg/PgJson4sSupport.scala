@@ -8,7 +8,6 @@ trait PgJson4sSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes
   import org.json4s._
 
   type DOCType
-  type JSONType = JValue
 
   val jsonMethods: JsonMethods[DOCType]
 
@@ -23,11 +22,11 @@ trait PgJson4sSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes
 
     implicit def jsonColumnExtensionMethods(c: Column[JValue])(
       implicit tm: JdbcType[JValue], tm1: JdbcType[List[String]]) = {
-        new JsonColumnExtensionMethods[JValue](c)
+        new JsonColumnExtensionMethods[JValue, JValue](c)
       }
     implicit def jsonOptionColumnExtensionMethods(c: Column[Option[JValue]])(
       implicit tm: JdbcType[JValue], tm1: JdbcType[List[String]]) = {
-        new JsonColumnExtensionMethods[Option[JValue]](c)
+        new JsonColumnExtensionMethods[JValue, Option[JValue]](c)
       }
   }
 }
