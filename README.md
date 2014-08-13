@@ -21,6 +21,100 @@ Slick-pg
 
 ** _tested on `PostgreSQL` `v9.3` with `Slick` `v2.1.0`._
 
+
+Usage
+------
+Before using it, you need integrate it with PostgresDriver maybe like this:
+```scala
+import slick.driver.PostgresDriver
+import com.github.tminglei.slickpg._
+
+trait MyPostgresDriver extends PostgresDriver
+                          with PgArraySupport
+                          with PgDateSupport
+                          with PgRangeSupport
+                          with PgHStoreSupport
+                          with PgPlayJsonSupport
+                          with PgSearchSupport
+                          with PgPostGISSupport {
+
+  override val Implicit = new ImplicitsPlus {}
+  override val simple = new SimpleQLPlus {}
+
+  //////
+  trait ImplicitsPlus extends Implicits
+                        with ArrayImplicits
+                        with DateTimeImplicits
+                        with RangeImplicits
+                        with HStoreImplicits
+                        with JsonImplicits
+                        with SearchImplicits
+                        with PostGISImplicits
+
+  trait SimpleQLPlus extends SimpleQL
+                        with ImplicitsPlus
+                        with SearchAssistants
+                        with PostGISAssistants
+}
+
+object MyPostgresDriver extends MyPostgresDriver
+
+```
+
+then in your codes you can use it like this:
+```scala
+import MyPostgresDriver.simple._
+
+class TestTable(tag: Tag) extends Table[Test](tag, Some("xxx"), "Test") {
+  def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
+  def during = column[Range[Timestamp]]("during")
+  def location = column[Point]("location")
+  def text = column[String]("text", O.DBType("varchar(4000)"))
+  def props = column[Map[String,String]]("props_hstore")
+  def tags = column[List[String]]("tags_arr")
+
+  def * = (id, during, location, text, props, tags) <> (Test.tupled, Test.unapply)
+}
+
+object tests extends TableQuery(new TestTable(_)) {
+  // will generate sql like: 
+  //   select * from test where id = ?
+  def byId(ids: Long*) = tests
+        .filter(_.id inSetBind ids)
+        .map(t => t)
+  // will generate sql like: 
+  //   select * from test where tags && ?
+  def byTag(tags: String*) = tests
+        .filter(_.tags @& tags.toList.bind)
+        .map(t => t)
+  // will generate sql like: 
+  //   select * from test where during && ?
+  def byTsRange(tsRange: Range[Timestamp]) = tests
+        .filter(_.during @& tsRange.bind)
+        .map(t => t)
+  // will generate sql like: 
+  //   select * from test where case(props -> ? as [T]) == ?
+  def byProperty[T](key: String, value: T) = tests
+        .filter(_.props.>>[T](key.bind) === value.bind)
+        .map(t => t)
+  // will generate sql like: 
+  //   select * from test where ST_DWithin(location, ?, ?)
+  def byDistance(point: Point, distance: Int) = tests
+        .filter(r => r.location.dWithin(point.bind, distance.bind))
+        .map(t => t)
+  // will generate sql like: 
+  //   select id, text, ts_rank(to_tsvector(text), to_tsquery(?)) 
+  //   from test where to_tsvector(text) @@ to_tsquery(?) 
+  //   order by ts_rank(to_tsvector(text), to_tsquery(?))
+  def search(queryStr: String) = tests
+        .filter(tsVector(_.text) @@ tsQuery(queryStr.bind))
+        .map(r => (r.id, r.text, tsRank(tsVector(r.text), tsQuery(queryStr.bind))))
+        .sortBy(_._3)
+}
+
+...
+```
+
 Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
@@ -80,80 +174,6 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <!-- append play-json/json4s/joda-time/jts/threeten/spray-json dependencies if needed -->
 ```
 
-
-Usage
-------
-Before using it, you need integrate it with PostgresDriver maybe like this:
-```scala
-import slick.driver.PostgresDriver
-import com.github.tminglei.slickpg._
-
-trait MyPostgresDriver extends PostgresDriver
-                          with PgArraySupport
-                          with PgDateSupport
-                          with PgRangeSupport
-                          with PgHStoreSupport
-                          with PgPlayJsonSupport
-                          with PgSearchSupport
-                          with PgPostGISSupport {
-
-  override val Implicit = new ImplicitsPlus {}
-  override val simple = new SimpleQLPlus {}
-
-  //////
-  trait ImplicitsPlus extends Implicits
-                        with ArrayImplicits
-                        with DateTimeImplicits
-                        with RangeImplicits
-                        with HStoreImplicits
-                        with JsonImplicits
-                        with SearchImplicits
-                        with PostGISImplicits
-
-  trait SimpleQLPlus extends SimpleQL
-                        with ImplicitsPlus
-                        with SearchAssistants
-                        with PostGISAssistants
-}
-
-object MyPostgresDriver extends MyPostgresDriver
-
-```
-
-then in your codes you can use it like this:
-```scala
-import MyPostgresDriver.simple._
-
-class TestTable(tag: Tag) extends Table[Test](tag, Some("xxx"), "Test") {
-  def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
-  def during = column[Range[Timestamp]]("during")
-  def location = column[Point]("location")
-  def text = column[String]("text", O.DBType("varchar(4000)"))
-  def props = column[Map[String,String]]("props_hstore")
-  def tags = column[List[String]]("tags_arr")
-
-  def * = (id, during, location, text, props, tags) <> (Test.tupled, Test.unapply)
-}
-
-object tests extends TableQuery(new TestTable(_)) {
-  ///
-  def byId(ids: Long*) = tests.filter(_.id inSetBind ids).map(t => t)
-  // will generate sql like: select * from test where tags && ?
-  def byTag(tags: String*) = tests.filter(_.tags @& tags.toList.bind).map(t => t)
-  // will generate sql like: select * from test where during && ?
-  def byTsRange(tsRange: Range[Timestamp]) = tests.filter(_.during @& tsRange.bind).map(t => t)
-  // will generate sql like: select * from test where case(props -> ? as [T]) == ?
-  def byProperty[T](key: String, value: T) = tests.filter(_.props.>>[T](key.bind) === value.bind).map(t => t)
-  // will generate sql like: select * from test where ST_DWithin(location, ?, ?)
-  def byDistance(point: Point, distance: Int) = tests.filter(r => r.location.dWithin(point.bind, distance.bind)).map(t => t)
-  // will generate sql like: select id, text, ts_rank(to_tsvector(text), to_tsquery(?)) from test where to_tsvector(text) @@ to_tsquery(?) order by ts_rank(to_tsvector(text), to_tsquery(?))
-  def search(queryStr: String) = tests.filter(tsVector(_.text) @@ tsQuery(queryStr.bind)).map(r => (r.id, r.text, tsRank(tsVector(r.text), tsQuery(queryStr.bind)))).sortBy(_._3)
-}
-
-...
- 
-```
-
 Configurable type/mappers
 -------------------------
 Since v0.2.0, `slick-pg` started to support configurable type/mappers.
@@ -205,7 +225,7 @@ val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=postgres",
 ```
 
 
-Support details
+Details
 ------------------------------
 - Array's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/array "Array's oper/functions"), usage  [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgArraySupportTest.scala "test cases")
 - JSON's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/json "JSON's oper/functions"), usage cases for [json4s](https://github.com/tminglei/slick-pg/blob/master/addons/json4s/src/test/scala/com/github/tminglei/slickpg/PgJson4sSupportTest.scala "test cases"), [play-json](https://github.com/tminglei/slick-pg/blob/master/addons/play-json/src/test/scala/com/github/tminglei/slickpg/PgPlayJsonSupportTest.scala "test cases"), [spray-json](https://github.com/tminglei/slick-pg/blob/master/addons/spray-json/src/test/scala/com/github/tminglei/slickpg/PgSprayJsonSupportTest.scala "test cases") and [argonaut json](https://github.com/tminglei/slick-pg/blob/master/addons/argonaut/src/test/scala/com/github/tminglei/slickpg/PgArgonautSupportTest.scala)
@@ -218,7 +238,7 @@ Support details
 - `basic` Composite type [support](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/composite "Composite type Support"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgCompositeSupportTest.scala "test cases")
 
 
-Version history
+History
 ------------------------------
 v0.6.0 (4-Aug-2014):  
 1) upgrade to slick v2.1.0  
