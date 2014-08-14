@@ -26,6 +26,9 @@ case class Range[T](start: T, end: T, edge: EdgeType = `[_,_)`) {
   }
 }
 
+/**
+ * simple range support; if all you want is just getting from / saving to db, and using pg range operations/methods, it should be enough
+ */
 trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import PgRangeSupportUtils._
 

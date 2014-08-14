@@ -3,6 +3,7 @@ package com.github.tminglei.slickpg
 trait MyPostgresDriver extends ExPostgresDriver
                           with PgArraySupport
                           with PgDateSupport
+                          with PgJsonSupport
                           with PgRangeSupport
                           with PgHStoreSupport
                           with PgSearchSupport {
@@ -14,6 +15,7 @@ trait MyPostgresDriver extends ExPostgresDriver
   trait ImplicitsPlus extends Implicits
                         with ArrayImplicits
                         with DateTimeImplicits
+                        with JsonImplicits
                         with RangeImplicits
                         with HStoreImplicits
                         with SearchImplicits
