@@ -74,6 +74,67 @@ class PgTokenHelperTest {
       ))
 
     assertEquals(expected, root)
+
+    val root1 = grouping(Tokenizer.tokenize("""{"(\"(test1'\",,,)"}"""))
+    val expected1 =
+      GroupToken(List(
+        Open("{"),
+        GroupToken(List(
+          Open("(", marker = "\""),
+          GroupToken(List(
+            Open("(", marker = "\\\""),
+            Chunk("test1'"),
+            Marker("\\\"")
+          )),
+          Comma,
+          Null,
+          Comma,
+          Null,
+          Comma,
+          Null,
+          Close(")", marker = "\"")
+        )),
+        Close("}")
+      ))
+    assertEquals(expected1, root1)
+
+    val root2 = grouping(Tokenizer.tokenize(("""{"(,102,,)"}""")))
+    val expected2 =
+      GroupToken(List(
+        Open("{"),
+        GroupToken(List(
+          Open("(", marker = "\""),
+          Null,
+          Comma,
+          Chunk("102"),
+          Comma,
+          Null,
+          Comma,
+          Null,
+          Close(")", marker = "\"")
+        )),
+        Close("}")
+      ))
+    assertEquals(expected2, root2)
+
+    val root3 = grouping(Tokenizer.tokenize("""{"(,,,)"}"""))
+    val expected3 =
+      GroupToken(List(
+        Open("{"),
+        GroupToken(List(
+          Open("(", marker = "\""),
+          Null,
+          Comma,
+          Null,
+          Comma,
+          Null,
+          Comma,
+          Null,
+          Close(")", marker = "\"")
+        )),
+        Close("}")
+      ))
+    assertEquals(expected3, root3)
   }
 
   @Test

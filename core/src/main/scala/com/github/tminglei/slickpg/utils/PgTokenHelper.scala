@@ -11,19 +11,43 @@ object PgTokenHelper {
   sealed trait Token {
     def value: String
   }
-  case class GroupToken(members: List[Token]) extends Token { val value = "" }
+  case class GroupToken(members: List[Token]) extends Token {
+    val value = ""
+    override def toString = {
+      StringBuilder.newBuilder append "GroupToken(" append {
+        members map { m => m.toString } mkString (",")
+      } append ")" toString
+    }
+  }
 
-  case object Comma                           extends Token { val value = "," }
-  case object Null                            extends Token { val value = "" }
-  case class  Chunk (value: String)           extends Token
-  case class  Escape(value: String)           extends Token
+  case object Comma extends Token {
+    val value = ","
+    override def toString = "Comma"
+  }
+  case object Null extends Token {
+    val value = ""
+    override def toString = "Null"
+  }
+  case class  Chunk (value: String) extends Token {
+    override def toString = s"Chunk($value)"
+  }
+  case class  Escape(value: String) extends Token {
+    override def toString = s"Escape($value)"
+  }
 
   trait Border extends Token {
     def marker: String
   }
-  case class Open (value: String, marker: String = "") extends Border
-  case class Close(value: String, marker: String = "") extends Border
-  case class Marker(marker: String)           extends Border { val value = "" }
+  case class Open (value: String, marker: String = "") extends Border {
+    override def toString = s"Open($marker$value)"
+  }
+  case class Close(value: String, marker: String = "") extends Border {
+    override def toString = s"Close($value$marker)"
+  }
+  case class Marker(marker: String) extends Border {
+    val value = ""
+    override def toString = s"Marker($marker)"
+  }
 
   ///////////////////////////////////////////////////////////////////
   private case class WorkingGroup(border: Border, level: Int) {
@@ -143,8 +167,15 @@ object PgTokenHelper {
         //-- process head and last tokens
         case t if (i == 0 || i == tokens.length -1) => stack.top.tokens += t
         //-- insert Null token if necessary
-        case Comma if (tokens(i-1) == Comma) => stack.top.tokens += Null += Comma
-        case Comma if (tokens(i+1).isInstanceOf[Close]) => stack.top.tokens += Comma += Null
+        case Comma => {
+          if (tokens(i-1) == Comma || tokens(i-1).isInstanceOf[Open]) {
+            stack.top.tokens += Null
+          }
+          stack.top.tokens += Comma
+          if (tokens(i+1).isInstanceOf[Close]) {
+            stack.top.tokens += Null
+          }
+        }
         //-- process open tokens
         // '{' + '{' -> multi-dimension array, 'ttt{' -> normal string
         case t @ Open("{", "") => {

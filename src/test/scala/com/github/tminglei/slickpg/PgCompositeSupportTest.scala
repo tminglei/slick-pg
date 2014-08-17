@@ -27,9 +27,10 @@ object PgCompositeSupportTest {
     ) extends Struct
 
   case class Composite3(
-    name: String,
-    code: Int,
-    num: Int
+    name: Option[String] = None,
+    code: Option[Int] = None,
+    num: Option[Int] = None,
+    bool: Option[Boolean] = None
     ) extends Struct
 
   //-------------------------------------------------------------
@@ -111,9 +112,9 @@ class PgCompositeSupportTest {
   }
   
   ///
-  val rec11 = TestBean1(111, List(Composite3("(test1'", 101, 110)))
-  val rec12 = TestBean1(112, List(Composite3("test2\\", 102, 111)))
-  val rec13 = TestBean1(113, List(Composite3("ABC ABC", 103, 112)))
+  val rec11 = TestBean1(111, List(Composite3(Some("(test1'"))))
+  val rec12 = TestBean1(112, List(Composite3(code = Some(102))))
+  val rec13 = TestBean1(113, List(Composite3()))
   
   @Test
   def testCompositeTypes1(): Unit = {
@@ -146,7 +147,7 @@ class PgCompositeSupportTest {
       // then create
       Try { (Q[Int] + "create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)").execute }
       Try { (Q[Int] + "create type composite2 as (id int8, comp1 composite1, confirm boolean)").execute }
-      Try { (Q[Int] + "create type composite3 as (txt text, id int4, code int4)").execute }
+      Try { (Q[Int] + "create type composite3 as (txt text, id int4, code int4, bool boolean)").execute }
       Try { (CompositeTests.ddl ++ CompositeTests1.ddl).createStatements.foreach(s => println(s"[composite] $s")) }
       Try { (CompositeTests.ddl ++ CompositeTests1.ddl) create }
     }
