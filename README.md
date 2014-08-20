@@ -11,6 +11,7 @@ Slick-pg
 - Range
 - Hstore
 - JSON
+- Inet/MacAddr
 - `text` Search
 - `postgis` Geometry
 
@@ -119,47 +120,47 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.6.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.6.3"
 ```
 
 > If you need `joda-time` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.6.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.6.3"
 ```
 
 > If you need `jts` geom support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.6.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.6.3"
 ```
 
 > If you need `jdk8 date` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_date2" % "0.6.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_date2" % "0.6.3"
 ```
 
 > If you need `threeten-bp` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_threeten" % "0.6.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_threeten" % "0.6.3"
 ```
 
 > If you need `json4s` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.6.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.6.3"
 ```
 
 > If you need `play-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.6.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.6.3"
 ```
 
 > If you need `spray-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.6.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.6.3"
 ```
 
 > If you need `argonaut json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.6.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.6.3"
 ```
 
 
@@ -168,7 +169,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.10</artifactId>
-    <version>0.6.2</version>
+    <version>0.6.3</version>
 </dependency>
 
 <!-- append play-json/json4s/joda-time/jts/threeten/spray-json dependencies if needed -->
@@ -195,6 +196,9 @@ Here's the related technical details:
 | `scala` Enumeration                 | enum                  |
 | `slickpg` Range[T]                  | range                 |
 | Map[String,String]                  | hstore                |
+| `slickpg` InetString                | inet                  |
+| `slickpg` MacAddrString             | macaddr               |
+| `slickpg` JsonString                | json                  |
 | `json4s` JValue                     | json                  |
 | `play-json` JsValue                 | json                  |
 | `spray-json` JsValue                | json                  |
@@ -233,6 +237,7 @@ Details
 - Enum's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/enums "Enum's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgEnumSupportTest.scala "test cases")
 - Range's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/range "Range's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgRangeSupportTest.scala "test cases")
 - HStore's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/hstore "HStore's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgHStoreSupportTest.scala "test cases")
+- Inet/MacAddr's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/net "net's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgNetSupportTest.scala "test cases")
 - Search's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/search "Search's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgSearchSupportTest.scala "test cases")
 - Geometry's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/geom "Geometry's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/addons/jts/src/test/scala/com/github/tminglei/slickpg/PgPostGISSupportTest.scala "test cases")
 - `basic` Composite type [support](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/composite "Composite type Support"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgCompositeSupportTest.scala "test cases")
@@ -240,6 +245,9 @@ Details
 
 History
 ------------------------------
+v0.6.3 (20-Aug-2014):  
+1) add pg inet/macaddr support
+
 v0.6.2 (14-Aug-2014):  
 1) add default json support
 
