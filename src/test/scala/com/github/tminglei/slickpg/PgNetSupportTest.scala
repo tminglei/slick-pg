@@ -28,6 +28,19 @@ class PgNetSupportTest {
   val testRec3 = NetBean(37L, InetString("2001:4f8:3:ba:2e0:81ff:fe22:d1f1/127"))
 
   @Test
+  def testInetStringMethods(): Unit = {
+    val ipv4net = InetString("192.168.1.5/24")
+    assertEquals(false, ipv4net.IPv6)
+    assertEquals("192.168.1.5", ipv4net.address)
+    assertEquals(24, ipv4net.masklen)
+
+    val ipv6net = InetString("2001:4f8:3:ba:2e0:81ff:fe22:d1f1")
+    assertEquals(true, ipv6net.IPv6)
+    assertEquals("2001:4f8:3:ba:2e0:81ff:fe22:d1f1", ipv6net.address)
+    assertEquals(128, ipv6net.masklen)
+  }
+
+  @Test
   def testNetFunctions(): Unit = {
     db withSession { implicit session: Session =>
       NetTests forceInsertAll (testRec1, testRec2, testRec3)
