@@ -16,10 +16,11 @@ class PgDateSupportTest {
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
   val timeFormat = new SimpleDateFormat("HH:mm:ss")
   val tsFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+  val tsFormat1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
 
   def date(str: String) = new Date(dateFormat.parse(str).getTime)
   def time(str: String) = new Time(timeFormat.parse(str).getTime)
-  def ts(str: String) = new Timestamp(tsFormat.parse(str).getTime)
+  def ts(str: String) = new Timestamp( (if (str.contains(".")) tsFormat1 else tsFormat) .parse(str).getTime )
   def tstz(str: String) = PgDateSupportUtils.parseCalendar(str)
 
   case class DatetimeBean(
@@ -46,7 +47,7 @@ class PgDateSupportTest {
   //------------------------------------------------------------------------------
 
   val testRec1 = new DatetimeBean(101L, date("2010-11-3"), time("12:33:01"),
-    ts("2001-1-3 13:21:00"), tstz("2001-01-03 13:21:00+08:00"), Interval("1 days 1 hours"))
+    ts("2001-1-3 13:21:00.103"), tstz("2001-01-03 13:21:00+08:00"), Interval("1 days 1 hours"))
   val testRec2 = new DatetimeBean(102L, date("2011-3-2"), time("3:14:7"),
     ts("2012-5-8 11:31:06"), tstz("2012-05-08 11:31:06-05:00"), Interval("1 years 36 mons 127 days"))
   val testRec3 = new DatetimeBean(103L, date("2000-5-19"), time("11:13:34"),
@@ -65,7 +66,7 @@ class PgDateSupportTest {
       assertEquals(testRec1.date, q0.first)
       val q01 = Datetimes.filter(_.time === time("12:33:01")).map(_.time)
       assertEquals(testRec1.time, q01.first)
-      val q02 = Datetimes.filter(_.timestamp === ts("2001-1-3 13:21:00")).map(_.timestamp)
+      val q02 = Datetimes.filter(_.timestamp === ts("2001-1-3 13:21:00.103")).map(_.timestamp)
       assertEquals(testRec1.timestamp, q02.first)
       val q03 = Datetimes.filter(_.timestamptz === tstz("2012-05-08 11:31:06-05:00")).map(_.timestamptz)
       assertEquals(testRec2.timestamptz.getTimeInMillis, q03.first.getTimeInMillis)
@@ -75,15 +76,15 @@ class PgDateSupportTest {
       // datetime - '+'/'-'
       val q1 = Datetimes.filter(_.id === 101L.bind).map(r => r.date + r.time)
       println(s"[date] '+' sql = ${q1.selectStatement}")
-      assertEquals(ts("2010-11-3 12:33:01"), q1.first)
+      assertEquals(ts("2010-11-3 12:33:01.000"), q1.first)
 
       val q101 = Datetimes.filter(_.id === 101L.bind).map(r => r.time + r.date)
       println(s"[date] '+' sql = ${q101.selectStatement}")
-      assertEquals(ts("2010-11-3 12:33:01"), q101.first)
+      assertEquals(ts("2010-11-3 12:33:01.000"), q101.first)
 
       val q2 = Datetimes.filter(_.id === 101L.bind).map(r => r.date +++ r.interval)
       println(s"[date] '+++' sql = ${q2.selectStatement}")
-      assertEquals(ts("2010-11-4 01:00:00"), q2.first)
+      assertEquals(ts("2010-11-4 01:00:00.000"), q2.first)
 
       val q3 = Datetimes.filter(_.id === 101L.bind).map(r => r.time +++ r.interval)
       println(s"[date] '+++' sql = ${q3.selectStatement}")
@@ -91,7 +92,7 @@ class PgDateSupportTest {
 
       val q4 = Datetimes.filter(_.id === 101L.bind).map(r => r.timestamp +++ r.interval)
       println(s"[date] '+++' sql = ${q4.selectStatement}")
-      assertEquals(ts("2001-1-4 14:21:00"), q4.first)
+      assertEquals(ts("2001-1-4 14:21:00.103"), q4.first)
 
       val q5 = Datetimes.filter(_.id === 101L.bind).map(r => r.date ++ 7.bind)
       println(s"[date] '++' sql = ${q5.selectStatement}")
@@ -103,15 +104,15 @@ class PgDateSupportTest {
 
       val q7 = Datetimes.filter(_.id === 101L.bind).map(r => r.timestamp -- r.time)
       println(s"[date] '--' sql = ${q7.selectStatement}")
-      assertEquals(ts("2001-1-3 00:47:59"), q7.first)
+      assertEquals(ts("2001-1-3 00:47:59.103"), q7.first)
 
       val q8 = Datetimes.filter(_.id === 101L.bind).map(r => r.timestamp - r.date)
       println(s"[date] '-' sql = ${q8.selectStatement}")
-      assertEquals(Interval("-3590 days -10 hours -39 mins"), q8.first)
+      assertEquals(Interval("-3590 days -10 hours -38 mins -59.897 secs"), q8.first)
 
       val q801 = Datetimes.filter(_.id === 101L.bind).map(r => r.date.asColumnOf[Timestamp] - r.timestamp)
       println(s"[date] '-' sql = ${q801.selectStatement}")
-      assertEquals(Interval("3590 days 10 hours 39 mins"), q801.first)
+      assertEquals(Interval("3590 days 10 hours 38 mins 59.897 secs"), q801.first)
 
       val q9 = Datetimes.filter(_.id === 101L.bind).map(r => r.date - date("2009-7-5"))
       println(s"[date] '-' sql = ${q9.selectStatement}")
@@ -123,7 +124,7 @@ class PgDateSupportTest {
 
       val q11 = Datetimes.filter(_.id === 101L.bind).map(r => r.timestamp --- r.interval)
       println(s"[date] '---' sql = ${q11.selectStatement}")
-      assertEquals(ts("2001-1-2 12:21:00"), q11.first)
+      assertEquals(ts("2001-1-2 12:21:00.103"), q11.first)
 
       val q12 = Datetimes.filter(_.id === 101L.bind).map(r => r.time --- r.interval)
       println(s"[date] '---' sql = ${q12.selectStatement}")
@@ -131,7 +132,7 @@ class PgDateSupportTest {
 
       val q13 = Datetimes.filter(_.id === 101L.bind).map(r => r.date --- r.interval)
       println(s"[date] '---' sql = ${q13.selectStatement}")
-      assertEquals(ts("2010-11-1 23:00:00"), q13.first)
+      assertEquals(ts("2010-11-1 23:00:00.0"), q13.first)
 
       // datetime - age/part/trunc
       val q14 = Datetimes.filter(_.id === 101L.bind).map(r => r.timestamp.age)
@@ -150,7 +151,7 @@ class PgDateSupportTest {
 
       val q16 = Datetimes.filter(_.id === 101L.bind).map(r => r.timestamp.trunc("day"))
       println(s"[date] 'trunc' sql = ${q16.selectStatement}")
-      assertEquals(ts("2001-1-3 00:00:00"), q16.first)
+      assertEquals(ts("2001-1-3 00:00:00.0"), q16.first)
 
       // interval test cases
       val q21 = Datetimes.filter(_.id === 101L.bind).map(r => r.interval + Interval("3 hours").bind)
