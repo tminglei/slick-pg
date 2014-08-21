@@ -1,8 +1,10 @@
 package com.github.tminglei.slickpg
 
+import java.time.temporal.ChronoField
+
 import scala.slick.driver.PostgresDriver
 import java.time.{Duration, LocalDateTime, LocalTime, LocalDate, ZonedDateTime}
-import java.time.format.DateTimeFormatter
+import java.time.format.{DateTimeFormatterBuilder, DateTimeFormatter}
 import java.sql.{Timestamp, Time, Date}
 import java.util.Calendar
 import org.postgresql.util.PGInterval
@@ -19,7 +21,14 @@ trait PgDate2Support extends date.PgDateExtensions with date.PgDateJdbcTypes wit
   type TIMESTAMP_TZ = ZonedDateTime
 
   trait DateTimeImplicits {
-    val tzDateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.SSS]X")
+    val tzDateTimeFormatter =
+      new DateTimeFormatterBuilder()
+        .append(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        .optionalStart()
+          .appendFraction(ChronoField.NANO_OF_SECOND,0,6,true)
+        .optionalEnd()
+        .appendOffset("+HH:mm","+00")
+        .toFormatter()
 
     implicit val bpDateTypeMapper = new DateJdbcType(sqlDate2LocalDate, localDate2sqlDate)
     implicit val bpTimeTypeMapper = new TimeJdbcType(sqlTime2LocalTime, localTime2sqlTime)

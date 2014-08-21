@@ -20,7 +20,7 @@ class PgDate2SupportTest {
     duration: Duration
     )
 
-  class DatetimeTable(tag: Tag) extends Table[DatetimeBean](tag,"Datetime2_Test") {
+  class DatetimeTable(tag: Tag) extends Table[DatetimeBean](tag,"Datetime2Test") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def date = column[LocalDate]("date")
     def time = column[LocalTime]("time")
@@ -35,9 +35,9 @@ class PgDate2SupportTest {
   //------------------------------------------------------------------------------
 
   val testRec1 = new DatetimeBean(101L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01"),
-    LocalDateTime.parse("2001-01-03T13:21:00.103"), ZonedDateTime.parse("2001-01-03 13:21:00+08", tzDateTimeFormatter), Duration.parse("P1DT1H"))
+    LocalDateTime.parse("2001-01-03T13:21:00.103"), ZonedDateTime.parse("2001-01-03 13:21:00.102203+08", tzDateTimeFormatter), Duration.parse("P1DT1H"))
   val testRec2 = new DatetimeBean(102L, LocalDate.parse("2011-03-02"), LocalTime.parse("03:14:07"),
-    LocalDateTime.parse("2012-05-08T11:31:06"), ZonedDateTime.parse("2012-05-08 11:31:06-05", tzDateTimeFormatter), Duration.parse("P1587D"))
+    LocalDateTime.parse("2012-05-08T11:31:06"), ZonedDateTime.parse("2012-05-08 11:31:06.003-05", tzDateTimeFormatter), Duration.parse("P1587D"))
   val testRec3 = new DatetimeBean(103L, LocalDate.parse("2000-05-19"), LocalTime.parse("11:13:34"),
     LocalDateTime.parse("2019-11-03T13:19:03"), ZonedDateTime.parse("2019-11-03 13:19:03+03", tzDateTimeFormatter), Duration.parse("PT63H16M2S"))
 
@@ -46,6 +46,10 @@ class PgDate2SupportTest {
     db withSession { implicit session: Session =>
       (StaticQuery.u + "SET TIMEZONE TO '+8';").execute
       Datetimes forceInsertAll (testRec1, testRec2, testRec3)
+
+      val q0 = Datetimes.map(r => r)
+      // testRec2 and testRec3 will fail to equal test, because of different time zone
+      assertEquals(testRec1/*List(testRec1, testRec2, testRec3)*/, q0.first)
 
       // datetime - '+'/'-'
       val q1 = Datetimes.filter(_.id === 101L.bind).map(r => r.date + r.time)
