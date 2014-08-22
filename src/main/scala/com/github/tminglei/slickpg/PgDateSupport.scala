@@ -171,7 +171,7 @@ case class Interval(
 
   override def toString = {
     val secs = Interval.secondsFormat.format(seconds)
-    s"$years years $months mons $days days $hours hours $minutes mins $secs secs"
+    ""+years+" years "+months+" mons "+days+" days "+hours+" hours "+minutes+" mins "+secs+" secs"
   }
 }
 
