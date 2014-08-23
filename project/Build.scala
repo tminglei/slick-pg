@@ -159,7 +159,7 @@ object SlickPgBuild extends Build {
       name := "slick-pg_threeten",
       description := "Slick extensions for PostgreSQL - threeten module",
       libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-        "org.threeten" % "threetenbp" % "0.8.1"
+        "org.threeten" % "threetenbp" % "1.0"
       )
     )
   ) dependsOn (slickPgCore)

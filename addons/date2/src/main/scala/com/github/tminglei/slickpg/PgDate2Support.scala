@@ -5,8 +5,6 @@ import java.time.temporal.ChronoField
 import scala.slick.driver.PostgresDriver
 import java.time.{Duration, LocalDateTime, LocalTime, LocalDate, ZonedDateTime}
 import java.time.format.{DateTimeFormatterBuilder, DateTimeFormatter}
-import java.sql.{Timestamp, Time, Date}
-import java.util.Calendar
 import org.postgresql.util.PGInterval
 import scala.slick.lifted.Column
 
