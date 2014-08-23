@@ -6,7 +6,7 @@ import javax.xml.bind.DatatypeConverter
 import scala.slick.lifted.Column
 import java.util.Calendar
 
-trait PgDateSupport extends date.PgDateExtensions with date.PgDateJdbcTypes with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+trait PgDateSupport extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import driver.Implicit._
 
   type DATE   = Date

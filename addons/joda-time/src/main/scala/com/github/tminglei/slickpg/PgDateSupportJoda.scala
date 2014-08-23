@@ -2,12 +2,11 @@ package com.github.tminglei.slickpg
 
 import scala.slick.driver.PostgresDriver
 import org.joda.time._
-import org.joda.time.format.DateTimeFormat
-import java.sql.{Timestamp, Time, Date}
+import org.joda.time.format.{ISODateTimeFormat, DateTimeFormat}
 import scala.slick.lifted.Column
 import org.postgresql.util.PGInterval
 
-trait PgDateSupportJoda extends date.PgDateExtensions with date.PgDateJdbcTypes with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import PgJodaSupportUtils._
 
   type DATE   = LocalDate
@@ -18,13 +17,26 @@ trait PgDateSupportJoda extends date.PgDateExtensions with date.PgDateJdbcTypes 
   type TIMESTAMP_TZ = DateTime
 
   trait DateTimeImplicits {
+    val dateFormatter = ISODateTimeFormat.date()
+    val timeFormatter = DateTimeFormat.forPattern("HH:mm:ss.SSSSSS")
+    val timeFormatter_NoFraction = DateTimeFormat.forPattern("HH:mm:ss")
+    val dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSSSSS")
+    val dateTimeFormatter_NoFraction = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
     val tzDateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSSSSSZ")
     val tzDateTimeFormatter_NoFraction = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ssZ")
 
-    implicit val jodaDateTypeMapper = new DateJdbcType(sqlDate2jodaDate, jodaDate2sqlDate)
-    implicit val jodaTimeTypeMapper = new TimeJdbcType(sqlTime2jodaTime, jodaTime2sqlTime)
-    implicit val jodaDateTimeTypeMapper = new TimestampJdbcType(sqlTimestamp2jodaDateTime, jodaDateTime2sqlTimestamp)
-    implicit val jodaPeriodTypeMapper = new GenericJdbcType[Period]("interval", pgIntervalStr2jodaPeriod, hasLiteralForm=false)
+    implicit val jodaDateTypeMapper = new GenericJdbcType[LocalDate]("date",
+      LocalDate.parse(_, dateFormatter), _.toString(dateFormatter), hasLiteralForm=false)
+    implicit val jodaTimeTypeMapper = new GenericJdbcType[LocalTime]("time",
+      fnFromString = (s) => LocalTime.parse(s, if(s.indexOf(".") > 0 ) timeFormatter else timeFormatter_NoFraction),
+      fnToString = (v) => v.toString(timeFormatter),
+      hasLiteralForm = false)
+    implicit val jodaDateTimeTypeMapper = new GenericJdbcType[LocalDateTime]("timestamp",
+      fnFromString = (s) => LocalDateTime.parse(s, if(s.indexOf(".") > 0 ) dateTimeFormatter else dateTimeFormatter_NoFraction),
+      fnToString = (v) => v.toString(dateTimeFormatter),
+      hasLiteralForm = false)
+    implicit val jodaPeriodTypeMapper = new GenericJdbcType[Period]("interval",
+      pgIntervalStr2jodaPeriod, hasLiteralForm=false)
     implicit val timestampTZTypeMapper = new GenericJdbcType[DateTime]("timestamptz",
       fnFromString = (s) => DateTime.parse(s, if(s.indexOf(".") > 0 ) tzDateTimeFormatter else tzDateTimeFormatter_NoFraction),
       fnToString = (v) => v.toString(tzDateTimeFormatter),
@@ -49,34 +61,6 @@ trait PgDateSupportJoda extends date.PgDateExtensions with date.PgDateJdbcTypes 
 }
 
 object PgJodaSupportUtils {
-
-  /// sql.Date <-> joda LocalDate
-  def sqlDate2jodaDate(date: Date): LocalDate = {
-    new LocalDate(date.getTime)
-  }
-
-  def jodaDate2sqlDate(date: LocalDate): Date = {
-    new Date(date.toDateTimeAtStartOfDay.toDate.getTime)
-  }
-
-  /// sql.Time <-> joda LocalTime
-  def sqlTime2jodaTime(time: Time): LocalTime = {
-    new LocalTime(time.getTime)
-  }
-
-  def jodaTime2sqlTime(time: LocalTime): Time = {
-    new Time(time.toDateTimeToday.toDate.getTime)
-  }
-
-  /// sql.Timestamp <-> joda LocalDateTime
-  def sqlTimestamp2jodaDateTime(ts: Timestamp): LocalDateTime = {
-    new LocalDateTime(ts.getTime)
-  }
-
-  def jodaDateTime2sqlTimestamp(ts: LocalDateTime): Timestamp = {
-    new Timestamp(ts.toDateTime.toDate.getTime)
-  }
-
   /// pg interval string <-> joda Duration
   def pgIntervalStr2jodaPeriod(intervalStr: String): Period = {
     val pgInterval = new PGInterval(intervalStr)

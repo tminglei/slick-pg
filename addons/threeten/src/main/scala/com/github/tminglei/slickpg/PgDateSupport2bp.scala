@@ -8,7 +8,7 @@ import org.threeten.bp.format.{DateTimeFormatterBuilder, DateTimeFormatter}
 import org.postgresql.util.PGInterval
 import scala.slick.lifted.Column
 
-trait PgDateSupport2bp extends date.PgDateExtensions with date.PgDateJdbcTypes with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+trait PgDateSupport2bp extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import PgThreetenSupportUtils._
 
   type DATE   = LocalDate

@@ -34,12 +34,15 @@ class PgDateSupportJodaTest {
 
   //------------------------------------------------------------------------------
 
-  val testRec1 = new DatetimeBean(101L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01"),
-    LocalDateTime.parse("2001-01-03T13:21:00"), DateTime.parse("2001-01-03 13:21:00.000+08", tzDateTimeFormatter), Period.parse("P1DT1H"))
+  val testRec1 = new DatetimeBean(101L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01.101357"),
+    LocalDateTime.parse("2001-01-03T13:21:00.223571"), DateTime.parse("2001-01-03 13:21:00.102203+08", tzDateTimeFormatter),
+    Period.parse("P1DT1H1M0.335701S"))
   val testRec2 = new DatetimeBean(102L, LocalDate.parse("2011-03-02"), LocalTime.parse("03:14:07"),
-    LocalDateTime.parse("2012-05-08T11:31:06"), DateTime.parse("2012-05-08 11:31:06.000-05", tzDateTimeFormatter), Period.parse("P1587D"))
+    LocalDateTime.parse("2012-05-08T11:31:06"), DateTime.parse("2012-05-08 11:31:06.113-05", tzDateTimeFormatter),
+    Period.parse("P1587D"))
   val testRec3 = new DatetimeBean(103L, LocalDate.parse("2000-05-19"), LocalTime.parse("11:13:34"),
-    LocalDateTime.parse("2019-11-03T13:19:03"), DateTime.parse("2019-11-03 13:19:03.000+03", tzDateTimeFormatter), Period.parse("PT63H16M2S"))
+    LocalDateTime.parse("2019-11-03T13:19:03"), DateTime.parse("2019-11-03 13:19:03.000+03", tzDateTimeFormatter),
+    Period.parse("PT63H16M2S"))
 
   @Test
   def testDatetimeFunctions(): Unit = {
@@ -50,23 +53,23 @@ class PgDateSupportJodaTest {
       // datetime - '+'/'-'
       val q1 = Datetimes.filter(_.id === 101L.bind).map(r => r.date + r.time)
       println(s"[joda] '+' sql = ${q1.selectStatement}")
-      assertEquals(LocalDateTime.parse("2010-11-03T12:33:01"), q1.first)
+      assertEquals(LocalDateTime.parse("2010-11-03T12:33:01.101357"), q1.first)
 
       val q101 = Datetimes.filter(_.id === 101L.bind).map(r => r.time + r.date)
       println(s"[joda] '+' sql = ${q101.selectStatement}")
-      assertEquals(LocalDateTime.parse("2010-11-03T12:33:01"), q101.first)
+      assertEquals(LocalDateTime.parse("2010-11-03T12:33:01.101"), q101.first)
 
       val q2 = Datetimes.filter(_.id === 101L.bind).map(r => r.date +++ r.interval)
       println(s"[joda] '+++' sql = ${q2.selectStatement}")
-      assertEquals(LocalDateTime.parse("2010-11-04T01:00:00"), q2.first)
+      assertEquals(LocalDateTime.parse("2010-11-04T01:01:00.335"), q2.first)
 
       val q3 = Datetimes.filter(_.id === 101L.bind).map(r => r.time +++ r.interval)
       println(s"[joda] '+++' sql = ${q3.selectStatement}")
-      assertEquals(LocalTime.parse("13:33:01"), q3.first)
+      assertEquals(LocalTime.parse("13:34:01.436"), q3.first)
 
       val q4 = Datetimes.filter(_.id === 101L.bind).map(r => r.datetime +++ r.interval)
       println(s"[joda] '+++' sql = ${q4.selectStatement}")
-      assertEquals(LocalDateTime.parse("2001-01-04T14:21:00"), q4.first)
+      assertEquals(LocalDateTime.parse("2001-01-04T14:22:00.558"), q4.first)
 
       val q5 = Datetimes.filter(_.id === 101L.bind).map(r => r.date ++ 7.bind)
       println(s"[joda] '++' sql = ${q5.selectStatement}")
@@ -78,15 +81,15 @@ class PgDateSupportJodaTest {
 
       val q7 = Datetimes.filter(_.id === 101L.bind).map(r => r.datetime -- r.time)
       println(s"[joda] '--' sql = ${q7.selectStatement}")
-      assertEquals(LocalDateTime.parse("2001-01-03T00:47:59"), q7.first)
+      assertEquals(LocalDateTime.parse("2001-01-03T00:47:59.122"), q7.first)
 
       val q8 = Datetimes.filter(_.id === 101L.bind).map(r => r.datetime - r.date)
       println(s"[joda] '-' sql = ${q8.selectStatement}")
-      assertEquals(Period.parse("P-3590DT-10H-39M"), q8.first)
+      assertEquals(Period.parse("P-3590DT-10H-38M-60S").plus(Period.parse("PT0.222S")), q8.first)
 
       val q801 = Datetimes.filter(_.id === 101L.bind).map(r => r.date.asColumnOf[LocalDateTime] - r.datetime)
       println(s"[joda] '-' sql = ${q801.selectStatement}")
-      assertEquals(Period.parse("P3590DT10H39M"), q801.first)
+      assertEquals(Period.parse("P3590DT10H38M59.777S"), q801.first)
 
       val q9 = Datetimes.filter(_.id === 101L.bind).map(r => r.date - LocalDate.parse("2009-07-05"))
       println(s"[joda] '-' sql = ${q9.selectStatement}")
@@ -94,19 +97,19 @@ class PgDateSupportJodaTest {
 
       val q10 = Datetimes.filter(_.id === 101L.bind).map(r => r.time - LocalTime.parse("02:37:00").bind)
       println(s"[joda] '-' sql = ${q10.selectStatement}")
-      assertEquals(Period.parse("PT9H56M1S"), q10.first)
+      assertEquals(Period.parse("PT9H56M1.100S"), q10.first)
 
       val q11 = Datetimes.filter(_.id === 101L.bind).map(r => r.datetime --- r.interval)
       println(s"[joda] '---' sql = ${q11.selectStatement}")
-      assertEquals(LocalDateTime.parse("2001-01-02T12:21:00"), q11.first)
+      assertEquals(LocalDateTime.parse("2001-01-02T12:19:59.888"), q11.first)
 
       val q12 = Datetimes.filter(_.id === 101L.bind).map(r => r.time --- r.interval)
       println(s"[joda] '---' sql = ${q12.selectStatement}")
-      assertEquals(LocalTime.parse("11:33:01"), q12.first)
+      assertEquals(LocalTime.parse("11:32:00.766"), q12.first)
 
       val q13 = Datetimes.filter(_.id === 101L.bind).map(r => r.date --- r.interval)
       println(s"[joda] '---' sql = ${q13.selectStatement}")
-      assertEquals(LocalDateTime.parse("2010-11-01T23:00:00"), q13.first)
+      assertEquals(LocalDateTime.parse("2010-11-01T22:58:59.665"), q13.first)
 
       // datetime - age/part/trunc
       val q14 = Datetimes.filter(_.id === 101L.bind).map(r => r.datetime.age)
@@ -130,23 +133,23 @@ class PgDateSupportJodaTest {
       // interval test cases
       val q21 = Datetimes.filter(_.id === 101L.bind).map(r => r.interval + Period.parse("PT3H").bind)
       println(s"[joda] '+' sql = ${q21.selectStatement}")
-      assertEquals(Period.parse("P1DT4H"), q21.first)
+      assertEquals(Period.parse("P1DT4H1M0.335S"), q21.first)
 
       val q22 = Datetimes.filter(_.id === 101L.bind).map(r => -r.interval)
       println(s"[joda] 'unary_-' sql = ${q22.selectStatement}")
-      assertEquals(Period.parse("P-1DT-1H"), q22.first)
+      assertEquals(Period.parse("P-1DT-1H-1M-1S").plus(Period.parse("PT0.665S")), q22.first)
 
       val q23 = Datetimes.filter(_.id === 101L.bind).map(r => r.interval - Period.parse("PT2H").bind)
       println(s"[joda] '-' sql = ${q23.selectStatement}")
-      assertEquals(Period.parse("P1DT-1H"), q23.first)
+      assertEquals(Period.parse("P1DT-58M-60S").plus(Period.parse("PT0.335S")), q23.first)
 
       val q24 = Datetimes.filter(_.id === 101L.bind).map(r => r.interval * 3.5)
       println(s"[joda] '*' sql = ${q24.selectStatement}")
-      assertEquals(Period.parse("P3DT15H30M"), q24.first)
+      assertEquals(Period.parse("P3DT15H33M31.172S"), q24.first)
 
       val q25 = Datetimes.filter(_.id === 101L.bind).map(r => r.interval / 5.0)
       println(s"[joda] '*' sql = ${q25.selectStatement}")
-      assertEquals(Period.parse("PT5H"), q25.first)
+      assertEquals(Period.parse("PT5H12.067S"), q25.first)
 
       val q26 = Datetimes.filter(_.id === 102L.bind).map(r => r.interval.justifyDays)
       println(s"[joda] 'justifyDays' sql = ${q26.selectStatement}")
