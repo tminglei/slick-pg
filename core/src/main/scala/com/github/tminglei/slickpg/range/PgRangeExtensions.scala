@@ -11,8 +11,6 @@ trait PgRangeExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   import driver.Implicit._
   import FunctionSymbolExtensionMethods._
 
-  type RANGEType[T]
-
   object RangeLibrary {
     val Contains = new SqlOperator("@>")
     val ContainedBy = new SqlOperator("<@")
@@ -28,7 +26,7 @@ trait PgRangeExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     val Subtraction = new SqlOperator("-")
   }
 
-  class RangeColumnExtensionMethods[B0, P1](val c: Column[P1])(
+  class RangeColumnExtensionMethods[RANGEType[_], B0, P1](val c: Column[P1])(
               implicit tm: JdbcType[B0], tm1: JdbcType[RANGEType[B0]]) extends ExtensionMethods[RANGEType[B0], P1] {
 
     def @>^[P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[Boolean, R]) = {

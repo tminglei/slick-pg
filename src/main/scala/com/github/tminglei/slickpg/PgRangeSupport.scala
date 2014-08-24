@@ -32,8 +32,6 @@ case class Range[T](start: T, end: T, edge: EdgeType = `[_,_)`) {
 trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import PgRangeSupportUtils._
 
-  type RANGEType[T] = Range[T]
-
   private def toTimestamp(str: String) = Timestamp.valueOf(str)
   private def toSQLDate(str: String) = Date.valueOf(str)
 
@@ -46,11 +44,11 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
 
     implicit def rangeColumnExtensionMethods[B0](c: Column[Range[B0]])(
       implicit tm: JdbcType[B0], tm1: JdbcType[Range[B0]]) = {
-        new RangeColumnExtensionMethods[B0, Range[B0]](c)
+        new RangeColumnExtensionMethods[Range, B0, Range[B0]](c)
       }
     implicit def rangeOptionColumnExtensionMethods[B0](c: Column[Option[Range[B0]]])(
       implicit tm: JdbcType[B0], tm1: JdbcType[Range[B0]]) = {
-        new RangeColumnExtensionMethods[B0, Option[Range[B0]]](c)
+        new RangeColumnExtensionMethods[Range, B0, Option[Range[B0]]](c)
       }
   }
 }
