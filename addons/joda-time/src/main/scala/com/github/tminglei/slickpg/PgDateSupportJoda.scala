@@ -9,13 +9,6 @@ import org.postgresql.util.PGInterval
 trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import PgJodaSupportUtils._
 
-  type DATE   = LocalDate
-  type TIME   = LocalTime
-  type TIMESTAMP = LocalDateTime
-  type INTERVAL  = Period
-
-  type TIMESTAMP_TZ = DateTime
-
   trait DateTimeImplicits {
     val dateFormatter = ISODateTimeFormat.date()
     val timeFormatter = DateTimeFormat.forPattern("HH:mm:ss.SSSSSS")
@@ -43,20 +36,30 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
       hasLiteralForm = false)
 
     ///
-    implicit def dateColumnExtensionMethods(c: Column[LocalDate]) = new DateColumnExtensionMethods(c)
-    implicit def dateOptColumnExtensionMethods(c: Column[Option[LocalDate]]) = new DateColumnExtensionMethods(c)
+    implicit def dateColumnExtensionMethods(c: Column[LocalDate]) =
+      new DateColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, LocalDate](c)
+    implicit def dateOptColumnExtensionMethods(c: Column[Option[LocalDate]]) =
+      new DateColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Option[LocalDate]](c)
 
-    implicit def timeColumnExtensionMethods(c: Column[LocalTime]) = new TimeColumnExtensionMethods(c)
-    implicit def timeOptColumnExtensionMethods(c: Column[Option[LocalTime]]) = new TimeColumnExtensionMethods(c)
+    implicit def timeColumnExtensionMethods(c: Column[LocalTime]) =
+      new TimeColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, LocalTime](c)
+    implicit def timeOptColumnExtensionMethods(c: Column[Option[LocalTime]]) =
+      new TimeColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Option[LocalTime]](c)
 
-    implicit def timestampColumnExtensionMethods(c: Column[LocalDateTime]) = new TimestampColumnExtensionMethods(c)
-    implicit def timestampOptColumnExtensionMethods(c: Column[Option[LocalDateTime]]) = new TimestampColumnExtensionMethods(c)
+    implicit def timestampColumnExtensionMethods(c: Column[LocalDateTime]) =
+      new TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, LocalDateTime](c)
+    implicit def timestampOptColumnExtensionMethods(c: Column[Option[LocalDateTime]]) =
+      new TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Option[LocalDateTime]](c)
 
-    implicit def intervalColumnExtensionMethods(c: Column[Period]) = new IntervalColumnExtensionMethods(c)
-    implicit def intervalOptColumnExtensionMethods(c: Column[Option[Period]]) = new IntervalColumnExtensionMethods(c)
+    implicit def intervalColumnExtensionMethods(c: Column[Period]) =
+      new IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Period](c)
+    implicit def intervalOptColumnExtensionMethods(c: Column[Option[Period]]) =
+      new IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Option[Period]](c)
 
-    implicit def timestampTZColumnExtensionMethods(c: Column[DateTime]) = new TimestampTZColumnExtensionMethods(c)
-    implicit def timestampTZOptColumnExtensionMethods(c: Column[Option[DateTime]]) = new TimestampTZColumnExtensionMethods(c)
+    implicit def timestampTZColumnExtensionMethods(c: Column[DateTime]) =
+      new TimestampColumnExtensionMethods[LocalDate, LocalTime, DateTime, Period, DateTime](c)
+    implicit def timestampTZOptColumnExtensionMethods(c: Column[Option[DateTime]]) =
+      new TimestampColumnExtensionMethods[LocalDate, LocalTime, DateTime, Period, Option[DateTime]](c)
   }
 }
 

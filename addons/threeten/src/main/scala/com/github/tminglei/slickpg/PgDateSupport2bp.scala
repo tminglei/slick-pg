@@ -11,13 +11,6 @@ import scala.slick.lifted.Column
 trait PgDateSupport2bp extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import PgThreetenSupportUtils._
 
-  type DATE   = LocalDate
-  type TIME   = LocalTime
-  type TIMESTAMP = LocalDateTime
-  type INTERVAL  = Duration
-
-  type TIMESTAMP_TZ = ZonedDateTime
-
   trait DateTimeImplicits {
     val dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE
     val timeFormatter = DateTimeFormatter.ISO_LOCAL_TIME
@@ -25,14 +18,14 @@ trait PgDateSupport2bp extends date.PgDateExtensions with utils.PgCommonJdbcType
       new DateTimeFormatterBuilder()
         .append(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         .optionalStart()
-        .appendFraction(ChronoField.NANO_OF_SECOND,0,6,true)
+          .appendFraction(ChronoField.NANO_OF_SECOND,0,6,true)
         .optionalEnd()
         .toFormatter()
     val tzDateTimeFormatter =
       new DateTimeFormatterBuilder()
         .append(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         .optionalStart()
-        .appendFraction(ChronoField.NANO_OF_SECOND,0,6,true)
+          .appendFraction(ChronoField.NANO_OF_SECOND,0,6,true)
         .optionalEnd()
         .appendOffset("+HH:mm","+00")
         .toFormatter()
@@ -48,20 +41,30 @@ trait PgDateSupport2bp extends date.PgDateExtensions with utils.PgCommonJdbcType
         ZonedDateTime.parse(_, tzDateTimeFormatter), _.format(tzDateTimeFormatter))
 
     ///
-    implicit def dateColumnExtensionMethods(c: Column[LocalDate]) = new DateColumnExtensionMethods(c)
-    implicit def dateOptColumnExtensionMethods(c: Column[Option[LocalDate]]) = new DateColumnExtensionMethods(c)
+    implicit def dateColumnExtensionMethods(c: Column[LocalDate]) =
+      new DateColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Duration, LocalDate](c)
+    implicit def dateOptColumnExtensionMethods(c: Column[Option[LocalDate]]) =
+      new DateColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Duration, Option[LocalDate]](c)
 
-    implicit def timeColumnExtensionMethods(c: Column[LocalTime]) = new TimeColumnExtensionMethods(c)
-    implicit def timeOptColumnExtensionMethods(c: Column[Option[LocalTime]]) = new TimeColumnExtensionMethods(c)
+    implicit def timeColumnExtensionMethods(c: Column[LocalTime]) =
+      new TimeColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Duration, LocalTime](c)
+    implicit def timeOptColumnExtensionMethods(c: Column[Option[LocalTime]]) =
+      new TimeColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Duration, Option[LocalTime]](c)
 
-    implicit def timestampColumnExtensionMethods(c: Column[LocalDateTime]) = new TimestampColumnExtensionMethods(c)
-    implicit def timestampOptColumnExtensionMethods(c: Column[Option[LocalDateTime]]) = new TimestampColumnExtensionMethods(c)
+    implicit def timestampColumnExtensionMethods(c: Column[LocalDateTime]) =
+      new TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Duration, LocalDateTime](c)
+    implicit def timestampOptColumnExtensionMethods(c: Column[Option[LocalDateTime]]) =
+      new TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Duration, Option[LocalDateTime]](c)
 
-    implicit def intervalColumnExtensionMethods(c: Column[Duration]) = new IntervalColumnExtensionMethods(c)
-    implicit def intervalOptColumnExtensionMethods(c: Column[Option[Duration]]) = new IntervalColumnExtensionMethods(c)
+    implicit def intervalColumnExtensionMethods(c: Column[Duration]) =
+      new IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Duration, Duration](c)
+    implicit def intervalOptColumnExtensionMethods(c: Column[Option[Duration]]) =
+      new IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Duration, Option[Duration]](c)
 
-    implicit def timestampTZColumnExtensionMethods(c: Column[ZonedDateTime]) = new TimestampTZColumnExtensionMethods(c)
-    implicit def timestampTZOptColumnExtensionMethods(c: Column[Option[ZonedDateTime]]) = new TimestampTZColumnExtensionMethods(c)
+    implicit def timestampTZColumnExtensionMethods(c: Column[ZonedDateTime]) =
+      new TimestampColumnExtensionMethods[LocalDate, LocalTime, ZonedDateTime, Duration, ZonedDateTime](c)
+    implicit def timestampTZOptColumnExtensionMethods(c: Column[Option[ZonedDateTime]]) =
+      new TimestampColumnExtensionMethods[LocalDate, LocalTime, ZonedDateTime, Duration, Option[ZonedDateTime]](c)
   }
 }
 

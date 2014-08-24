@@ -9,13 +9,6 @@ import scala.slick.jdbc.JdbcType
 trait PgDateExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   import driver.Implicit._
 
-  type DATE
-  type TIME
-  type TIMESTAMP
-  type INTERVAL
-  // timestamp with time zone
-  type TIMESTAMP_TZ
-
   object DateLibrary {
     val Plus = new SqlOperator("+")
     val Minus = new SqlOperator("-")
@@ -33,45 +26,39 @@ trait PgDateExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   }
   
   ///
-  trait TimestampExtensionMethods[TS, P1] extends ExtensionMethods[TS, P1] {
+  class TimestampColumnExtensionMethods[DATE, TIME, TIMESTAMP, INTERVAL, P1](val c: Column[P1])(
+            implicit tm: JdbcType[INTERVAL], tm1: JdbcType[DATE], tm2: JdbcType[TIME], tm3: JdbcType[TIMESTAMP]
+        ) extends ExtensionMethods[TIMESTAMP, P1] {
     
-    def +++[P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[TS, R]) = {
+    def +++[P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIMESTAMP, R]) = {
         om.column(DateLibrary.Plus, n, e.toNode)
       }
     def - [P2, R](e: Column[P2])(implicit om: o#to[INTERVAL, R], tm: JdbcType[INTERVAL]) = {
         om.column(DateLibrary.Minus, n, e.toNode)
       }
-    def -- [P2, R](e: Column[P2])(implicit om: o#arg[TIME, P2]#to[TS, R]) = {
+    def -- [P2, R](e: Column[P2])(implicit om: o#arg[TIME, P2]#to[TIMESTAMP, R]) = {
         om.column(DateLibrary.Minus, n, e.toNode)
       }
-    def ---[P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[TS, R]) = {
+    def ---[P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIMESTAMP, R]) = {
         om.column(DateLibrary.Minus, n, e.toNode)
       }
 
     def age[R](implicit om: o#to[INTERVAL, R], tm: JdbcType[INTERVAL]) = om.column(DateLibrary.Age, n)
-    def age[P2, R](e: Column[P2])(implicit om: o#arg[TS, P2]#to[INTERVAL, R], tm: JdbcType[INTERVAL]) = {
+    def age[P2, R](e: Column[P2])(implicit om: o#arg[TIMESTAMP, P2]#to[INTERVAL, R], tm: JdbcType[INTERVAL]) = {
         om.column(DateLibrary.Age, e.toNode, n)
       }
     def part[R](field: Column[String])(implicit om: o#to[Double, R]) = {
         om.column(DateLibrary.Part, field.toNode, n)
       }
-    def trunc[R](field: Column[String])(implicit om: o#to[TS, R]) = {
+    def trunc[R](field: Column[String])(implicit om: o#to[TIMESTAMP, R]) = {
         om.column(DateLibrary.Trunc, field.toNode, n)
       }
   }
 
-  class TimestampColumnExtensionMethods[P1](val c: Column[P1])(
-            implicit tm: JdbcType[INTERVAL], tm1: JdbcType[DATE], tm2: JdbcType[TIME], tm3: JdbcType[TIMESTAMP])
-                  extends TimestampExtensionMethods[TIMESTAMP, P1]
-  
-  class TimestampTZColumnExtensionMethods[P1](val c: Column[P1])(
-            implicit tm: JdbcType[INTERVAL], tm1: JdbcType[DATE], tm2: JdbcType[TIME], tm3: JdbcType[TIMESTAMP_TZ])
-                  extends TimestampExtensionMethods[TIMESTAMP_TZ, P1]
-
   ///
-  class TimeColumnExtensionMethods[P1](val c: Column[P1])(
-            implicit tm: JdbcType[INTERVAL], tm1: JdbcType[DATE], tm2: JdbcType[TIME], tm3: JdbcType[TIMESTAMP])
-                  extends ExtensionMethods[TIME, P1] {
+  class TimeColumnExtensionMethods[DATE, TIME, TIMESTAMP, INTERVAL, P1](val c: Column[P1])(
+            implicit tm: JdbcType[INTERVAL], tm1: JdbcType[DATE], tm2: JdbcType[TIME], tm3: JdbcType[TIMESTAMP]
+        ) extends ExtensionMethods[TIME, P1] {
 
     def + [P2, R](e: Column[P2])(implicit om: o#arg[DATE, P2]#to[TIMESTAMP, R]) = {
         om.column(DateLibrary.Plus, n, e.toNode)
@@ -88,9 +75,9 @@ trait PgDateExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   }
 
   ///
-  class DateColumnExtensionMethods[P1](val c: Column[P1])(
-              implicit tm: JdbcType[INTERVAL], tm1: JdbcType[DATE], tm2: JdbcType[TIME], tm3: JdbcType[TIMESTAMP])
-                    extends ExtensionMethods[DATE, P1] {
+  class DateColumnExtensionMethods[DATE, TIME, TIMESTAMP, INTERVAL, P1](val c: Column[P1])(
+              implicit tm: JdbcType[INTERVAL], tm1: JdbcType[DATE], tm2: JdbcType[TIME], tm3: JdbcType[TIMESTAMP]
+        ) extends ExtensionMethods[DATE, P1] {
 
     def + [P2, R](e: Column[P2])(implicit om: o#arg[TIME, P2]#to[TIMESTAMP, R]) = {
         om.column(DateLibrary.Plus, n, e.toNode)
@@ -113,9 +100,9 @@ trait PgDateExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   }
 
   ///
-  class IntervalColumnExtensionMethods[P1](val c: Column[P1])(
-              implicit tm: JdbcType[INTERVAL], tm1: JdbcType[DATE], tm2: JdbcType[TIME], tm3: JdbcType[TIMESTAMP])
-                    extends ExtensionMethods[INTERVAL, P1] {
+  class IntervalColumnExtensionMethods[DATE, TIME, TIMESTAMP, INTERVAL, P1](val c: Column[P1])(
+              implicit tm: JdbcType[INTERVAL], tm1: JdbcType[DATE], tm2: JdbcType[TIME], tm3: JdbcType[TIMESTAMP]
+        ) extends ExtensionMethods[INTERVAL, P1] {
 
     def + [P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[INTERVAL, R]) = {
         om.column(DateLibrary.Plus, n, e.toNode)

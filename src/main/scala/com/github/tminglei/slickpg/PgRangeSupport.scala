@@ -44,12 +44,12 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
     implicit val timestampRangeTypeMapper = new GenericJdbcType[Range[Timestamp]]("tsrange", mkRangeFn(toTimestamp))
     implicit val dateRangeTypeMapper = new GenericJdbcType[Range[Date]]("daterange", mkRangeFn(toSQLDate))
 
-    implicit def rangeColumnExtensionMethods[B0, Range[B0]](c: Column[Range[B0]])(
-      implicit tm: JdbcType[B0], tm1: JdbcType[RANGEType[B0]]) = {
+    implicit def rangeColumnExtensionMethods[B0](c: Column[Range[B0]])(
+      implicit tm: JdbcType[B0], tm1: JdbcType[Range[B0]]) = {
         new RangeColumnExtensionMethods[B0, Range[B0]](c)
       }
-    implicit def rangeOptionColumnExtensionMethods[B0, Range[B0]](c: Column[Option[Range[B0]]])(
-      implicit tm: JdbcType[B0], tm1: JdbcType[RANGEType[B0]]) = {
+    implicit def rangeOptionColumnExtensionMethods[B0](c: Column[Option[Range[B0]]])(
+      implicit tm: JdbcType[B0], tm1: JdbcType[Range[B0]]) = {
         new RangeColumnExtensionMethods[B0, Option[Range[B0]]](c)
       }
   }
