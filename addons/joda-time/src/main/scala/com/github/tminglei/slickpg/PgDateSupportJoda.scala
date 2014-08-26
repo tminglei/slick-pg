@@ -56,15 +56,15 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
     implicit def intervalOptColumnExtensionMethods(c: Column[Option[Period]]) =
       new IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Option[Period]](c)
 
-    implicit def timestampTZColumnExtensionMethods(c: Column[DateTime]) =
+    implicit def tzTimestampColumnExtensionMethods(c: Column[DateTime]) =
       new TimestampColumnExtensionMethods[LocalDate, LocalTime, DateTime, Period, DateTime](c)
-    implicit def timestampTZOptColumnExtensionMethods(c: Column[Option[DateTime]]) =
+    implicit def tzTimestampOptColumnExtensionMethods(c: Column[Option[DateTime]]) =
       new TimestampColumnExtensionMethods[LocalDate, LocalTime, DateTime, Period, Option[DateTime]](c)
   }
 }
 
 object PgJodaSupportUtils {
-  /// pg interval string <-> joda Duration
+  /// pg interval string --> joda Duration
   def pgIntervalStr2jodaPeriod(intervalStr: String): Period = {
     val pgInterval = new PGInterval(intervalStr)
     val seconds = Math.floor(pgInterval.getSeconds) .asInstanceOf[Int]

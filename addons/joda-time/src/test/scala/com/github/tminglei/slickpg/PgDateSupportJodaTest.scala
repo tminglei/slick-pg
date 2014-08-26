@@ -50,6 +50,14 @@ class PgDateSupportJodaTest {
       (StaticQuery.u + "SET TIMEZONE TO '+8';").execute
       Datetimes forceInsertAll (testRec1, testRec2, testRec3)
 
+      val q0 = Datetimes.map(r => r)
+      // testRec2 and testRec3 will fail to equal test, because of different time zone
+      assertEquals(testRec1/*List(testRec1, testRec2, testRec3)*/, q0.first)
+
+      val q00 = Datetimes.filter(_.id === 101L.bind).map { r =>
+        (r.date.isFinite, r.datetime.isFinite, r.interval.isFinite)}
+      assertEquals((true, true, true), q00.first)
+
       // datetime - '+'/'-'
       val q1 = Datetimes.filter(_.id === 101L.bind).map(r => r.date + r.time)
       println(s"[joda] '+' sql = ${q1.selectStatement}")

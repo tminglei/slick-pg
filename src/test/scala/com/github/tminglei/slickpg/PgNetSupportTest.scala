@@ -136,7 +136,7 @@ class PgNetSupportTest {
 
       //-- test mac addr extension methods
       val q22 = NetTests.filter(_.id === 33L).map(~ _.mac)
-      println(s"[nac] '~' sql = ${q22.selectStatement}")
+      println(s"[mac] '~' sql = ${q22.selectStatement}")
       assertEquals(Some(MacAddrString("ed:cb:a9:87:6f:54")), q22.first)
 
       val q23 = NetTests.filter(_.id === 33L.bind).map(_.mac & MacAddrString("08:00:2b:01:02:03"))

@@ -2,7 +2,7 @@ package com.github.tminglei.slickpg
 
 import org.junit._
 import org.junit.Assert._
-import java.time.{Duration, LocalDateTime, LocalTime, LocalDate, ZonedDateTime}
+import java.time._
 import scala.slick.jdbc.StaticQuery
 import scala.util.Try
 
@@ -17,7 +17,8 @@ class PgDate2SupportTest {
     time: LocalTime,
     dateTime: LocalDateTime,
     dateTimetz: ZonedDateTime,
-    duration: Duration
+    duration: Duration,
+    period: Period
     )
 
   class DatetimeTable(tag: Tag) extends Table[DatetimeBean](tag,"Datetime2Test") {
@@ -27,8 +28,9 @@ class PgDate2SupportTest {
     def datetime = column[LocalDateTime]("datetime")
     def dateTimetz = column[ZonedDateTime]("dateTimetz")
     def duration = column[Duration]("duration")
+    def period = column[Period]("period")
 
-    def * = (id, date, time, datetime, dateTimetz, duration) <> (DatetimeBean.tupled, DatetimeBean.unapply)
+    def * = (id, date, time, datetime, dateTimetz, duration, period) <> (DatetimeBean.tupled, DatetimeBean.unapply)
   }
   val Datetimes = TableQuery[DatetimeTable]
 
@@ -36,13 +38,13 @@ class PgDate2SupportTest {
 
   val testRec1 = new DatetimeBean(101L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01.101357"),
     LocalDateTime.parse("2001-01-03T13:21:00.223571"), ZonedDateTime.parse("2001-01-03 13:21:00.102203+08", tzDateTimeFormatter),
-    Duration.parse("P1DT1H1M0.335701S"))
+    Duration.parse("P1DT1H1M0.335701S"), Period.parse("P1Y2M3W4D"))
   val testRec2 = new DatetimeBean(102L, LocalDate.parse("2011-03-02"), LocalTime.parse("03:14:07"),
     LocalDateTime.parse("2012-05-08T11:31:06"), ZonedDateTime.parse("2012-05-08 11:31:06.003-05", tzDateTimeFormatter),
-    Duration.parse("P1587D"))
+    Duration.parse("P1587D"), Period.parse("P15M7D"))
   val testRec3 = new DatetimeBean(103L, LocalDate.parse("2000-05-19"), LocalTime.parse("11:13:34"),
     LocalDateTime.parse("2019-11-03T13:19:03"), ZonedDateTime.parse("2019-11-03 13:19:03+03", tzDateTimeFormatter),
-    Duration.parse("PT63H16M2S"))
+    Duration.parse("PT63H16M2S"), Period.parse("P3M5D"))
 
   @Test
   def testDatetimeFunctions(): Unit = {
@@ -53,6 +55,10 @@ class PgDate2SupportTest {
       val q0 = Datetimes.map(r => r)
       // testRec2 and testRec3 will fail to equal test, because of different time zone
       assertEquals(testRec1/*List(testRec1, testRec2, testRec3)*/, q0.first)
+
+      val q00 = Datetimes.filter(_.id === 101L.bind).map { r =>
+        (r.date.isFinite, r.datetime.isFinite, r.duration.isFinite)}
+      assertEquals((true, true, true), q00.first)
 
       // datetime - '+'/'-'
       val q1 = Datetimes.filter(_.id === 101L.bind).map(r => r.date + r.time)
