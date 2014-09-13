@@ -5,6 +5,7 @@ trait MyPostgresDriver extends ExPostgresDriver
                           with PgDateSupport
                           with PgJsonSupport
                           with PgNetSupport
+                          with PgLTreeSupport
                           with PgRangeSupport
                           with PgHStoreSupport
                           with PgSearchSupport {
@@ -18,6 +19,7 @@ trait MyPostgresDriver extends ExPostgresDriver
                         with DateTimeImplicits
                         with JsonImplicits
                         with NetImplicits
+                        with LTreeImplicits
                         with RangeImplicits
                         with HStoreImplicits
                         with SearchImplicits

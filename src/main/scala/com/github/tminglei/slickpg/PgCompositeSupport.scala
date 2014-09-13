@@ -15,7 +15,7 @@ trait PgCompositeSupport extends utils.PgCommonJdbcTypes with array.PgArrayJdbcT
 
   def createCompositeListJdbcType[T <: Struct](sqlTypeName: String)(
             implicit ev: u.TypeTag[T], tag: ClassTag[T], tag1: ClassTag[List[T]]): JdbcType[List[T]] =
-    new NestedArrayListJdbcType[T](sqlTypeName, mkCompositeListFromString[T], mkStringFromCompositeList[T])
+    new AdvancedArrayListJdbcType[T](sqlTypeName, mkCompositeListFromString[T], mkStringFromCompositeList[T])
 
 }
 

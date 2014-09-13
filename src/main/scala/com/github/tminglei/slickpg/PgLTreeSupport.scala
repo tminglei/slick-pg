@@ -10,7 +10,7 @@ case class LTree(value: List[String]) {
 }
 
 object LTree {
-  def apply(value: String): LTree = LTree(value.split(".").toList)
+  def apply(value: String): LTree = LTree(value.split("\\.").toList)
 }
 
 /**
@@ -18,7 +18,7 @@ object LTree {
  */
 trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcTypes with array.PgArrayJdbcTypes { driver: PostgresDriver =>
 
-  trait NetImplicits {
+  trait LTreeImplicits {
     implicit val ltreeTypeMapper =
       new GenericJdbcType[LTree]("ltree",
         (v) => LTree(v),
@@ -26,11 +26,10 @@ trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcType
         hasLiteralForm = false
       )
     implicit val ltreeListTypeMapper =
-      new SimpleArrayListJdbcType[LTree]("ltree")
-        .basedOn[String](
-          tmap   = _.toString,
-          tcomap = LTree(_)
-        )
+      new AdvancedArrayListJdbcType[LTree]("ltree",
+        fromString = utils.SimpleArrayUtils.fromString(_)(LTree.apply).orNull,
+        mkString = utils.SimpleArrayUtils.mkString(_)(_.toString)
+      )
 
     implicit def ltreeColumnExtensionMethods(c: Column[LTree])(
       implicit tm: JdbcType[LTree], tm1: JdbcType[List[LTree]]) = {

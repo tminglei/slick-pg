@@ -46,29 +46,11 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
     //--
     private def mkArray(v: List[T]): java.sql.Array = new SimpleArray(sqlBaseType, v, buildArrayStr)
 
-    /** copy from [[org.postgresql.jdbc4.AbstractJdbc4Connection#createArrayOf(..)]]
-      * and [[org.postgresql.jdbc2.AbstractJdbc2Array#escapeArrayElement(..)]] */
-    protected def buildArrayStr(vList: List[Any]): String = {
-      def escape(s: String) = {
-        StringBuilder.newBuilder + '"' appendAll (
-          s map {
-            c => if (c == '"' || c == '\\') '\\' else c
-          }) + '"'
-      }
-
-      StringBuilder.newBuilder + '{' append (
-        vList map {
-          case v: Any => escape(v.toString) // use 'v: Any' instead of 'v: T' (jvm type erase)
-          case _ => "NULL"
-        } mkString(",")
-      ) + '}' toString
-    }
+    protected def buildArrayStr(vList: List[Any]): String = utils.SimpleArrayUtils.mkString(vList)(_.toString)
   }
 
   ///-- can be used to map complex composite/nested array
-  class NestedArrayListJdbcType[T](sqlBaseType: String,
-                            fnFromString: (String => List[T]),
-                            fnToString: (List[T] => String))(
+  class AdvancedArrayListJdbcType[T](sqlBaseType: String, fromString: (String => List[T]), mkString: (List[T] => String))(
               implicit override val classTag: ClassTag[List[T]], tag: ClassTag[T])
                     extends DriverJdbcType[List[T]] {
 
@@ -78,7 +60,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
     override def getValue(r: ResultSet, idx: Int): List[T] = {
       val value = r.getString(idx)
-      if (r.wasNull) null else fnFromString(value)
+      if (r.wasNull) null else fromString(value)
     }
 
     override def setValue(vList: List[T], p: PreparedStatement, idx: Int): Unit = p.setArray(idx, mkArray(vList))
@@ -87,14 +69,14 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
     override def hasLiteralForm: Boolean = false
 
-    override def valueToSQLLiteral(vList: List[T]) = if(vList eq null) "NULL" else s"'${fnToString(vList)}'"
+    override def valueToSQLLiteral(vList: List[T]) = if(vList eq null) "NULL" else s"'${mkString(vList)}'"
 
     //--
-    private def mkArray(v: List[T]): java.sql.Array = new SimpleArray(sqlBaseType, v, fnToString)
+    private def mkArray(v: List[T]): java.sql.Array = new SimpleArray(sqlBaseType, v, mkString)
   }
 
   /** only used to transfer array data into driver/preparedStatement */
-  private class SimpleArray[T : ClassTag](sqlBaseTypeName: String, vList: List[T], fnToString: (List[T] => String)) extends java.sql.Array {
+  private class SimpleArray[T : ClassTag](sqlBaseTypeName: String, vList: List[T], mkString: (List[T] => String)) extends java.sql.Array {
 
     def getBaseTypeName = sqlBaseTypeName
 
@@ -118,6 +100,6 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
     def free() = { /* nothing to do */ }
 
-    override def toString = fnToString(vList)
+    override def toString = mkString(vList)
   }
 }
