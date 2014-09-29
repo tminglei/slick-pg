@@ -78,7 +78,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
   /** only used to transfer array data into driver/preparedStatement */
   private class SimpleArray[T : ClassTag](sqlBaseTypeName: String, vList: List[T], mkString: (List[T] => String)) extends java.sql.Array {
 
-    def getBaseTypeName = sqlBaseTypeName
+    def getBaseTypeName = sqlBaseTypeName.replaceFirst("^\"", "").replaceFirst("\"$", "")
 
     def getBaseType = ???
 

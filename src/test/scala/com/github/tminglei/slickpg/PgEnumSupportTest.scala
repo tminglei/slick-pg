@@ -23,10 +23,10 @@ class PgEnumSupportTest {
     override val simple = new SimpleQL with MyEnumImplicits {}
 
     trait MyEnumImplicits {
-      implicit val weekDayTypeMapper = createEnumJdbcType("weekday", WeekDays)
-      implicit val weekDayListTypeMapper = createEnumListJdbcType("weekday", WeekDays)
-      implicit val rainbowTypeMapper = createEnumJdbcType("rainbow", Rainbows)
-      implicit val rainbowListTypeMapper = createEnumListJdbcType("rainbow", Rainbows)
+      implicit val weekDayTypeMapper = createEnumJdbcType("WeekDay", WeekDays)
+      implicit val weekDayListTypeMapper = createEnumListJdbcType("weekDay", WeekDays)
+      implicit val rainbowTypeMapper = createEnumJdbcType("Rainbow", Rainbows, true)
+      implicit val rainbowListTypeMapper = createEnumListJdbcType("Rainbow", Rainbows, true)
       
       implicit val weekDayColumnExtensionMethodsBuilder = createEnumColumnExtensionMethodsBuilder(WeekDays)
       implicit val weekDayOptionColumnExtensionMethodsBuilder = createEnumOptionColumnExtensionMethodsBuilder(WeekDays)
@@ -40,22 +40,24 @@ class PgEnumSupportTest {
 
   val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=postgres", driver = "org.postgresql.Driver")
 
-  case class TestEnumBean(id: Long, weekday: WeekDay, rainbow: Option[Rainbow])
+  case class TestEnumBean(id: Long, weekday: WeekDay, rainbow: Option[Rainbow], weekdays: List[WeekDay], rainbows: List[Rainbow])
   
   class TestEnumTable(tag: Tag) extends Table[TestEnumBean](tag, "test_enum_table") {
     def id = column[Long]("id")
     def weekday = column[WeekDay]("weekday", O.Default(Mon))
     def rainbow = column[Option[Rainbow]]("rainbow")
+    def weekdays = column[List[WeekDay]]("weekdays")
+    def rainbows = column[List[Rainbow]]("rainbows")
     
-    def * = (id, weekday, rainbow) <> (TestEnumBean.tupled, TestEnumBean.unapply)
+    def * = (id, weekday, rainbow, weekdays, rainbows) <> (TestEnumBean.tupled, TestEnumBean.unapply)
   }
   val TestEnums = TableQuery(new TestEnumTable(_))
   
   //------------------------------------------------------------------
   
-  val testRec1 = TestEnumBean(101L, Mon, Some(red))
-  val testRec2 = TestEnumBean(102L, Wed, Some(blue))
-  val testRec3 = TestEnumBean(103L, Fri, None)
+  val testRec1 = TestEnumBean(101L, Mon, Some(red), Nil, List(red, yellow))
+  val testRec2 = TestEnumBean(102L, Wed, Some(blue), List(Sat, Sun), List(green))
+  val testRec3 = TestEnumBean(103L, Fri, None, List(Thu), Nil)
   
   @Test
   def testEnumFunctions(): Unit = {
@@ -95,11 +97,11 @@ class PgEnumSupportTest {
       // clear first
       Try { TestEnums.ddl drop }
       Try { PgEnumSupportUtils.buildDropSql("weekday").execute }
-      Try { PgEnumSupportUtils.buildDropSql("rainbow").execute }
+      Try { PgEnumSupportUtils.buildDropSql("Rainbow", true).execute }
 
       // then create
-      Try { PgEnumSupportUtils.buildCreateSql("weekday", WeekDays).execute }
-      Try { PgEnumSupportUtils.buildCreateSql("rainbow", Rainbows).execute }
+      Try { PgEnumSupportUtils.buildCreateSql("WeekDay", WeekDays).execute }.get
+      Try { PgEnumSupportUtils.buildCreateSql("Rainbow", Rainbows, true).execute }.get
 
       Try { TestEnums.ddl.createStatements.foreach(s => println(s"[enum] $s")) }
       Try { TestEnums.ddl create }

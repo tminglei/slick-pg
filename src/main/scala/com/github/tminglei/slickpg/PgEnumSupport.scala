@@ -8,6 +8,7 @@ import scala.reflect.ClassTag
 import java.sql.{PreparedStatement, ResultSet}
 
 trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes { driver: PostgresDriver =>
+  import PgEnumSupportUtils.sqlName
   
   def createEnumColumnExtensionMethodsBuilder[T <: Enumeration](enumObject: T)(
       implicit tm: JdbcType[enumObject.Value], tm1: JdbcType[List[enumObject.Value]]) = 
@@ -22,14 +23,14 @@ trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes {
 
   //-----------------------------------------------------------------------------------
   
-  def createEnumListJdbcType[T <: Enumeration](sqlEnumTypeName: String, enumObject: T)(
+  def createEnumListJdbcType[T <: Enumeration](sqlEnumTypeName: String, enumObject: T, quoteName: Boolean = false)(
              implicit tag: ClassTag[List[enumObject.Value]]): JdbcType[List[enumObject.Value]] = {
 
-    new SimpleArrayListJdbcType[enumObject.Value](sqlEnumTypeName)
+    new SimpleArrayListJdbcType[enumObject.Value](sqlName(sqlEnumTypeName, quoteName))
       .basedOn[String](tmap = _.toString, tcomap = enumObject.withName(_))
   }
 
-  def createEnumJdbcType[T <: Enumeration](sqlEnumTypeName: String, enumObject: T)(
+  def createEnumJdbcType[T <: Enumeration](sqlEnumTypeName: String, enumObject: T, quoteName: Boolean = false)(
              implicit tag: ClassTag[enumObject.Value]): JdbcType[enumObject.Value] = {
 
     new DriverJdbcType[enumObject.Value] {
@@ -38,7 +39,7 @@ trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes {
 
       override def sqlType: Int = java.sql.Types.OTHER
 
-      override def sqlTypeName: String = sqlEnumTypeName
+      override def sqlTypeName: String = sqlName(sqlEnumTypeName, quoteName)
 
       override def getValue(r: ResultSet, idx: Int): enumObject.Value = {
         val value = r.getString(idx)
@@ -56,7 +57,7 @@ trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes {
       ///
       private def mkPgObject(v: enumObject.Value) = {
         val obj = new PGobject
-        obj.setType(sqlTypeName)
+        obj.setType(if (quoteName) sqlEnumTypeName else sqlEnumTypeName.toLowerCase)
         obj.setValue(if (v eq null) null else v.toString)
         obj
       }
@@ -67,11 +68,15 @@ trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes {
 object PgEnumSupportUtils {
   import scala.slick.jdbc.{StaticQuery => Q, Invoker}
 
-  def buildCreateSql[T <: Enumeration](sqlTypeName: String, enumObject: T): Invoker[Int] = {
+  def sqlName(sqlTypeName: String, quoteName: Boolean) = if (quoteName)
+    '"' + sqlTypeName + '"' else sqlTypeName.toLowerCase
+
+  def buildCreateSql[T <: Enumeration](sqlTypeName: String, enumObject: T, quoteName: Boolean = false): Invoker[Int] = {
     // `toStream` to prevent re-ordering after `map(e => s"'${e.toString}'")`
     val enumValuesString = enumObject.values.toStream.map(e => s"'$e'").mkString(",")
-    Q[Int] + s"create type $sqlTypeName as enum ($enumValuesString)"
+    Q[Int] + s"create type ${sqlName(sqlTypeName, quoteName)} as enum ($enumValuesString)"
   }
   
-  def buildDropSql(sqlTypeName: String): Invoker[Int] = Q[Int] + s"drop type $sqlTypeName"
+  def buildDropSql(sqlTypeName: String, quoteName: Boolean = false): Invoker[Int] =
+    Q[Int] + s"drop type ${sqlName(sqlTypeName, quoteName)}"
 }
