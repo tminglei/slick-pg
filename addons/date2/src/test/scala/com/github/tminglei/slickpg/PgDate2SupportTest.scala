@@ -145,6 +145,10 @@ class PgDate2SupportTest {
       println(s"[date2] '+' sql = ${q21.selectStatement}")
       assertEquals(Duration.parse("P1DT4H1M0.335701S"), q21.first)
 
+      val q2101 = Datetimes.filter(_.id === 101L.bind).map(r => r.duration + Period.of(0, 0, 3).bind.toDuration)
+      println(s"[date2] '+' sql = ${q2101.selectStatement}")
+      assertEquals(Duration.parse("PT97H1M0.335701S"), q2101.first)
+
       val q22 = Datetimes.filter(_.id === 101L.bind).map(r => -r.duration)
       println(s"[date2] 'unary_-' sql = ${q22.selectStatement}")
       assertEquals(Duration.parse("-P1DT1H1M0.335701S"), q22.first)

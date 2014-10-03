@@ -6,12 +6,16 @@ import scala.slick.driver.PostgresDriver
 import java.time._
 import java.time.format.{DateTimeFormatterBuilder, DateTimeFormatter}
 import org.postgresql.util.PGInterval
+import scala.slick.jdbc.JdbcType
 import scala.slick.lifted.Column
 
 trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import PgDate2SupportUtils._
 
-  trait DateTimeImplicits {
+  trait DateTimeImplicits extends BaseDateTimeImplicits[Duration]
+  trait DateTimeImplicitsPeriod extends BaseDateTimeImplicits[Period]
+
+  trait BaseDateTimeImplicits[INTERVAL] {
     val dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE
     val timeFormatter = DateTimeFormatter.ISO_LOCAL_TIME
     val dateTimeFormatter =
@@ -54,20 +58,20 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
       ZonedDateTime.parse(_, tzDateTimeFormatter), _.format(tzDateTimeFormatter), hasLiteralForm=false)
 
     ///
-    implicit def dateColumnExtensionMethods(c: Column[LocalDate]) =
-      new DateColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Duration, LocalDate](c)
-    implicit def dateOptColumnExtensionMethods(c: Column[Option[LocalDate]]) =
-      new DateColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Duration, Option[LocalDate]](c)
+    implicit def dateColumnExtensionMethods(c: Column[LocalDate])(implicit tm: JdbcType[INTERVAL]) =
+      new DateColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, INTERVAL, LocalDate](c)
+    implicit def dateOptColumnExtensionMethods(c: Column[Option[LocalDate]])(implicit tm: JdbcType[INTERVAL]) =
+      new DateColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, INTERVAL, Option[LocalDate]](c)
 
-    implicit def timeColumnExtensionMethods(c: Column[LocalTime]) =
-      new TimeColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Duration, LocalTime](c)
-    implicit def timeOptColumnExtensionMethods(c: Column[Option[LocalTime]]) =
-      new TimeColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Duration, Option[LocalTime]](c)
+    implicit def timeColumnExtensionMethods(c: Column[LocalTime])(implicit tm: JdbcType[INTERVAL]) =
+      new TimeColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, INTERVAL, LocalTime](c)
+    implicit def timeOptColumnExtensionMethods(c: Column[Option[LocalTime]])(implicit tm: JdbcType[INTERVAL]) =
+      new TimeColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, INTERVAL, Option[LocalTime]](c)
 
-    implicit def timestampColumnExtensionMethods(c: Column[LocalDateTime]) =
-      new TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Duration, LocalDateTime](c)
-    implicit def timestampOptColumnExtensionMethods(c: Column[Option[LocalDateTime]]) =
-      new TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Duration, Option[LocalDateTime]](c)
+    implicit def timestampColumnExtensionMethods(c: Column[LocalDateTime])(implicit tm: JdbcType[INTERVAL]) =
+      new TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, INTERVAL, LocalDateTime](c)
+    implicit def timestampOptColumnExtensionMethods(c: Column[Option[LocalDateTime]])(implicit tm: JdbcType[INTERVAL]) =
+      new TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, INTERVAL, Option[LocalDateTime]](c)
 
     implicit def intervalColumnExtensionMethods(c: Column[Period]) =
       new IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Period](c)
@@ -79,20 +83,34 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
     implicit def interval1OptColumnExtensionMethods(c: Column[Option[Duration]]) =
       new IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Duration, Option[Duration]](c)
 
-    implicit def tzTimeColumnExtensionMethods(c: Column[OffsetTime]) =
-      new TimestampColumnExtensionMethods[LocalDate, OffsetTime, OffsetDateTime, Duration, OffsetTime](c)
-    implicit def tzTimeOptColumnExtensionMethods(c: Column[Option[OffsetTime]]) =
-      new TimestampColumnExtensionMethods[LocalDate, OffsetTime, OffsetDateTime, Duration, Option[OffsetTime]](c)
+    implicit def tzTimeColumnExtensionMethods(c: Column[OffsetTime])(implicit tm: JdbcType[INTERVAL]) =
+      new TimestampColumnExtensionMethods[LocalDate, OffsetTime, OffsetDateTime, INTERVAL, OffsetTime](c)
+    implicit def tzTimeOptColumnExtensionMethods(c: Column[Option[OffsetTime]])(implicit tm: JdbcType[INTERVAL]) =
+      new TimestampColumnExtensionMethods[LocalDate, OffsetTime, OffsetDateTime, INTERVAL, Option[OffsetTime]](c)
 
-    implicit def tzTimestampColumnExtensionMethods(c: Column[OffsetDateTime]) =
-      new TimestampColumnExtensionMethods[LocalDate, OffsetTime, OffsetDateTime, Duration, OffsetDateTime](c)
-    implicit def tzTimestampOptColumnExtensionMethods(c: Column[Option[OffsetDateTime]]) =
-      new TimestampColumnExtensionMethods[LocalDate, OffsetTime, OffsetDateTime, Duration, Option[OffsetDateTime]](c)
+    implicit def tzTimestampColumnExtensionMethods(c: Column[OffsetDateTime])(implicit tm: JdbcType[INTERVAL]) =
+      new TimestampColumnExtensionMethods[LocalDate, OffsetTime, OffsetDateTime, INTERVAL, OffsetDateTime](c)
+    implicit def tzTimestampOptColumnExtensionMethods(c: Column[Option[OffsetDateTime]])(implicit tm: JdbcType[INTERVAL]) =
+      new TimestampColumnExtensionMethods[LocalDate, OffsetTime, OffsetDateTime, INTERVAL, Option[OffsetDateTime]](c)
 
-    implicit def tzTimestamp1ColumnExtensionMethods(c: Column[ZonedDateTime]) =
-      new TimestampColumnExtensionMethods[LocalDate, OffsetTime, ZonedDateTime, Duration, ZonedDateTime](c)
-    implicit def tzTimestamp1OptColumnExtensionMethods(c: Column[Option[ZonedDateTime]]) =
-      new TimestampColumnExtensionMethods[LocalDate, OffsetTime, ZonedDateTime, Duration, Option[ZonedDateTime]](c)
+    implicit def tzTimestamp1ColumnExtensionMethods(c: Column[ZonedDateTime])(implicit tm: JdbcType[INTERVAL]) =
+      new TimestampColumnExtensionMethods[LocalDate, OffsetTime, ZonedDateTime, INTERVAL, ZonedDateTime](c)
+    implicit def tzTimestamp1OptColumnExtensionMethods(c: Column[Option[ZonedDateTime]])(implicit tm: JdbcType[INTERVAL]) =
+      new TimestampColumnExtensionMethods[LocalDate, OffsetTime, ZonedDateTime, INTERVAL, Option[ZonedDateTime]](c)
+
+    /// helper classes to INTERVAL column
+    implicit class Duration2Period(c: Column[Duration]) {
+      def toPeriod: Column[Period] = Column.forNode[Period](c.toNode)
+    }
+    implicit class DurationOpt2Period(c: Column[Option[Duration]]) {
+      def toPeriod: Column[Option[Period]] = Column.forNode[Option[Period]](c.toNode)
+    }
+    implicit class Period2Duration(c: Column[Period]) {
+      def toDuration: Column[Duration] = Column.forNode[Duration](c.toNode)
+    }
+    implicit class PeriodOpt2Duration(c: Column[Option[Period]]) {
+      def toDuration: Column[Option[Duration]] = Column.forNode[Option[Duration]](c.toNode)
+    }
   }
 }
 
