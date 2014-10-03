@@ -96,8 +96,8 @@ object SlickPgBuild extends Build {
       name := "slick-pg_joda-time",
       description := "Slick extensions for PostgreSQL - joda time module",
       libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-        "joda-time" % "joda-time" % "2.3",
-        "org.joda" % "joda-convert" % "1.5"
+        "joda-time" % "joda-time" % "2.4",
+        "org.joda" % "joda-convert" % "1.7"
       )
     )
   ) dependsOn (slickPgCore)
