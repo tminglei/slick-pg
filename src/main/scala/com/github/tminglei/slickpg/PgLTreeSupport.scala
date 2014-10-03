@@ -18,33 +18,36 @@ object LTree {
  */
 trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcTypes with array.PgArrayJdbcTypes { driver: PostgresDriver =>
 
-  trait LTreeImplicits {
-    implicit val ltreeTypeMapper =
+  /// alias
+  trait LTreeImplicits extends SimpleLTreeImplicits
+
+  trait SimpleLTreeImplicits {
+    implicit val simpleLTreeTypeMapper =
       new GenericJdbcType[LTree]("ltree",
         (v) => LTree(v),
         (v) => v.toString,
         hasLiteralForm = false
       )
-    implicit val ltreeListTypeMapper =
+    implicit val simpleLTreeListTypeMapper =
       new AdvancedArrayListJdbcType[LTree]("ltree",
         fromString = utils.SimpleArrayUtils.fromString(_)(LTree.apply).orNull,
         mkString = utils.SimpleArrayUtils.mkString(_)(_.toString)
       )
 
-    implicit def ltreeColumnExtensionMethods(c: Column[LTree])(
+    implicit def simpleLTreeColumnExtensionMethods(c: Column[LTree])(
       implicit tm: JdbcType[LTree], tm1: JdbcType[List[LTree]]) = {
         new LTreeColumnExtensionMethods[LTree, LTree](c)
       }
-    implicit def ltreeOptionColumnExtensionMethods(c: Column[Option[LTree]])(
+    implicit def simpleLTreeOptionColumnExtensionMethods(c: Column[Option[LTree]])(
       implicit tm: JdbcType[LTree], tm1: JdbcType[List[LTree]]) = {
         new LTreeColumnExtensionMethods[LTree, Option[LTree]](c)
       }
 
-    implicit def ltreeListColumnExtensionMethods(c: Column[List[LTree]])(
+    implicit def simpleLTreeListColumnExtensionMethods(c: Column[List[LTree]])(
       implicit tm: JdbcType[LTree], tm1: JdbcType[List[LTree]]) = {
         new LTreeListColumnExtensionMethods[LTree, List[LTree]](c)
       }
-    implicit def ltreeListOptionColumnExtensionMethods(c: Column[Option[List[LTree]]])(
+    implicit def simpleLTreeListOptionColumnExtensionMethods(c: Column[Option[List[LTree]]])(
       implicit tm: JdbcType[LTree], tm1: JdbcType[List[LTree]]) = {
         new LTreeListColumnExtensionMethods[LTree, Option[List[LTree]]](c)
       }

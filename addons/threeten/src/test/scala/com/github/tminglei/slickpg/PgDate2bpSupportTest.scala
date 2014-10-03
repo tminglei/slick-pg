@@ -37,13 +37,13 @@ class PgDate2bpSupportTest {
   //------------------------------------------------------------------------------
 
   val testRec1 = new DatetimeBean(101L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01.101357"),
-    LocalDateTime.parse("2001-01-03T13:21:00.223571"), ZonedDateTime.parse("2001-01-03 13:21:00.102203+08", tzDateTimeFormatter),
+    LocalDateTime.parse("2001-01-03T13:21:00.223571"), ZonedDateTime.parse("2001-01-03 13:21:00.102203+08", bpTzDateTimeFormatter),
     Duration.parse("P1DT1H1M0.335701S"), Period.parse("P1Y2M3W4D"))
   val testRec2 = new DatetimeBean(102L, LocalDate.parse("2011-03-02"), LocalTime.parse("03:14:07"),
-    LocalDateTime.parse("2012-05-08T11:31:06"), ZonedDateTime.parse("2012-05-08 11:31:06-05", tzDateTimeFormatter),
+    LocalDateTime.parse("2012-05-08T11:31:06"), ZonedDateTime.parse("2012-05-08 11:31:06-05", bpTzDateTimeFormatter),
     Duration.parse("P1587D"), Period.parse("P15M7D"))
   val testRec3 = new DatetimeBean(103L, LocalDate.parse("2000-05-19"), LocalTime.parse("11:13:34"),
-    LocalDateTime.parse("2019-11-03T13:19:03"), ZonedDateTime.parse("2019-11-03 13:19:03+03", tzDateTimeFormatter),
+    LocalDateTime.parse("2019-11-03T13:19:03"), ZonedDateTime.parse("2019-11-03 13:19:03+03", bpTzDateTimeFormatter),
     Duration.parse("PT63H16M2S"), Period.parse("P3M5D"))
 
   @Test
@@ -190,7 +190,7 @@ class PgDate2bpSupportTest {
 
       val q36 = Datetimes.filter(_.id === 101L.bind).map(r => r.dateTimetz.trunc("day"))
       println(s"[threeten] 'trunc' sql = ${q36.selectStatement}")
-      assertEquals(ZonedDateTime.parse("2001-01-03 00:00:00+08", tzDateTimeFormatter), q36.first)
+      assertEquals(ZonedDateTime.parse("2001-01-03 00:00:00+08", bpTzDateTimeFormatter), q36.first)
     }
   }
 

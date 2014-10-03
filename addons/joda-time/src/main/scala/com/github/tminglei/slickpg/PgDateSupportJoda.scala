@@ -9,56 +9,59 @@ import org.postgresql.util.PGInterval
 trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import PgJodaSupportUtils._
 
-  trait DateTimeImplicits {
-    val dateFormatter = ISODateTimeFormat.date()
-    val timeFormatter = DateTimeFormat.forPattern("HH:mm:ss.SSSSSS")
-    val timeFormatter_NoFraction = DateTimeFormat.forPattern("HH:mm:ss")
-    val dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSSSSS")
-    val dateTimeFormatter_NoFraction = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
-    val tzDateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSSSSSZ")
-    val tzDateTimeFormatter_NoFraction = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ssZ")
+  /// alias
+  trait DateTimeImplicits extends JodaDateTimeImplicits
+
+  trait JodaDateTimeImplicits {
+    val jodaDateFormatter = ISODateTimeFormat.date()
+    val jodaTimeFormatter = DateTimeFormat.forPattern("HH:mm:ss.SSSSSS")
+    val jodaTimeFormatter_NoFraction = DateTimeFormat.forPattern("HH:mm:ss")
+    val jodaDateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSSSSS")
+    val jodaDateTimeFormatter_NoFraction = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
+    val jodaTzDateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSSSSSZ")
+    val jodaTzDateTimeFormatter_NoFraction = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ssZ")
 
     implicit val jodaDateTypeMapper = new GenericJdbcType[LocalDate]("date",
-      LocalDate.parse(_, dateFormatter), _.toString(dateFormatter), hasLiteralForm=false)
+      LocalDate.parse(_, jodaDateFormatter), _.toString(jodaDateFormatter), hasLiteralForm=false)
     implicit val jodaTimeTypeMapper = new GenericJdbcType[LocalTime]("time",
-      fnFromString = (s) => LocalTime.parse(s, if(s.indexOf(".") > 0 ) timeFormatter else timeFormatter_NoFraction),
-      fnToString = (v) => v.toString(timeFormatter),
+      fnFromString = (s) => LocalTime.parse(s, if(s.indexOf(".") > 0 ) jodaTimeFormatter else jodaTimeFormatter_NoFraction),
+      fnToString = (v) => v.toString(jodaTimeFormatter),
       hasLiteralForm = false)
     implicit val jodaDateTimeTypeMapper = new GenericJdbcType[LocalDateTime]("timestamp",
-      fnFromString = (s) => LocalDateTime.parse(s, if(s.indexOf(".") > 0 ) dateTimeFormatter else dateTimeFormatter_NoFraction),
-      fnToString = (v) => v.toString(dateTimeFormatter),
+      fnFromString = (s) => LocalDateTime.parse(s, if(s.indexOf(".") > 0 ) jodaDateTimeFormatter else jodaDateTimeFormatter_NoFraction),
+      fnToString = (v) => v.toString(jodaDateTimeFormatter),
       hasLiteralForm = false)
     implicit val jodaPeriodTypeMapper = new GenericJdbcType[Period]("interval",
       pgIntervalStr2jodaPeriod, hasLiteralForm=false)
-    implicit val timestampTZTypeMapper = new GenericJdbcType[DateTime]("timestamptz",
-      fnFromString = (s) => DateTime.parse(s, if(s.indexOf(".") > 0 ) tzDateTimeFormatter else tzDateTimeFormatter_NoFraction),
-      fnToString = (v) => v.toString(tzDateTimeFormatter),
+    implicit val jodaTimestampTZTypeMapper = new GenericJdbcType[DateTime]("timestamptz",
+      fnFromString = (s) => DateTime.parse(s, if(s.indexOf(".") > 0 ) jodaTzDateTimeFormatter else jodaTzDateTimeFormatter_NoFraction),
+      fnToString = (v) => v.toString(jodaTzDateTimeFormatter),
       hasLiteralForm = false)
 
     ///
-    implicit def dateColumnExtensionMethods(c: Column[LocalDate]) =
+    implicit def jodaDateColumnExtensionMethods(c: Column[LocalDate]) =
       new DateColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, LocalDate](c)
-    implicit def dateOptColumnExtensionMethods(c: Column[Option[LocalDate]]) =
+    implicit def jodaDateOptColumnExtensionMethods(c: Column[Option[LocalDate]]) =
       new DateColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Option[LocalDate]](c)
 
-    implicit def timeColumnExtensionMethods(c: Column[LocalTime]) =
+    implicit def jodaTimeColumnExtensionMethods(c: Column[LocalTime]) =
       new TimeColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, LocalTime](c)
-    implicit def timeOptColumnExtensionMethods(c: Column[Option[LocalTime]]) =
+    implicit def jodaTimeOptColumnExtensionMethods(c: Column[Option[LocalTime]]) =
       new TimeColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Option[LocalTime]](c)
 
-    implicit def timestampColumnExtensionMethods(c: Column[LocalDateTime]) =
+    implicit def jodaTimestampColumnExtensionMethods(c: Column[LocalDateTime]) =
       new TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, LocalDateTime](c)
-    implicit def timestampOptColumnExtensionMethods(c: Column[Option[LocalDateTime]]) =
+    implicit def jodaTimestampOptColumnExtensionMethods(c: Column[Option[LocalDateTime]]) =
       new TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Option[LocalDateTime]](c)
 
-    implicit def intervalColumnExtensionMethods(c: Column[Period]) =
+    implicit def jodaIntervalColumnExtensionMethods(c: Column[Period]) =
       new IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Period](c)
-    implicit def intervalOptColumnExtensionMethods(c: Column[Option[Period]]) =
+    implicit def jodaIntervalOptColumnExtensionMethods(c: Column[Option[Period]]) =
       new IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Option[Period]](c)
 
-    implicit def tzTimestampColumnExtensionMethods(c: Column[DateTime]) =
+    implicit def jodaTzTimestampColumnExtensionMethods(c: Column[DateTime]) =
       new TimestampColumnExtensionMethods[LocalDate, LocalTime, DateTime, Period, DateTime](c)
-    implicit def tzTimestampOptColumnExtensionMethods(c: Column[Option[DateTime]]) =
+    implicit def jodaTzTimestampOptColumnExtensionMethods(c: Column[Option[DateTime]]) =
       new TimestampColumnExtensionMethods[LocalDate, LocalTime, DateTime, Period, Option[DateTime]](c)
   }
 }

@@ -35,18 +35,21 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
   private def toTimestamp(str: String) = Timestamp.valueOf(str)
   private def toSQLDate(str: String) = Date.valueOf(str)
 
-  trait RangeImplicits {
-    implicit val intRangeTypeMapper = new GenericJdbcType[Range[Int]]("int4range", mkRangeFn(_.toInt))
-    implicit val longRangeTypeMapper = new GenericJdbcType[Range[Long]]("int8range", mkRangeFn(_.toLong))
-    implicit val floatRangeTypeMapper = new GenericJdbcType[Range[Float]]("numrange", mkRangeFn(_.toFloat))
-    implicit val timestampRangeTypeMapper = new GenericJdbcType[Range[Timestamp]]("tsrange", mkRangeFn(toTimestamp))
-    implicit val dateRangeTypeMapper = new GenericJdbcType[Range[Date]]("daterange", mkRangeFn(toSQLDate))
+  /// alias
+  trait RangeImplicits extends SimpleRangeImplicits
 
-    implicit def rangeColumnExtensionMethods[B0](c: Column[Range[B0]])(
+  trait SimpleRangeImplicits {
+    implicit val simpleIntRangeTypeMapper = new GenericJdbcType[Range[Int]]("int4range", mkRangeFn(_.toInt))
+    implicit val simpleLongRangeTypeMapper = new GenericJdbcType[Range[Long]]("int8range", mkRangeFn(_.toLong))
+    implicit val simpleFloatRangeTypeMapper = new GenericJdbcType[Range[Float]]("numrange", mkRangeFn(_.toFloat))
+    implicit val simpleTimestampRangeTypeMapper = new GenericJdbcType[Range[Timestamp]]("tsrange", mkRangeFn(toTimestamp))
+    implicit val simpleDateRangeTypeMapper = new GenericJdbcType[Range[Date]]("daterange", mkRangeFn(toSQLDate))
+
+    implicit def simpleRangeColumnExtensionMethods[B0](c: Column[Range[B0]])(
       implicit tm: JdbcType[B0], tm1: JdbcType[Range[B0]]) = {
         new RangeColumnExtensionMethods[Range, B0, Range[B0]](c)
       }
-    implicit def rangeOptionColumnExtensionMethods[B0](c: Column[Option[Range[B0]]])(
+    implicit def simpleRangeOptionColumnExtensionMethods[B0](c: Column[Option[Range[B0]]])(
       implicit tm: JdbcType[B0], tm1: JdbcType[Range[B0]]) = {
         new RangeColumnExtensionMethods[Range, B0, Option[Range[B0]]](c)
       }

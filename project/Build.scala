@@ -80,7 +80,7 @@ object SlickPgBuild extends Build {
       description := "Slick extensions for PostgreSQL",
       libraryDependencies := mainDependencies(scalaVersion.value)
     ) 
-  ).dependsOn (slickPgCore)
+  ).dependsOn (slickPgCore, slickPgPlayJson)
    .aggregate (slickPgCore, slickPgJoda, slickPgJson4s, slickPgJts, slickPgPlayJson, slickPgSprayJson, slickPgArgonaut, slickPgThreeten, slickPgDate2)
 
   lazy val slickPgCore = Project(id = "slick-pg_core", base = file("./core"),
