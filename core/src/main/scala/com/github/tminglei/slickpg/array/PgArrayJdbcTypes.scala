@@ -50,7 +50,12 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
   }
 
   ///-- can be used to map complex composite/nested array
-  class AdvancedArrayListJdbcType[T](sqlBaseType: String, fromString: (String => List[T]), mkString: (List[T] => String))(
+  @deprecated /* alias, added for back compatible */
+  type NestedArrayListJdbcType[T] = AdvancedArrayListJdbcType[T]
+
+  class AdvancedArrayListJdbcType[T](sqlBaseType: String,
+                                  fromString: (String => List[T]),
+                                  mkString: (List[T] => String))(
               implicit override val classTag: ClassTag[List[T]], tag: ClassTag[T])
                     extends DriverJdbcType[List[T]] {
 
