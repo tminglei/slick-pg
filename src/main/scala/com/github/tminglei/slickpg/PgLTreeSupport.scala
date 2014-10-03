@@ -30,8 +30,8 @@ trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcType
       )
     implicit val simpleLTreeListTypeMapper =
       new AdvancedArrayListJdbcType[LTree]("ltree",
-        fromString = utils.SimpleArrayUtils.fromString(_)(LTree.apply).orNull,
-        mkString = utils.SimpleArrayUtils.mkString(_)(_.toString)
+        fromString = utils.SimpleArrayUtils.fromString(LTree.apply)(_).orNull,
+        mkString = utils.SimpleArrayUtils.mkString[LTree](_.toString)(_)
       )
 
     implicit def simpleLTreeColumnExtensionMethods(c: Column[LTree])(

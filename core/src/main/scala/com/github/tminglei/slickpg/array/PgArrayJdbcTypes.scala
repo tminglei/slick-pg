@@ -46,7 +46,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
     //--
     private def mkArray(v: List[T]): java.sql.Array = new SimpleArray(sqlBaseType, v, buildArrayStr)
 
-    protected def buildArrayStr(vList: List[Any]): String = utils.SimpleArrayUtils.mkString(vList)(_.toString)
+    protected def buildArrayStr(vList: List[Any]): String = utils.SimpleArrayUtils.mkString[Any](_.toString)(vList)
   }
 
   ///-- can be used to map complex composite/nested array
