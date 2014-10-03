@@ -121,47 +121,47 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.6.3"
+libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.6.5"
 ```
 
 > If you need `joda-time` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.6.3"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.6.5"
 ```
 
 > If you need `jts` geom support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.6.3"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.6.5"
 ```
 
 > If you need `jdk8 date` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_date2" % "0.6.3"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_date2" % "0.6.5"
 ```
 
 > If you need `threeten-bp` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_threeten" % "0.6.3"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_threeten" % "0.6.5"
 ```
 
 > If you need `json4s` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.6.3"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.6.5"
 ```
 
 > If you need `play-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.6.3"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.6.5"
 ```
 
 > If you need `spray-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.6.3"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.6.5"
 ```
 
 > If you need `argonaut json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.6.3"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.6.5"
 ```
 
 
@@ -170,7 +170,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.10</artifactId>
-    <version>0.6.3</version>
+    <version>0.6.5</version>
 </dependency>
 
 <!-- append play-json/json4s/joda-time/jts/threeten/spray-json dependencies if needed -->
@@ -248,6 +248,12 @@ Details
 
 History
 ------------------------------
+v0.6.5 (3-Oct-2014):  
+1) add pg ltree support  
+2) pg search support: more operators/methods; allow to specify language  
+3) date2/threeten addons: allow `Duration`/`Period` selective binding; microseconds support  
+4) pg date/range support: allow multiple binding
+
 v0.6.3 (20-Aug-2014):  
 1) add pg inet/macaddr support
 
