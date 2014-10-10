@@ -40,7 +40,7 @@ trait MyPostgresDriver extends PostgresDriver
                           with PgSearchSupport
                           with PgPostGISSupport {
 
-  override val Implicit = new ImplicitsPlus {}
+  override lazy val Implicit = new ImplicitsPlus {}
   override val simple = new SimpleQLPlus {}
 
   //////
