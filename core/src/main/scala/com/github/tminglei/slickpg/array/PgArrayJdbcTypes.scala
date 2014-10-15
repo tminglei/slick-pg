@@ -49,10 +49,11 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
     protected def buildArrayStr(vList: List[Any]): String = utils.SimpleArrayUtils.mkString[Any](_.toString)(vList)
   }
 
-  ///-- can be used to map complex composite/nested array
-  @deprecated /* alias, added for back compatible */
+  /* alias, added for back compatible */
+  @deprecated(message = "use AdvancedArrayListJdbcType instead", since = "0.6.5")
   type NestedArrayListJdbcType[T] = AdvancedArrayListJdbcType[T]
 
+  ///-- can be used to map complex composite/nested array
   class AdvancedArrayListJdbcType[T](sqlBaseType: String,
                                   fromString: (String => List[T]),
                                   mkString: (List[T] => String))(
