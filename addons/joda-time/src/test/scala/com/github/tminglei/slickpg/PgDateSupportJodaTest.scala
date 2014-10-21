@@ -185,6 +185,19 @@ class PgDateSupportJodaTest {
       val q36 = Datetimes.filter(_.id === 101L.bind).map(r => r.datetimetz.trunc("day"))
       println(s"[joda] 'trunc' sql = ${q36.selectStatement}")
       assertEquals(DateTime.parse("2001-01-03 00:00:00.000+08", jodaTzDateTimeFormatter), q36.first)
+
+      ///update and check
+      val now = LocalDateTime.now
+      Datetimes.filter(_.id === 101L.bind).map(_.datetime).update(now)
+      assertEquals(now, Datetimes.filter(_.id === 101L.bind).map(_.datetime).first)
+
+      val now1 = DateTime.now
+      Datetimes.filter(_.id === 101L.bind).map(_.datetimetz).update(now1)
+      assertEquals(now1, Datetimes.filter(_.id === 101L.bind).map(_.datetimetz).first)
+
+      val now2 = LocalTime.now
+      Datetimes.filter(_.id === 101L.bind).map(_.time).update(now2)
+      assertEquals(now2, Datetimes.filter(_.id === 101L.bind).map(_.time).first)
     }
   }
 
