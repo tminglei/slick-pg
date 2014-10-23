@@ -17,6 +17,7 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
     implicit val simpleStrListTypeMapper = new SimpleArrayListJdbcType[String]("text")
     implicit val simpleLongListTypeMapper = new SimpleArrayListJdbcType[Long]("int8")
     implicit val simpleIntListTypeMapper = new SimpleArrayListJdbcType[Int]("int4")
+    implicit val simpleShortListTypeMapper = new SimpleArrayListJdbcType[Short]("int2")
     implicit val simpleFloatListTypeMapper = new SimpleArrayListJdbcType[Float]("float4")
     implicit val simpleDoubleListTypeMapper = new SimpleArrayListJdbcType[Double]("float8")
     implicit val simpleBoolListTypeMapper = new SimpleArrayListJdbcType[Boolean]("bool")
