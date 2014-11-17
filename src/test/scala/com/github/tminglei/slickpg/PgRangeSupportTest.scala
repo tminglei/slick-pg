@@ -8,7 +8,7 @@ import scala.util.Try
 class PgRangeSupportTest {
   import MyPostgresDriver.simple._
 
-  val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=test", driver = "org.postgresql.Driver")
+  val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=postgres", driver = "org.postgresql.Driver")
 
   val tsFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
   def ts(str: String) = new Timestamp(tsFormatter.parse(str).getTime)
