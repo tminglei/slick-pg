@@ -1,7 +1,7 @@
 package com.github.tminglei.slickpg
 package range
 
-import scala.slick.ast.Library.SqlOperator
+import scala.slick.ast.Library.{SqlFunction, SqlOperator}
 import scala.slick.lifted.{FunctionSymbolExtensionMethods, ExtensionMethods, Column}
 import scala.slick.driver.{JdbcTypesComponent, PostgresDriver}
 import scala.slick.ast.Library
@@ -24,6 +24,9 @@ trait PgRangeExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     val Union = new SqlOperator("+")
     val Intersection = new SqlOperator("*")
     val Subtraction = new SqlOperator("-")
+
+    val Lower = new SqlFunction("lower")
+    val Upper = new SqlFunction("upper")
   }
 
   class RangeColumnExtensionMethods[RANGEType[_], B0, P1](val c: Column[P1])(
@@ -69,5 +72,8 @@ trait PgRangeExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     def - [P2, R](e: Column[P2])(implicit om: o#arg[RANGEType[B0], P2]#to[RANGEType[B0], R]) = {
         om.column(RangeLibrary.Subtraction, n, e.toNode)
       }
+
+    def lower[R](implicit om: o#to[B0, R]) = om.column(RangeLibrary.Lower, n)
+    def upper[R](implicit om: o#to[B0, R]) = om.column(RangeLibrary.Upper, n)
   }
 }
