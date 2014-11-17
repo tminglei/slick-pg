@@ -8,7 +8,7 @@ import scala.util.Try
 class PgRangeSupportTest {
   import MyPostgresDriver.simple._
 
-  val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=postgres", driver = "org.postgresql.Driver")
+  val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=test", driver = "org.postgresql.Driver")
 
   val tsFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
   def ts(str: String) = new Timestamp(tsFormatter.parse(str).getTime)
@@ -94,6 +94,14 @@ class PgRangeSupportTest {
       val q10 = RangeTests.filter(_.id === 41L).map(t => t.intRange - Range(3, 6).bind)
       println(s"[range] '-' sql = ${q10.selectStatement}")
       assertEquals(Range(1, 3), q10.first)
+
+      val q12 = RangeTests.filter(_.id === 41L).map(t => t.intRange.lower)
+      println(s"[range] 'lower' sql = ${q12.selectStatement}")
+      assertEquals(1, q12.first)
+
+      val q13 = RangeTests.filter(_.id === 41L).map(t => t.intRange.upper)
+      println(s"[range] 'upper' sql = ${q13.selectStatement}")
+      assertEquals(5, q13.first)
     }
   }
 
