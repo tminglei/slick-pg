@@ -6,12 +6,12 @@ import scala.slick.lifted.Column
 
 /** simple inet string wrapper */
 case class InetString(value: String) {
-  lazy val IPv6 = value.contains(":")
+  lazy val isIPv6 = value.contains(":")
   lazy val address = value.split("/")(0)
   lazy val masklen: Int = {
     val parts = value.split("/")
     if (parts.length > 1) parts(1).toInt
-    else if (IPv6) 128
+    else if (isIPv6) 128
     else 32
   }
 }
