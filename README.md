@@ -151,23 +151,23 @@ Here's the related technical details:
 ####Built in supported type/mappers:
 |          scala Type                 |        pg Type        |    dev 3rd-party library dependency    |
 | ----------------------------------- | --------------------- | -------------------------------------- |
-| List[T]                             | ARRAY                 |        no 3rd party dependency         |
-| `sql` Date<br> Time<br> Timestamp<br> slickpg Interval<br> Calendar | date<br> time<br> timestamp<br> interval<br> timestamptz |    no 3rd party dependency     |
+| List[T]                             | ARRAY                 |        no 3rd party dependencies       |
+| `sql` Date<br> Time<br> Timestamp<br> slickpg Interval<br> Calendar | date<br> time<br> timestamp<br> interval<br> timestamptz |    no 3rd party dependencies     |
 | `joda` LocalDate<br> LocalTime<br> LocalDateTime<br> Period<br> DateTime  | date<br> time<br> timestamp<br> interval<br> timestamptz |    `joda-time` v2.4 / `joda-convert` v1.7     |
-| `java.time` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz |    no 3rd party dependency     |
+| `java.time` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz |    no 3rd party dependencies <br> but require java 8    |
 | `threeten.bp` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz |    `threetenbp` v1.0      |
-| `scala` Enumeration                 | enum                  |        no 3rd party dependency         |
-| `slickpg` Range[T]                  | range                 |        no 3rd party dependency         |
-| `slickpg` LTree                     | ltree                 |        no 3rd party dependency         |
-| Map[String,String]                  | hstore                |        no 3rd party dependency         |
-| `slickpg` InetString                | inet                  |        no 3rd party dependency         |
-| `slickpg` MacAddrString             | macaddr               |        no 3rd party dependency         |
-| `slickpg` JsonString                | json                  |        no 3rd party dependency         |
+| `scala` Enumeration                 | enum                  |        no 3rd party dependencies       |
+| `slickpg` Range[T]                  | range                 |        no 3rd party dependencies       |
+| `slickpg` LTree                     | ltree                 |        no 3rd party dependencies       |
+| Map[String,String]                  | hstore                |        no 3rd party dependencies       |
+| `slickpg` InetString                | inet                  |        no 3rd party dependencies       |
+| `slickpg` MacAddrString             | macaddr               |        no 3rd party dependencies       |
+| `slickpg` JsonString                | json                  |        no 3rd party dependencies       |
 | `json4s` JValue                     | json                  |        `json4s` v3.2.10                |
 | `play-json` JsValue                 | json                  |        `play-json` v2.3.0              |
 | `spray-json` JsValue                | json                  |        `spray-json` v1.3.1             |
 | `argonaut json` Json                | json                  |        `argonaut` v6.0.4               |
-| (TsQuery+TsVector)                  | `text` search         |        no 3rd party dependency         |
+| (TsQuery+TsVector)                  | `text` search         |        no 3rd party dependencies       |
 | `jts` Geometry                      | `postgis` geometry    |        `jts` v1.13                     |
 
 
