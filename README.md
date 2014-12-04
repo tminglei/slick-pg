@@ -121,47 +121,7 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.6.5.3"
-```
-
-> If you need `joda-time` support, pls append dependency:
-```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.6.5.3"
-```
-
-> If you need `jts` geom support, pls append dependency:
-```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.6.5.3"
-```
-
-> If you need `jdk8 date` support, pls append dependency:
-```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_date2" % "0.6.5.3"
-```
-
-> If you need `threeten-bp` support, pls append dependency:
-```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_threeten" % "0.6.5.3"
-```
-
-> If you need `json4s` support, pls append dependency:
-```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.6.5.3"
-```
-
-> If you need `play-json` support, pls append dependency:
-```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.6.5.3"
-```
-
-> If you need `spray-json` support, pls append dependency:
-```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.6.5.3"
-```
-
-> If you need `argonaut json` support, pls append dependency:
-```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.6.5.3"
+libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.7.0"
 ```
 
 
@@ -170,11 +130,13 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.10</artifactId>
-    <version>0.6.5.3</version>
+    <version>0.7.0</version>
 </dependency>
-
-<!-- append play-json/json4s/joda-time/jts/threeten/spray-json dependencies if needed -->
 ```
+
+_To use add-on supports, like `joda-time`, `json4s`, etc. pls also add related dependencies to your project. Pls check [the table](https://github.com/tminglei/slick-pg/blob/master/README.md#built-in-supported-typemappers) for compatibility._
+
+
 
 Configurable type/mappers
 -------------------------
@@ -187,26 +149,26 @@ Here's the related technical details:
 
 
 ####Built in supported type/mappers:
-|          scala Type                 |        pg Type        |
-| ----------------------------------- | --------------------- |
-| List[T]                             | ARRAY                 |
-| `sql` Date<br> Time<br> Timestamp<br> slickpg Interval<br> Calendar | date<br> time<br> timestamp<br> interval<br> timestamptz |
-| `joda` LocalDate<br> LocalTime<br> LocalDateTime<br> Period<br> DateTime  | date<br> time<br> timestamp<br> interval<br> timestamptz |
-| `java.time` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz |
-| `threeten.bp` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz |
-| `scala` Enumeration                 | enum                  |
-| `slickpg` Range[T]                  | range                 |
-| `slickpg` LTree                     | ltree                 |
-| Map[String,String]                  | hstore                |
-| `slickpg` InetString                | inet                  |
-| `slickpg` MacAddrString             | macaddr               |
-| `slickpg` JsonString                | json                  |
-| `json4s` JValue                     | json                  |
-| `play-json` JsValue                 | json                  |
-| `spray-json` JsValue                | json                  |
-| `argonaut json` Json                | json                  |
-| (TsQuery+TsVector)                  | `text` search         |
-| `jts` Geometry                      | `postgis` geometry    |
+|          scala Type                 |        pg Type        |    dev 3rd-party library dependency    |
+| ----------------------------------- | --------------------- | -------------------------------------- |
+| List[T]                             | ARRAY                 |        no 3rd party dependency         |
+| `sql` Date<br> Time<br> Timestamp<br> slickpg Interval<br> Calendar | date<br> time<br> timestamp<br> interval<br> timestamptz |    no 3rd party dependency     |
+| `joda` LocalDate<br> LocalTime<br> LocalDateTime<br> Period<br> DateTime  | date<br> time<br> timestamp<br> interval<br> timestamptz |    `joda-time` v2.4 / `joda-convert` v1.7     |
+| `java.time` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz |    no 3rd party dependency     |
+| `threeten.bp` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz |    `threetenbp` v1.0      |
+| `scala` Enumeration                 | enum                  |        no 3rd party dependency         |
+| `slickpg` Range[T]                  | range                 |        no 3rd party dependency         |
+| `slickpg` LTree                     | ltree                 |        no 3rd party dependency         |
+| Map[String,String]                  | hstore                |        no 3rd party dependency         |
+| `slickpg` InetString                | inet                  |        no 3rd party dependency         |
+| `slickpg` MacAddrString             | macaddr               |        no 3rd party dependency         |
+| `slickpg` JsonString                | json                  |        no 3rd party dependency         |
+| `json4s` JValue                     | json                  |        `json4s` v3.2.10                |
+| `play-json` JsValue                 | json                  |        `play-json` v2.3.0              |
+| `spray-json` JsValue                | json                  |        `spray-json` v1.3.1             |
+| `argonaut json` Json                | json                  |        `argonaut` v6.0.4               |
+| (TsQuery+TsVector)                  | `text` search         |        no 3rd party dependency         |
+| `jts` Geometry                      | `postgis` geometry    |        `jts` v1.13                     |
 
 
 Build instructions
@@ -248,6 +210,9 @@ Details
 
 History
 ------------------------------
+v0.7.0 (4-Dec-2014):  
+1) merge add-on support codes into `slick-pg` main jar, and declare these 3rd dependencies optional
+
 v0.6.5 (3-Oct-2014):  
 1) add pg ltree support  
 2) pg search support: more operators/methods; allow to specify language  
