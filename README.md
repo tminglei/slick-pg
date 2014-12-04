@@ -134,7 +134,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 </dependency>
 ```
 
-_To use add-on supports, like `joda-time`, `json4s`, etc. pls also add related dependencies to your project. Pls check [the table](https://github.com/tminglei/slick-pg/blob/master/README.md#built-in-supported-typemappers) for compatibility._
+_To use add-on supports, like `joda-time`, `json4s`, etc. pls also add related dependencies to your project. Pls check [the table](https://github.com/tminglei/slick-pg#built-in-supported-typemappers) for compatibility._
 
 
 
