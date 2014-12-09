@@ -2,7 +2,6 @@ package com.github.tminglei.slickpg
 package array
 
 import scala.reflect.ClassTag
-import java.util.{Map => JMap}
 import scala.slick.driver.{PostgresDriver, JdbcTypesComponent}
 import java.sql.{ResultSet, PreparedStatement}
 
@@ -44,7 +43,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
       }
 
     //--
-    private def mkArray(v: List[T]): java.sql.Array = new SimpleArray(sqlBaseType, v, buildArrayStr)
+    private def mkArray(v: List[T]): java.sql.Array = utils.SimpleArrayUtils.mkArray(buildArrayStr)(sqlBaseType, v)
 
     protected def buildArrayStr(vList: List[Any]): String = utils.SimpleArrayUtils.mkString[Any](_.toString)(vList)
   }
@@ -78,34 +77,6 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
     override def valueToSQLLiteral(vList: List[T]) = if(vList eq null) "NULL" else s"'${mkString(vList)}'"
 
     //--
-    private def mkArray(v: List[T]): java.sql.Array = new SimpleArray(sqlBaseType, v, mkString)
-  }
-
-  /** only used to transfer array data into driver/preparedStatement */
-  private class SimpleArray[T : ClassTag](sqlBaseTypeName: String, vList: List[T], mkString: (List[T] => String)) extends java.sql.Array {
-
-    def getBaseTypeName = sqlBaseTypeName.replaceFirst("^\"", "").replaceFirst("\"$", "")
-
-    def getBaseType = ???
-
-    def getArray = vList.toArray
-
-    def getArray(map: JMap[String, Class[_]]) = ???
-
-    def getArray(index: Long, count: Int) = ???
-
-    def getArray(index: Long, count: Int, map: JMap[String, Class[_]]) = ???
-
-    def getResultSet = ???
-
-    def getResultSet(map: JMap[String, Class[_]]) = ???
-
-    def getResultSet(index: Long, count: Int) = ???
-
-    def getResultSet(index: Long, count: Int, map: JMap[String, Class[_]]) = ???
-
-    def free() = { /* nothing to do */ }
-
-    override def toString = mkString(vList)
+    private def mkArray(v: List[T]): java.sql.Array = utils.SimpleArrayUtils.mkArray(mkString)(sqlBaseType, v)
   }
 }

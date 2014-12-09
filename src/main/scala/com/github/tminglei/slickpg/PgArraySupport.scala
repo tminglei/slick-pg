@@ -4,7 +4,7 @@ import java.util.UUID
 import scala.slick.lifted.Column
 import scala.slick.driver.PostgresDriver
 import java.sql.{Timestamp, Time, Date}
-import scala.slick.jdbc.JdbcType
+import scala.slick.jdbc.{PositionedResult, JdbcType}
 
 trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes { driver: PostgresDriver =>
 
@@ -34,5 +34,14 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
       implicit tm: JdbcType[B1], tm1: JdbcType[List[B1]]) = {
         new ArrayColumnExtensionMethods[B1, Option[List[B1]]](c)
       }
+
+    /// for static sql usage
+    implicit class PgArrayPositionedResult(val r: PositionedResult) {
+      // uuid array
+      def nextUUIDArray() = ???
+      def nextUUIDArrayOption() = ???
+      def updateUUIDArray(v: List[UUID]) = ???
+      def updateUUIDArrayOption(v: Option[List[UUID]]) = ???
+    }
   }
 }
