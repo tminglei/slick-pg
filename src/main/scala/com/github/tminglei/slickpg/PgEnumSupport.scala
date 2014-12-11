@@ -1,6 +1,5 @@
 package com.github.tminglei.slickpg
 
-import org.postgresql.util.PGobject
 import scala.slick.jdbc.JdbcType
 import scala.slick.driver.PostgresDriver
 import scala.slick.lifted.Column
@@ -55,12 +54,8 @@ trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes {
       override def valueToSQLLiteral(v: enumObject.Value) = if (v eq null) "NULL" else s"'$v'"
 
       ///
-      private def mkPgObject(v: enumObject.Value) = {
-        val obj = new PGobject
-        obj.setType(if (quoteName) sqlEnumTypeName else sqlEnumTypeName.toLowerCase)
-        obj.setValue(if (v eq null) null else v.toString)
-        obj
-      }
+      private def mkPgObject(v: enumObject.Value) =
+        utils.mkPGobject( (if (quoteName) sqlEnumTypeName else sqlEnumTypeName.toLowerCase), (if (v eq null) null else v.toString) )
     }
   }
 }
