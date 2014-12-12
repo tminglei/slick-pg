@@ -3,7 +3,7 @@ package com.github.tminglei.slickpg
 import scala.slick.driver.PostgresDriver
 import scala.slick.lifted.Column
 import java.sql.{Date, Timestamp}
-import scala.slick.jdbc.JdbcType
+import scala.slick.jdbc.{PositionedParameters, PositionedResult, JdbcType}
 
 // edge type definitions
 sealed trait EdgeType
@@ -53,6 +53,41 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
       implicit tm: JdbcType[B0], tm1: JdbcType[Range[B0]]) = {
         new RangeColumnExtensionMethods[Range, B0, Option[Range[B0]]](c)
       }
+  }
+
+  trait SimpleRangePlainImplicits {
+    implicit class PgRangePositionedResult(r: PositionedResult) {
+      def nextIntRange() = nextIntRangeOption().orNull
+      def nextIntRangeOption() = r.nextStringOption().map(mkRangeFn(_.toInt))
+      def nextLongRange() = nextLongRangeOption().orNull
+      def nextLongRangeOption() = r.nextStringOption().map(mkRangeFn(_.toLong))
+      def nextFloatRange() = nextFloatRangeOption().orNull
+      def nextFloatRangeOption() = r.nextStringOption().map(mkRangeFn(_.toFloat))
+      def nextTimestampRange() = nextTimestampRangeOption().orNull
+      def nextTimestampRangeOption() = r.nextStringOption().map(mkRangeFn(toTimestamp))
+      def nextDateRange() = nextDateRangeOption().orNull
+      def nextDateRangeOption() = r.nextStringOption().map(toSQLDate)
+    }
+    implicit class PgRangePositionedParameters(p: PositionedParameters) {
+      def setIntRange(v: Range[Int]) = setIntRangeOption(Option(v))
+      def setIntRangeOption(v: Option[Range[Int]]) = setRange[Int]("int4range", v)
+      def setLongRange(v: Range[Long]) = setLongRangeOption(Option(v))
+      def setLongRangeOption(v: Option[Range[Long]]) = setRange[Long]("int8range", v)
+      def setFloatRange(v: Range[Float]) = setFloatRangeOption(Option(v))
+      def setFloatRangeOption(v: Option[Range[Float]]) = setRange[Float]("numrange", v)
+      def setTimestampRange(v: Range[Timestamp]) = setTimestampRangeOption(Option(v))
+      def setTimestampRangeOption(v: Option[Range[Timestamp]]) = setRange[Timestamp]("tsrange", v)
+      def setDateRange(v: Range[Date]) = setDateRangeOption(Option(v))
+      def setDateRangeOption(v: Option[Range[Date]]) = setRange[Date]("daterange", v)
+      ///
+      private def setRange[T](typeName: String, v: Option[Range[T]]) = {
+        p.pos += 1
+        v match {
+          case Some(v) => p.ps.setObject(p.pos, utils.mkPGobject(typeName, v.toString))
+          case None    => p.ps.setNull(p.pos, java.sql.Types.OTHER)
+        }
+      }
+    }
   }
 }
 

@@ -1,7 +1,7 @@
 package com.github.tminglei.slickpg
 
 import scala.slick.driver.PostgresDriver
-import scala.slick.jdbc.JdbcType
+import scala.slick.jdbc.{PositionedParameters, PositionedResult, JdbcType}
 import scala.slick.lifted.Column
 
 /** simple ltree wrapper */
@@ -51,5 +51,37 @@ trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcType
       implicit tm: JdbcType[LTree], tm1: JdbcType[List[LTree]]) = {
         new LTreeListColumnExtensionMethods[LTree, Option[List[LTree]]](c)
       }
+  }
+
+  trait SimpleLTreePlainImplicits {
+    import utils.SimpleArrayUtils._
+
+    implicit class PgLTreePositionedResult(r: PositionedResult) {
+      def nextLTree() = nextLTreeOption().orNull
+      def nextLTreeOption() = r.nextStringOption().map(LTree.apply)
+      def nextLTreeArray() = nextLTreeArrayOption().getOrElse(Nil)
+      def nextLTreeArrayOption() = {
+        val value = r.rs.getString(r.skip.currentPos)
+        if (r.wasNull) None else Some(fromString(LTree.apply)(value))
+      }
+    }
+    implicit class PgLTreePositionedParameters(p: PositionedParameters) {
+      def setLTree(v: LTree) = setLTreeOption(Option(v))
+      def setLTreeOption(v: Option[LTree]) = {
+        p.pos += 1
+        v match {
+          case Some(v) => p.ps.setObject(p.pos, utils.mkPGobject("ltree", v.toString))
+          case None    => p.ps.setNull(p.pos, java.sql.Types.OTHER)
+        }
+      }
+      def setLTreeArray(v: List[LTree]) = setLTreeArrayOption(Option(v))
+      def setLTreeArrayOption(v: Option[List[LTree]]) = {
+        p.pos += 1
+        v match {
+          case Some(v) => p.ps.setArray(p.pos, mkArray(mkString[LTree](_.toString))("ltree", v))
+          case None    => p.ps.setNull(p.pos, java.sql.Types.ARRAY)
+        }
+      }
+    }
   }
 }

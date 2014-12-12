@@ -6,7 +6,7 @@ import scala.slick.driver.PostgresDriver
 import java.time._
 import java.time.format.{DateTimeFormatterBuilder, DateTimeFormatter}
 import org.postgresql.util.PGInterval
-import scala.slick.jdbc.JdbcType
+import scala.slick.jdbc.{PositionedParameters, PositionedResult, JdbcType}
 import scala.slick.lifted.Column
 
 trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
@@ -19,21 +19,21 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
   trait Date2DateTimeImplicitsDuration extends BaseDateTimeImplicits[Duration]
   trait Date2DateTimeImplicitsPeriod extends BaseDateTimeImplicits[Period]
 
-  trait BaseDateTimeImplicits[INTERVAL] {
+  trait BaseDateTimeFormatters {
     val date2DateFormatter = DateTimeFormatter.ISO_LOCAL_DATE
     val date2TimeFormatter = DateTimeFormatter.ISO_LOCAL_TIME
     val date2DateTimeFormatter =
       new DateTimeFormatterBuilder()
         .append(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         .optionalStart()
-          .appendFraction(ChronoField.NANO_OF_SECOND,0,6,true)
+        .appendFraction(ChronoField.NANO_OF_SECOND,0,6,true)
         .optionalEnd()
         .toFormatter()
     val date2TzTimeFormatter =
       new DateTimeFormatterBuilder()
         .append(DateTimeFormatter.ofPattern("HH:mm:ss"))
         .optionalStart()
-          .appendFraction(ChronoField.NANO_OF_SECOND,0,6,true)
+        .appendFraction(ChronoField.NANO_OF_SECOND,0,6,true)
         .optionalEnd()
         .appendOffset("+HH:mm","+00")
         .toFormatter()
@@ -41,11 +41,13 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
       new DateTimeFormatterBuilder()
         .append(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         .optionalStart()
-          .appendFraction(ChronoField.NANO_OF_SECOND,0,6,true)
+        .appendFraction(ChronoField.NANO_OF_SECOND,0,6,true)
         .optionalEnd()
         .appendOffset("+HH:mm","+00")
         .toFormatter()
+  }
 
+  trait BaseDateTimeImplicits[INTERVAL] extends BaseDateTimeFormatters {
     implicit val date2DateTypeMapper = new GenericJdbcType[LocalDate]("date",
       LocalDate.parse(_, date2DateFormatter), _.format(date2DateFormatter), hasLiteralForm=false)
     implicit val date2TimeTypeMapper = new GenericJdbcType[LocalTime]("time",
@@ -114,6 +116,56 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
     }
     implicit class Date2PeriodOpt2Duration(c: Column[Option[Period]]) {
       def toDuration: Column[Option[Duration]] = Column.forNode[Option[Duration]](c.toNode)
+    }
+  }
+
+  trait Date2DateTimeImplicits extends BaseDateTimeFormatters {
+    import java.sql.Types
+
+    implicit class PgDate2TimePositionedResult(r: PositionedResult) {
+      def nextLocalDate() = nextLocalDateOption().orNull
+      def nextLocalDateOption() = r.nextStringOption().map(LocalDate.parse(_, date2DateFormatter))
+      def nextLocalTime() = nextLocalTimeOption().orNull
+      def nextLocalTimeOption() = r.nextStringOption().map(LocalTime.parse(_, date2TimeFormatter))
+      def nextLocalDateTime() = nextLocalDateTimeOption().orNull
+      def nextLocalDateTimeOption() = r.nextStringOption().map(LocalDateTime.parse(_, date2DateTimeFormatter))
+      def nextOffsetTime() = nextOffsetTimeOption().orNull
+      def nextOffsetTimeOption() = r.nextStringOption().map(OffsetTime.parse(_, date2TzTimeFormatter))
+      def nextOffsetDateTime() = nextOffsetDateTimeOption().orNull
+      def nextOffsetDateTimeOption() = r.nextStringOption().map(OffsetDateTime.parse(_, date2TzDateTimeFormatter))
+      def nextZonedDateTime() = nextZonedDateTimeOption().orNull
+      def nextZonedDateTimeOption() = r.nextStringOption().map(ZonedDateTime.parse(_, date2TzDateTimeFormatter))
+      def nextPeriod() = nextPeriodOption().orNull
+      def nextPeriodOption() = r.nextStringOption().map(pgIntervalStr2Period)
+      def nextDuration() = nextDurationOption().orNull
+      def nextDurationOption() = r.nextStringOption().map(pgIntervalStr2Duration)
+    }
+
+    implicit class PgDate2PositionedParameters(p: PositionedParameters) {
+      def setLocalDate(v: LocalDate) = setLocalDateOption(Option(v))
+      def setLocalDateOption(v: Option[LocalDate]) = setDateTimeInternal(Types.OTHER, "date", v.map(_.format(date2DateFormatter)))
+      def setLocalTime(v: LocalTime) = setLocalTimeOption(Option(v))
+      def setLocalTimeOption(v: Option[LocalTime]) = setDateTimeInternal(Types.OTHER, "time", v.map(_.format(date2TimeFormatter)))
+      def setLocalDateTime(v: LocalDateTime) = setLocalDateTimeOption(Option(v))
+      def setLocalDateTimeOption(v: Option[LocalDateTime]) = setDateTimeInternal(Types.OTHER, "timestamp", v.map(_.format(date2DateTimeFormatter)))
+      def setOffsetTime(v: OffsetTime) = setOffsetTimeOption(Option(v))
+      def setOffsetTimeOption(v: Option[OffsetTime]) = setDateTimeInternal(Types.OTHER, "timetz", v.map(_.format(date2TzTimeFormatter)))
+      def setOffsetDateTime(v: OffsetDateTime) = setOffsetDateTimeOption(Option(v))
+      def setOffsetDateTimeOption(v: Option[OffsetDateTime]) = setDateTimeInternal(Types.OTHER, "timestamptz", v.map(_.format(date2TzDateTimeFormatter)))
+      def setZonedDateTime(v: ZonedDateTime) = setZonedDateTimeOption(Option(v))
+      def setZonedDateTimeOption(v: Option[ZonedDateTime]) = setDateTimeInternal(Types.OTHER, "timestamptz", v.map(_.format(date2TzDateTimeFormatter)))
+      def setPeriod(v: Period) = setPeriodOption(Option(v))
+      def setPeriodOption(v: Option[Period]) = setDateTimeInternal(Types.OTHER, "interval", v.map(_.toString))
+      def setDuration(v: Duration) = setDurationOption(Option(v))
+      def setDurationOption(v: Option[Duration]) = setDateTimeInternal(Types.OTHER, "interval", v.map(_.toString))
+      ///
+      private def setDateTimeInternal(sqlType: Int, typeName: String, v: => Option[String]) = {
+        p.pos += 1
+        v match {
+          case Some(v) => p.ps.setObject(p.pos, utils.mkPGobject(typeName, v))
+          case None    => p.ps.setNull(p.pos, sqlType)
+        }
+      }
     }
   }
 }

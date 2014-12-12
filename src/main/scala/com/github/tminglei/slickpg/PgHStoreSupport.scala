@@ -32,7 +32,7 @@ trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcT
 
   /// static sql support, NOTE: no extension methods available for static sql usage
   trait SimpleHStorePlainImplicits {
-    implicit class PgHStorePositionedResult(val r: PositionedResult) {
+    implicit class PgHStorePositionedResult(r: PositionedResult) {
       def nextHStore() = nextHStoreOption().getOrElse(Map.empty)
       def nextHStoreOption() = r.nextStringOption().map { v =>
         WrapAsScala.mapAsScalaMap(HStoreConverter.fromString(v).asInstanceOf[java.util.Map[String, String]]).toMap

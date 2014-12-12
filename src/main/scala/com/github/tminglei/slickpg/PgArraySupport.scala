@@ -38,7 +38,7 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
 
   /// static sql support, NOTE: no extension methods available for static sql usage
   trait SimpleArrayPlainImplicits {
-    implicit class PgArrayPositionedResult(val r: PositionedResult) {
+    implicit class PgArrayPositionedResult(r: PositionedResult) {
       // uuid array
       def nextUUIDArray() = nextArray[UUID].getOrElse(Nil)
       def nextUUIDArrayOption() = nextArray[UUID]
