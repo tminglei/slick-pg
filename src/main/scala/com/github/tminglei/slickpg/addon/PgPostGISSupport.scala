@@ -2,6 +2,7 @@ package com.github.tminglei.slickpg
 
 import scala.slick.driver.PostgresDriver
 import com.vividsolutions.jts.geom._
+import scala.slick.jdbc.{PositionedParameters, PositionedResult}
 import scala.slick.lifted.Column
 import scala.reflect.ClassTag
 import com.vividsolutions.jts.io.{WKBReader, WKBWriter, WKTReader, WKTWriter}
@@ -29,6 +30,23 @@ trait PgPostGISSupport extends geom.PgPostGISExtensions { driver: PostgresDriver
     ///
     implicit def geometryColumnExtensionMethods[G1 <: Geometry](c: Column[G1]) = new GeometryColumnExtensionMethods[G1, G1](c)
     implicit def geometryOptionColumnExtensionMethods[G1 <: Geometry](c: Column[Option[G1]]) = new GeometryColumnExtensionMethods[G1, Option[G1]](c)
+  }
+
+  trait PostGISPlainImplicits {
+    import PgPostGISSupportUtils._
+
+    implicit class PostGISPositionedResult(r: PositionedResult) {
+      def nextGeometry[T <: Geometry]() = nextGeometryOption().orNull
+      def nextGeometryOption[T <: Geometry]() = r.nextStringOption().map(fromLiteral[T])
+    }
+
+    implicit class PostGISPositionedParameters(p: PositionedParameters) {
+      def setGeometry[T <: Geometry](v: T) = setGeometryOption(Option(v))
+      def setGeometryOption[T <: Geometry](v: Option[T]) = v match {
+        case Some(v) => p.setBytes(toBytes(v))
+        case None    => p.setNull(java.sql.Types.OTHER)
+      }
+    }
   }
 
   ////// geometry jdbc type

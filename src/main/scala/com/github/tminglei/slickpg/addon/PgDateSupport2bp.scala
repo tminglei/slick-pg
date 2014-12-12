@@ -6,7 +6,7 @@ import scala.slick.driver.PostgresDriver
 import org.threeten.bp._
 import org.threeten.bp.format.{DateTimeFormatterBuilder, DateTimeFormatter}
 import org.postgresql.util.PGInterval
-import scala.slick.jdbc.JdbcType
+import scala.slick.jdbc.{PositionedParameters, PositionedResult, JdbcType}
 import scala.slick.lifted.Column
 
 trait PgDateSupport2bp extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
@@ -19,21 +19,21 @@ trait PgDateSupport2bp extends date.PgDateExtensions with utils.PgCommonJdbcType
   trait BpDateTimeImplicitsDuration extends BaseDateTimeImplicits[Duration]
   trait BpDateTimeImplicitsPeriod extends BaseDateTimeImplicits[Period]
 
-  trait BaseDateTimeImplicits[INTERVAL] {
+  trait BaseDateTimeFormatters {
     val bpDateFormatter = DateTimeFormatter.ISO_LOCAL_DATE
     val bpTimeFormatter = DateTimeFormatter.ISO_LOCAL_TIME
     val bpDateTimeFormatter =
       new DateTimeFormatterBuilder()
         .append(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         .optionalStart()
-          .appendFraction(ChronoField.NANO_OF_SECOND,0,6,true)
+        .appendFraction(ChronoField.NANO_OF_SECOND,0,6,true)
         .optionalEnd()
         .toFormatter()
     val bpTzTimeFormatter =
       new DateTimeFormatterBuilder()
         .append(DateTimeFormatter.ofPattern("HH:mm:ss"))
         .optionalStart()
-          .appendFraction(ChronoField.NANO_OF_SECOND,0,6,true)
+        .appendFraction(ChronoField.NANO_OF_SECOND,0,6,true)
         .optionalEnd()
         .appendOffset("+HH:mm","+00")
         .toFormatter()
@@ -41,11 +41,13 @@ trait PgDateSupport2bp extends date.PgDateExtensions with utils.PgCommonJdbcType
       new DateTimeFormatterBuilder()
         .append(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         .optionalStart()
-          .appendFraction(ChronoField.NANO_OF_SECOND,0,6,true)
+        .appendFraction(ChronoField.NANO_OF_SECOND,0,6,true)
         .optionalEnd()
         .appendOffset("+HH:mm","+00")
         .toFormatter()
+  }
 
+  trait BaseDateTimeImplicits[INTERVAL] extends BaseDateTimeFormatters {
     implicit val bpDateTypeMapper = new GenericJdbcType[LocalDate]("date",
       LocalDate.parse(_, bpDateFormatter), _.format(bpDateFormatter), hasLiteralForm=false)
     implicit val bpTimeTypeMapper = new GenericJdbcType[LocalTime]("time",
@@ -114,6 +116,56 @@ trait PgDateSupport2bp extends date.PgDateExtensions with utils.PgCommonJdbcType
     }
     implicit class BpPeriodOpt2Duration(c: Column[Option[Period]]) {
       def toDuration: Column[Option[Duration]] = Column.forNode[Option[Duration]](c.toNode)
+    }
+  }
+
+  trait BaseDateTimePlainImplicits extends BaseDateTimeFormatters {
+    import java.sql.Types
+
+    implicit class PgDate2TimePositionedResult(r: PositionedResult) {
+      def nextLocalDate() = nextLocalDateOption().orNull
+      def nextLocalDateOption() = r.nextStringOption().map(LocalDate.parse(_, bpDateFormatter))
+      def nextLocalTime() = nextLocalTimeOption().orNull
+      def nextLocalTimeOption() = r.nextStringOption().map(LocalTime.parse(_, bpTimeFormatter))
+      def nextLocalDateTime() = nextLocalDateTimeOption().orNull
+      def nextLocalDateTimeOption() = r.nextStringOption().map(LocalDateTime.parse(_, bpDateTimeFormatter))
+      def nextOffsetTime() = nextOffsetTimeOption().orNull
+      def nextOffsetTimeOption() = r.nextStringOption().map(OffsetTime.parse(_, bpTzTimeFormatter))
+      def nextOffsetDateTime() = nextOffsetDateTimeOption().orNull
+      def nextOffsetDateTimeOption() = r.nextStringOption().map(OffsetDateTime.parse(_, bpTzDateTimeFormatter))
+      def nextZonedDateTime() = nextZonedDateTimeOption().orNull
+      def nextZonedDateTimeOption() = r.nextStringOption().map(ZonedDateTime.parse(_, bpTzDateTimeFormatter))
+      def nextPeriod() = nextPeriodOption().orNull
+      def nextPeriodOption() = r.nextStringOption().map(pgIntervalStr2Period)
+      def nextDuration() = nextDurationOption().orNull
+      def nextDurationOption() = r.nextStringOption().map(pgIntervalStr2Duration)
+    }
+
+    implicit class PgDate2PositionedParameters(p: PositionedParameters) {
+      def setLocalDate(v: LocalDate) = setLocalDateOption(Option(v))
+      def setLocalDateOption(v: Option[LocalDate]) = setDateTimeInternal(Types.OTHER, "date", v.map(_.format(bpDateFormatter)))
+      def setLocalTime(v: LocalTime) = setLocalTimeOption(Option(v))
+      def setLocalTimeOption(v: Option[LocalTime]) = setDateTimeInternal(Types.OTHER, "time", v.map(_.format(bpTimeFormatter)))
+      def setLocalDateTime(v: LocalDateTime) = setLocalDateTimeOption(Option(v))
+      def setLocalDateTimeOption(v: Option[LocalDateTime]) = setDateTimeInternal(Types.OTHER, "timestamp", v.map(_.format(bpDateTimeFormatter)))
+      def setOffsetTime(v: OffsetTime) = setOffsetTimeOption(Option(v))
+      def setOffsetTimeOption(v: Option[OffsetTime]) = setDateTimeInternal(Types.OTHER, "timetz", v.map(_.format(bpTzTimeFormatter)))
+      def setOffsetDateTime(v: OffsetDateTime) = setOffsetDateTimeOption(Option(v))
+      def setOffsetDateTimeOption(v: Option[OffsetDateTime]) = setDateTimeInternal(Types.OTHER, "timestamptz", v.map(_.format(bpTzDateTimeFormatter)))
+      def setZonedDateTime(v: ZonedDateTime) = setZonedDateTimeOption(Option(v))
+      def setZonedDateTimeOption(v: Option[ZonedDateTime]) = setDateTimeInternal(Types.OTHER, "timestamptz", v.map(_.format(bpTzDateTimeFormatter)))
+      def setPeriod(v: Period) = setPeriodOption(Option(v))
+      def setPeriodOption(v: Option[Period]) = setDateTimeInternal(Types.OTHER, "interval", v.map(_.toString))
+      def setDuration(v: Duration) = setDurationOption(Option(v))
+      def setDurationOption(v: Option[Duration]) = setDateTimeInternal(Types.OTHER, "interval", v.map(_.toString))
+      ///
+      private def setDateTimeInternal(sqlType: Int, typeName: String, v: => Option[String]) = {
+        p.pos += 1
+        v match {
+          case Some(v) => p.ps.setObject(p.pos, utils.mkPGobject(typeName, v))
+          case None    => p.ps.setNull(p.pos, sqlType)
+        }
+      }
     }
   }
 }

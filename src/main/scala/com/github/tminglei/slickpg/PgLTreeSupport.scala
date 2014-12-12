@@ -60,10 +60,7 @@ trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcType
       def nextLTree() = nextLTreeOption().orNull
       def nextLTreeOption() = r.nextStringOption().map(LTree.apply)
       def nextLTreeArray() = nextLTreeArrayOption().getOrElse(Nil)
-      def nextLTreeArrayOption() = {
-        val value = r.rs.getString(r.skip.currentPos)
-        if (r.wasNull) None else Some(fromString(LTree.apply)(value))
-      }
+      def nextLTreeArrayOption() = r.nextStringOption().map(fromString(LTree.apply))
     }
     implicit class PgLTreePositionedParameters(p: PositionedParameters) {
       def setLTree(v: LTree) = setLTreeOption(Option(v))
