@@ -11,10 +11,10 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
   class SimpleArrayListJdbcType[T](sqlBaseType: String)(
               implicit override val classTag: ClassTag[List[T]], tag: ClassTag[T])
                     extends WrappedConvArrayJdbcType[T, List](
-                        new SimpleArrayJdbcType(sqlBaseType), _.toList, identity) {
+                        new SimpleArrayJdbcType(sqlBaseType), _.toList) {
 
     def basedOn[U](tmap: T => U, tcomap: U => T): DriverJdbcType[List[T]] =
-      delegate.asInstanceOf[SimpleArrayJdbcType[T]].basedOn(tmap, tcomap).to(_.toList, identity)
+      delegate.asInstanceOf[SimpleArrayJdbcType[T]].basedOn(tmap, tcomap).to(_.toList)
   }
 
   //
@@ -58,8 +58,8 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
         override protected def buildArrayStr(v: Seq[Any]): String = super.buildArrayStr(v.map(e => tmap(e.asInstanceOf[T])))
       }
 
-    def to[SEQ[T]](conv: Seq[T] => SEQ[T], rconv: SEQ[T] => Seq[T])(implicit classTag: ClassTag[SEQ[T]]): DriverJdbcType[SEQ[T]] =
-      new WrappedConvArrayJdbcType[T, SEQ](this, conv, rconv)
+    def to[SEQ[T] <: Seq[T]](conv: Seq[T] => SEQ[T])(implicit classTag: ClassTag[SEQ[T]]): DriverJdbcType[SEQ[T]] =
+      new WrappedConvArrayJdbcType[T, SEQ](this, conv)
   }
 
   /* alias, added for back compatible */
@@ -72,7 +72,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
                                   mkString: (List[T] => String))(
               implicit override val classTag: ClassTag[List[T]], tag: ClassTag[T])
                     extends WrappedConvArrayJdbcType[T, List](
-                        new AdvancedArrayJdbcType(sqlBaseType, fromString, v => mkString(v.toList)), _.toList, identity)
+                        new AdvancedArrayJdbcType(sqlBaseType, fromString, v => mkString(v.toList)), _.toList)
 
   //
   class AdvancedArrayJdbcType[T](sqlBaseType: String,
@@ -101,13 +101,12 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
     //--
     private def mkArray(v: Seq[T]): java.sql.Array = new SimpleArray(sqlBaseType, v, mkString)
 
-    def to[SEQ[T]](conv: Seq[T] => SEQ[T], rconv: SEQ[T] => Seq[T])(implicit classTag: ClassTag[SEQ[T]]): DriverJdbcType[SEQ[T]] =
-      new WrappedConvArrayJdbcType[T, SEQ](this, conv, rconv)
+    def to[SEQ[T] <: Seq[T]](conv: Seq[T] => SEQ[T])(implicit classTag: ClassTag[SEQ[T]]): DriverJdbcType[SEQ[T]] =
+      new WrappedConvArrayJdbcType[T, SEQ](this, conv)
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////////
-  private[array] class WrappedConvArrayJdbcType[T, SEQ[T]](val delegate: DriverJdbcType[Seq[T]],
-                        val conv: Seq[T] => SEQ[T], val rconv: SEQ[T] => Seq[T])(
+  private[array] class WrappedConvArrayJdbcType[T, SEQ[T] <: Seq[T]](val delegate: DriverJdbcType[Seq[T]], val conv: Seq[T] => SEQ[T])(
       implicit override val classTag: ClassTag[SEQ[T]], tag: ClassTag[T]) extends DriverJdbcType[SEQ[T]] {
 
     override def sqlType: Int = delegate.sqlType
@@ -116,13 +115,13 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
     override def getValue(r: ResultSet, idx: Int): SEQ[T] = Option(delegate.getValue(r, idx)).map(conv).getOrElse(null.asInstanceOf[SEQ[T]])
 
-    override def setValue(vList: SEQ[T], p: PreparedStatement, idx: Int): Unit = delegate.setValue(rconv(vList), p, idx)
+    override def setValue(vList: SEQ[T], p: PreparedStatement, idx: Int): Unit = delegate.setValue(vList, p, idx)
 
-    override def updateValue(vList: SEQ[T], r: ResultSet, idx: Int): Unit = delegate.updateValue(rconv(vList), r, idx)
+    override def updateValue(vList: SEQ[T], r: ResultSet, idx: Int): Unit = delegate.updateValue(vList, r, idx)
 
     override def hasLiteralForm: Boolean = delegate.hasLiteralForm
 
-    override def valueToSQLLiteral(vList: SEQ[T]) = delegate.valueToSQLLiteral(Option(vList).map(rconv).orNull)
+    override def valueToSQLLiteral(vList: SEQ[T]) = delegate.valueToSQLLiteral(Option(vList).orNull)
   }
 
   /** only used to transfer array data into driver/preparedStatement */
