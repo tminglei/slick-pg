@@ -11,7 +11,7 @@ object PgTokenHelper {
   sealed trait Token {
     def value: String
   }
-  case class GroupToken(members: List[Token]) extends Token {
+  case class GroupToken(members: Seq[Token]) extends Token {
     val value = ""
     override def toString = {
       StringBuilder.newBuilder append "GroupToken(" append {
@@ -75,7 +75,7 @@ object PgTokenHelper {
     buf.toString
   }
 
-  def getChildren(token: Token): List[Token] = token match {
+  def getChildren(token: Token): Seq[Token] = token match {
     case GroupToken(mList) => mList.filterNot(_.isInstanceOf[Border]).filterNot(_ == Comma)
     case _ => throw new IllegalArgumentException("WRONG token type: " + token)
   }

@@ -3,7 +3,7 @@ package com.github.tminglei.slickpg.utils
 object SimpleArrayUtils {
   import PgTokenHelper._
   
-  def fromString[T](convert: String => T)(arrString: String): Option[List[T]] =
+  def fromString[T](convert: String => T)(arrString: String): Option[Seq[T]] =
     grouping(Tokenizer.tokenize(arrString)) match {
       case Null => None
       case root => Some(getChildren(root).map {
@@ -12,7 +12,7 @@ object SimpleArrayUtils {
       })
     }
 
-  def mkString[T](ToString: T => String)(value: List[T]): String =
+  def mkString[T](ToString: T => String)(value: Seq[T]): String =
     createString (value match {
       case null  => Null
       case vList => {
