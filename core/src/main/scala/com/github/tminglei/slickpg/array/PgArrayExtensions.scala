@@ -22,30 +22,30 @@ trait PgArrayExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   }
 
   /** Extension methods for array Columns */
-  class ArrayColumnExtensionMethods[B0, P1](val c: Column[P1])(
-            implicit tm0: JdbcType[B0], tm: JdbcType[List[B0]]) extends ExtensionMethods[List[B0], P1] {
+  class ArrayColumnExtensionMethods[B0, SEQ[B0] <: Seq[B0], P1](val c: Column[P1])(
+            implicit tm0: JdbcType[B0], tm: JdbcType[SEQ[B0]]) extends ExtensionMethods[SEQ[B0], P1] {
     /** required syntax: expression operator ANY (array expression) */
     def any[R](implicit om: o#to[B0, R]) = om.column(ArrayLibrary.Any, n)
     /** required syntax: expression operator ALL (array expression) */
     def all[R](implicit om: o#to[B0, R]) = om.column(ArrayLibrary.All, n)
 
-    def @>[P2, R](e: Column[P2])(implicit om: o#arg[List[B0], P2]#to[Boolean, R]) = {
+    def @>[P2, R](e: Column[P2])(implicit om: o#arg[SEQ[B0], P2]#to[Boolean, R]) = {
         om.column(ArrayLibrary.Contains, n, e.toNode)
       }
-    def <@:[P2, R](e: Column[P2])(implicit om: o#arg[List[B0], P2]#to[Boolean, R]) = {
+    def <@:[P2, R](e: Column[P2])(implicit om: o#arg[SEQ[B0], P2]#to[Boolean, R]) = {
         om.column(ArrayLibrary.ContainedBy, e.toNode, n)
       }
-    def @&[P2, R](e: Column[P2])(implicit om: o#arg[List[B0], P2]#to[Boolean, R]) = {
+    def @&[P2, R](e: Column[P2])(implicit om: o#arg[SEQ[B0], P2]#to[Boolean, R]) = {
         om.column(ArrayLibrary.Overlap, n, e.toNode)
       }
 
-    def ++[P2, R](e: Column[P2])(implicit om: o#arg[List[B0], P2]#to[List[B0], R]) = {
+    def ++[P2, R](e: Column[P2])(implicit om: o#arg[SEQ[B0], P2]#to[SEQ[B0], R]) = {
         om.column(ArrayLibrary.Concatenate, n, e.toNode)
       }
-    def + [P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[List[B0], R]) = {
+    def + [P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[SEQ[B0], R]) = {
         om.column(ArrayLibrary.Concatenate, n, e.toNode)
       }
-    def +:[P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[List[B0], R]) = {
+    def +:[P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[SEQ[B0], R]) = {
         om.column(ArrayLibrary.Concatenate, e.toNode, n)
       }
     def length[R](dim: Column[Int] = LiteralColumn(1))(implicit om: o#to[Int, R]) = {

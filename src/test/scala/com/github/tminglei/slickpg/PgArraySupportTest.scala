@@ -3,6 +3,7 @@ package com.github.tminglei.slickpg
 import org.junit._
 import org.junit.Assert._
 import java.util.UUID
+import scala.collection.mutable.Buffer
 import scala.slick.driver.PostgresDriver
 import scala.util.Try
 
@@ -18,6 +19,8 @@ class PgArraySupportTest {
 
     ///
     trait MyArrayImplicitsPlus {
+      implicit val simpleLongBufferTypeMapper = new SimpleArrayJdbcType[Long]("int8").to(_.toBuffer)
+      implicit val simpleStrVectorTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toVector)
       implicit val institutionListTypeWrapper =  new SimpleArrayListJdbcType[Institution]("int8")
         .basedOn[Long](_.value, new Institution(_))
       implicit val marketFinancialProductWrapper = new SimpleArrayListJdbcType[MarketFinancialProduct]("text")
@@ -33,8 +36,8 @@ class PgArraySupportTest {
   case class ArrayBean(
     id: Long,
     intArr: List[Int],
-    longArr: List[Long],
-    strArr: Option[List[String]],
+    longArr: Buffer[Long],
+    strArr: Option[Vector[String]],
     institutions: List[Institution],
     mktFinancialProducts: Option[List[MarketFinancialProduct]]
     )
@@ -42,8 +45,8 @@ class PgArraySupportTest {
   class ArrayTestTable(tag: Tag) extends Table[ArrayBean](tag, "ArrayTest") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def intArr = column[List[Int]]("intArray", O.Default(Nil))
-    def longArr = column[List[Long]]("longArray")
-    def strArr = column[Option[List[String]]]("stringArray")
+    def longArr = column[Buffer[Long]]("longArray")
+    def strArr = column[Option[Vector[String]]]("stringArray")
     def institutions = column[List[Institution]]("institutions")
     def mktFinancialProducts = column[Option[List[MarketFinancialProduct]]]("mktFinancialProducts")
 
@@ -53,11 +56,11 @@ class PgArraySupportTest {
 
   //------------------------------------------------------------------------------
 
-  val testRec1 = ArrayBean(33L, List(101, 102, 103), List(1L, 3L, 5L, 7L), Some(List("str1", "str3")),
+  val testRec1 = ArrayBean(33L, List(101, 102, 103), Buffer(1L, 3L, 5L, 7L), Some(Vector("str1", "str3")),
     List(Institution(113)), None)
-  val testRec2 = ArrayBean(37L, List(101, 103), List(11L, 31L, 5L), Some(List("str11", "str3")),
+  val testRec2 = ArrayBean(37L, List(101, 103), Buffer(11L, 31L, 5L), Some(Vector("str11", "str3")),
     List(Institution(579)), Some(List(MarketFinancialProduct("product1"))))
-  val testRec3 = ArrayBean(41L, List(103, 101), List(11L, 5L, 31L), Some(List("(s)", "str5", "str3")),
+  val testRec3 = ArrayBean(41L, List(103, 101), Buffer(11L, 5L, 31L), Some(Vector("(s)", "str5", "str3")),
     Nil, Some(List(MarketFinancialProduct("product3"), MarketFinancialProduct("product x"))))
 
   @Test
@@ -77,19 +80,19 @@ class PgArraySupportTest {
       println(s"[array] 'all' sql = ${q2.selectStatement}")
       assertEquals(List(testRec2, testRec3), q2.list)
 
-      val q3 = ArrayTests.filter(_.strArr @> List("str3")).sortBy(_.id).map(r => r)
+      val q3 = ArrayTests.filter(_.strArr @> Vector("str3")).sortBy(_.id).map(r => r)
       println(s"[array] '@>' sql = ${q3.selectStatement}")
       assertEquals(List(testRec1, testRec2, testRec3), q3.list)
 
-      val q31 = ArrayTests.filter(_.strArr @> List("str3").bind).sortBy(_.id).map(r => r)
+      val q31 = ArrayTests.filter(_.strArr @> Vector("str3").bind).sortBy(_.id).map(r => r)
       println(s"[array] '@>' sql = ${q31.selectStatement}")
       assertEquals(List(testRec1, testRec2, testRec3), q31.list)
 
-      val q32 = ArrayTests.filter(List("str3").bind <@: _.strArr).sortBy(_.id).map(r => r)
+      val q32 = ArrayTests.filter(Vector("str3").bind <@: _.strArr).sortBy(_.id).map(r => r)
       println(s"[array] '<@' sql = ${q32.selectStatement}")
       assertEquals(List(testRec1, testRec2, testRec3), q32.list)
 
-      val q4 = ArrayTests.filter(_.longArr @& List(5L, 17L).bind).sortBy(_.id).map(r => r)
+      val q4 = ArrayTests.filter(_.longArr @& Buffer(5L, 17L).bind).sortBy(_.id).map(r => r)
       println(s"[array] '&&' sql = ${q4.selectStatement}")
       assertEquals(List(testRec1, testRec2, testRec3), q4.list)
 
@@ -119,7 +122,7 @@ class PgArraySupportTest {
 
       // test array type mapper's 'updateObject' method
       ArrayTests.filter(_.id === 33L.bind).map(r => r).mutate({ m =>
-        m.row = m.row.copy( longArr = List(3, 5, 9))
+        m.row = m.row.copy( longArr = Buffer(3, 5, 9))
       })
       val q11 = ArrayTests.filter(_.id === 33L.bind).map(r => r.longArr)
       assertEquals(List(3,5,9), q11.first)

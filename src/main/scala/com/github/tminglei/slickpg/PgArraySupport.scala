@@ -26,13 +26,13 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
     implicit val simpleTsListTypeMapper = new SimpleArrayListJdbcType[Timestamp]("timestamp")
 
     ///
-    implicit def simpleArrayColumnExtensionMethods[B1](c: Column[List[B1]])(
-      implicit tm: JdbcType[B1], tm1: JdbcType[List[B1]]) = {
-        new ArrayColumnExtensionMethods[B1, List[B1]](c)
+    implicit def simpleArrayColumnExtensionMethods[B1, SEQ[B1] <: Seq[B1]](c: Column[SEQ[B1]])(
+      implicit tm: JdbcType[B1], tm1: JdbcType[SEQ[B1]]) = {
+        new ArrayColumnExtensionMethods[B1, SEQ, SEQ[B1]](c)
       }
-    implicit def simpleArrayOptionColumnExtensionMethods[B1](c: Column[Option[List[B1]]])(
-      implicit tm: JdbcType[B1], tm1: JdbcType[List[B1]]) = {
-        new ArrayColumnExtensionMethods[B1, Option[List[B1]]](c)
+    implicit def simpleArrayOptionColumnExtensionMethods[B1, SEQ[B1] <: Seq[B1]](c: Column[Option[SEQ[B1]]])(
+      implicit tm: JdbcType[B1], tm1: JdbcType[SEQ[B1]]) = {
+        new ArrayColumnExtensionMethods[B1, SEQ, Option[SEQ[B1]]](c)
       }
   }
 }
