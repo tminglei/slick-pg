@@ -22,7 +22,7 @@ trait PgArrayExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   }
 
   /** Extension methods for array Columns */
-  class ArrayColumnExtensionMethods[B0, SEQ[B0] <: Seq[B0], P1](val c: Column[P1])(
+  class ArrayColumnExtensionMethods[B0, SEQ[B0], P1](val c: Column[P1])(
             implicit tm0: JdbcType[B0], tm: JdbcType[SEQ[B0]]) extends ExtensionMethods[SEQ[B0], P1] {
     /** required syntax: expression operator ANY (array expression) */
     def any[R](implicit om: o#to[B0, R]) = om.column(ArrayLibrary.Any, n)
