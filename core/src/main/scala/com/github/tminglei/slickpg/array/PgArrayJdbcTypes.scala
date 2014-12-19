@@ -8,6 +8,7 @@ import java.sql.{ResultSet, PreparedStatement}
 
 trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
+  @deprecated(message = "use 'new SimpleArrayJdbcType[T](..).to[SEQ[T]](..)' instead", since = "0.7.1")
   class SimpleArrayListJdbcType[T](sqlBaseType: String)(
               implicit override val classTag: ClassTag[List[T]], tag: ClassTag[T])
                     extends WrappedConvArrayJdbcType[T, List](
@@ -67,6 +68,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
   type NestedArrayListJdbcType[T] = AdvancedArrayListJdbcType[T]
 
   ///-- can be used to map complex composite/nested array
+  @deprecated(message = "use 'new AdvancedArrayJdbcType[T](..).to[SEQ[T]](..)' instead", since = "0.7.1")
   class AdvancedArrayListJdbcType[T](sqlBaseType: String,
                                   fromString: (String => List[T]),
                                   mkString: (List[T] => String))(
