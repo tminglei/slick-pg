@@ -33,7 +33,7 @@ trait PgJson4sSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes
       }
   }
 
-  trait SimpleJsonPlainImplicits {
+  trait Json4sJsonPlainImplicits {
     implicit class PgJsonPositionedResult(r: PositionedResult) {
       def nextJson() = nextJsonOption().getOrElse(JNull)
       def nextJsonOption() = r.nextStringOption().map(jsonMethods.parse(_))

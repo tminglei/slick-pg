@@ -30,7 +30,7 @@ trait PgSprayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
       }
   }
 
-  trait SimpleJsonPlainImplicits {
+  trait SprayJsonPlainImplicits {
     implicit class PgJsonPositionedResult(r: PositionedResult) {
       def nextJson() = nextJsonOption().getOrElse(JsNull)
       def nextJsonOption() = r.nextStringOption().map(_.parseJson)

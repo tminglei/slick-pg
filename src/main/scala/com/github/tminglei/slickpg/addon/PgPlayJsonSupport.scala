@@ -28,7 +28,7 @@ trait PgPlayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
       }
   }
 
-  trait SimpleJsonPlainImplicits {
+  trait PlayJsonPlainImplicits {
     implicit class PgJsonPositionedResult(r: PositionedResult) {
       def nextJson() = nextJsonOption().getOrElse(JsNull)
       def nextJsonOption() = r.nextStringOption().map(Json.parse)

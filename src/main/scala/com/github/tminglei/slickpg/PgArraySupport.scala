@@ -1,6 +1,7 @@
 package com.github.tminglei.slickpg
 
 import java.util.UUID
+import scala.reflect.ClassTag
 import scala.slick.lifted.Column
 import scala.slick.driver.PostgresDriver
 import java.sql.{Timestamp, Time, Date}
@@ -118,7 +119,7 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
       def setTimestampArrayOption(v: Option[List[Timestamp]]) = setArray("timestamp", v)
 
       ///
-      private def setArray[T](baseType: String, v: Option[List[T]]) = {
+      private def setArray[T: ClassTag](baseType: String, v: Option[List[T]]) = {
         p.pos += 1
         v match {
           case Some(vList) => p.ps.setArray(p.pos, mkArray(mkString[T](_.toString))(baseType, vList))

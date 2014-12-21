@@ -16,10 +16,10 @@ trait PgDateSupport2bp extends date.PgDateExtensions with utils.PgCommonJdbcType
   trait DateTimeImplicits extends BpDateTimeImplicitsDuration
   trait DateTimeImplicitsPeriod extends BpDateTimeImplicitsPeriod
 
-  trait BpDateTimeImplicitsDuration extends BaseDateTimeImplicits[Duration]
-  trait BpDateTimeImplicitsPeriod extends BaseDateTimeImplicits[Period]
+  trait BpDateTimeImplicitsDuration extends BpDateTimeImplicits[Duration]
+  trait BpDateTimeImplicitsPeriod extends BpDateTimeImplicits[Period]
 
-  trait BaseDateTimeFormatters {
+  trait BpDateTimeFormatters {
     val bpDateFormatter = DateTimeFormatter.ISO_LOCAL_DATE
     val bpTimeFormatter = DateTimeFormatter.ISO_LOCAL_TIME
     val bpDateTimeFormatter =
@@ -47,7 +47,7 @@ trait PgDateSupport2bp extends date.PgDateExtensions with utils.PgCommonJdbcType
         .toFormatter()
   }
 
-  trait BaseDateTimeImplicits[INTERVAL] extends BaseDateTimeFormatters {
+  trait BpDateTimeImplicits[INTERVAL] extends BpDateTimeFormatters {
     implicit val bpDateTypeMapper = new GenericJdbcType[LocalDate]("date",
       LocalDate.parse(_, bpDateFormatter), _.format(bpDateFormatter), hasLiteralForm=false)
     implicit val bpTimeTypeMapper = new GenericJdbcType[LocalTime]("time",
@@ -119,7 +119,7 @@ trait PgDateSupport2bp extends date.PgDateExtensions with utils.PgCommonJdbcType
     }
   }
 
-  trait BaseDateTimePlainImplicits extends BaseDateTimeFormatters {
+  trait BpDateTimePlainImplicits extends BpDateTimeFormatters {
     import java.sql.Types
 
     implicit class PgDate2TimePositionedResult(r: PositionedResult) {

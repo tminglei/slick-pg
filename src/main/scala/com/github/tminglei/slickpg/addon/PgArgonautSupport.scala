@@ -29,7 +29,7 @@ trait PgArgonautSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
       }
   }
 
-  trait SimpleJsonPlainImplicits {
+  trait ArgonautJsonPlainImplicits {
     implicit class PgJsonPositionedResult(r: PositionedResult) {
       def nextJson() = nextJsonOption().getOrElse(jNull)
       def nextJsonOption() = r.nextStringOption().map(_.parse)
