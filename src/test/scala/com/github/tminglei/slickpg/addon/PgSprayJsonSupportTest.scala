@@ -14,7 +14,7 @@ class PgSprayJsonSupportTest {
 
     override lazy val Implicit = new Implicits with JsonImplicits
     override val simple = new Implicits with SimpleQL with JsonImplicits {
-      implicit val strListTypeMapper = new SimpleArrayListJdbcType[String]("text")
+      implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
     }
   }
 

@@ -10,13 +10,15 @@ trait PgCompositeSupport extends utils.PgCommonJdbcTypes with array.PgArrayJdbcT
   import PgCompositeSupportUtils._
 
   def createCompositeJdbcType[T <: Struct](sqlTypeName: String)(
-            implicit ev: u.TypeTag[T], tag: ClassTag[T]): JdbcType[T] =
+            implicit ev: u.TypeTag[T], tag: ClassTag[T]): JdbcType[T] = {
     new GenericJdbcType[T](sqlTypeName, mkCompositeFromString[T], mkStringFromComposite[T])
+  }
 
   def createCompositeListJdbcType[T <: Struct](sqlTypeName: String)(
-            implicit ev: u.TypeTag[T], tag: ClassTag[T], tag1: ClassTag[List[T]]): JdbcType[List[T]] =
-    new AdvancedArrayListJdbcType[T](sqlTypeName, mkCompositeListFromString[T], mkStringFromCompositeList[T])
-
+            implicit ev: u.TypeTag[T], tag: ClassTag[T], tag1: ClassTag[List[T]]): JdbcType[List[T]] = {
+    new AdvancedArrayJdbcType[T](sqlTypeName, mkCompositeSeqFromString[T], mkStringFromCompositeSeq[T])
+      .to(_.toList)
+  }
 }
 
 object PgCompositeSupportUtils {
@@ -38,17 +40,17 @@ object PgCompositeSupportUtils {
     }
   }
 
-  def mkCompositeListFromString[T <: Struct](implicit ev: u.TypeTag[List[T]]): (String => List[T]) = {
-    val converter = mkTokenConverter(u.typeOf[List[T]])
+  def mkCompositeSeqFromString[T <: Struct](implicit ev: u.TypeTag[Seq[T]]): (String => Seq[T]) = {
+    val converter = mkTokenConverter(u.typeOf[Seq[T]])
     (input: String) => {
       val root = grouping(Tokenizer.tokenize(input))
-      converter.fromToken(root).asInstanceOf[List[T]]
+      converter.fromToken(root).asInstanceOf[Seq[T]]
     }
   }
 
-  def mkStringFromCompositeList[T <: Struct](implicit ev: u.TypeTag[List[T]]): (List[T] => String) = {
-    val converter = mkTokenConverter(u.typeOf[List[T]])
-    (vList: List[T]) => {
+  def mkStringFromCompositeSeq[T <: Struct](implicit ev: u.TypeTag[Seq[T]]): (Seq[T] => String) = {
+    val converter = mkTokenConverter(u.typeOf[Seq[T]])
+    (vList: Seq[T]) => {
       createString(converter.toToken(vList))
     }
   }
@@ -65,9 +67,9 @@ object PgCompositeSupportUtils {
         val pType = tpe.asInstanceOf[u.TypeRef].args(0)
         OptionConverter(mkTokenConverter(pType, level))
       }
-      case tpe if tpe.typeConstructor =:= u.typeOf[List[_]].typeConstructor => {
+      case tpe if tpe.typeConstructor <:< u.typeOf[Seq[_]].typeConstructor => {
         val eType = tpe.asInstanceOf[u.TypeRef].args(0)
-        ListConverter(mkTokenConverter(eType, level +1))
+        SeqConverter(mkTokenConverter(eType, level +1))
       }
       case tpe => {
         val fromString = find(u.typeOf[String], tpe).map(_.conv.asInstanceOf[(String => Any)])
@@ -127,11 +129,11 @@ object PgCompositeSupportUtils {
     }
   }
 
-  case class ListConverter(delegate: TokenConverter) extends TokenConverter {
+  case class SeqConverter(delegate: TokenConverter) extends TokenConverter {
     def fromToken(token: Token): Any =
       if (token == Null) null else getChildren(token).map(delegate.fromToken)
     def toToken(value: Any): Token = value match {
-      case vList: List[Any] => {
+      case vList: Seq[Any] => {
         val members = Open("{") +: vList.map(delegate.toToken) :+ Close("}")
         GroupToken(members)
       }

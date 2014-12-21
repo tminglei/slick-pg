@@ -26,8 +26,9 @@ trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes {
   def createEnumListJdbcType[T <: Enumeration](sqlEnumTypeName: String, enumObject: T, quoteName: Boolean = false)(
              implicit tag: ClassTag[List[enumObject.Value]]): JdbcType[List[enumObject.Value]] = {
 
-    new SimpleArrayListJdbcType[enumObject.Value](sqlName(sqlEnumTypeName, quoteName))
+    new SimpleArrayJdbcType[enumObject.Value](sqlName(sqlEnumTypeName, quoteName))
       .basedOn[String](tmap = _.toString, tcomap = enumObject.withName(_))
+      .to(_.toList)
   }
 
   def createEnumJdbcType[T <: Enumeration](sqlEnumTypeName: String, enumObject: T, quoteName: Boolean = false)(

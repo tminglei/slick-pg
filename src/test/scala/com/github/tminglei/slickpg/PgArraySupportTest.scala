@@ -21,10 +21,10 @@ class PgArraySupportTest {
     trait MyArrayImplicitsPlus {
       implicit val simpleLongBufferTypeMapper = new SimpleArrayJdbcType[Long]("int8").to(_.toBuffer)
       implicit val simpleStrVectorTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toVector)
-      implicit val institutionListTypeWrapper =  new SimpleArrayListJdbcType[Institution]("int8")
-        .basedOn[Long](_.value, new Institution(_))
-      implicit val marketFinancialProductWrapper = new SimpleArrayListJdbcType[MarketFinancialProduct]("text")
-        .basedOn[String](_.value, new MarketFinancialProduct(_))
+      implicit val institutionListTypeWrapper =  new SimpleArrayJdbcType[Institution]("int8")
+        .basedOn[Long](_.value, new Institution(_)).to(_.toList)
+      implicit val marketFinancialProductWrapper = new SimpleArrayJdbcType[MarketFinancialProduct]("text")
+        .basedOn[String](_.value, new MarketFinancialProduct(_)).to(_.toList)
     }
   }
 
