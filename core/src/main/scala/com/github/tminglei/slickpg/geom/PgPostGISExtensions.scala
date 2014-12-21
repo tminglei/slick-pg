@@ -11,13 +11,7 @@ import scala.slick.jdbc.JdbcType
 trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   import driver.Implicit._
 
-  type GEOMETRY
-  type POINT <: GEOMETRY
-  type LINESTRING <: GEOMETRY
-  type POLYGON <: GEOMETRY
-  type GEOMETRYCOLLECTION <: GEOMETRY
-
-  trait PostGISAssistants {
+  trait BasePostGISAssistants[GEOMETRY, POINT <: GEOMETRY, LINESTRING <: GEOMETRY, POLYGON <: GEOMETRY, GEOMETRYCOLLECTION <: GEOMETRY] {
     /** Geometry Constructors */
     def geomFromText[P, R](wkt: Column[P], srid: Option[Int] = None)(
       implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) =
@@ -225,7 +219,7 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   }
 
   /** Extension methods for postgis Columns */
-  class GeometryColumnExtensionMethods[G1 <: GEOMETRY, P1](val c: Column[P1])(
+  class GeometryColumnExtensionMethods[GEOMETRY, POINT <: GEOMETRY, LINESTRING <: GEOMETRY, POLYGON <: GEOMETRY, GEOMETRYCOLLECTION <: GEOMETRY, G1 <: GEOMETRY, P1](val c: Column[P1])(
             implicit tm: JdbcType[GEOMETRY], tm1: JdbcType[POINT], tm2: JdbcType[LINESTRING], tm3: JdbcType[POLYGON], tm4: JdbcType[GEOMETRYCOLLECTION])
                   extends ExtensionMethods[G1, P1] {
 

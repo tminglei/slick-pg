@@ -9,11 +9,7 @@ import java.sql.{PreparedStatement, ResultSet}
 
 trait PgPostGISSupport extends geom.PgPostGISExtensions { driver: PostgresDriver =>
 
-  type GEOMETRY   = Geometry
-  type POINT      = Point
-  type LINESTRING = LineString
-  type POLYGON    = Polygon
-  type GEOMETRYCOLLECTION = GeometryCollection
+  trait PostGISAssistants extends BasePostGISAssistants[Geometry, Point, LineString, Polygon, GeometryCollection]
 
   trait PostGISImplicits {
     implicit val geometryTypeMapper = new GeometryJdbcType[Geometry]
@@ -27,8 +23,10 @@ trait PgPostGISSupport extends geom.PgPostGISExtensions { driver: PostgresDriver
     implicit val multiLineStringTypeMapper = new GeometryJdbcType[MultiLineString]
 
     ///
-    implicit def geometryColumnExtensionMethods[G1 <: Geometry](c: Column[G1]) = new GeometryColumnExtensionMethods[G1, G1](c)
-    implicit def geometryOptionColumnExtensionMethods[G1 <: Geometry](c: Column[Option[G1]]) = new GeometryColumnExtensionMethods[G1, Option[G1]](c)
+    implicit def geometryColumnExtensionMethods[G1 <: Geometry](c: Column[G1]) =
+      new GeometryColumnExtensionMethods[Geometry, Point, LineString, Polygon, GeometryCollection, G1, G1](c)
+    implicit def geometryOptionColumnExtensionMethods[G1 <: Geometry](c: Column[Option[G1]]) =
+      new GeometryColumnExtensionMethods[Geometry, Point, LineString, Polygon, GeometryCollection, G1, Option[G1]](c)
   }
 
   ////// geometry jdbc type
