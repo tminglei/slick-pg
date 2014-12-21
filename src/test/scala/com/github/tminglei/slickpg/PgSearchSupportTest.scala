@@ -63,11 +63,11 @@ class PgSearchSupportTest {
 
       val q8 = Tests.filter(_.id === 33L).map(r => toTsVector(r.text).strip)
       println(s"[search] 'strip' sql = ${q8.selectStatement}")
-      assertEquals("'ate' 'cat' 'fat' 'rat'", q8.first)
+      assertEquals(TsVector("'ate' 'cat' 'fat' 'rat'"), q8.first)
 
       val q9 = Tests.filter(_.id === 33L).map(r => toTsVector(r.text).setWeight('A'))
       println(s"[search] 'setWeight' sql = ${q9.selectStatement}")
-      assertEquals("'ate':3A 'cat':2A 'fat':1A 'rat':4A", q9.first)
+      assertEquals(TsVector("'ate':3A 'cat':2A 'fat':1A 'rat':4A"), q9.first)
 
       val q10 = Tests.filter(_.id === 33L).map(r => tsQuery("(fat & rat) | cat").numNode)
       println(s"[search] 'numNode' sql = ${q10.selectStatement}")
@@ -79,11 +79,11 @@ class PgSearchSupportTest {
 
       val q12 = Tests.filter(_.id === 33L).map(r => tsQuery("a & b").rewrite(tsQuery("a"), tsQuery("foo|bar")))
       println(s"[search] 'rewrite' sql = ${q12.selectStatement}")
-      assertEquals("'b' & ( 'foo' | 'bar' )", q12.first)
+      assertEquals(TsQuery("'b' & ( 'foo' | 'bar' )"), q12.first)
 
       val q13 = Tests.filter(_.id === 33L).map(r => tsQuery("a & b").rewrite("select 'a'::tsquery, 'foo|bar'::tsquery"))
       println(s"[search] 'rewrite2' sql = ${q13.selectStatement}")
-      assertEquals("'b' & ( 'bar' | 'foo' )", q13.first)
+      assertEquals(TsQuery("'b' & ( 'bar' | 'foo' )"), q13.first)
     }
   }
 
