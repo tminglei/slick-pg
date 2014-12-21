@@ -11,7 +11,7 @@ trait PgSearchExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   import driver.Implicit._
   import FunctionSymbolExtensionMethods._
 
-  trait SearchAssistants[TV, TQ] {
+  trait BaseSearchAssistants[TV, TQ] {
     def currTsConfig() = SearchLibrary.GetCurrTsConfig.column[String]()
 
     def tsVector[P, R](text: Column[P])(implicit tm: JdbcType[P], tm1: JdbcType[TV], tm2: JdbcType[TQ],

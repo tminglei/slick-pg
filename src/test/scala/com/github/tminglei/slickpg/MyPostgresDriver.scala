@@ -26,7 +26,7 @@ trait MyPostgresDriver extends ExPostgresDriver
 
   trait SimpleQLPlus extends SimpleQL
                         with ImplicitsPlus
-                        with SearchAssistants[TsVector, TsQuery]
+                        with SearchAssistants
 }
 
 object MyPostgresDriver extends MyPostgresDriver

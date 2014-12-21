@@ -10,6 +10,8 @@ case class TsQuery(value: String)
 trait PgSearchSupport extends search.PgSearchExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import driver.Implicit._
 
+  trait SearchAssistants extends BaseSearchAssistants[TsVector, TsQuery]
+
   /// alias
   trait SearchImplicits extends SimpleSearchImplicits
 
