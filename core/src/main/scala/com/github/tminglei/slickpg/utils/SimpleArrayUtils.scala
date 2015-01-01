@@ -27,13 +27,13 @@ object SimpleArrayUtils {
       }
     })
 
-  def mkArray[T : ClassTag](mkString: (List[T] => String))(sqlBaseType: String, vList: List[T]): java.sql.Array =
+  def mkArray[T : ClassTag](mkString: (Seq[T] => String))(sqlBaseType: String, vList: Seq[T]): java.sql.Array =
     new SimpleArray(sqlBaseType, vList, mkString)
 
   ////////////////////////////////////////////////////////////////////////////////////
 
   /** !!! NOTE: only used to transfer array data into driver/preparedStatement. !!! */
-  private class SimpleArray[T : ClassTag](sqlBaseTypeName: String, vList: List[T], mkString: (List[T] => String)) extends java.sql.Array {
+  private class SimpleArray[T : ClassTag](sqlBaseTypeName: String, vList: Seq[T], mkString: (Seq[T] => String)) extends java.sql.Array {
 
     def getBaseTypeName = sqlBaseTypeName.replaceFirst("^\"", "").replaceFirst("\"$", "")
 
