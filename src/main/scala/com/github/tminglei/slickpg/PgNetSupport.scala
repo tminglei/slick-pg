@@ -1,7 +1,7 @@
 package com.github.tminglei.slickpg
 
 import scala.slick.driver.PostgresDriver
-import scala.slick.jdbc.JdbcType
+import scala.slick.jdbc.{PositionedParameters, PositionedResult, JdbcType}
 import scala.slick.lifted.Column
 
 /** simple inet string wrapper */
@@ -58,5 +58,32 @@ trait PgNetSupport extends net.PgNetExtensions with utils.PgCommonJdbcTypes { dr
       implicit tm: JdbcType[MacAddrString]) = {
         new MacAddrColumnExtensionMethods[MacAddrString, Option[MacAddrString]](c)
       }
+  }
+
+  trait SimpleNetPlainImplicits {
+    implicit class PgNetPositionedResult(r: PositionedResult) {
+      def nextIPAddr() = nextIPAddrOption().orNull
+      def nextIPAddrOption() = r.nextStringOption().map(InetString)
+      def nextMacAddr() = nextMacAddrOption().orNull
+      def nextMacAddrOption() = r.nextStringOption().map(MacAddrString)
+    }
+    implicit class PgNetPositionedParameters(p: PositionedParameters) {
+      def setIPAddr(v: InetString) = setIPAddrOption(Option(v))
+      def setIPAddrOption(v: Option[InetString]) = {
+        p.pos += 1
+        v match {
+          case Some(v) => p.ps.setObject(p.pos, utils.mkPGobject("inet", v.value))
+          case None    => p.ps.setNull(p.pos, java.sql.Types.OTHER)
+        }
+      }
+      def setMacAddr(v: MacAddrString) = setMacAddrOption(Option(v))
+      def setMacAddrOption(v: Option[MacAddrString]) = {
+        p.pos += 1
+        v match {
+          case Some(v) => p.ps.setObject(p.pos, utils.mkPGobject("macaddr", v.value))
+          case None    => p.ps.setNull(p.pos, java.sql.Types.OTHER)
+        }
+      }
+    }
   }
 }

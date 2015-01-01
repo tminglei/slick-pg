@@ -1,4 +1,8 @@
-package com.github.tminglei.slickpg.utils
+package com.github.tminglei.slickpg
+package utils
+
+import java.util.{Map => JMap}
+import scala.reflect.ClassTag
 
 object SimpleArrayUtils {
   import PgTokenHelper._
@@ -22,4 +26,37 @@ object SimpleArrayUtils {
         GroupToken(members)
       }
     })
+
+  def mkArray[T : ClassTag](mkString: (List[T] => String))(sqlBaseType: String, vList: List[T]): java.sql.Array =
+    new SimpleArray(sqlBaseType, vList, mkString)
+
+  ////////////////////////////////////////////////////////////////////////////////////
+
+  /** !!! NOTE: only used to transfer array data into driver/preparedStatement. !!! */
+  private class SimpleArray[T : ClassTag](sqlBaseTypeName: String, vList: List[T], mkString: (List[T] => String)) extends java.sql.Array {
+
+    def getBaseTypeName = sqlBaseTypeName.replaceFirst("^\"", "").replaceFirst("\"$", "")
+
+    def getBaseType = ???
+
+    def getArray = vList.toArray
+
+    def getArray(map: JMap[String, Class[_]]) = ???
+
+    def getArray(index: Long, count: Int) = ???
+
+    def getArray(index: Long, count: Int, map: JMap[String, Class[_]]) = ???
+
+    def getResultSet = ???
+
+    def getResultSet(map: JMap[String, Class[_]]) = ???
+
+    def getResultSet(index: Long, count: Int) = ???
+
+    def getResultSet(index: Long, count: Int, map: JMap[String, Class[_]]) = ???
+
+    def free() = { /* nothing to do */ }
+
+    override def toString = mkString(vList)
+  }
 }

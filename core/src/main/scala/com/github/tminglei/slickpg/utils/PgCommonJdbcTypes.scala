@@ -1,7 +1,6 @@
 package com.github.tminglei.slickpg
 package utils
 
-import org.postgresql.util.PGobject
 import scala.slick.driver.{PostgresDriver, JdbcTypesComponent}
 import scala.reflect.ClassTag
 import java.sql.{PreparedStatement, ResultSet}
@@ -28,11 +27,6 @@ trait PgCommonJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
     override def valueToSQLLiteral(v: T) = if(v == null) "NULL" else s"'${fnToString(v)}'"
 
     ///
-    private def mkPgObject(v: T) = {
-      val obj = new PGobject
-      obj.setType(sqlTypeName)
-      obj.setValue(if(v == null) null else fnToString(v))
-      obj
-    }
+    private def mkPgObject(v: T) = mkPGobject(sqlTypeName, if(v == null) null else fnToString(v))
   }
 }
