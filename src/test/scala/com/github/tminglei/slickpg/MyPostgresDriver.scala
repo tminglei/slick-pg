@@ -30,3 +30,23 @@ trait MyPostgresDriver extends ExPostgresDriver
 }
 
 object MyPostgresDriver extends MyPostgresDriver
+
+/// for plain sql tests
+import scala.slick.driver.PostgresDriver
+
+object MyPlainPostgresDriver extends PostgresDriver
+                              with PgArraySupport
+                              with PgJsonSupport
+                              with PgNetSupport
+                              with PgLTreeSupport
+                              with PgRangeSupport
+                              with PgHStoreSupport
+                              with PgSearchSupport {
+  ///
+  val plainImplicit = new Implicits with SimpleArrayPlainImplicits
+                                    with SimpleJsonPlainImplicits
+                                    with SimpleNetPlainImplicits
+                                    with SimpleLTreePlainImplicits
+                                    with SimpleRangePlainImplicits
+                                    with SimpleHStorePlainImplicits {}
+}

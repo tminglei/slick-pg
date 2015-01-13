@@ -1,10 +1,13 @@
 package com.github.tminglei.slickpg
 
+import java.sql.{Timestamp, Time, Date}
+
 import org.junit._
 import org.junit.Assert._
 import java.util.UUID
 import scala.collection.mutable.Buffer
 import scala.slick.driver.PostgresDriver
+import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 import scala.util.Try
 
 class PgArraySupportTest {
@@ -38,6 +41,7 @@ class PgArraySupportTest {
     intArr: List[Int],
     longArr: Buffer[Long],
     strArr: Option[Vector[String]],
+    uuidArr: List[UUID],
     institutions: List[Institution],
     mktFinancialProducts: Option[List[MarketFinancialProduct]]
     )
@@ -47,25 +51,34 @@ class PgArraySupportTest {
     def intArr = column[List[Int]]("intArray", O.Default(Nil))
     def longArr = column[Buffer[Long]]("longArray")
     def strArr = column[Option[Vector[String]]]("stringArray")
+    def uuidArr = column[List[UUID]]("uuidArray")
     def institutions = column[List[Institution]]("institutions")
     def mktFinancialProducts = column[Option[List[MarketFinancialProduct]]]("mktFinancialProducts")
 
-    def * = (id, intArr, longArr, strArr, institutions, mktFinancialProducts) <> (ArrayBean.tupled, ArrayBean.unapply)
+    def * = (id, intArr, longArr, strArr, uuidArr, institutions, mktFinancialProducts) <> (ArrayBean.tupled, ArrayBean.unapply)
   }
   val ArrayTests = TableQuery[ArrayTestTable]
 
   //------------------------------------------------------------------------------
 
+  val uuid1 = UUID.randomUUID()
+  val uuid2 = UUID.randomUUID()
+  val uuid3 = UUID.randomUUID()
+
   val testRec1 = ArrayBean(33L, List(101, 102, 103), Buffer(1L, 3L, 5L, 7L), Some(Vector("str1", "str3")),
-    List(Institution(113)), None)
+    List(uuid1, uuid2), List(Institution(113)), None)
   val testRec2 = ArrayBean(37L, List(101, 103), Buffer(11L, 31L, 5L), Some(Vector("str11", "str3")),
-    List(Institution(579)), Some(List(MarketFinancialProduct("product1"))))
+    List(uuid1, uuid2, uuid3), List(Institution(579)), Some(List(MarketFinancialProduct("product1"))))
   val testRec3 = ArrayBean(41L, List(103, 101), Buffer(11L, 5L, 31L), Some(Vector("(s)", "str5", "str3")),
-    Nil, Some(List(MarketFinancialProduct("product3"), MarketFinancialProduct("product x"))))
+    List(uuid1, uuid3), Nil, Some(List(MarketFinancialProduct("product3"), MarketFinancialProduct("product x"))))
 
   @Test
   def testArrayFunctions(): Unit = {
     db withSession { implicit session: Session =>
+      Try { (ArrayTests.ddl) drop }
+      Try { (ArrayTests.ddl).createStatements.foreach(s => println(s"[array] $s")) }
+      Try { (ArrayTests.ddl) create }
+
       ArrayTests forceInsertAll (testRec1, testRec2, testRec3)
 
       val q0 = ArrayTests.sortBy(_.id).map(r => r)
@@ -129,50 +142,96 @@ class PgArraySupportTest {
     }
   }
 
-  ////////////////////////////////////////////////////////////////////////
-
-  case class ArrayBean1(
-    id: Long,
-    uuidArr: List[UUID]
-    )
-
-  class ArrayTestTable1(tag: Tag) extends Table[ArrayBean1](tag, "ArrayTest1") {
-    def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
-    def uuidArr = column[List[UUID]]("uuidArray")
-
-    def * = (id, uuidArr) <> (ArrayBean1.tupled, ArrayBean1.unapply)
-  }
-  val ArrayTests1 = TableQuery[ArrayTestTable1]
-
-  //------------------------------------------------------------------------------
-
-  val uuid1 = UUID.randomUUID()
-  val uuid2 = UUID.randomUUID()
-  val uuid3 = UUID.randomUUID()
-
-  val rec1 = ArrayBean1(51L, List(uuid1, uuid2))
-  val rec2 = ArrayBean1(52L, List(uuid1, uuid2, uuid3))
-  val rec3 = ArrayBean1(53L, List(uuid1, uuid3))
+  //------------------------------------------------------------------------
 
   @Test
-  def testArrayFunctions1(): Unit = {
+  def testPlainArrayFunctions(): Unit = {
+    case class ArrayBean1(
+      id: Long,
+      uuidArr: List[UUID],
+      strArr: Seq[String],
+      longArr: Seq[Long],
+      intArr: List[Int],
+      shortArr: Vector[Short],
+      floatArr: List[Float],
+      doubleArr: List[Double],
+      boolArr: Seq[Boolean],
+      dateArr: List[Date],
+      timeArr: List[Time],
+      tsArr: Seq[Timestamp]
+      )
+
+    import MyPlainPostgresDriver.plainImplicit._
+
+    implicit val getArrarBean1Result = GetResult(r =>
+      ArrayBean1(r.nextLong(),
+        r.nextUUIDArray().toList,
+        r.nextStringArray(),
+        r.nextLongArray(),
+        r.nextIntArray().toList,
+        r.nextShortArray().to[Vector],
+        r.nextFloatArray().toList,
+        r.nextDoubleArray().toList,
+        r.nextBooleanArray(),
+        r.nextDateArray().toList,
+        r.nextTimeArray().toList,
+        r.nextTimestampArray()
+      )
+    )
+
     db withSession { implicit session: Session =>
-      ArrayTests1 forceInsertAll (rec1, rec2, rec3)
+      Try { Q.updateNA("drop table if exists ArrayTest1 cascade").execute }
+      Try {
+        Q.updateNA("create table ArrayTest1("+
+          "id int8 not null primary key, "+
+          "uuid_arr uuid[] not null, "+
+          "str_arr text[] not null, "+
+          "long_arr int8[] not null, "+
+          "int_arr int4[] not null, "+
+          "short_arr int2[] not null, "+
+          "float_arr float4[] not null, "+
+          "double_arr float8[] not null, "+
+          "bool_arr bool[] not null, "+
+          "date_arr date[] not null, "+
+          "time_arr time[] not null, "+
+          "ts_arr timestamp[] not null)"
+        ).execute
+      }
 
-      val q1 = ArrayTests1.filter(_.uuidArr @> List(uuid2).bind).map(r => r)
-      println(s"[array] uuid '@>' sql = ${q1.selectStatement}")
-      assertEquals(List(rec1, rec2), q1.list)
-    }
-  }
+      val bean1 = ArrayBean1(101L, List(UUID.randomUUID()), List("tewe", "ttt"), List(111L), List(1, 2), Vector(3, 5), List(1.2f, 43.32f), List(21.35d), List(true, true),
+        List(new Date(System.currentTimeMillis())), List(new Time(System.currentTimeMillis())), List(new Timestamp(System.currentTimeMillis())))
 
-  //////////////////////////////////////////////////////////////////////
+      def insert(b: ArrayBean1) =
+        (Q.u + "insert into ArrayTest1 values("
+          +? b.id + ","
+          +? b.uuidArr + ","
+          +? b.strArr + ","
+          +? b.longArr + ","
+          +? b.intArr + ","
+          +? b.shortArr + ","
+          +? b.floatArr + ","
+          +? b.doubleArr + ","
+          +? b.boolArr + ","
+          +? b.dateArr + ","
+          +? b.timeArr + ","
+          +? b.tsArr + ")"
+          ).execute
 
-  @Before
-  def createTables(): Unit = {
-    db withSession { implicit session: Session =>
-      Try { (ArrayTests.ddl ++ ArrayTests1.ddl) drop }
-      Try { (ArrayTests.ddl ++ ArrayTests1.ddl).createStatements.foreach(s => println(s"[array] $s")) }
-      Try { (ArrayTests.ddl ++ ArrayTests1.ddl) create }
+      insert(bean1)
+
+      val found = (Q[ArrayBean1] + "select * from ArrayTest1 where id=" +? bean1.id).first
+
+      bean1.uuidArr.zip(found.uuidArr).map(r => assertEquals(r._1, r._2))
+      bean1.strArr.zip(found.strArr).map(r => assertEquals(r._1, r._2))
+      bean1.longArr.zip(found.longArr).map(r => assertEquals(r._1, r._2))
+      bean1.intArr.zip(found.intArr).map(r => assertEquals(r._1, r._2))
+      bean1.shortArr.zip(found.shortArr).map(r => assertEquals(r._1, r._2))
+      bean1.floatArr.zip(found.floatArr).map(r => assertEquals(r._1, r._2, 0.01f))
+      bean1.doubleArr.zip(found.doubleArr).map(r => assertEquals(r._1, r._2, 0.01d))
+      bean1.boolArr.zip(found.boolArr).map(r => assertEquals(r._1, r._2))
+      bean1.dateArr.zip(found.dateArr).map(r => assertEquals(r._1.toString, r._2.toString))
+      bean1.timeArr.zip(found.timeArr).map(r => assertEquals(r._1.toString, r._2.toString))
+      bean1.tsArr.zip(found.tsArr).map(r => assertEquals(r._1.toString, r._2.toString))
     }
   }
 }

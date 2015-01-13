@@ -1,7 +1,7 @@
 package com.github.tminglei.slickpg
 
 import scala.slick.driver.PostgresDriver
-import scala.slick.jdbc.{PositionedParameters, PositionedResult, JdbcType}
+import scala.slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
 import scala.slick.lifted.Column
 
 /** simple ltree wrapper */
@@ -62,22 +62,32 @@ trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcType
       def nextLTreeArray() = nextLTreeArrayOption().getOrElse(Nil)
       def nextLTreeArrayOption() = r.nextStringOption().map(fromString(LTree.apply))
     }
-    implicit class PgLTreePositionedParameters(p: PositionedParameters) {
-      def setLTree(v: LTree) = setLTreeOption(Option(v))
-      def setLTreeOption(v: Option[LTree]) = {
-        p.pos += 1
-        v match {
-          case Some(v) => p.ps.setObject(p.pos, utils.mkPGobject("ltree", v.toString))
-          case None    => p.ps.setNull(p.pos, java.sql.Types.OTHER)
-        }
-      }
-      def setLTreeArray(v: List[LTree]) = setLTreeArrayOption(Option(v))
-      def setLTreeArrayOption(v: Option[List[LTree]]) = {
-        p.pos += 1
-        v match {
-          case Some(v) => p.ps.setArray(p.pos, mkArray(mkString[LTree](_.toString))("ltree", v))
-          case None    => p.ps.setNull(p.pos, java.sql.Types.ARRAY)
-        }
+
+    ///////////////////////////////////////////////////////////
+    implicit object SetLTree extends SetParameter[LTree] {
+      def apply(v: LTree, pp: PositionedParameters) = setLTree(Option(v), pp)
+    }
+    implicit object SetLTreeOption extends SetParameter[Option[LTree]] {
+      def apply(v: Option[LTree], pp: PositionedParameters) = setLTree(v, pp)
+    }
+
+    implicit object SetLTreeArray extends SetParameter[List[LTree]] {
+      def apply(v: List[LTree], pp: PositionedParameters) = setLTreeArray(Option(v), pp)
+    }
+    implicit object SetLTreeArrayOption extends SetParameter[Option[List[LTree]]] {
+      def apply(v: Option[List[LTree]], pp: PositionedParameters) = setLTreeArray(v, pp)
+    }
+
+    ///
+    private def setLTree(v: Option[LTree], p: PositionedParameters) = v match {
+      case Some(v) => p.setObject(utils.mkPGobject("ltree", v.toString), java.sql.Types.OTHER)
+      case None    => p.setNull(java.sql.Types.OTHER)
+    }
+    private def setLTreeArray(v: Option[List[LTree]], p: PositionedParameters) = {
+      p.pos += 1
+      v match {
+        case Some(v) => p.ps.setArray(p.pos, mkArray(mkString[LTree](_.toString))("ltree", v))
+        case None    => p.ps.setNull(p.pos, java.sql.Types.ARRAY)
       }
     }
   }

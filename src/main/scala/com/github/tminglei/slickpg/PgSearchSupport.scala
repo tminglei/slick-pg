@@ -1,7 +1,7 @@
 package com.github.tminglei.slickpg
 
 import scala.slick.driver.PostgresDriver
-import scala.slick.jdbc.JdbcType
+import scala.slick.jdbc.{PositionedParameters, SetParameter, PositionedResult, JdbcType}
 import scala.slick.lifted.Column
 
 case class TsVector(value: String)
@@ -35,5 +35,39 @@ trait PgSearchSupport extends search.PgSearchExtensions with utils.PgCommonJdbcT
       implicit tm: JdbcType[TsVector], tm1: JdbcType[TsQuery]) = {
         new TsQueryColumnExtensionMethods[TsVector, TsQuery, Option[TsQuery]](c)
       }
+  }
+
+  trait SimpleSearchPlainImplicits {
+
+    implicit class PgNetPositionedResult(r: PositionedResult) {
+      def nextTsVector() = nextTsVectorOption().orNull
+      def nextTsVectorOption() = r.nextStringOption().map(TsVector)
+      def nextTsQuery() = nextTsQueryOption().orNull
+      def nextTsQueryOption() = r.nextStringOption().map(TsQuery)
+    }
+
+    implicit object SetTsVector extends SetParameter[TsVector] {
+      def apply(v: TsVector, pp: PositionedParameters) = setTsVector(Option(v), pp)
+    }
+    implicit object SetTsVectorOption extends SetParameter[Option[TsVector]] {
+      def apply(v: Option[TsVector], pp: PositionedParameters) = setTsVector(v, pp)
+    }
+    ///
+    implicit object SetTsQuery extends SetParameter[TsQuery] {
+      def apply(v: TsQuery, pp: PositionedParameters) = setTsQuery(Option(v), pp)
+    }
+    implicit object SetTsQueryOption extends SetParameter[Option[TsQuery]] {
+      def apply(v: Option[TsQuery], pp: PositionedParameters) = setTsQuery(v, pp)
+    }
+
+    ///
+    private def setTsVector(v: Option[TsVector], p: PositionedParameters) = v match {
+      case Some(v) => p.setObject(utils.mkPGobject("tsvector", v.value), java.sql.Types.OTHER)
+      case None    => p.setNull(java.sql.Types.OTHER)
+    }
+    private def setTsQuery(v: Option[TsQuery], p: PositionedParameters) = v match {
+      case Some(v) => p.setObject(utils.mkPGobject("tsquery", v.value), java.sql.Types.OTHER)
+      case None    => p.setNull(java.sql.Types.OTHER)
+    }
   }
 }

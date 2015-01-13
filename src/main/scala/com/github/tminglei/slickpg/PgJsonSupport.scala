@@ -1,7 +1,7 @@
 package com.github.tminglei.slickpg
 
 import scala.slick.driver.PostgresDriver
-import scala.slick.jdbc.{PositionedParameters, PositionedResult, JdbcType}
+import scala.slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
 import scala.slick.lifted.Column
 
 /** simple json string wrapper */
@@ -34,19 +34,24 @@ trait PgJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes {
   }
 
   trait SimpleJsonPlainImplicits {
+
     implicit class PgJsonPositionedResult(r: PositionedResult) {
       def nextJson() = nextJsonOption().orNull
       def nextJsonOption() = r.nextStringOption().map(JsonString)
     }
-    implicit class PgJsonPositionedParameters(p: PositionedParameters) {
-      def setJson(v: JsonString) = setJsonOption(Option(v))
-      def setJsonOption(v: Option[JsonString]) = {
-        p.pos += 1
-        v match {
-          case Some(v) => p.ps.setObject(p.pos, utils.mkPGobject("json", v.value))
-          case None    => p.ps.setNull(p.pos, java.sql.Types.OTHER)
-        }
-      }
+
+    ///////////////////////////////////////////////////
+    implicit object SetJson extends SetParameter[JsonString] {
+      def apply(v: JsonString, pp: PositionedParameters) = setJson(Option(v), pp)
+    }
+    implicit object SetJsonOption extends SetParameter[Option[JsonString]] {
+      def apply(v: Option[JsonString], pp: PositionedParameters) = setJson(v, pp)
+    }
+
+    ///
+    private def setJson(v: Option[JsonString], p: PositionedParameters) = v match {
+      case Some(v) => p.setObject(utils.mkPGobject("json", v.value), java.sql.Types.OTHER)
+      case None    => p.setNull(java.sql.Types.OTHER)
     }
   }
 }
