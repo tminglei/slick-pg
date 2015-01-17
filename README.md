@@ -117,6 +117,8 @@ object tests extends TableQuery(new TestTable(_)) {
 ...
 ```
 
+_p.s. above codes are for `Slick` Lifted Embedding SQL. Except, `slick-pg` also support for `Slick` Plain SQL._
+
 Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
@@ -210,6 +212,11 @@ Details
 
 History
 ------------------------------
+v0.8.0 (17-Jan-2015):  
+1) add plain sql support  
+2) allow to specify scala type for pg array  
+3) refactor and add public search type support
+
 v0.7.0 (4-Dec-2014):  
 1) merge add-on support codes into `slick-pg` main jar, and declare these 3rd dependencies optional
 
