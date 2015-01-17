@@ -238,6 +238,7 @@ class PgDateSupportJodaTest {
           "period interval not null)"
         ).execute
       }
+      (Q.u + "SET TIMEZONE TO '+8';").execute
 
       val dateBean = new DatetimeBean(107L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01.101357"),
         LocalDateTime.parse("2001-01-03T13:21:00.223571"), DateTime.parse("2001-01-03 13:21:00.102203+08", jodaTzDateTimeFormatter),
