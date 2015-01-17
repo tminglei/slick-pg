@@ -117,7 +117,7 @@ object tests extends TableQuery(new TestTable(_)) {
 ...
 ```
 
-_p.s. above codes are for `Slick` Lifted Embedding SQL. Except, `slick-pg` also support for `Slick` Plain SQL._
+_p.s. above codes are for `Slick` Lifted Embedding SQL. Except that, `slick-pg` also support for `Slick` Plain SQL._
 
 Install
 -------
