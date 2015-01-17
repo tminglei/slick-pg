@@ -2,6 +2,7 @@ package com.github.tminglei.slickpg
 
 import org.junit._
 import org.junit.Assert._
+import scala.slick.jdbc.{StaticQuery => Q, GetResult}
 import scala.util.Try
 
 class PgHStoreSupportTest {
@@ -29,6 +30,10 @@ class PgHStoreSupportTest {
   @Test
   def testHStoreFunctions(): Unit = {
     db withSession { implicit session: Session =>
+      Try { HStoreTests.ddl drop }
+      Try { HStoreTests.ddl.createStatements.foreach(s => println(s"[hstore] $s")) }
+      Try { HStoreTests.ddl create }
+
       HStoreTests forceInsertAll (testRec1, testRec2, testRec3, testRec4)
 
       assertEquals(List(testRec1, testRec2, testRec3, testRec4), HStoreTests.list)
@@ -88,12 +93,28 @@ class PgHStoreSupportTest {
 
   //------------------------------------------------------------------------------
 
-  @Before
-  def createTables(): Unit = {
+  @Test
+  def testPlainHStoreFunctions(): Unit = {
+    import MyPlainPostgresDriver.plainImplicits._
+
+    implicit val getMapBeanResult = GetResult(r => MapBean(r.nextLong(), r.nextHStore()))
+
     db withSession { implicit session: Session =>
-      Try { HStoreTests.ddl drop }
-      Try { HStoreTests.ddl.createStatements.foreach(s => println(s"[hstore] $s")) }
-      Try { HStoreTests.ddl create }
+      Try { Q.updateNA("drop table if exists HStoreTest cascade").execute }
+      Try {
+        Q.updateNA("create table HStoreTest("+
+          "id int8 not null primary key, "+
+          "hstoreMap hstore not null)"
+        ).execute
+      }
+
+      val testBean = MapBean(33L, Map("a"->"val1", "b"->"val3", "c"->"321"))
+
+      (Q.u + "insert into HStoreTest values(" +? testBean.id + ", " +? testBean.hstore + ")").execute
+
+      val found = (Q[MapBean] + "select * from HStoreTest where id = " +? testBean.id).first
+
+      assertEquals(testBean, found)
     }
   }
 }

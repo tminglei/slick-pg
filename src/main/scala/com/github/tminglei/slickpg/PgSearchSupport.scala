@@ -39,7 +39,7 @@ trait PgSearchSupport extends search.PgSearchExtensions with utils.PgCommonJdbcT
 
   trait SimpleSearchPlainImplicits {
 
-    implicit class PgNetPositionedResult(r: PositionedResult) {
+    implicit class PgSearchPositionedResult(r: PositionedResult) {
       def nextTsVector() = nextTsVectorOption().orNull
       def nextTsVectorOption() = r.nextStringOption().map(TsVector)
       def nextTsQuery() = nextTsQueryOption().orNull

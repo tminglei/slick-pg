@@ -3,6 +3,7 @@ package com.github.tminglei.slickpg
 import org.junit.Assert._
 import org.junit._
 
+import scala.slick.jdbc.{StaticQuery => Q, GetResult}
 import scala.util.Try
 
 class PgJsonSupportTest {
@@ -28,6 +29,9 @@ class PgJsonSupportTest {
   @Test
   def testJsonFunctions(): Unit = {
     db withSession { implicit session: Session =>
+      Try { JsonTests.ddl drop }
+      Try { JsonTests.ddl create }
+
       JsonTests forceInsertAll (testRec1, testRec2)
 
       val json1 = """{"a":"v1","b":2}"""
@@ -82,11 +86,28 @@ class PgJsonSupportTest {
 
   //------------------------------------------------------------------------------
 
-  @Before
-  def createTables(): Unit = {
+  @Test
+  def testPlainJsonFunctions(): Unit = {
+    import MyPlainPostgresDriver.plainImplicits._
+
+    implicit val getJsonBeanResult = GetResult(r => JsonBean(r.nextLong(), r.nextJson()))
+
     db withSession { implicit session: Session =>
-      Try { JsonTests.ddl drop }
-      Try { JsonTests.ddl create }
+      Try { Q.updateNA("drop table if exists JsonTest0 cascade").execute }
+      Try {
+        Q.updateNA("create table JsonTest0("+
+          "id int8 not null primary key, "+
+          "json json not null)"
+        ).execute
+      }
+
+      val jsonBean = JsonBean(37L, JsonString(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """))
+
+      (Q.u + "insert into JsonTest0 values(" +? jsonBean.id + ", " +? jsonBean.json + ")").execute
+
+      val found = (Q[JsonBean] + "select * from JsonTest0 where id = " +? jsonBean.id).first
+
+      assertEquals(jsonBean, found)
     }
   }
 }

@@ -1,9 +1,9 @@
 package com.github.tminglei.slickpg
 
-import org.joda.time.{Period, LocalDateTime, LocalTime, LocalDate, DateTime}
-import org.junit.{After, Before, Test}
+import org.junit._
 import org.junit.Assert._
-import scala.slick.jdbc.StaticQuery
+import scala.slick.jdbc.{StaticQuery => Q, GetResult}
+import org.joda.time._
 import scala.util.Try
 
 class PgDateSupportJodaTest {
@@ -14,6 +14,9 @@ class PgDateSupportJodaTest {
 
     override lazy val Implicit = new Implicits with DateTimeImplicits
     override val simple = new Implicits with SimpleQL with DateTimeImplicits
+
+    ///
+    val plainImplicits = new Implicits with JodaDateTimePlainImplicits
   }
 
   ///
@@ -57,7 +60,10 @@ class PgDateSupportJodaTest {
   @Test
   def testDatetimeFunctions(): Unit = {
     db withSession { implicit session: Session =>
-      (StaticQuery.u + "SET TIMEZONE TO '+8';").execute
+      Try { Datetimes.ddl drop }
+      Try { Datetimes.ddl create }
+
+      (Q.u + "SET TIMEZONE TO '+8';").execute
       Datetimes forceInsertAll (testRec1, testRec2, testRec3)
 
       val q0 = Datetimes.map(r => r)
@@ -213,11 +219,36 @@ class PgDateSupportJodaTest {
 
   //////////////////////////////////////////////////////////////////////
 
-  @Before
-  def createTables(): Unit = {
+  @Test
+  def testPlainDateFunctions(): Unit = {
+    import MyPostgresDriver.plainImplicits._
+
+    implicit val getDateBean = GetResult(r => DatetimeBean(
+      r.nextLong(), r.nextLocalDate(), r.nextLocalTime(), r.nextLocalDateTime(), r.nextZonedDateTime(), r.nextPeriod()))
+
     db withSession { implicit session: Session =>
-      Try { Datetimes.ddl drop }
-      Try { Datetimes.ddl create }
+      Try { Q.updateNA("drop table if exists DatetimeJodaTest cascade").execute }
+      Try {
+        Q.updateNA("create table DatetimeJodaTest("+
+          "id int8 not null primary key, " +
+          "date date not null, " +
+          "time time not null, " +
+          "ts timestamp not null, " +
+          "tstz timestamptz not null, " +
+          "period interval not null)"
+        ).execute
+      }
+
+      val dateBean = new DatetimeBean(107L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01.101357"),
+        LocalDateTime.parse("2001-01-03T13:21:00.223571"), DateTime.parse("2001-01-03 13:21:00.102203+08", jodaTzDateTimeFormatter),
+        Period.parse("P1DT1H1M0.335701S"))
+
+      (Q.u + "insert into DatetimeJodaTest values(" +?dateBean.id + ", " +? dateBean.date + ", " +? dateBean.time
+        + ", " +? dateBean.dateTime + ", " +? dateBean.dateTimetz + ", " +? dateBean.interval + ")").execute
+
+      val found = (Q[DatetimeBean] + "select * from DatetimeJodaTest where id = " +? dateBean.id).first
+
+      assertEquals(dateBean, found)
     }
   }
 }

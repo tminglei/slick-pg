@@ -1,8 +1,9 @@
 package com.github.tminglei.slickpg
 
+import org.junit._
 import org.junit.Assert._
-import org.junit.{Test, Before}
 
+import scala.slick.jdbc.{StaticQuery => Q, GetResult}
 import scala.util.Try
 
 class PgLTreeSupportTest {
@@ -41,6 +42,9 @@ class PgLTreeSupportTest {
   @Test
   def testLTreeMethods(): Unit = {
     db withSession { implicit session: Session =>
+      Try { LTreeTests.ddl drop }
+      Try { LTreeTests.ddl create }
+
       LTreeTests forceInsertAll (rec1, rec2, rec3, rec4, rec5, rec6, rec7, rec8, rec9, rec10, rec11, rec12, rec13)
 
       val q0 = LTreeTests.filter(_.id === 101L).map(identity)
@@ -103,6 +107,9 @@ class PgLTreeSupportTest {
   @Test
   def testLTreeListMethods(): Unit = {
     db withSession { implicit session: Session =>
+      Try { LTreeTests.ddl drop }
+      Try { LTreeTests.ddl create }
+
       LTreeTests forceInsertAll (rec1, rec2, rec3, rec4, rec5, rec6, rec7, rec8, rec9, rec10, rec11, rec12, rec13)
 
       val q1 = LTreeTests.filter(_.treeArr @> LTree("Top.Science")).map(identity)
@@ -129,11 +136,29 @@ class PgLTreeSupportTest {
 
   //------------------------------------------------------------------------------
 
-  @Before
-  def createTables(): Unit = {
+  @Test
+  def testPlainLTreeFunctions(): Unit = {
+    import MyPlainPostgresDriver.plainImplicits._
+
+    implicit val getLTreeBeanResult = GetResult(r => LTreeBean(r.nextLong(), r.nextLTree(), r.nextLTreeArray().toList))
+
     db withSession { implicit session: Session =>
-      Try { LTreeTests.ddl drop }
-      Try { LTreeTests.ddl create }
+      Try { Q.updateNA("drop table if exists ltree_test cascade").execute }
+      Try {
+        Q.updateNA("create table ltree_test(" +
+          "id int8 not null primary key, " +
+          "path ltree not null, " +
+          "tree_arr ltree[] not null)"
+        ).execute
+      }
+
+      val treeBean = LTreeBean(101L, LTree("Top"), List(LTree("Top.Science"), LTree("Top.Collections")))
+
+      (Q.u + "insert into ltree_test values(" +? treeBean.id + ", " +? treeBean.path + ", " +? treeBean.treeArr + ")").execute
+
+      val found = (Q[LTreeBean] + "select * from ltree_test where id = " +? treeBean.id).first
+
+      assertEquals(treeBean, found)
     }
   }
 }

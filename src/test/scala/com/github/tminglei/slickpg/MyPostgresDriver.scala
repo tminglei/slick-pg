@@ -43,10 +43,11 @@ object MyPlainPostgresDriver extends PostgresDriver
                               with PgHStoreSupport
                               with PgSearchSupport {
   ///
-  val plainImplicit = new Implicits with SimpleArrayPlainImplicits
-                                    with SimpleJsonPlainImplicits
-                                    with SimpleNetPlainImplicits
-                                    with SimpleLTreePlainImplicits
-                                    with SimpleRangePlainImplicits
-                                    with SimpleHStorePlainImplicits {}
+  val plainImplicits = new Implicits with SimpleArrayPlainImplicits
+                                     with SimpleJsonPlainImplicits
+                                     with SimpleNetPlainImplicits
+                                     with SimpleLTreePlainImplicits
+                                     with SimpleRangePlainImplicits
+                                     with SimpleHStorePlainImplicits
+                                     with SimpleSearchPlainImplicits {}
 }

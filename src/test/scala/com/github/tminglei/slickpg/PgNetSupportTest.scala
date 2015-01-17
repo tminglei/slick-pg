@@ -1,8 +1,9 @@
 package com.github.tminglei.slickpg
 
+import org.junit._
 import org.junit.Assert._
-import org.junit.{Test, Before}
 
+import scala.slick.jdbc.{StaticQuery => Q, GetResult}
 import scala.util.Try
 
 class PgNetSupportTest {
@@ -43,6 +44,9 @@ class PgNetSupportTest {
   @Test
   def testNetFunctions(): Unit = {
     db withSession { implicit session: Session =>
+      Try { NetTests.ddl drop }
+      Try { NetTests.ddl create }
+
       NetTests forceInsertAll (testRec1, testRec2, testRec3)
 
       val q0 = NetTests.map(r => r)
@@ -155,11 +159,29 @@ class PgNetSupportTest {
 
   //------------------------------------------------------------------------------
 
-  @Before
-  def createTables(): Unit = {
+  @Test
+  def testPlainNetFunctions(): Unit = {
+    import MyPlainPostgresDriver.plainImplicits._
+
+    implicit val getNetBeanResult = GetResult(r => NetBean(r.nextLong(), r.nextIPAddr(), r.nextMacAddrOption()))
+
     db withSession { implicit session: Session =>
-      Try { NetTests.ddl drop }
-      Try { NetTests.ddl create }
+      Try { Q.updateNA("drop table if exists net_test cascade").execute }
+      Try {
+        Q.updateNA("create table net_test(" +
+          "id int8 not null primary key, " +
+          "inet inet not null, " +
+          "mac macaddr)"
+        ).execute
+      }
+
+      val netBean = NetBean(33L, InetString("10.1.0.0/16"), Some(MacAddrString("12:34:56:78:90:ab")))
+
+      (Q.u + "insert into net_test values(" +? netBean.id + ", " +? netBean.inet + ", " +? netBean.mac + ")").execute
+
+      val found = (Q[NetBean] + "select * from net_test where id = " +? netBean.id).first
+
+      assertEquals(netBean, found)
     }
   }
 }

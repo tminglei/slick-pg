@@ -60,7 +60,7 @@ trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcType
       def nextLTree() = nextLTreeOption().orNull
       def nextLTreeOption() = r.nextStringOption().map(LTree.apply)
       def nextLTreeArray() = nextLTreeArrayOption().getOrElse(Nil)
-      def nextLTreeArrayOption() = r.nextStringOption().map(fromString(LTree.apply))
+      def nextLTreeArrayOption() = r.nextStringOption().flatMap(fromString(LTree.apply))
     }
 
     ///////////////////////////////////////////////////////////

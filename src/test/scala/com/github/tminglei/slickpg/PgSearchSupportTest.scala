@@ -2,6 +2,7 @@ package com.github.tminglei.slickpg
 
 import org.junit._
 import org.junit.Assert._
+import scala.slick.jdbc.{StaticQuery => Q, GetResult}
 import scala.util.Try
 
 class PgSearchSupportTest {
@@ -28,6 +29,9 @@ class PgSearchSupportTest {
   @Test
   def testSearchFunctions(): Unit = {
     db withSession { implicit session: Session =>
+      Try { Tests.ddl drop }
+      Try { Tests.ddl create }
+
       Tests.forceInsertAll(testRec1, testRec2)
 
       val q0 = Tests.filter(_.id === 33L).map(r => currTsConfig())
@@ -90,6 +94,9 @@ class PgSearchSupportTest {
   @Test
   def testOtherFunctions(): Unit = {
     db withSession { implicit session: Session =>
+      Try { Tests.ddl drop }
+      Try { Tests.ddl create }
+
       Tests.forceInsert(TestBean(11L, "Neutrinos in the Sun", ""))
       Tests.forceInsert(TestBean(12L, "The Sudbury Neutrino Detector", ""))
       Tests.forceInsert(TestBean(13L, "A MACHO View of Galactic Dark Matter", ""))
@@ -119,11 +126,31 @@ class PgSearchSupportTest {
 
   //--------------------------------------------------------------------------------
 
-  @Before
-  def createTables(): Unit = {
+  @Test
+  def testPlainSearchFunctions(): Unit = {
+    import MyPlainPostgresDriver.plainImplicits._
+
+    case class SearchBean(id: Long, tVec: TsVector, tQ: TsQuery)
+
+    implicit val getSearchBeanResult = GetResult(r => SearchBean(r.nextLong(), r.nextTsVector(), r.nextTsQuery))
+
     db withSession { implicit session: Session =>
-      Try { Tests.ddl drop }
-      Try { Tests.ddl create }
+      Try { Q.updateNA("drop table if exists tsTestTable cascade").execute }
+      Try {
+        Q.updateNA("create table tsTestTable(" +
+          "id int8 not null primary key, " +
+          "tsvec tsvector not null, " +
+          "tsquery tsquery)"
+        ).execute
+      }
+
+      val sBean = SearchBean(101L, TsVector("'ate' 'cat' 'fat' 'rat'"), TsQuery("'rat'"))
+
+      (Q.u + "insert into tsTestTable values(" +? sBean.id + ", " +? sBean.tVec + ", " +? sBean.tQ + ")").execute
+
+      val found = (Q[SearchBean] + "select * from tsTestTable where id = " +? sBean.id).first
+
+      assertEquals(sBean, found)
     }
   }
 }

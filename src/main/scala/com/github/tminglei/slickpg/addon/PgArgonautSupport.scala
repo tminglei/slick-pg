@@ -33,7 +33,7 @@ trait PgArgonautSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
 
     implicit class PgJsonPositionedResult(r: PositionedResult) {
       def nextJson() = nextJsonOption().getOrElse(jNull)
-      def nextJsonOption() = r.nextStringOption().map(_.parse)
+      def nextJsonOption() = r.nextStringOption().flatMap(_.parse.toOption)
     }
 
     implicit object SetJson extends SetParameter[Json] {

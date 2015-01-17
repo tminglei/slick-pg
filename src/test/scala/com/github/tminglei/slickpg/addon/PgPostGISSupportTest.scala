@@ -4,6 +4,7 @@ import org.junit._
 import org.junit.Assert._
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import com.vividsolutions.jts.io.{WKTWriter, WKBWriter, WKTReader}
+import scala.slick.jdbc.{StaticQuery => Q, GetResult}
 import scala.util.Try
 
 class PgPostGISSupportTest {
@@ -14,6 +15,9 @@ class PgPostGISSupportTest {
 
     override lazy val Implicit = new Implicits with PostGISImplicits
     override val simple = new Implicits with SimpleQL with PostGISImplicits with PostGISAssistants
+
+    ///
+    val plainImplicits = new Implicits with PostGISPlainImplicits
   }
 
   ///
@@ -549,7 +553,34 @@ class PgPostGISSupportTest {
     }
   }
 
-  //////////////////////////////////////////////////////////////////////
+  //-----------------------------------------------------------------------
+
+  @Test
+  def testPlainPostgisFunctions(): Unit = {
+    import MyPostgresDriver.plainImplicits._
+
+    implicit val GetPointBeanResult = GetResult(r => PointBean(r.nextLong, r.nextGeometry[Point]))
+
+    db withSession { implicit session: Session =>
+      Try { Q.updateNA("drop table if exists point_test cascade").execute }
+      Try {
+        Q.updateNA("create table point_test("+
+          "id int8 not null primary key, " +
+          "point geometry not null)"
+        ).execute
+      }
+
+      val pointBean = PointBean(107L, wktReader.read("POINT(4 5)").asInstanceOf[Point])
+
+      (Q.u + "insert into point_test values(" +? pointBean.id + ", " +? pointBean.point + ")").execute
+
+      val found = (Q[PointBean] + "select * from point_test where id = " +? pointBean.id).first
+
+      assertEquals(pointBean, found)
+    }
+  }
+
+  /////////////////////////////////////////////////////////////////////////
 
   @Before
   def createTables(): Unit = {

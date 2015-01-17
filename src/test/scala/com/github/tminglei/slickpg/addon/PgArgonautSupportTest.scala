@@ -3,6 +3,7 @@ package com.github.tminglei.slickpg
 import org.junit._
 import org.junit.Assert._
 import argonaut._, Argonaut._
+import scala.slick.jdbc.{StaticQuery => Q, GetResult}
 import scala.util.Try
 
 class PgArgonautSupportTest {
@@ -16,6 +17,8 @@ class PgArgonautSupportTest {
     override val simple = new Implicits with SimpleQL with JsonImplicits {
       implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
     }
+
+    val plainImplicits = new Implicits with ArgonautJsonPlainImplicits
   }
 
   ///
@@ -41,6 +44,9 @@ class PgArgonautSupportTest {
   @Test
   def testJsonFunctions(): Unit = {
     db withSession { implicit session: Session =>
+      Try { JsonTests.ddl drop }
+      Try { JsonTests.ddl create }
+
       JsonTests forceInsertAll (testRec1, testRec2)
 
       val json1 = """ {"a":"v1","b":2} """.parse.toOption.getOrElse(jNull)
@@ -95,11 +101,28 @@ class PgArgonautSupportTest {
 
   //------------------------------------------------------------------------------
 
-  @Before
-  def createTables(): Unit = {
+  @Test
+  def testPlainJsonFunctions(): Unit = {
+    import MyPostgresDriver.plainImplicits._
+
+    implicit val getJsonBeanResult = GetResult(r => JsonBean(r.nextLong(), r.nextJson()))
+
     db withSession { implicit session: Session =>
-      Try { JsonTests.ddl drop }
-      Try { JsonTests.ddl create }
+      Try { Q.updateNA("drop table if exists JsonTest4 cascade").execute }
+      Try {
+        Q.updateNA("create table JsonTest4("+
+          "id int8 not null primary key, "+
+          "json json not null)"
+        ).execute
+      }
+
+      val jsonBean = JsonBean(37L, """ { "a":101, "b":"aaa", "c":[3,4,5,9] } """.parse.toOption.getOrElse(jNull))
+
+      (Q.u + "insert into JsonTest4 values(" +? jsonBean.id + ", " +? jsonBean.json + ")").execute
+
+      val found = (Q[JsonBean] + "select * from JsonTest4 where id = " +? jsonBean.id).first
+
+      assertEquals(jsonBean, found)
     }
   }
 }

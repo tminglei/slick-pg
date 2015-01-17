@@ -34,8 +34,8 @@ trait PgPostGISSupport extends geom.PgPostGISExtensions { driver: PostgresDriver
     import PgPostGISSupportUtils._
 
     implicit class PostGISPositionedResult(r: PositionedResult) {
-      def nextGeometry[T <: Geometry]() = nextGeometryOption().orNull
-      def nextGeometryOption[T <: Geometry]() = r.nextStringOption().map(fromLiteral[T])
+      def nextGeometry[T <: Geometry](): T = nextGeometryOption().getOrElse(null.asInstanceOf[T])
+      def nextGeometryOption[T <: Geometry](): Option[T] = r.nextStringOption().map(fromLiteral[T])
     }
 
     implicit object SetGeometry extends SetParameter[Geometry] {

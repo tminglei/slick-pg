@@ -161,7 +161,7 @@ class PgArraySupportTest {
       tsArr: Seq[Timestamp]
       )
 
-    import MyPlainPostgresDriver.plainImplicit._
+    import MyPlainPostgresDriver.plainImplicits._
 
     implicit val getArrarBean1Result = GetResult(r =>
       ArrayBean1(r.nextLong(),
