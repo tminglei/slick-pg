@@ -71,6 +71,8 @@ class PgArraySupportTest {
     List(uuid1, uuid2, uuid3), List(Institution(579)), Some(List(MarketFinancialProduct("product1"))))
   val testRec3 = ArrayBean(41L, List(103, 101), Buffer(11L, 5L, 31L), Some(Vector("(s)", "str5", "str3")),
     List(uuid1, uuid3), Nil, Some(List(MarketFinancialProduct("product3"), MarketFinancialProduct("product x"))))
+  val nastyInputRec = ArrayBean(42L, List(), Buffer(), Some(Vector("", ",", "robert}; drop table students--")),
+    List(), Nil, None)
 
   @Test
   def testArrayFunctions(): Unit = {
@@ -139,6 +141,16 @@ class PgArraySupportTest {
       })
       val q11 = ArrayTests.filter(_.id === 33L.bind).map(r => r.longArr)
       assertEquals(List(3,5,9), q11.first)
+
+      // test some bad input
+      val id = ArrayTests returning ArrayTests.map(_.id) += nastyInputRec
+      val q12 = ArrayTests.filter(_.id === id.bind).map(r => r.strArr)
+      val expected = Some(Vector("", ",", "robert}; drop table students--"))
+      val actual = q12.first
+      assertEquals(expected, actual)
+      ArrayTests.filter(_.id === id.bind).map(r => r.strArr).update(Some(Vector(",,,,", "\"", "}")))
+      val q13 = ArrayTests.filter(_.id === id.bind).map(r => r.strArr)
+      assertEquals(Some(Vector(",,,,", "\"", "}")) ,q13.first)
     }
   }
 
