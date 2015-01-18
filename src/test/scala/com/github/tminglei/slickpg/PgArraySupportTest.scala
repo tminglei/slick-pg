@@ -11,6 +11,7 @@ import scala.slick.jdbc.{GetResult, StaticQuery => Q}
 import scala.util.Try
 
 class PgArraySupportTest {
+  import utils.SimpleArrayUtils._
 
   //-- additional definitions
   case class Institution(value: Long)
@@ -28,6 +29,9 @@ class PgArraySupportTest {
         .basedOn[Long](_.value, new Institution(_)).to(_.toList)
       implicit val marketFinancialProductWrapper = new SimpleArrayJdbcType[MarketFinancialProduct]("text")
         .basedOn[String](_.value, new MarketFinancialProduct(_)).to(_.toList)
+      ///
+      implicit val advancedStringListTypeMapper = new AdvancedArrayJdbcType[String]("text",
+        fromString(identity)(_).orNull, mkString(identity))
     }
   }
 
@@ -40,6 +44,7 @@ class PgArraySupportTest {
     id: Long,
     intArr: List[Int],
     longArr: Buffer[Long],
+    strList: List[String],
     strArr: Option[Vector[String]],
     uuidArr: List[UUID],
     institutions: List[Institution],
@@ -50,12 +55,13 @@ class PgArraySupportTest {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def intArr = column[List[Int]]("intArray", O.Default(Nil))
     def longArr = column[Buffer[Long]]("longArray")
+    def strList = column[List[String]]("stringList")
     def strArr = column[Option[Vector[String]]]("stringArray")
     def uuidArr = column[List[UUID]]("uuidArray")
     def institutions = column[List[Institution]]("institutions")
     def mktFinancialProducts = column[Option[List[MarketFinancialProduct]]]("mktFinancialProducts")
 
-    def * = (id, intArr, longArr, strArr, uuidArr, institutions, mktFinancialProducts) <> (ArrayBean.tupled, ArrayBean.unapply)
+    def * = (id, intArr, longArr, strList, strArr, uuidArr, institutions, mktFinancialProducts) <> (ArrayBean.tupled, ArrayBean.unapply)
   }
   val ArrayTests = TableQuery[ArrayTestTable]
 
@@ -65,14 +71,12 @@ class PgArraySupportTest {
   val uuid2 = UUID.randomUUID()
   val uuid3 = UUID.randomUUID()
 
-  val testRec1 = ArrayBean(33L, List(101, 102, 103), Buffer(1L, 3L, 5L, 7L), Some(Vector("str1", "str3")),
+  val testRec1 = ArrayBean(33L, List(101, 102, 103), Buffer(1L, 3L, 5L, 7L), List("robert}; drop table students--"), Some(Vector("str1", "str3")),
     List(uuid1, uuid2), List(Institution(113)), None)
-  val testRec2 = ArrayBean(37L, List(101, 103), Buffer(11L, 31L, 5L), Some(Vector("str11", "str3")),
+  val testRec2 = ArrayBean(37L, List(101, 103), Buffer(11L, 31L, 5L), List(""), Some(Vector("str11", "str3")),
     List(uuid1, uuid2, uuid3), List(Institution(579)), Some(List(MarketFinancialProduct("product1"))))
-  val testRec3 = ArrayBean(41L, List(103, 101), Buffer(11L, 5L, 31L), Some(Vector("(s)", "str5", "str3")),
+  val testRec3 = ArrayBean(41L, List(103, 101), Buffer(11L, 5L, 31L), Nil, Some(Vector("(s)", "str5", "str3")),
     List(uuid1, uuid3), Nil, Some(List(MarketFinancialProduct("product3"), MarketFinancialProduct("product x"))))
-  val nastyInputRec = ArrayBean(42L, List(), Buffer(), Some(Vector("", ",", "robert}; drop table students--")),
-    List(), Nil, None)
 
   @Test
   def testArrayFunctions(): Unit = {
@@ -141,16 +145,6 @@ class PgArraySupportTest {
       })
       val q11 = ArrayTests.filter(_.id === 33L.bind).map(r => r.longArr)
       assertEquals(List(3,5,9), q11.first)
-
-      // test some bad input
-      val id = ArrayTests returning ArrayTests.map(_.id) += nastyInputRec
-      val q12 = ArrayTests.filter(_.id === id.bind).map(r => r.strArr)
-      val expected = Some(Vector("", ",", "robert}; drop table students--"))
-      val actual = q12.first
-      assertEquals(expected, actual)
-      ArrayTests.filter(_.id === id.bind).map(r => r.strArr).update(Some(Vector(",,,,", "\"", "}")))
-      val q13 = ArrayTests.filter(_.id === id.bind).map(r => r.strArr)
-      assertEquals(Some(Vector(",,,,", "\"", "}")) ,q13.first)
     }
   }
 
