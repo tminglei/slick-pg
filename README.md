@@ -123,7 +123,7 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.7.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.8.0"
 ```
 
 
