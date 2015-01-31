@@ -58,7 +58,7 @@ class PgCompositeSupportTest {
   import PgCompositeSupportTest._
   import MyPostgresDriver1.simple._
 
-  val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=postgres", driver = "org.postgresql.Driver")
+  val db = Database.forURL(url = dbUrl, driver = "org.postgresql.Driver")
 
   case class TestBean(
     id: Long,

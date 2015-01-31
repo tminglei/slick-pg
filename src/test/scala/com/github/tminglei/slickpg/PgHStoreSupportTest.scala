@@ -8,7 +8,7 @@ import scala.util.Try
 class PgHStoreSupportTest {
   import MyPostgresDriver.simple._
 
-  val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=postgres", driver = "org.postgresql.Driver")
+  val db = Database.forURL(url = dbUrl, driver = "org.postgresql.Driver")
 
   case class MapBean(id: Long, hstore: Map[String, String])
 

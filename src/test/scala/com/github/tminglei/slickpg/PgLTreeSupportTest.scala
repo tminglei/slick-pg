@@ -9,7 +9,7 @@ import scala.util.Try
 class PgLTreeSupportTest {
   import com.github.tminglei.slickpg.MyPostgresDriver.simple._
 
-  val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=postgres", driver = "org.postgresql.Driver")
+  val db = Database.forURL(url = dbUrl, driver = "org.postgresql.Driver")
 
   case class LTreeBean(id: Long, path: LTree, treeArr: List[LTree])
 

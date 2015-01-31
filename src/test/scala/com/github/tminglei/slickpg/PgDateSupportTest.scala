@@ -11,7 +11,7 @@ import scala.util.Try
 class PgDateSupportTest {
   import MyPostgresDriver.simple._
 
-  val db = Database.forURL(url = "jdbc:postgresql://localhost/test?user=postgres", driver = "org.postgresql.Driver")
+  val db = Database.forURL(url = dbUrl, driver = "org.postgresql.Driver")
 
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
   val timeFormat = new SimpleDateFormat("HH:mm:ss")
