@@ -60,7 +60,7 @@ class PgJsonSupportTest {
 
       val q21 = JsonTests.filter(_.id === testRec2.id).map(_.json.~>>(1))
       println(s"[json] '~>>' sql = ${q21.selectStatement}")
-      assertEquals("""{"a":"v5","b":3}""", q21.first)
+      assertEquals("""{"a":"v5","b":3}""", q21.first.replace(" ", ""))
 
       val q3 = JsonTests.filter(_.id === testRec2.id).map(_.json.arrayLength)
       println(s"[json] 'arrayLength' sql = ${q3.selectStatement}")

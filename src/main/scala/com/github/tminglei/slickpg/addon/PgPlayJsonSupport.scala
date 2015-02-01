@@ -7,12 +7,15 @@ import scala.slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, J
 trait PgPlayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import play.api.libs.json._
 
+  val pgjson = "json"
+
   /// alias
   trait JsonImplicits extends PlayJsonImplicits
 
   trait PlayJsonImplicits {
     implicit val playJsonTypeMapper =
-      new GenericJdbcType[JsValue]("json",
+      new GenericJdbcType[JsValue](
+        pgjson,
         (v) => Json.parse(v),
         (v) => Json.stringify(v),
         hasLiteralForm = false

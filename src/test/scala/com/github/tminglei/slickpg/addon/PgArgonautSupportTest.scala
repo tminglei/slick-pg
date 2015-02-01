@@ -12,6 +12,7 @@ class PgArgonautSupportTest {
   object MyPostgresDriver extends PostgresDriver
                             with PgArgonautSupport
                             with array.PgArrayJdbcTypes {
+    override val pgjson = "jsonb"
 
     override lazy val Implicit = new Implicits with JsonImplicits
     override val simple = new Implicits with SimpleQL with JsonImplicits {
@@ -62,7 +63,7 @@ class PgArgonautSupportTest {
 
       val q11 = JsonTests.filter(_.json.+>>("a") === "101".bind).map(_.json.+>>("c"))
       println(s"[argonaut] '+>>' sql = ${q11.selectStatement}")
-      assertEquals("[3,4,5,9]", q11.first)
+      assertEquals("[3,4,5,9]", q11.first.replace(" ", ""))
 
       val q12 = JsonTests.filter(_.json.+>>("a") === "101".bind).map(_.json.+>("c"))
       println(s"[argonaut] '+>' sql = ${q12.selectStatement}")
@@ -75,7 +76,7 @@ class PgArgonautSupportTest {
 
       val q21 = JsonTests.filter(_.id === testRec2.id).map(_.json.~>>(1))
       println(s"[argonaut] '~>>' sql = ${q21.selectStatement}")
-      assertEquals("""{"a":"v5","b":3}""", q21.first)
+      assertEquals("""{"a":"v5","b":3}""", q21.first.replace(" ", ""))
 
       val q3 = JsonTests.filter(_.id === testRec2.id).map(_.json.arrayLength)
       println(s"[argonaut] 'arrayLength' sql = ${q3.selectStatement}")

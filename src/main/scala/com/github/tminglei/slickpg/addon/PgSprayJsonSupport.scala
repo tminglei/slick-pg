@@ -8,13 +8,15 @@ trait PgSprayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
   import spray.json._
   import DefaultJsonProtocol._ // !!! IMPORTANT, otherwise `convertTo` and `toJson` won't work correctly.
 
+  val pgjson = "json"
+
   /// alias
   trait JsonImplicits extends SparyJsonImplicits
 
   trait SparyJsonImplicits {
     implicit val sparyJsonTypeMapper =
       new GenericJdbcType[JsValue](
-        "json",
+        pgjson,
         (s) => s.parseJson,
         (v) => v.toJson.compactPrint,
         hasLiteralForm = false
