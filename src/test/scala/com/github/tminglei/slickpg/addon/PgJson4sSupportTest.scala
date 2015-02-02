@@ -124,6 +124,10 @@ class PgJson4sSupportTest {
       println(s"[json] '@>' sql = ${q8.selectStatement}")
       assertEquals(33L, q8.first)
 
+      val q81 = JsonTests.filter(_.json @> parse(""" [{"a":"v5"}] """)).map(_.id)
+      println(s"[json] '@>' sql = ${q81.selectStatement}")
+      assertEquals(35L, q81.first)
+
       val q9 = JsonTests.filter(parse(""" {"b":"aaa"} """) <@: _.json).map(_.id)
       println(s"[json] '<@' sql = ${q9.selectStatement}")
       assertEquals(33L, q9.first)
