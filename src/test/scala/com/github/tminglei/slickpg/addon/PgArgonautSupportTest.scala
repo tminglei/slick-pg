@@ -90,6 +90,10 @@ class PgArgonautSupportTest {
       println(s"[argonaut] 'arrayElements' sql = ${q41.selectStatement}")
       assertEquals(json1, q41.first)
 
+      val q42 = JsonTests.filter(_.id === testRec2.id).map(_.json.arrayElementsText)
+      println(s"[json] 'arrayElementsText' sql = ${q42.selectStatement}")
+      assertEquals(json1.toString.replace(" ", ""), q42.first.replace(" ", ""))
+
       val q5 = JsonTests.filter(_.id === testRec1.id).map(_.json.objectKeys)
       println(s"[argonaut] 'objectKeys' sql = ${q5.selectStatement}")
       assertEquals(List("a","b","c"), q5.list)
@@ -97,6 +101,18 @@ class PgArgonautSupportTest {
       val q51 = JsonTests.filter(_.id === testRec1.id).map(_.json.objectKeys)
       println(s"[argonaut] 'objectKeys' sql = ${q51.selectStatement}")
       assertEquals("a", q51.first)
+
+      val q6 = JsonTests.filter(_.json @> """ {"b":"aaa"} """.parse.toOption.getOrElse(jNull)).map(_.id)
+      println(s"[json] '@>' sql = ${q6.selectStatement}")
+      assertEquals(33L, q6.first)
+
+      val q7 = JsonTests.filter(""" {"b":"aaa"} """.parse.toOption.getOrElse(jNull) <@: _.json).map(_.id)
+      println(s"[json] '<@' sql = ${q7.selectStatement}")
+      assertEquals(33L, q7.first)
+
+      val q8 = JsonTests.filter(_.id === testRec1.id).map(_.json.+>("a").jsonType)
+      println(s"[json] 'typeof' sql = ${q8.selectStatement}")
+      assertEquals("number", q8.first.toLowerCase)
     }
   }
 

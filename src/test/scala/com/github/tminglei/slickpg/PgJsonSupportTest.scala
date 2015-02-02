@@ -7,7 +7,7 @@ import scala.slick.jdbc.{StaticQuery => Q, GetResult}
 import scala.util.Try
 
 class PgJsonSupportTest {
-  import com.github.tminglei.slickpg.MyPostgresDriver.simple._
+  import MyPostgresDriver.simple._
 
   val db = Database.forURL(url = dbUrl, driver = "org.postgresql.Driver")
 
@@ -47,7 +47,7 @@ class PgJsonSupportTest {
 
       val q11 = JsonTests.filter(_.json.+>>("a") === "101".bind).map(_.json.+>>("c"))
       println(s"[json] '+>>' sql = ${q11.selectStatement}")
-      assertEquals("[3,4,5,9]", q11.first.value.replace(" ", ""))
+      assertEquals("[3,4,5,9]", q11.first.replace(" ", ""))
 
       val q12 = JsonTests.filter(_.json.+>>("a") === "101".bind).map(_.json.+>("c"))
       println(s"[json] '+>' sql = ${q12.selectStatement}")
@@ -74,6 +74,10 @@ class PgJsonSupportTest {
       println(s"[json] 'arrayElements' sql = ${q41.selectStatement}")
       assertEquals(json1, q41.first.value.replace(" ", ""))
 
+      val q42 = JsonTests.filter(_.id === testRec2.id).map(_.json.arrayElementsText)
+      println(s"[json] 'arrayElementsText' sql = ${q42.selectStatement}")
+      assertEquals(json1, q42.first.replace(" ", ""))
+
       val q5 = JsonTests.filter(_.id === testRec1.id).map(_.json.objectKeys)
       println(s"[json] 'objectKeys' sql = ${q5.selectStatement}")
       assertEquals(List("a","b","c"), q5.list)
@@ -81,6 +85,18 @@ class PgJsonSupportTest {
       val q51 = JsonTests.filter(_.id === testRec1.id).map(_.json.objectKeys)
       println(s"[json] 'objectKeys' sql = ${q51.selectStatement}")
       assertEquals("a", q51.first)
+
+      val q6 = JsonTests.filter(_.json @> JsonString(""" {"b":"aaa"} """).bind).map(_.id)
+      println(s"[json] '@>' sql = ${q6.selectStatement}")
+      assertEquals(33L, q6.first)
+
+      val q7 = JsonTests.filter(JsonString(""" {"b":"aaa"} """).bind <@: _.json).map(_.id)
+      println(s"[json] '<@' sql = ${q7.selectStatement}")
+      assertEquals(33L, q7.first)
+
+      val q8 = JsonTests.filter(_.id === testRec1.id).map(_.json.+>("a").jsonType)
+      println(s"[json] 'typeof' sql = ${q8.selectStatement}")
+      assertEquals("number", q8.first.toLowerCase)
     }
   }
 

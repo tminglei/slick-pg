@@ -1,56 +1,15 @@
 package com.github.tminglei.slickpg
 package json
 
-import scala.slick.ast.{LiteralNode, Library}
 import scala.slick.ast.Library.{SqlFunction, SqlOperator}
-import scala.slick.lifted.{FunctionSymbolExtensionMethods, OptionMapperDSL, ExtensionMethods, Column}
+import scala.slick.lifted.{ExtensionMethods, Column}
 import scala.slick.driver.{JdbcTypesComponent, PostgresDriver}
 import scala.slick.jdbc.JdbcType
 
 trait PgJsonExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   import driver.Implicit._
-  import FunctionSymbolExtensionMethods._
 
-  trait BaseJsonAssistants[JSONType] {
-    def toJson[P, R](e: Column[P])(implicit tm: JdbcType[JSONType], tm1: JdbcType[P],
-          om: OptionMapperDSL.arg[Any, P]#to[JSONType, R]) =
-      tm.sqlTypeName.toLowerCase match {
-        case "json"  => om.column(JsonLibrary(tm.sqlTypeName).toJson, e.toNode)
-        case "jsonb" => om.column(Library.Cast, JsonLibrary(tm.sqlTypeName).toJson.column[JSONType](e.toNode).toNode, LiteralNode(tm.sqlTypeName))
-        case _  => new IllegalArgumentException("unsupported json type: " + tm.sqlTypeName)
-      }
-    def arrayToJson[P, R](e: Column[P], prettyBool: Option[Boolean] = None)(implicit tm: JdbcType[JSONType],
-          tm1: JdbcType[P], om: OptionMapperDSL.arg[List[Any], P]#to[JSONType, R]) =
-      tm.sqlTypeName.toLowerCase match {
-        case "json"  => prettyBool match {
-          case Some(bool) => om.column(JsonLibrary(tm.sqlTypeName).arrayToJson, e.toNode, LiteralNode(bool))
-          case None => om.column(JsonLibrary(tm.sqlTypeName).arrayToJson, e.toNode)
-        }
-        case "jsonb" => prettyBool match {
-          case Some(bool) => om.column(Library.Cast, JsonLibrary(tm.sqlTypeName).arrayToJson.column[JSONType](e.toNode, LiteralNode(bool)).toNode, LiteralNode(tm.sqlTypeName))
-          case None => om.column(Library.Cast, JsonLibrary(tm.sqlTypeName).arrayToJson.column[JSONType](e.toNode).toNode, LiteralNode(tm.sqlTypeName))
-        }
-        case _  => new IllegalArgumentException("unsupported json type: " + tm.sqlTypeName)
-      }
-    def jsonObject[P, R](pairs: Column[P])(implicit tm: JdbcType[JSONType], tm1: JdbcType[P],
-          om: OptionMapperDSL.arg[List[String], P]#to[JSONType, R]) =
-      tm.sqlTypeName.toLowerCase match {
-        case "json"  => om.column(JsonLibrary(tm.sqlTypeName).jsonObject, pairs.toNode)
-        case "jsonb" => om.column(Library.Cast, JsonLibrary(tm.sqlTypeName).jsonObject.column[JSONType](pairs.toNode).toNode, LiteralNode(tm.sqlTypeName))
-        case _  => new IllegalArgumentException("unsupported json type: " + tm.sqlTypeName)
-      }
-    def jsonObject[P1, P2, R](keys: Column[P1], vals: Column[P2])(implicit tm: JdbcType[JSONType], tm1: JdbcType[P1],
-          tm2: JdbcType[P2], om: OptionMapperDSL.arg[List[String], P1]#arg[List[String], P2]#to[JSONType, R]) =
-      tm.sqlTypeName.toLowerCase match {
-        case "json"  => om.column(JsonLibrary(tm.sqlTypeName).jsonObject, keys.toNode, vals.toNode)
-        case "jsonb" => om.column(Library.Cast, JsonLibrary(tm.sqlTypeName).jsonObject.column[JSONType](keys.toNode, vals.toNode).toNode, LiteralNode(tm.sqlTypeName))
-        case _  => new IllegalArgumentException("unsupported json type: " + tm.sqlTypeName)
-      }
-  }
-
-  //////////////////////////////////////////////////////////////////////
-
-  case class JsonLibrary(pgjson: String) {
+  class JsonLibrary(pgjson: String) {
     val Arrow  = new SqlOperator("->")
     val BiArrow = new SqlOperator("->>")
     val PoundArrow  = new SqlOperator("#>")
@@ -81,7 +40,7 @@ trait PgJsonExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
 
   class JsonColumnExtensionMethods[JSONType, P1](val c: Column[P1])(
                 implicit tm: JdbcType[JSONType], tm1: JdbcType[List[String]]) extends ExtensionMethods[JSONType, P1] {
-    val jsonLib = JsonLibrary(tm.sqlTypeName)
+    val jsonLib = new JsonLibrary(tm.sqlTypeName)
     /** Note: json array's index starts with 0   */
     def ~> [P2, R](index: Column[P2])(implicit om: o#arg[Int, P2]#to[JSONType, R]) = {
         om.column(jsonLib.Arrow, n, index.toNode)
@@ -108,7 +67,7 @@ trait PgJsonExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
         om.column(jsonLib.ContainsBy, c2.toNode, n)
       }
 
-    def tpe[R](implicit om: o#to[String, R]) = om.column(jsonLib.typeof, n)
+    def jsonType[R](implicit om: o#to[String, R]) = om.column(jsonLib.typeof, n)
     def objectKeys[R](implicit om: o#to[String, R]) = om.column(jsonLib.objectKeys, n)
     def arrayLength[R](implicit om: o#to[Int, R]) = om.column(jsonLib.arrayLength, n)
     def arrayElements[R](implicit om: o#to[JSONType, R]) = om.column(jsonLib.arrayElements, n)
