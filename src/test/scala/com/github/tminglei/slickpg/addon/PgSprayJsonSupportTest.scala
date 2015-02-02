@@ -12,6 +12,7 @@ class PgSprayJsonSupportTest {
   object MyPostgresDriver extends PostgresDriver
                             with PgSprayJsonSupport
                             with array.PgArrayJdbcTypes {
+    override val pgjson = "jsonb"
 
     override lazy val Implicit = new Implicits with JsonImplicits
     override val simple = new Implicits with SimpleQL with JsonImplicits {
@@ -62,7 +63,7 @@ class PgSprayJsonSupportTest {
 
       val q11 = JsonTests.filter(_.json.+>>("a") === "101".bind).map(_.json.+>>("c"))
       println(s"[spray-json] '+>>' sql = ${q11.selectStatement}")
-      assertEquals("[3,4,5,9]", q11.first)
+      assertEquals("[3,4,5,9]", q11.first.replace(" ", ""))
 
       val q12 = JsonTests.filter(_.json.+>>("a") === "101".bind).map(_.json.+>("c"))
       println(s"[spray-json] '+>' sql = ${q12.selectStatement}")
@@ -75,7 +76,7 @@ class PgSprayJsonSupportTest {
 
       val q21 = JsonTests.filter(_.id === testRec2.id).map(_.json.~>>(1))
       println(s"[spray-json] '~>>' sql = ${q21.selectStatement}")
-      assertEquals("""{"a":"v5","b":3}""", q21.first)
+      assertEquals("""{"a":"v5","b":3}""", q21.first.replace(" ", ""))
 
       val q3 = JsonTests.filter(_.id === testRec2.id).map(_.json.arrayLength)
       println(s"[spray-json] 'arrayLength' sql = ${q3.selectStatement}")
@@ -89,6 +90,10 @@ class PgSprayJsonSupportTest {
       println(s"[spray-json] 'arrayElements' sql = ${q41.selectStatement}")
       assertEquals(json1, q41.first)
 
+      val q42 = JsonTests.filter(_.id === testRec2.id).map(_.json.arrayElementsText)
+      println(s"[json] 'arrayElementsText' sql = ${q42.selectStatement}")
+      assertEquals(json1.toString.replace(" ", ""), q42.first.replace(" ", ""))
+
       val q5 = JsonTests.filter(_.id === testRec1.id).map(_.json.objectKeys)
       println(s"[spray-json] 'objectKeys' sql = ${q5.selectStatement}")
       assertEquals(List("a","b","c"), q5.list)
@@ -96,6 +101,18 @@ class PgSprayJsonSupportTest {
       val q51 = JsonTests.filter(_.id === testRec1.id).map(_.json.objectKeys)
       println(s"[spray-json] 'objectKeys' sql = ${q51.selectStatement}")
       assertEquals("a", q51.first)
+
+      val q6 = JsonTests.filter(_.json @> """ {"b":"aaa"} """.parseJson).map(_.id)
+      println(s"[json] '@>' sql = ${q6.selectStatement}")
+      assertEquals(33L, q6.first)
+
+      val q7 = JsonTests.filter(""" {"b":"aaa"} """.parseJson <@: _.json).map(_.id)
+      println(s"[json] '<@' sql = ${q7.selectStatement}")
+      assertEquals(33L, q7.first)
+
+      val q8 = JsonTests.filter(_.id === testRec1.id).map(_.json.+>("a").jsonType)
+      println(s"[json] 'typeof' sql = ${q8.selectStatement}")
+      assertEquals("number", q8.first.toLowerCase)
     }
   }
 

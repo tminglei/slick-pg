@@ -9,6 +9,7 @@ trait MyPostgresDriver extends ExPostgresDriver
                           with PgRangeSupport
                           with PgHStoreSupport
                           with PgSearchSupport {
+  override val pgjson = "jsonb"
   ///
   override lazy val Implicit = new ImplicitsPlus {}
   override val simple = new SimpleQLPlus {}

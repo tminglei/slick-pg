@@ -13,6 +13,7 @@ class PgJson4sSupportTest {
                             with PgJson4sSupport
                             with array.PgArrayJdbcTypes {
     /// for json support
+    override val pgjson = "jsonb"
     type DOCType = text.Document
     override val jsonMethods = org.json4s.native.JsonMethods
 
@@ -67,7 +68,7 @@ class PgJson4sSupportTest {
 
       val q11 = JsonTests.filter(_.json.+>>("a") === "101").map(_.json.+>>("c"))
       println(s"[json4s] '+>>' sql = ${q11.selectStatement}")
-      assertEquals("[3,4,5,9]", q11.first)
+      assertEquals("[3,4,5,9]", q11.first.replace(" ", ""))
 
       val q12 = JsonTests.filter(_.json.+>>("a") === "101".bind).map(_.json.+>("c"))
       println(s"[json4s] '+>' sql = ${q12.selectStatement}")
@@ -80,7 +81,7 @@ class PgJson4sSupportTest {
 
       val q21 = JsonTests.filter(_.id === testRec2.id).map(_.json.~>>(1))
       println(s"[json4s] '~>>' sql = ${q21.selectStatement}")
-      assertEquals("""{"a":"v5","b":3}""", q21.first)
+      assertEquals("""{"a":"v5","b":3}""", q21.first.replace(" ", ""))
 
       /* disable it, because operator does not exist: json = json */
 //      val q3 = JsonTests.filter(_.json.#>(List("c")) === parse("[3,4,5,9]")).map(r => r)
@@ -91,7 +92,7 @@ class PgJson4sSupportTest {
       println(s"[json4s] '#>' sql = ${q31.selectStatement}")
       assertEquals(parse("[3,4,5,9]"), q31.first)
 
-      val q4 = JsonTests.filter(_.json.#>>(List("c")) === "[3,4,5,9]").map(r => r)
+      val q4 = JsonTests.filter(_.json.#>>(List("a")) === "101").map(r => r)
       println(s"[json4s] '#>>' sql = ${q4.selectStatement}")
       assertEquals(testRec1, q4.first)
 
@@ -107,6 +108,10 @@ class PgJson4sSupportTest {
       println(s"[json4s] 'arrayElements' sql = ${q61.selectStatement}")
       assertEquals(json1, q61.first)
 
+      val q62 = JsonTests.filter(_.id === testRec2.id).map(_.json.arrayElementsText)
+      println(s"[json] 'arrayElementsText' sql = ${q62.selectStatement}")
+      assertEquals(compact(render(json1)), q62.first.replace(" ", ""))
+
       val q7 = JsonTests.filter(_.id === testRec1.id).map(_.json.objectKeys)
       println(s"[json4s] 'objectKeys' sql = ${q7.selectStatement}")
       assertEquals(List("a","b","c"), q7.list)
@@ -114,6 +119,18 @@ class PgJson4sSupportTest {
       val q71 = JsonTests.filter(_.id === testRec1.id).map(_.json.objectKeys)
       println(s"[json4s] 'objectKeys' sql = ${q71.selectStatement}")
       assertEquals("a", q71.first)
+
+      val q8 = JsonTests.filter(_.json @> parse(""" {"b":"aaa"} """)).map(_.id)
+      println(s"[json] '@>' sql = ${q8.selectStatement}")
+      assertEquals(33L, q8.first)
+
+      val q9 = JsonTests.filter(parse(""" {"b":"aaa"} """) <@: _.json).map(_.id)
+      println(s"[json] '<@' sql = ${q9.selectStatement}")
+      assertEquals(33L, q9.first)
+
+      val q10 = JsonTests.filter(_.id === testRec1.id).map(_.json.+>("a").jsonType)
+      println(s"[json] 'typeof' sql = ${q10.selectStatement}")
+      assertEquals("number", q10.first.toLowerCase)
     }
   }
 

@@ -7,13 +7,15 @@ import scala.slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, J
 trait PgArgonautSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import argonaut._, Argonaut._
 
+  val pgjson = "json"
+
   /// alias
   trait JsonImplicits extends ArgonautJsonImplicits
 
   trait ArgonautJsonImplicits {
     implicit val argonautJsonTypeMapper =
       new GenericJdbcType[Json](
-        "json",
+        pgjson,
         (s) => s.parse.toOption.getOrElse(jNull),
         (v) => v.nospaces,
         hasLiteralForm = false

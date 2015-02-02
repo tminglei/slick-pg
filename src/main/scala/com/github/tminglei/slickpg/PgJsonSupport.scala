@@ -12,12 +12,15 @@ case class JsonString(value: String)
  */
 trait PgJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
 
+  val pgjson = "json"
+
   /// alias
   trait JsonImplicits extends SimpleJsonImplicits
 
   trait SimpleJsonImplicits {
     implicit val simpleJsonTypeMapper =
-      new GenericJdbcType[JsonString]("json",
+      new GenericJdbcType[JsonString](
+        pgjson,
         (v) => JsonString(v),
         (v) => v.value,
         hasLiteralForm = false
