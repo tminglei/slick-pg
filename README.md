@@ -21,7 +21,7 @@ Slick-pg
 - composite type (`basic`)
 
 
-** _tested on `PostgreSQL` `v9.3` with `Slick` `v2.1.0`._
+** _tested on `PostgreSQL` `v9.4` with `Slick` `v2.1.0`._
 
 
 Usage
@@ -39,6 +39,7 @@ trait MyPostgresDriver extends PostgresDriver
                           with PgPlayJsonSupport
                           with PgSearchSupport
                           with PgPostGISSupport {
+  override val pgjson = "jsonb" //to keep back compatibility, pgjson's value was "json" by default
 
   override lazy val Implicit = new ImplicitsPlus {}
   override val simple = new SimpleQLPlus {}
@@ -123,7 +124,7 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.8.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.8.1"
 ```
 
 
@@ -132,7 +133,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.10</artifactId>
-    <version>0.8.0</version>
+    <version>0.8.1</version>
 </dependency>
 ```
 
@@ -212,6 +213,10 @@ Details
 
 History
 ------------------------------
+v0.8.1 (3-Feb-2015):  
+1) add postgres 9.4 jsonb support  
+2) add more json operators/functions
+
 v0.8.0 (17-Jan-2015):  
 1) add plain sql support  
 2) allow to specify scala type for pg array  
