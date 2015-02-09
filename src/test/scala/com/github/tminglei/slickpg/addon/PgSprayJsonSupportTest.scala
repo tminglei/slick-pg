@@ -41,6 +41,7 @@ class PgSprayJsonSupportTest {
 
   val testRec1 = JsonBean(33L, """ { "a":101, "b":"aaa", "c":[3,4,5,9] } """.parseJson)
   val testRec2 = JsonBean(35L, """ [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """.parseJson)
+  val testRec3 = JsonBean(37L, """ ["a", "b"] """.parseJson)
 
   @Test
   def testJsonFunctions(): Unit = {
@@ -48,7 +49,7 @@ class PgSprayJsonSupportTest {
       Try { JsonTests.ddl drop }
       Try { JsonTests.ddl create }
 
-      JsonTests forceInsertAll (testRec1, testRec2)
+      JsonTests forceInsertAll (testRec1, testRec2, testRec3)
 
       val json1 = """ {"a":"v1","b":2} """.parseJson
       val json2 = """ {"a":"v5","b":3} """.parseJson
@@ -91,7 +92,7 @@ class PgSprayJsonSupportTest {
       assertEquals(json1, q41.first)
 
       val q42 = JsonTests.filter(_.id === testRec2.id).map(_.json.arrayElementsText)
-      println(s"[json] 'arrayElementsText' sql = ${q42.selectStatement}")
+      println(s"[spray-json] 'arrayElementsText' sql = ${q42.selectStatement}")
       assertEquals(json1.toString.replace(" ", ""), q42.first.replace(" ", ""))
 
       val q5 = JsonTests.filter(_.id === testRec1.id).map(_.json.objectKeys)
@@ -103,16 +104,28 @@ class PgSprayJsonSupportTest {
       assertEquals("a", q51.first)
 
       val q6 = JsonTests.filter(_.json @> """ {"b":"aaa"} """.parseJson).map(_.id)
-      println(s"[json] '@>' sql = ${q6.selectStatement}")
+      println(s"[spray-json] '@>' sql = ${q6.selectStatement}")
       assertEquals(33L, q6.first)
 
       val q7 = JsonTests.filter(""" {"b":"aaa"} """.parseJson <@: _.json).map(_.id)
-      println(s"[json] '<@' sql = ${q7.selectStatement}")
+      println(s"[spray-json] '<@' sql = ${q7.selectStatement}")
       assertEquals(33L, q7.first)
 
       val q8 = JsonTests.filter(_.id === testRec1.id).map(_.json.+>("a").jsonType)
-      println(s"[json] 'typeof' sql = ${q8.selectStatement}")
+      println(s"[spray-json] 'typeof' sql = ${q8.selectStatement}")
       assertEquals("number", q8.first.toLowerCase)
+
+      val q9 = JsonTests.filter(_.json ?? "b".bind).map(r => r)
+      println(s"[spray-json] '??' sql = ${q9.selectStatement}")
+      assertEquals(List(testRec1, testRec3), q9.list)
+
+      val q91 = JsonTests.filter(_.json ?| List("a", "c").bind).map(r => r)
+      println(s"[spray-json] '?|' sql = ${q91.selectStatement}")
+      assertEquals(List(testRec1, testRec3), q91.list)
+
+      val q92 = JsonTests.filter(_.json ?& List("a", "c").bind).map(r => r)
+      println(s"[spray-json] '?&' sql = ${q92.selectStatement}")
+      assertEquals(List(testRec1), q92.list)
     }
   }
 

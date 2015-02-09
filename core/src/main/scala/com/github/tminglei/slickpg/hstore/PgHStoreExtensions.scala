@@ -13,15 +13,16 @@ trait PgHStoreExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
 
   object HStoreLibrary {
     val On = new SqlOperator("->")
-    val Exist   = new SqlFunction("exist")
-//    val ExistAll = new SqlOperator("?&")  //can't support, '?' conflict with jdbc '?'
-//    val ExistAny = new SqlOperator("?|")  //can't support, '?' conflict with jdbc '?'
+    val Exist   = new SqlOperator("??")
+    val ExistAll = new SqlOperator("??&")
+    val ExistAny = new SqlOperator("??|")
     val Defined = new SqlFunction("defined")
     val Contains = new SqlOperator("@>")
     val ContainedBy = new SqlOperator("<@")
 
     val Concatenate = new SqlOperator("||")
     val Delete = new SqlOperator("-")
+    val Slice = new SqlFunction("slice")
   }
 
   /** Extension methods for hstore Columns */
@@ -38,8 +39,14 @@ trait PgHStoreExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     def ??[P2, R](k: Column[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
         om.column(HStoreLibrary.Exist, n, k.toNode)
       }
-    def ?&[P2, R](k: Column[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
+    def ?*[P2, R](k: Column[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
         om.column(HStoreLibrary.Defined, n, k.toNode)
+      }
+    def ?|[P2, R](k: Column[P2])(implicit om: o#arg[List[String], P2]#to[Boolean, R]) = {
+        om.column(HStoreLibrary.ExistAny, n, k.toNode)
+      }
+    def ?&[P2, R](k: Column[P2])(implicit om: o#arg[List[String], P2]#to[Boolean, R]) = {
+        om.column(HStoreLibrary.ExistAll, n, k.toNode)
       }
     def @>[P2, R](c2: Column[P2])(implicit om: o#arg[Map[String, String], P2]#to[Boolean, R]) = {
         om.column(HStoreLibrary.Contains, n, c2.toNode)
@@ -59,6 +66,9 @@ trait PgHStoreExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
       }
     def -/[P2, R](c2: Column[P2])(implicit om: o#arg[String, P2]#to[Map[String, String], R]) = {
         om.column(HStoreLibrary.Delete, n, c2.toNode)
+      }
+    def slice[P2, R](c2: Column[P2])(implicit om: o#arg[List[String], P2]#to[Map[String, String], R]) = {
+        om.column(HStoreLibrary.Slice, n, c2.toNode)
       }
   }
 }

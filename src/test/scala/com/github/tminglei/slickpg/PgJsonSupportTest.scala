@@ -25,6 +25,7 @@ class PgJsonSupportTest {
 
   val testRec1 = JsonBean(33L, JsonString(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """))
   val testRec2 = JsonBean(35L, JsonString(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """))
+  val testRec3 = JsonBean(37L, JsonString(""" ["a", "b"] """))
 
   @Test
   def testJsonFunctions(): Unit = {
@@ -32,7 +33,7 @@ class PgJsonSupportTest {
       Try { JsonTests.ddl drop }
       Try { JsonTests.ddl create }
 
-      JsonTests forceInsertAll (testRec1, testRec2)
+      JsonTests forceInsertAll (testRec1, testRec2, testRec3)
 
       val json1 = """{"a":"v1","b":2}"""
       val json2 = """{"a":"v5","b":3}"""
@@ -97,6 +98,18 @@ class PgJsonSupportTest {
       val q8 = JsonTests.filter(_.id === testRec1.id).map(_.json.+>("a").jsonType)
       println(s"[json] 'typeof' sql = ${q8.selectStatement}")
       assertEquals("number", q8.first.toLowerCase)
+
+      val q9 = JsonTests.filter(_.json ?? "b".bind).map(_.json)
+      println(s"[json] '??' sql = ${q9.selectStatement}")
+      assertEquals(List(testRec1, testRec3).map(_.json.value.replace(" ", "")), q9.list.map(_.value.replace(" ", "")))
+
+      val q91 = JsonTests.filter(_.json ?| List("a", "c").bind).map(_.json)
+      println(s"[json] '?|' sql = ${q91.selectStatement}")
+      assertEquals(List(testRec1, testRec3).map(_.json.value.replace(" ", "")), q91.list.map(_.value.replace(" ", "")))
+
+      val q92 = JsonTests.filter(_.json ?& List("a", "c").bind).map(_.json)
+      println(s"[json] '?&' sql = ${q92.selectStatement}")
+      assertEquals(List(testRec1).map(_.json.value.replace(" ", "")), q92.list.map(_.value.replace(" ", "")))
     }
   }
 

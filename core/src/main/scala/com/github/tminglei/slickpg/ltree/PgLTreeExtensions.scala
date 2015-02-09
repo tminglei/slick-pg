@@ -14,13 +14,13 @@ trait PgLTreeExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     val @> = new SqlOperator("@>")
     val <@ = new SqlOperator("<@")
     val ~  = new SqlOperator("~")
-//    val ?  = new SqlOperator("?")   //can't support, '?' conflict with jdbc '?'
+    val ?  = new SqlOperator("??")
     val @@ = new SqlOperator("@")
     val || = new SqlOperator("||")
-//    val ?@> = new SqlOperator("?@>") //can't support, '?' conflict with jdbc '?'
-//    val ?<@ = new SqlOperator("?<@") //can't support, '?' conflict with jdbc '?'
-//    val ?~ = new SqlOperator("?~")  //can't support, '?' conflict with jdbc '?'
-//    val ?@ = new SqlOperator("?@")  //can't support, '?' conflict with jdbc '?'
+    val ?@> = new SqlOperator("??@>")
+    val ?<@ = new SqlOperator("??<@")
+    val ?~ = new SqlOperator("??~")
+    val ?@ = new SqlOperator("??@")
 
     val subltree = new SqlFunction("subltree")
     val subpath = new SqlFunction("subpath")
@@ -41,6 +41,10 @@ trait PgLTreeExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     def ~ [P2, R](e: Column[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
         val lquery = Library.Cast.column[String](e.toNode, LiteralNode("lquery")).toNode
         om.column(LTreeLibrary.~, n, lquery)
+      }
+    def ~|[P2, R](e: Column[P2])(implicit om: o#arg[List[String], P2]#to[Boolean, R], tm2: JdbcType[List[String]]) = {
+        val lqueryArray = Library.Cast.column[List[String]](e.toNode, LiteralNode("lquery[]")).toNode
+        om.column(LTreeLibrary.?, n, lqueryArray)
       }
     def @@[P2, R](e: Column[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
         val ltxtquery = Library.Cast.column[String](e.toNode, LiteralNode("ltxtquery")).toNode
@@ -79,9 +83,27 @@ trait PgLTreeExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
         val lquery = Library.Cast.column[String](e.toNode, LiteralNode("lquery")).toNode
         om.column(LTreeLibrary.~, n, lquery)
       }
+    def ~|[P2, R](e: Column[P2])(implicit om: o#arg[List[String], P2]#to[Boolean, R], tm2: JdbcType[List[String]]) = {
+        val lqueryArray = Library.Cast.column[List[String]](e.toNode, LiteralNode("lquery[]")).toNode
+        om.column(LTreeLibrary.?, n, lqueryArray)
+      }
     def @@[P2, R](e: Column[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
         val ltxtquery = Library.Cast.column[String](e.toNode, LiteralNode("ltxtquery")).toNode
         om.column(LTreeLibrary.@@, n, ltxtquery)
+      }
+    def ?@>[P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[B0, R]) = {
+        om.column(LTreeLibrary.?@>, n, e.toNode)
+      }
+    def ?<@[P2, R](e: Column[P2])(implicit om: o#arg[B0, P2]#to[B0, R]) = {
+        om.column(LTreeLibrary.?<@, n, e.toNode)
+      }
+    def ?~[P2, R](e: Column[P2])(implicit om: o#arg[String, P2]#to[B0, R]) = {
+        val lquery = Library.Cast.column[String](e.toNode, LiteralNode("lquery")).toNode
+        om.column(LTreeLibrary.?~, n, lquery)
+      }
+    def ?@[P2, R](e: Column[P2])(implicit om: o#arg[String, P2]#to[B0, R]) = {
+        val ltxtquery = Library.Cast.column[String](e.toNode, LiteralNode("ltxtquery")).toNode
+        om.column(LTreeLibrary.?@, n, ltxtquery)
       }
 
     def lca[R](implicit om: o#to[B0, R]) = om.column(LTreeLibrary.lca, n)
