@@ -54,13 +54,21 @@ class PgHStoreSupportTest {
       println(s"[hstore] '>>' sql = ${q13.selectStatement}")
       assertEquals(List(testRec2).map(_.hstore), q13.list.map(_.hstore))
 
-      val q2 = HStoreTests.filter(_.hstore.??("c".bind)).sortBy(_.id).map(t => t)
+      val q2 = HStoreTests.filter(_.hstore.??("a".bind)).sortBy(_.id).map(t => t)
       println(s"[hstore] '??' sql = ${q2.selectStatement}")
       assertEquals(List(testRec1, testRec2, testRec3).map(_.hstore), q2.list.map(_.hstore))
 
-      val q3 = HStoreTests.filter(_.hstore.?&("a".bind)).sortBy(_.id).map(t => t)
+      val q21 = HStoreTests.filter(_.hstore.?*("a".bind)).sortBy(_.id).map(t => t)
+      println(s"[hstore] '?*' sql = ${q21.selectStatement}")
+      assertEquals(List(testRec1, testRec2).map(_.hstore), q21.list.map(_.hstore))
+
+      val q3 = HStoreTests.filter(_.hstore.?&(List("a").bind)).sortBy(_.id).map(t => t)
       println(s"[hstore] '?&' sql = ${q3.selectStatement}")
-      assertEquals(List(testRec1, testRec2).map(_.hstore), q3.list.map(_.hstore))
+      assertEquals(List(testRec1, testRec2, testRec3).map(_.hstore), q3.list.map(_.hstore))
+
+      val q31 = HStoreTests.filter(_.hstore.?|(List("a", "b", "c").bind)).sortBy(_.id).map(t => t)
+      println(s"[hstore] '?|' sql = ${q31.selectStatement}")
+      assertEquals(List(testRec1, testRec2, testRec3).map(_.hstore), q3.list.map(_.hstore))
 
       /* notes: use 'Map(..).bind' instead of 'Map(..)' */
 //      val q4 = HStoreTests.filter(_.hstore @> Map("a"->"val7", "e"->"val33")).sortBy(_.id).map(t => t)
@@ -88,6 +96,10 @@ class PgHStoreSupportTest {
       val q8 = HStoreTests.filter(_.id === 37L).map(t => t.hstore -/ "a".bind)
       println(s"[hstore] '-/' sql = ${q8.selectStatement}")
       assertEquals(Map("c"->"105"), q8.first)
+
+      val q9 = HStoreTests.filter(_.id === 33L).map(t => t.hstore slice List("a", "b").bind)
+      println(s"[hstore] 'slice' sql = ${q9.selectStatement}")
+      assertEquals(Map("a"->"val1", "b"->"val3"), q9.first)
     }
   }
 

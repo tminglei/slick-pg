@@ -1,5 +1,5 @@
-import sbt._
 import sbt.Keys._
+import sbt._
 
 object SlickPgBuild extends Build {
 
@@ -68,7 +68,7 @@ object SlickPgBuild extends Build {
     Seq (
       "org.scala-lang" % "scala-reflect" % scalaVersion % "provided",
       "com.typesafe.slick" %% "slick" % "2.1.0",
-      "org.postgresql" % "postgresql" % "9.3-1100-jdbc41",
+      "org.postgresql" % "postgresql" % "9.4-1200-jdbc41",
       "junit" % "junit" % "4.11" % "test",
       "com.novocode" % "junit-interface" % "0.10" % "test"
     ) ++ extractedLibs

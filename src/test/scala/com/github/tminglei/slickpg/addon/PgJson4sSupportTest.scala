@@ -45,6 +45,7 @@ class PgJson4sSupportTest {
 
   val testRec1 = JsonBean(33L, parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """))
   val testRec2 = JsonBean(35L, parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """))
+  val testRec3 = JsonBean(37L, parse(""" ["a", "b"] """))
 
   @Test
   def testJsonFunctions(): Unit = {
@@ -52,7 +53,7 @@ class PgJson4sSupportTest {
       Try { JsonTests.ddl drop }
       Try { JsonTests.ddl create }
 
-      JsonTests forceInsertAll (testRec1, testRec2)
+      JsonTests forceInsertAll (testRec1, testRec2, testRec3)
 
       val json1 = parse(""" {"a":"v1","b":2} """)
       val json2 = parse(""" {"a":"v5","b":3} """)
@@ -109,7 +110,7 @@ class PgJson4sSupportTest {
       assertEquals(json1, q61.first)
 
       val q62 = JsonTests.filter(_.id === testRec2.id).map(_.json.arrayElementsText)
-      println(s"[json] 'arrayElementsText' sql = ${q62.selectStatement}")
+      println(s"[json4s] 'arrayElementsText' sql = ${q62.selectStatement}")
       assertEquals(compact(render(json1)), q62.first.replace(" ", ""))
 
       val q7 = JsonTests.filter(_.id === testRec1.id).map(_.json.objectKeys)
@@ -121,20 +122,32 @@ class PgJson4sSupportTest {
       assertEquals("a", q71.first)
 
       val q8 = JsonTests.filter(_.json @> parse(""" {"b":"aaa"} """)).map(_.id)
-      println(s"[json] '@>' sql = ${q8.selectStatement}")
+      println(s"[json4s] '@>' sql = ${q8.selectStatement}")
       assertEquals(33L, q8.first)
 
       val q81 = JsonTests.filter(_.json @> parse(""" [{"a":"v5"}] """)).map(_.id)
-      println(s"[json] '@>' sql = ${q81.selectStatement}")
+      println(s"[json4s] '@>' sql = ${q81.selectStatement}")
       assertEquals(35L, q81.first)
 
       val q9 = JsonTests.filter(parse(""" {"b":"aaa"} """) <@: _.json).map(_.id)
-      println(s"[json] '<@' sql = ${q9.selectStatement}")
+      println(s"[json4s] '<@' sql = ${q9.selectStatement}")
       assertEquals(33L, q9.first)
 
       val q10 = JsonTests.filter(_.id === testRec1.id).map(_.json.+>("a").jsonType)
-      println(s"[json] 'typeof' sql = ${q10.selectStatement}")
+      println(s"[json4s] 'typeof' sql = ${q10.selectStatement}")
       assertEquals("number", q10.first.toLowerCase)
+
+      val q15 = JsonTests.filter(_.json ?? "b".bind).map(r => r)
+      println(s"[json4s] '??' sql = ${q15.selectStatement}")
+      assertEquals(List(testRec1, testRec3), q15.list)
+
+      val q15a = JsonTests.filter(_.json ?| List("a", "c").bind).map(r => r)
+      println(s"[json4s] '?|' sql = ${q15a.selectStatement}")
+      assertEquals(List(testRec1, testRec3), q15a.list)
+
+      val q15b = JsonTests.filter(_.json ?& List("a", "c").bind).map(r => r)
+      println(s"[json4s] '?&' sql = ${q15b.selectStatement}")
+      assertEquals(List(testRec1), q15b.list)
     }
   }
 

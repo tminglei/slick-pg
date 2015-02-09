@@ -62,6 +62,10 @@ class PgLTreeSupportTest {
       println(s"[ltree] '~' sql = ${q3.selectStatement}")
       assertEquals(List(rec4, rec13), q3.list)
 
+      val q31 = LTreeTests.filter(_.path ~| List("*.Astronomy.Astro*"))
+      println(s"[ltree] '~|' sql = ${q31.selectStatement}")
+      assertEquals(List(rec4, rec13), q31.list)
+
       val q4 = LTreeTests.filter(_.path @@ "Astro* & !pictures@")
       println(s"[ltree] '@' sql = ${q4.selectStatement}")
       assertEquals(List(rec3, rec4, rec5), q4.list)
@@ -124,6 +128,10 @@ class PgLTreeSupportTest {
       println(s"[ltree[] '~' sql = ${q3.selectStatement}")
       assertEquals(List(rec3, rec10), q3.list)
 
+      val q31 = LTreeTests.filter(_.treeArr ~| List("*.Astronomy.Astro*"))
+      println(s"[ltree[] '~|' sql = ${q31.selectStatement}")
+      assertEquals(List(rec3, rec10), q31.list)
+
       val q4 = LTreeTests.filter(_.treeArr @@ "Astro* & !pictures@")
       println(s"[ltree[] '@' sql = ${q4.selectStatement}")
       assertEquals(List(rec2, rec3), q4.list)
@@ -131,6 +139,22 @@ class PgLTreeSupportTest {
       val q5 = LTreeTests.filter(_.id === 101L).map(_.treeArr.lca)
       println(s"[ltree[] 'lca' sql = ${q5.selectStatement}")
       assertEquals(LTree("Top"), q5.first)
+
+      val q6 = LTreeTests.filter(_.id === 101L).map(_.treeArr ?@> LTree("Top.Science.Astronomy.Astrophysics"))
+      println(s"[ltree[] '?@>' sql = ${q6.selectStatement}")
+      assertEquals(LTree("Top.Science"), q6.first)
+
+      val q7 = LTreeTests.filter(_.id === 103L).map(_.treeArr ?<@ LTree("Top.Science.Astronomy"))
+      println(s"[ltree[] '?<@' sql = ${q7.selectStatement}")
+      assertEquals(LTree("Top.Science.Astronomy.Astrophysics"), q7.first)
+
+      val q8 = LTreeTests.filter(_.id === 103L).map(_.treeArr ?~ "*.Astronomy.Astro*")
+      println(s"[ltree[] '?~' sql = ${q8.selectStatement}")
+      assertEquals(LTree("Top.Science.Astronomy.Astrophysics"), q8.first)
+
+      val q9 = LTreeTests.filter(_.id === 103L).map(_.treeArr ?@ "Astro* & !pictures@")
+      println(s"[ltree[] '?@' sql = ${q9.selectStatement}")
+      assertEquals(LTree("Top.Science.Astronomy.Astrophysics"), q9.first)
     }
   }
 

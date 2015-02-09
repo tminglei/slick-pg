@@ -16,9 +16,9 @@ trait PgJsonExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     val PoundBiArrow = new SqlOperator("#>>")
     val Contains = new SqlOperator("@>")
     val ContainsBy = new SqlOperator("<@")
-//    val Exists = new SqlOperator("?")
-//    val ExistsAny = new SqlOperator("?|")
-//    val ExistsAll = new SqlOperator("?&")
+    val Exists = new SqlOperator("??")
+    val ExistsAny = new SqlOperator("??|")
+    val ExistsAll = new SqlOperator("??&")
 
     val toJson = new SqlFunction("to_json")
     val arrayToJson = new SqlFunction("array_to_json")
@@ -65,6 +65,15 @@ trait PgJsonExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
       }
     def <@:[P2,R](c2: Column[P2])(implicit om: o#arg[JSONType, P2]#to[Boolean, R]) = {
         om.column(jsonLib.ContainsBy, c2.toNode, n)
+      }
+    def ??[P2, R](c2: Column[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
+        om.column(jsonLib.Exists, n, c2.toNode)
+      }
+    def ?|[P2, R](c2: Column[P2])(implicit om: o#arg[List[String], P2]#to[Boolean, R]) = {
+        om.column(jsonLib.ExistsAny, n, c2.toNode)
+      }
+    def ?&[P2, R](c2: Column[P2])(implicit om: o#arg[List[String], P2]#to[Boolean, R]) = {
+        om.column(jsonLib.ExistsAll, n, c2.toNode)
       }
 
     def jsonType[R](implicit om: o#to[String, R]) = om.column(jsonLib.typeof, n)
