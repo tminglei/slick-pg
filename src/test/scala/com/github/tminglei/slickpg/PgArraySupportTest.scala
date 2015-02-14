@@ -44,6 +44,7 @@ class PgArraySupportTest {
     id: Long,
     intArr: List[Int],
     longArr: Buffer[Long],
+    shortArr: List[Short],
     strList: List[String],
     strArr: Option[Vector[String]],
     uuidArr: List[UUID],
@@ -55,13 +56,14 @@ class PgArraySupportTest {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def intArr = column[List[Int]]("intArray", O.Default(Nil))
     def longArr = column[Buffer[Long]]("longArray")
+    def shortArr = column[List[Short]]("shortArray")
     def strList = column[List[String]]("stringList")
     def strArr = column[Option[Vector[String]]]("stringArray")
     def uuidArr = column[List[UUID]]("uuidArray")
     def institutions = column[List[Institution]]("institutions")
     def mktFinancialProducts = column[Option[List[MarketFinancialProduct]]]("mktFinancialProducts")
 
-    def * = (id, intArr, longArr, strList, strArr, uuidArr, institutions, mktFinancialProducts) <> (ArrayBean.tupled, ArrayBean.unapply)
+    def * = (id, intArr, longArr, shortArr, strList, strArr, uuidArr, institutions, mktFinancialProducts) <> (ArrayBean.tupled, ArrayBean.unapply)
   }
   val ArrayTests = TableQuery[ArrayTestTable]
 
@@ -71,12 +73,12 @@ class PgArraySupportTest {
   val uuid2 = UUID.randomUUID()
   val uuid3 = UUID.randomUUID()
 
-  val testRec1 = ArrayBean(33L, List(101, 102, 103), Buffer(1L, 3L, 5L, 7L), List("robert}; drop table students--"), Some(Vector("str1", "str3")),
-    List(uuid1, uuid2), List(Institution(113)), None)
-  val testRec2 = ArrayBean(37L, List(101, 103), Buffer(11L, 31L, 5L), List(""), Some(Vector("str11", "str3")),
-    List(uuid1, uuid2, uuid3), List(Institution(579)), Some(List(MarketFinancialProduct("product1"))))
-  val testRec3 = ArrayBean(41L, List(103, 101), Buffer(11L, 5L, 31L), Nil, Some(Vector("(s)", "str5", "str3")),
-    List(uuid1, uuid3), Nil, Some(List(MarketFinancialProduct("product3"), MarketFinancialProduct("product x"))))
+  val testRec1 = ArrayBean(33L, List(101, 102, 103), Buffer(1L, 3L, 5L, 7L), List(1,7), List("robert}; drop table students--"),
+    Some(Vector("str1", "str3")), List(uuid1, uuid2), List(Institution(113)), None)
+  val testRec2 = ArrayBean(37L, List(101, 103), Buffer(11L, 31L, 5L), Nil, List(""),
+    Some(Vector("str11", "str3")), List(uuid1, uuid2, uuid3), List(Institution(579)), Some(List(MarketFinancialProduct("product1"))))
+  val testRec3 = ArrayBean(41L, List(103, 101), Buffer(11L, 5L, 31L), List(35,77), Nil,
+    Some(Vector("(s)", "str5", "str3")), List(uuid1, uuid3), Nil, Some(List(MarketFinancialProduct("product3"), MarketFinancialProduct("product x"))))
 
   @Test
   def testArrayFunctions(): Unit = {
