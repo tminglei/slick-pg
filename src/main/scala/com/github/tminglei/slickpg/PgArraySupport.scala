@@ -1,11 +1,11 @@
 package com.github.tminglei.slickpg
 
 import java.util.UUID
-import scala.reflect.ClassTag
 import scala.slick.lifted.Column
 import scala.slick.driver.PostgresDriver
 import java.sql.{Timestamp, Time, Date}
-import scala.slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
+import scala.reflect.runtime.{universe => u}
+import scala.slick.jdbc.{PositionedResult, JdbcType}
 
 trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes { driver: PostgresDriver =>
 
@@ -39,137 +39,68 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
 
   /// static sql support, NOTE: no extension methods available for static sql usage
   trait SimpleArrayPlainImplicits {
+    import utils.PlainSQLUtils._
 
     implicit class PgArrayPositionedResult(r: PositionedResult) {
-      // uuid array
-      def nextUUIDArray() = nextArray[UUID].getOrElse(Nil)
-      def nextUUIDArrayOption() = nextArray[UUID]
-      // string array
-      def nextStringArray() = nextArray[String].getOrElse(Nil)
-      def nextStringArrayOption() = nextArray[String]
-      // long array
-      def nextLongArray() = nextArray[Long].getOrElse(Nil)
-      def nextLongArrayOption() = nextArray[Long]
-      // int array
-      def nextIntArray() = nextArray[Int].getOrElse(Nil)
-      def nextIntArrayOption() = nextArray[Int]
-      // short array
-      def nextShortArray() = nextArray[Int].getOrElse(Nil).map(_.toShort)
-      def nextShortArrayOption() = nextArray[Int].map(_.map(_.toShort))
-      // float array
-      def nextFloatArray() = nextArray[Float].getOrElse(Nil)
-      def nextFloatArrayOption() = nextArray[Float]
-      // double array
-      def nextDoubleArray() = nextArray[Double].getOrElse(Nil)
-      def nextDoubleArrayOption() = nextArray[Double]
-      // boolean array
-      def nextBooleanArray() = nextArray[Boolean].getOrElse(Nil)
-      def nextBooleanArrayOption() = nextArray[Boolean]
-      // date array
-      def nextDateArray() = nextArray[Date].getOrElse(Nil)
-      def nextDateArrayOption() = nextArray[Date]
-      // time array
-      def nextTimeArray() = nextArray[Time].getOrElse(Nil)
-      def nextTimeArrayOption() = nextArray[Time]
-      // timestamp array
-      def nextTimestampArray() = nextArray[Timestamp].getOrElse(Nil)
-      def nextTimestampArrayOption() = nextArray[Timestamp]
+      def nextArray[T]()(implicit tpe: u.TypeTag[T]): Seq[T] = nextArrayOption[T]().getOrElse(Nil)
+      def nextArrayOption[T]()(implicit tpe: u.TypeTag[T]): Option[Seq[T]] =
+        (u.typeOf[T] match {
+          case tpe if tpe.typeConstructor =:= u.typeOf[Short].typeConstructor =>
+            internalNextArray[Int](r).map(_.map(_.toShort))
+          case tpe => {
+            val (matched, result) = extNextArray(tpe, r)
+            if (matched) result else internalNextArray[T](r)
+          }
+        }).asInstanceOf[Option[Seq[T]]]
+    }
 
-      ///
-      private def nextArray[T](): Option[Seq[T]] = {
-        val value = r.rs.getArray(r.skip.currentPos)
-        if (r.rs.wasNull) None else Some(
-          value.getArray.asInstanceOf[Array[Any]].map(_.asInstanceOf[T]))
+    /**
+     * pls override this when you need additional array support
+     * @return (matched, result)
+     **/
+    protected def extNextArray(tpe: u.Type, r: PositionedResult): (Boolean, Option[Seq[_]]) =
+      tpe match {
+        case _ => (false, None)
       }
+
+    private def internalNextArray[T](r: PositionedResult): Option[Seq[T]] = {
+      val value = r.rs.getArray(r.skip.currentPos)
+      if (r.rs.wasNull) None else Some(
+        value.getArray.asInstanceOf[Array[Any]].map(_.asInstanceOf[T]))
     }
 
     //////////////////////////////////////////////////////////////////////////
-    implicit object SetUUIDArray extends SetParameter[Seq[UUID]] {
-      def apply(v: Seq[UUID], pp: PositionedParameters) = setArray("uuid", Option(v), pp)
-    }
-    implicit object SetUUIDArrayOption extends SetParameter[Option[Seq[UUID]]] {
-      def apply(v: Option[Seq[UUID]], pp: PositionedParameters) = setArray("uuid", v, pp)
-    }
+    implicit val setUUIDArray = mkArraySetParameter[UUID]("uuid")
+    implicit val setUUIDArrayOption = mkArrayOptionSetParameter[UUID]("uuid")
     ///
-    implicit object SetStringArray extends SetParameter[Seq[String]] {
-      def apply(v: Seq[String], pp: PositionedParameters) = setArray("text", Option(v), pp)
-    }
-    implicit object SetStringArrayOption extends SetParameter[Option[Seq[String]]] {
-      def apply(v: Option[Seq[String]], pp: PositionedParameters) = setArray("text", v, pp)
-    }
+    implicit val setStringArray = mkArraySetParameter[String]("text")
+    implicit val setStringArrayOption = mkArrayOptionSetParameter[String]("text")
     ///
-    implicit object SetLongArray extends SetParameter[Seq[Long]] {
-      def apply(v: Seq[Long], pp: PositionedParameters) = setArray("int8", Option(v), pp)
-    }
-    implicit object SetLongArrayOption extends SetParameter[Option[Seq[Long]]] {
-      def apply(v: Option[Seq[Long]], pp: PositionedParameters) = setArray("int8", v, pp)
-    }
+    implicit val setLongArray = mkArraySetParameter[Long]("int8")
+    implicit val setLongArrayOption = mkArrayOptionSetParameter[Long]("int8")
     ///
-    implicit object SetIntArray extends SetParameter[Seq[Int]] {
-      def apply(v: Seq[Int], pp: PositionedParameters) = setArray("int4", Option(v), pp)
-    }
-    implicit object SetIntArrayOption extends SetParameter[Option[Seq[Int]]] {
-      def apply(v: Option[Seq[Int]], pp: PositionedParameters) = setArray("int4", v, pp)
-    }
+    implicit val setIntArray = mkArraySetParameter[Int]("int4")
+    implicit val setIntArrayOption = mkArrayOptionSetParameter[Int]("int4")
     ///
-    implicit object SetShortArray extends SetParameter[Seq[Short]] {
-      def apply(v: Seq[Short], pp: PositionedParameters) = setArray("int2", Option(v), pp)
-    }
-    implicit object SetShortArrayOption extends SetParameter[Option[Seq[Short]]] {
-      def apply(v: Option[Seq[Short]], pp: PositionedParameters) = setArray("int2", v, pp)
-    }
+    implicit val setShortArray = mkArraySetParameter[Short]("int2")
+    implicit val setShortArrayOption = mkArrayOptionSetParameter[Short]("int2")
     ///
-    implicit object SetFloatArray extends SetParameter[Seq[Float]] {
-      def apply(v: Seq[Float], pp: PositionedParameters) = setArray("float4", Option(v), pp)
-    }
-    implicit object SetFloatArrayOption extends SetParameter[Option[Seq[Float]]] {
-      def apply(v: Option[Seq[Float]], pp: PositionedParameters) = setArray("float4", v, pp)
-    }
+    implicit val setFloatArray = mkArraySetParameter[Float]("float4")
+    implicit val setFloatArrayOption = mkArrayOptionSetParameter[Float]("float4")
     ///
-    implicit object SetDoubleArray extends SetParameter[Seq[Double]] {
-      def apply(v: Seq[Double], pp: PositionedParameters) = setArray("float8", Option(v), pp)
-    }
-    implicit object SetDoubleArrayOption extends SetParameter[Option[Seq[Double]]] {
-      def apply(v: Option[Seq[Double]], pp: PositionedParameters) = setArray("float8", v, pp)
-    }
+    implicit val setDoubleArray = mkArraySetParameter[Double]("float8")
+    implicit val setDoubleArrayOption = mkArrayOptionSetParameter[Double]("float8")
     ///
-    implicit object SetBoolArray extends SetParameter[Seq[Boolean]] {
-      def apply(v: Seq[Boolean], pp: PositionedParameters) = setArray("bool", Option(v), pp)
-    }
-    implicit object SetBoolArrayOption extends SetParameter[Option[Seq[Boolean]]] {
-      def apply(v: Option[Seq[Boolean]], pp: PositionedParameters) = setArray("bool", v, pp)
-    }
+    implicit val setBoolArray = mkArraySetParameter[Boolean]("bool")
+    implicit val setBoolArrayOption = mkArrayOptionSetParameter[Boolean]("bool")
     ///
-    implicit object SetDateArray extends SetParameter[Seq[Date]] {
-      def apply(v: Seq[Date], pp: PositionedParameters) = setArray("date", Option(v), pp)
-    }
-    implicit object SetDateArrayOption extends SetParameter[Option[Seq[Date]]] {
-      def apply(v: Option[Seq[Date]], pp: PositionedParameters) = setArray("date", v, pp)
-    }
+    implicit val setDateArray = mkArraySetParameter[Date]("date")
+    implicit val setDateArrayOption = mkArrayOptionSetParameter[Date]("date")
     ///
-    implicit object SetTimeArray extends SetParameter[Seq[Time]] {
-      def apply(v: Seq[Time], pp: PositionedParameters) = setArray("time", Option(v), pp)
-    }
-    implicit object SetTimeArrayOption extends SetParameter[Option[Seq[Time]]] {
-      def apply(v: Option[Seq[Time]], pp: PositionedParameters) = setArray("time", v, pp)
-    }
+    implicit val setTimeArray = mkArraySetParameter[Time]("time")
+    implicit val setTimeArrayOption = mkArrayOptionSetParameter[Time]("time")
     ///
-    implicit object SetTimestampArray extends SetParameter[Seq[Timestamp]] {
-      def apply(v: Seq[Timestamp], pp: PositionedParameters) = setArray("timestamp", Option(v), pp)
-    }
-    implicit object SetTimestampArrayOption extends SetParameter[Option[Seq[Timestamp]]] {
-      def apply(v: Option[Seq[Timestamp]], pp: PositionedParameters) = setArray("timestamp", v, pp)
-    }
-
-    ///
-    import utils.SimpleArrayUtils._
-
-    private def setArray[T: ClassTag](baseType: String, v: Option[Seq[T]], p: PositionedParameters) = {
-      p.pos += 1
-      v match {
-        case Some(vList) => p.ps.setArray(p.pos, mkArray(mkString[T](_.toString))(baseType, vList))
-        case None        => p.ps.setNull(p.pos, java.sql.Types.ARRAY)
-      }
-    }
+    implicit val setTimestampArray = mkArraySetParameter[Timestamp]("timestamp")
+    implicit val setTimestampArrayOption = mkArrayOptionSetParameter[Timestamp]("timestamp")
   }
 }

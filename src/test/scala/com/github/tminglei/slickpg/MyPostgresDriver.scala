@@ -34,6 +34,10 @@ object MyPostgresDriver extends MyPostgresDriver
 
 /// for plain sql tests
 import scala.slick.driver.PostgresDriver
+import scala.reflect.runtime.{universe => u}
+import scala.slick.jdbc.PositionedResult
+
+import utils.SimpleArrayUtils._
 
 object MyPlainPostgresDriver extends PostgresDriver
                               with PgArraySupport
@@ -50,5 +54,12 @@ object MyPlainPostgresDriver extends PostgresDriver
                                      with SimpleLTreePlainImplicits
                                      with SimpleRangePlainImplicits
                                      with SimpleHStorePlainImplicits
-                                     with SimpleSearchPlainImplicits {}
+                                     with SimpleSearchPlainImplicits {
+    override protected def extNextArray(tpe: u.Type, r: PositionedResult): (Boolean, Option[Seq[_]]) =
+      tpe match {
+        case tpe if tpe.typeConstructor =:= u.typeOf[LTree].typeConstructor =>
+          (true, r.nextStringOption().flatMap(fromString(LTree.apply)))
+        case _ => (false, None)
+      }
+  }
 }

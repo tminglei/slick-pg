@@ -173,17 +173,17 @@ class PgArraySupportTest {
 
     implicit val getArrarBean1Result = GetResult(r =>
       ArrayBean1(r.nextLong(),
-        r.nextUUIDArray().toList,
-        r.nextStringArray(),
-        r.nextLongArray(),
-        r.nextIntArray().toList,
-        r.nextShortArray().to[Vector],
-        r.nextFloatArray().toList,
-        r.nextDoubleArray().toList,
-        r.nextBooleanArray(),
-        r.nextDateArray().toList,
-        r.nextTimeArray().toList,
-        r.nextTimestampArray()
+        r.nextArray[UUID]().toList,
+        r.nextArray[String](),
+        r.nextArray[Long](),
+        r.nextArray[Int]().toList,
+        r.nextArray[Short]().to[Vector],
+        r.nextArray[Float]().toList,
+        r.nextArray[Double]().toList,
+        r.nextArray[Boolean](),
+        r.nextArray[Date]().toList,
+        r.nextArray[Time]().toList,
+        r.nextArray[Timestamp]()
       )
     )
 

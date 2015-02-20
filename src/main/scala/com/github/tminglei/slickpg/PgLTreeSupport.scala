@@ -54,41 +54,18 @@ trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcType
   }
 
   trait SimpleLTreePlainImplicits {
-    import utils.SimpleArrayUtils._
+    import utils.PlainSQLUtils._
 
     implicit class PgLTreePositionedResult(r: PositionedResult) {
       def nextLTree() = nextLTreeOption().orNull
       def nextLTreeOption() = r.nextStringOption().map(LTree.apply)
-      def nextLTreeArray() = nextLTreeArrayOption().getOrElse(Nil)
-      def nextLTreeArrayOption() = r.nextStringOption().flatMap(fromString(LTree.apply))
     }
 
     ///////////////////////////////////////////////////////////
-    implicit object SetLTree extends SetParameter[LTree] {
-      def apply(v: LTree, pp: PositionedParameters) = setLTree(Option(v), pp)
-    }
-    implicit object SetLTreeOption extends SetParameter[Option[LTree]] {
-      def apply(v: Option[LTree], pp: PositionedParameters) = setLTree(v, pp)
-    }
-
-    implicit object SetLTreeArray extends SetParameter[List[LTree]] {
-      def apply(v: List[LTree], pp: PositionedParameters) = setLTreeArray(Option(v), pp)
-    }
-    implicit object SetLTreeArrayOption extends SetParameter[Option[List[LTree]]] {
-      def apply(v: Option[List[LTree]], pp: PositionedParameters) = setLTreeArray(v, pp)
-    }
-
+    implicit val setLTree = mkSetParameter[LTree]("ltree")
+    implicit val setLTreeOption = mkOptionSetParameter[LTree]("ltree")
     ///
-    private def setLTree(v: Option[LTree], p: PositionedParameters) = v match {
-      case Some(v) => p.setObject(utils.mkPGobject("ltree", v.toString), java.sql.Types.OTHER)
-      case None    => p.setNull(java.sql.Types.OTHER)
-    }
-    private def setLTreeArray(v: Option[List[LTree]], p: PositionedParameters) = {
-      p.pos += 1
-      v match {
-        case Some(v) => p.ps.setArray(p.pos, mkArray(mkString[LTree](_.toString))("ltree", v))
-        case None    => p.ps.setNull(p.pos, java.sql.Types.ARRAY)
-      }
-    }
+    implicit val setLTreeArray = mkArraySetParameter[LTree]("ltree")
+    implicit val setLTreeArrayOption = mkArrayOptionSetParameter[LTree]("ltree")
   }
 }

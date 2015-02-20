@@ -164,7 +164,7 @@ class PgLTreeSupportTest {
   def testPlainLTreeFunctions(): Unit = {
     import MyPlainPostgresDriver.plainImplicits._
 
-    implicit val getLTreeBeanResult = GetResult(r => LTreeBean(r.nextLong(), r.nextLTree(), r.nextLTreeArray().toList))
+    implicit val getLTreeBeanResult = GetResult(r => LTreeBean(r.nextLong(), r.nextLTree(), r.nextArray[LTree]().toList))
 
     db withSession { implicit session: Session =>
       Try { Q.updateNA("drop table if exists ltree_test cascade").execute }
