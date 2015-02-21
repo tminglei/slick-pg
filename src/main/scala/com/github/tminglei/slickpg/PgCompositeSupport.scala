@@ -2,23 +2,37 @@ package com.github.tminglei.slickpg
 
 import scala.slick.driver.PostgresDriver
 import scala.reflect.runtime.{universe => u, currentMirror => rm}
-import scala.slick.jdbc.JdbcType
 import scala.reflect.ClassTag
 import composite.Struct
+
+import scala.slick.jdbc.PositionedResult
 
 trait PgCompositeSupport extends utils.PgCommonJdbcTypes with array.PgArrayJdbcTypes { driver: PostgresDriver =>
   import PgCompositeSupportUtils._
 
-  def createCompositeJdbcType[T <: Struct](sqlTypeName: String)(
-            implicit ev: u.TypeTag[T], tag: ClassTag[T]): JdbcType[T] = {
+  def createCompositeJdbcType[T <: Struct](sqlTypeName: String)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) =
     new GenericJdbcType[T](sqlTypeName, mkCompositeFromString[T], mkStringFromComposite[T])
-  }
 
-  def createCompositeListJdbcType[T <: Struct](sqlTypeName: String)(
-            implicit ev: u.TypeTag[T], tag: ClassTag[T], tag1: ClassTag[List[T]]): JdbcType[List[T]] = {
+  @deprecated(message = "pls use `createCompositeArrayJdbcType` instead", since = "0.8.2")
+  def createCompositeListJdbcType[T <: Struct](sqlTypeName: String)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) =
+    createCompositeArrayJdbcType(sqlTypeName).to(_.toList)
+  def createCompositeArrayJdbcType[T <: Struct](sqlTypeName: String)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) =
     new AdvancedArrayJdbcType[T](sqlTypeName, mkCompositeSeqFromString[T], mkStringFromCompositeSeq[T])
-      .to(_.toList)
-  }
+
+  /// Plain SQL support
+  def nextComposite[T <: Struct](r: PositionedResult)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) =
+    r.nextStringOption().map(mkCompositeFromString[T])
+  def nextCompositeArray[T <: Struct](r: PositionedResult)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) =
+    r.nextStringOption().map(mkCompositeSeqFromString[T])
+
+  def createCompositeSetParameter[T <: Struct](sqlTypeName: String)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) =
+    utils.PlainSQLUtils.mkSetParameter[T](sqlTypeName, mkStringFromComposite[T])
+  def createCompositeOptionSetParameter[T <: Struct](sqlTypeName: String)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) =
+    utils.PlainSQLUtils.mkOptionSetParameter[T](sqlTypeName, mkStringFromComposite[T])
+  def createCompositeArraySetParameter[T <: Struct](sqlTypeName: String)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) =
+    utils.PlainSQLUtils.mkArraySetParameter[T](sqlTypeName, seqToStr = Some(mkStringFromCompositeSeq[T]))
+  def createCompositeOptionArraySetParameter[T <: Struct](sqlTypeName: String)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) =
+    utils.PlainSQLUtils.mkArrayOptionSetParameter[T](sqlTypeName, seqToStr = Some(mkStringFromCompositeSeq[T]))
 }
 
 object PgCompositeSupportUtils {

@@ -59,7 +59,7 @@ object MyPlainPostgresDriver extends PostgresDriver
       tpe match {
         case tpe if tpe.typeConstructor =:= u.typeOf[LTree].typeConstructor =>
           (true, r.nextStringOption().flatMap(fromString(LTree.apply)))
-        case _ => (false, None)
+        case _ => super.extNextArray(tpe, r)
       }
   }
 }
