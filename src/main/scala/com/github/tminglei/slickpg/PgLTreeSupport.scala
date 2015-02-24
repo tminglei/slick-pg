@@ -1,8 +1,7 @@
 package com.github.tminglei.slickpg
 
-import scala.slick.driver.PostgresDriver
-import scala.slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
-import scala.slick.lifted.Column
+import slick.driver.PostgresDriver
+import slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
 
 /** simple ltree wrapper */
 case class LTree(value: List[String]) {
@@ -17,6 +16,7 @@ object LTree {
  * simple ltree support; if all you want is just getting from / saving to db, and using pg json operations/methods, it should be enough
  */
 trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcTypes with array.PgArrayJdbcTypes { driver: PostgresDriver =>
+  import driver.api._
 
   /// alias
   trait LTreeImplicits extends SimpleLTreeImplicits
@@ -34,20 +34,20 @@ trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcType
         mkString = utils.SimpleArrayUtils.mkString[LTree](_.toString)(_)
       ).to(_.toList)
 
-    implicit def simpleLTreeColumnExtensionMethods(c: Column[LTree])(
+    implicit def simpleLTreeColumnExtensionMethods(c: Rep[LTree])(
       implicit tm: JdbcType[LTree], tm1: JdbcType[List[LTree]]) = {
         new LTreeColumnExtensionMethods[LTree, LTree](c)
       }
-    implicit def simpleLTreeOptionColumnExtensionMethods(c: Column[Option[LTree]])(
+    implicit def simpleLTreeOptionColumnExtensionMethods(c: Rep[Option[LTree]])(
       implicit tm: JdbcType[LTree], tm1: JdbcType[List[LTree]]) = {
         new LTreeColumnExtensionMethods[LTree, Option[LTree]](c)
       }
 
-    implicit def simpleLTreeListColumnExtensionMethods(c: Column[List[LTree]])(
+    implicit def simpleLTreeListColumnExtensionMethods(c: Rep[List[LTree]])(
       implicit tm: JdbcType[LTree], tm1: JdbcType[List[LTree]]) = {
         new LTreeListColumnExtensionMethods[LTree, List[LTree]](c)
       }
-    implicit def simpleLTreeListOptionColumnExtensionMethods(c: Column[Option[List[LTree]]])(
+    implicit def simpleLTreeListOptionColumnExtensionMethods(c: Rep[Option[List[LTree]]])(
       implicit tm: JdbcType[LTree], tm1: JdbcType[List[LTree]]) = {
         new LTreeListColumnExtensionMethods[LTree, Option[List[LTree]]](c)
       }

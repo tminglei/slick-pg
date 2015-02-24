@@ -1,8 +1,7 @@
 package com.github.tminglei.slickpg
 
-import scala.slick.driver.PostgresDriver
-import scala.slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
-import scala.slick.lifted.Column
+import slick.driver.PostgresDriver
+import slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
 
 /** simple json string wrapper */
 case class JsonString(value: String)
@@ -11,6 +10,7 @@ case class JsonString(value: String)
  * simple json support; if all you want is just getting from / saving to db, and using pg json operations/methods, it should be enough
  */
 trait PgJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+  import driver.api._
 
   val pgjson = "json"
 
@@ -26,11 +26,11 @@ trait PgJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes {
         hasLiteralForm = false
       )
 
-    implicit def simpleJsonColumnExtensionMethods(c: Column[JsonString])(
+    implicit def simpleJsonColumnExtensionMethods(c: Rep[JsonString])(
       implicit tm: JdbcType[JsonString], tm1: JdbcType[List[String]]) = {
         new JsonColumnExtensionMethods[JsonString, JsonString](c)
       }
-    implicit def simpleJsonOptionColumnExtensionMethods(c: Column[Option[JsonString]])(
+    implicit def simpleJsonOptionColumnExtensionMethods(c: Rep[Option[JsonString]])(
       implicit tm: JdbcType[JsonString], tm1: JdbcType[List[String]]) = {
         new JsonColumnExtensionMethods[JsonString, Option[JsonString]](c)
       }

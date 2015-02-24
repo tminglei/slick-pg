@@ -3,7 +3,7 @@ package com.github.tminglei.slickpg
 import org.junit._
 import org.junit.Assert._
 
-import scala.slick.jdbc.{StaticQuery => Q, GetResult}
+import slick.jdbc.{StaticQuery => Q, GetResult}
 import scala.util.Try
 
 class PgLTreeSupportTest {
@@ -42,8 +42,8 @@ class PgLTreeSupportTest {
   @Test
   def testLTreeMethods(): Unit = {
     db withSession { implicit session: Session =>
-      Try { LTreeTests.ddl drop }
-      Try { LTreeTests.ddl create }
+      Try { LTreeTests.schema drop }
+      Try { LTreeTests.schema create }
 
       LTreeTests forceInsertAll (rec1, rec2, rec3, rec4, rec5, rec6, rec7, rec8, rec9, rec10, rec11, rec12, rec13)
 
@@ -111,8 +111,8 @@ class PgLTreeSupportTest {
   @Test
   def testLTreeListMethods(): Unit = {
     db withSession { implicit session: Session =>
-      Try { LTreeTests.ddl drop }
-      Try { LTreeTests.ddl create }
+      Try { LTreeTests.schema drop }
+      Try { LTreeTests.schema create }
 
       LTreeTests forceInsertAll (rec1, rec2, rec3, rec4, rec5, rec6, rec7, rec8, rec9, rec10, rec11, rec12, rec13)
 

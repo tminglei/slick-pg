@@ -3,7 +3,7 @@ package com.github.tminglei.slickpg
 import org.junit._
 import org.junit.Assert._
 import java.sql.Timestamp
-import scala.slick.jdbc.{GetResult, StaticQuery => Q}
+import slick.jdbc.{GetResult, StaticQuery => Q}
 import scala.util.Try
 
 class PgRangeSupportTest {
@@ -42,9 +42,9 @@ class PgRangeSupportTest {
   @Test
   def testRangeFunctions(): Unit = {
     db withSession { implicit session: Session =>
-      Try { RangeTests.ddl drop }
-      Try { RangeTests.ddl.createStatements.foreach(s => println(s"[range] $s")) }
-      Try { RangeTests.ddl create }
+      Try { RangeTests.schema drop }
+      Try { RangeTests.schema.createStatements.foreach(s => println(s"[range] $s")) }
+      Try { RangeTests.schema create }
 
       RangeTests.forceInsertAll(testRec1, testRec2, testRec3)
 

@@ -2,7 +2,7 @@ package com.github.tminglei.slickpg
 
 import org.junit._
 import org.junit.Assert._
-import scala.slick.jdbc.{StaticQuery => Q, GetResult}
+import slick.jdbc.{StaticQuery => Q, GetResult}
 import scala.util.Try
 
 class PgHStoreSupportTest {
@@ -30,9 +30,9 @@ class PgHStoreSupportTest {
   @Test
   def testHStoreFunctions(): Unit = {
     db withSession { implicit session: Session =>
-      Try { HStoreTests.ddl drop }
-      Try { HStoreTests.ddl.createStatements.foreach(s => println(s"[hstore] $s")) }
-      Try { HStoreTests.ddl create }
+      Try { HStoreTests.schema drop }
+      Try { HStoreTests.schema.createStatements.foreach(s => println(s"[hstore] $s")) }
+      Try { HStoreTests.schema create }
 
       HStoreTests forceInsertAll (testRec1, testRec2, testRec3, testRec4)
 

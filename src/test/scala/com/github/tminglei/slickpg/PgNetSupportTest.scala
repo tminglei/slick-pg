@@ -3,7 +3,7 @@ package com.github.tminglei.slickpg
 import org.junit._
 import org.junit.Assert._
 
-import scala.slick.jdbc.{StaticQuery => Q, GetResult}
+import slick.jdbc.{StaticQuery => Q, GetResult}
 import scala.util.Try
 
 class PgNetSupportTest {
@@ -44,8 +44,8 @@ class PgNetSupportTest {
   @Test
   def testNetFunctions(): Unit = {
     db withSession { implicit session: Session =>
-      Try { NetTests.ddl drop }
-      Try { NetTests.ddl create }
+      Try { NetTests.schema drop }
+      Try { NetTests.schema create }
 
       NetTests forceInsertAll (testRec1, testRec2, testRec3)
 

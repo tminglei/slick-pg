@@ -2,7 +2,7 @@ package com.github.tminglei.slickpg
 
 import org.junit._
 import org.junit.Assert._
-import scala.slick.jdbc.{StaticQuery => Q, GetResult}
+import slick.jdbc.{StaticQuery => Q, GetResult}
 import scala.util.Try
 
 class PgSearchSupportTest {
@@ -29,8 +29,8 @@ class PgSearchSupportTest {
   @Test
   def testSearchFunctions(): Unit = {
     db withSession { implicit session: Session =>
-      Try { Tests.ddl drop }
-      Try { Tests.ddl create }
+      Try { Tests.schema drop }
+      Try { Tests.schema create }
 
       Tests.forceInsertAll(testRec1, testRec2)
 
@@ -94,8 +94,8 @@ class PgSearchSupportTest {
   @Test
   def testOtherFunctions(): Unit = {
     db withSession { implicit session: Session =>
-      Try { Tests.ddl drop }
-      Try { Tests.ddl create }
+      Try { Tests.schema drop }
+      Try { Tests.schema create }
 
       Tests.forceInsert(TestBean(11L, "Neutrinos in the Sun", ""))
       Tests.forceInsert(TestBean(12L, "The Sudbury Neutrino Detector", ""))

@@ -1,7 +1,7 @@
 package com.github.tminglei.slickpg
 package composite
 
-import scala.slick.driver.{PostgresDriver, JdbcTypesComponent}
+import slick.driver.{PostgresDriver, JdbcTypesComponent}
 
 trait Struct extends AnyRef
 

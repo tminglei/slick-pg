@@ -2,7 +2,7 @@ package com.github.tminglei.slickpg
 package utils
 
 import scala.reflect.ClassTag
-import scala.slick.jdbc.{SetParameter, PositionedParameters}
+import slick.jdbc.{SetParameter, PositionedParameters}
 
 object PlainSQLUtils {
   import SimpleArrayUtils._

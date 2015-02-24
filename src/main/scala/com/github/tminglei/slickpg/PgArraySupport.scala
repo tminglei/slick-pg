@@ -1,13 +1,13 @@
 package com.github.tminglei.slickpg
 
 import java.util.UUID
-import scala.slick.lifted.Column
-import scala.slick.driver.PostgresDriver
+import slick.driver.PostgresDriver
 import java.sql.{Timestamp, Time, Date}
 import scala.reflect.runtime.{universe => u}
-import scala.slick.jdbc.{PositionedResult, JdbcType}
+import slick.jdbc.{PositionedResult, JdbcType}
 
 trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes { driver: PostgresDriver =>
+  import driver.api._
 
   /// alias
   trait ArrayImplicits extends SimpleArrayImplicits
@@ -27,11 +27,11 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
     implicit val simpleTsListTypeMapper = new SimpleArrayJdbcType[Timestamp]("timestamp").to(_.toList)
 
     ///
-    implicit def simpleArrayColumnExtensionMethods[B1, SEQ[B1] <: Seq[B1]](c: Column[SEQ[B1]])(
+    implicit def simpleArrayColumnExtensionMethods[B1, SEQ[B1] <: Seq[B1]](c: Rep[SEQ[B1]])(
       implicit tm: JdbcType[B1], tm1: JdbcType[SEQ[B1]]) = {
         new ArrayColumnExtensionMethods[B1, SEQ, SEQ[B1]](c)
       }
-    implicit def simpleArrayOptionColumnExtensionMethods[B1, SEQ[B1] <: Seq[B1]](c: Column[Option[SEQ[B1]]])(
+    implicit def simpleArrayOptionColumnExtensionMethods[B1, SEQ[B1] <: Seq[B1]](c: Rep[Option[SEQ[B1]]])(
       implicit tm: JdbcType[B1], tm1: JdbcType[SEQ[B1]]) = {
         new ArrayColumnExtensionMethods[B1, SEQ, Option[SEQ[B1]]](c)
       }

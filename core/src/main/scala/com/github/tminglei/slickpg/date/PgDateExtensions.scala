@@ -1,13 +1,14 @@
 package com.github.tminglei.slickpg
 package date
 
-import scala.slick.ast.Library.{SqlFunction, SqlOperator}
-import scala.slick.lifted.{ExtensionMethods, Column}
-import scala.slick.driver.{JdbcTypesComponent, PostgresDriver}
-import scala.slick.jdbc.JdbcType
+import slick.ast.TypedType
+import slick.ast.Library.{SqlFunction, SqlOperator}
+import slick.lifted.{ExtensionMethods}
+import slick.driver.{JdbcTypesComponent, PostgresDriver}
+import slick.jdbc.JdbcType
 
 trait PgDateExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
-  import driver.Implicit._
+  import driver.api._
 
   object DateLibrary {
     val + = new SqlOperator("+")
@@ -24,103 +25,111 @@ trait PgDateExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     val JustifyHours = new SqlFunction("justify_hours")
     val JustifyInterval = new SqlFunction("justify_interval")
   }
-  
+
   ///
-  class TimestampColumnExtensionMethods[DATE, TIME, TIMESTAMP, INTERVAL, P1](val c: Column[P1])(
+  class TimestampColumnExtensionMethods[DATE, TIME, TIMESTAMP, INTERVAL, P1](val c: Rep[P1])(
             implicit tm: JdbcType[INTERVAL], tm1: JdbcType[DATE], tm2: JdbcType[TIME], tm3: JdbcType[TIMESTAMP]
         ) extends ExtensionMethods[TIMESTAMP, P1] {
-    
-    def +++[P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIMESTAMP, R]) = {
+
+    protected implicit def b1Type: TypedType[TIMESTAMP] = implicitly[TypedType[TIMESTAMP]]
+
+    def +++[P2, R](e: Rep[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIMESTAMP, R]) = {
         om.column(DateLibrary.+, n, e.toNode)
       }
-    def - [P2, R](e: Column[P2])(implicit om: o#to[INTERVAL, R]) = {
+    def - [P2, R](e: Rep[P2])(implicit om: o#to[INTERVAL, R]) = {
         om.column(DateLibrary.-, n, e.toNode)
       }
-    def -- [P2, R](e: Column[P2])(implicit om: o#arg[TIME, P2]#to[TIMESTAMP, R]) = {
+    def -- [P2, R](e: Rep[P2])(implicit om: o#arg[TIME, P2]#to[TIMESTAMP, R]) = {
         om.column(DateLibrary.-, n, e.toNode)
       }
-    def ---[P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIMESTAMP, R]) = {
+    def ---[P2, R](e: Rep[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIMESTAMP, R]) = {
         om.column(DateLibrary.-, n, e.toNode)
       }
 
     def age[R](implicit om: o#to[INTERVAL, R], tm: JdbcType[INTERVAL]) = om.column(DateLibrary.Age, n)
-    def age[P2, R](e: Column[P2])(implicit om: o#arg[TIMESTAMP, P2]#to[INTERVAL, R]) = {
+    def age[P2, R](e: Rep[P2])(implicit om: o#arg[TIMESTAMP, P2]#to[INTERVAL, R]) = {
         om.column(DateLibrary.Age, e.toNode, n)
       }
-    def part[R](field: Column[String])(implicit om: o#to[Double, R]) = {
+    def part[R](field: Rep[String])(implicit om: o#to[Double, R]) = {
         om.column(DateLibrary.Part, field.toNode, n)
       }
-    def trunc[R](field: Column[String])(implicit om: o#to[TIMESTAMP, R]) = {
+    def trunc[R](field: Rep[String])(implicit om: o#to[TIMESTAMP, R]) = {
         om.column(DateLibrary.Trunc, field.toNode, n)
       }
     def isFinite[R](implicit om: o#to[Boolean, R]) = om.column(DateLibrary.IsFinite, n)
   }
 
   ///
-  class TimeColumnExtensionMethods[DATE, TIME, TIMESTAMP, INTERVAL, P1](val c: Column[P1])(
+  class TimeColumnExtensionMethods[DATE, TIME, TIMESTAMP, INTERVAL, P1](val c: Rep[P1])(
             implicit tm: JdbcType[INTERVAL], tm1: JdbcType[DATE], tm2: JdbcType[TIME], tm3: JdbcType[TIMESTAMP]
         ) extends ExtensionMethods[TIME, P1] {
 
-    def + [P2, R](e: Column[P2])(implicit om: o#arg[DATE, P2]#to[TIMESTAMP, R]) = {
+    protected implicit def b1Type: TypedType[TIME] = implicitly[TypedType[TIME]]
+
+    def + [P2, R](e: Rep[P2])(implicit om: o#arg[DATE, P2]#to[TIMESTAMP, R]) = {
         om.column(DateLibrary.+, n, e.toNode)
       }
-    def +++[P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIME, R]) = {
+    def +++[P2, R](e: Rep[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIME, R]) = {
         om.column(DateLibrary.+, n, e.toNode)
       }
-    def - [P2, R](e: Column[P2])(implicit om: o#arg[TIME, P2]#to[INTERVAL, R]) = {
+    def - [P2, R](e: Rep[P2])(implicit om: o#arg[TIME, P2]#to[INTERVAL, R]) = {
         om.column(DateLibrary.-, n, e.toNode)
       }
-    def ---[P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIME, R]) = {
+    def ---[P2, R](e: Rep[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIME, R]) = {
         om.column(DateLibrary.-, n, e.toNode)
       }
   }
 
   ///
-  class DateColumnExtensionMethods[DATE, TIME, TIMESTAMP, INTERVAL, P1](val c: Column[P1])(
+  class DateColumnExtensionMethods[DATE, TIME, TIMESTAMP, INTERVAL, P1](val c: Rep[P1])(
               implicit tm: JdbcType[INTERVAL], tm1: JdbcType[DATE], tm2: JdbcType[TIME], tm3: JdbcType[TIMESTAMP]
         ) extends ExtensionMethods[DATE, P1] {
 
-    def + [P2, R](e: Column[P2])(implicit om: o#arg[TIME, P2]#to[TIMESTAMP, R]) = {
+    protected implicit def b1Type: TypedType[DATE] = implicitly[TypedType[DATE]]
+
+    def + [P2, R](e: Rep[P2])(implicit om: o#arg[TIME, P2]#to[TIMESTAMP, R]) = {
         om.column(DateLibrary.+, n, e.toNode)
       }
-    def ++ [P2, R](e: Column[P2])(implicit om: o#arg[Int, P2]#to[DATE, R]) = {
+    def ++ [P2, R](e: Rep[P2])(implicit om: o#arg[Int, P2]#to[DATE, R]) = {
         om.column(DateLibrary.+, n, e.toNode)
       }
-    def +++[P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIMESTAMP, R]) = {
+    def +++[P2, R](e: Rep[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIMESTAMP, R]) = {
         om.column(DateLibrary.+, n, e.toNode)
       }
-    def - [P2, R](e: Column[P2])(implicit om: o#arg[DATE, P2]#to[Int, R]) = {
+    def - [P2, R](e: Rep[P2])(implicit om: o#arg[DATE, P2]#to[Int, R]) = {
         om.column(DateLibrary.-, n, e.toNode)
       }
-    def -- [P2, R](e: Column[P2])(implicit om: o#arg[Int, P2]#to[DATE, R]) = {
+    def -- [P2, R](e: Rep[P2])(implicit om: o#arg[Int, P2]#to[DATE, R]) = {
         om.column(DateLibrary.-, n, e.toNode)
       }
-    def ---[P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIMESTAMP, R]) = {
+    def ---[P2, R](e: Rep[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIMESTAMP, R]) = {
         om.column(DateLibrary.-, n, e.toNode)
       }
     def isFinite[R](implicit om: o#to[Boolean, R]) = om.column(DateLibrary.IsFinite, n)
   }
 
   ///
-  class IntervalColumnExtensionMethods[DATE, TIME, TIMESTAMP, INTERVAL, P1](val c: Column[P1])(
+  class IntervalColumnExtensionMethods[DATE, TIME, TIMESTAMP, INTERVAL, P1](val c: Rep[P1])(
               implicit tm: JdbcType[INTERVAL], tm1: JdbcType[DATE], tm2: JdbcType[TIME], tm3: JdbcType[TIMESTAMP]
         ) extends ExtensionMethods[INTERVAL, P1] {
 
-    def + [P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[INTERVAL, R]) = {
+    protected implicit def b1Type: TypedType[INTERVAL] = implicitly[TypedType[INTERVAL]]
+
+    def + [P2, R](e: Rep[P2])(implicit om: o#arg[INTERVAL, P2]#to[INTERVAL, R]) = {
         om.column(DateLibrary.+, n, e.toNode)
       }
     def unary_-[R](implicit om: o#to[INTERVAL, R]) = om.column(DateLibrary.-, n)
-    def - [P2, R](e: Column[P2])(implicit om: o#arg[INTERVAL, P2]#to[INTERVAL, R]) = {
+    def - [P2, R](e: Rep[P2])(implicit om: o#arg[INTERVAL, P2]#to[INTERVAL, R]) = {
         om.column(DateLibrary.-, n, e.toNode)
       }
-    def * [R](factor: Column[Double])(implicit om: o#to[INTERVAL, R]) = {
+    def * [R](factor: Rep[Double])(implicit om: o#to[INTERVAL, R]) = {
         om.column(DateLibrary.*, n, factor.toNode)
       }
-    def / [R](factor: Column[Double])(implicit om: o#to[INTERVAL, R]) = {
+    def / [R](factor: Rep[Double])(implicit om: o#to[INTERVAL, R]) = {
         om.column(DateLibrary./, n, factor.toNode)
       }
 
-    def part[R](field: Column[String])(implicit om: o#to[Double, R]) = {
+    def part[R](field: Rep[String])(implicit om: o#to[Double, R]) = {
         om.column(DateLibrary.Part, field.toNode, n)
       }
     def isFinite[R](implicit om: o#to[Boolean, R]) = om.column(DateLibrary.IsFinite, n)

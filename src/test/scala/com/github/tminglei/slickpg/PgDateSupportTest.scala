@@ -5,7 +5,7 @@ import org.junit.Assert._
 import java.sql.{Timestamp, Time, Date}
 import java.util.Calendar
 import java.text.SimpleDateFormat
-import scala.slick.jdbc.StaticQuery
+import slick.jdbc.StaticQuery
 import scala.util.Try
 
 class PgDateSupportTest {
@@ -208,9 +208,9 @@ class PgDateSupportTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
-      Try { Datetimes.ddl drop }
-      Try { Datetimes.ddl.createStatements.foreach(s => println(s"[date] $s")) }
-      Try { Datetimes.ddl create }
+      Try { Datetimes.schema drop }
+      Try { Datetimes.schema.createStatements.foreach(s => println(s"[date] $s")) }
+      Try { Datetimes.schema create }
     }
   }
 }

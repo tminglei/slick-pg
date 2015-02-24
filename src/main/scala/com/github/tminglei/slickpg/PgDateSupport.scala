@@ -1,13 +1,12 @@
 package com.github.tminglei.slickpg
 
-import scala.slick.driver.PostgresDriver
+import slick.driver.PostgresDriver
 import java.sql.{Timestamp, Time, Date}
 import javax.xml.bind.DatatypeConverter
-import scala.slick.lifted.Column
 import java.util.Calendar
 
 trait PgDateSupport extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
-  import driver.Implicit._
+  import driver.api._
 
   /// alias
   trait DateTimeImplicits extends SimpleDateTimeImplicits
@@ -18,29 +17,29 @@ trait PgDateSupport extends date.PgDateExtensions with utils.PgCommonJdbcTypes {
         PgDateSupportUtils.parseCalendar, DatatypeConverter.printDateTime, hasLiteralForm=false)
 
     ///
-    implicit def simpleDateColumnExtensionMethods(c: Column[Date]) =
+    implicit def simpleDateColumnExtensionMethods(c: Rep[Date]) =
       new DateColumnExtensionMethods[Date, Time, Timestamp, Interval, Date](c)
-    implicit def simpleDateOptColumnExtensionMethods(c: Column[Option[Date]]) =
+    implicit def simpleDateOptColumnExtensionMethods(c: Rep[Option[Date]]) =
       new DateColumnExtensionMethods[Date, Time, Timestamp, Interval, Option[Date]](c)
 
-    implicit def simpleTimeColumnExtensionMethods(c: Column[Time]) =
+    implicit def simpleTimeColumnExtensionMethods(c: Rep[Time]) =
       new TimeColumnExtensionMethods[Date, Time, Timestamp, Interval, Time](c)
-    implicit def simpleTimeOptColumnExtensionMethods(c: Column[Option[Time]]) =
+    implicit def simpleTimeOptColumnExtensionMethods(c: Rep[Option[Time]]) =
       new TimeColumnExtensionMethods[Date, Time, Timestamp, Interval, Option[Time]](c)
 
-    implicit def simpleTimestampColumnExtensionMethods(c: Column[Timestamp]) =
+    implicit def simpleTimestampColumnExtensionMethods(c: Rep[Timestamp]) =
       new TimestampColumnExtensionMethods[Date, Time, Timestamp, Interval, Timestamp](c)
-    implicit def simpleTimestampOptColumnExtensionMethods(c: Column[Option[Timestamp]]) =
+    implicit def simpleTimestampOptColumnExtensionMethods(c: Rep[Option[Timestamp]]) =
       new TimestampColumnExtensionMethods[Date, Time, Timestamp, Interval, Option[Timestamp]](c)
 
-    implicit def simpleIntervalColumnExtensionMethods(c: Column[Interval]) =
+    implicit def simpleIntervalColumnExtensionMethods(c: Rep[Interval]) =
       new IntervalColumnExtensionMethods[Date, Time, Timestamp, Interval, Interval](c)
-    implicit def simpleIntervalOptColumnExtensionMethods(c: Column[Option[Interval]]) =
+    implicit def simpleIntervalOptColumnExtensionMethods(c: Rep[Option[Interval]]) =
       new IntervalColumnExtensionMethods[Date, Time, Timestamp, Interval, Option[Interval]](c)
 
-    implicit def simpleTimestampTZColumnExtensionMethods(c: Column[Calendar]) =
+    implicit def simpleTimestampTZColumnExtensionMethods(c: Rep[Calendar]) =
       new TimestampColumnExtensionMethods[Date, Time, Calendar, Interval, Calendar](c)
-    implicit def simpleTimestampTZOptColumnExtensionMethods(c: Column[Option[Calendar]]) =
+    implicit def simpleTimestampTZOptColumnExtensionMethods(c: Rep[Option[Calendar]]) =
       new TimestampColumnExtensionMethods[Date, Time, Calendar, Interval, Option[Calendar]](c)
   }
 }

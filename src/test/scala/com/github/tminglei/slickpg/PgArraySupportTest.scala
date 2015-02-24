@@ -6,8 +6,8 @@ import org.junit._
 import org.junit.Assert._
 import java.util.UUID
 import scala.collection.mutable.Buffer
-import scala.slick.driver.PostgresDriver
-import scala.slick.jdbc.{GetResult, StaticQuery => Q}
+import slick.driver.PostgresDriver
+import slick.jdbc.{GetResult, StaticQuery => Q}
 import scala.util.Try
 
 class PgArraySupportTest {
@@ -83,9 +83,9 @@ class PgArraySupportTest {
   @Test
   def testArrayFunctions(): Unit = {
     db withSession { implicit session: Session =>
-      Try { (ArrayTests.ddl) drop }
-      Try { (ArrayTests.ddl).createStatements.foreach(s => println(s"[array] $s")) }
-      Try { (ArrayTests.ddl) create }
+      Try { (ArrayTests.schema) drop }
+      Try { (ArrayTests.schema).createStatements.foreach(s => println(s"[array] $s")) }
+      Try { (ArrayTests.schema) create }
 
       ArrayTests forceInsertAll (testRec1, testRec2, testRec3)
 

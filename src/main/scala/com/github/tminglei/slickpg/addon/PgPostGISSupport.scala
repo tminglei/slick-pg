@@ -1,14 +1,15 @@
 package com.github.tminglei.slickpg
 
-import scala.slick.driver.PostgresDriver
+import slick.driver.PostgresDriver
 import com.vividsolutions.jts.geom._
-import scala.slick.jdbc.{SetParameter, PositionedParameters, PositionedResult}
-import scala.slick.lifted.Column
+import slick.jdbc.{SetParameter, PositionedParameters, PositionedResult}
+import slick.profile.RelationalProfile.ColumnOption.Length
 import scala.reflect.ClassTag
 import com.vividsolutions.jts.io.{WKBReader, WKBWriter, WKTReader, WKTWriter}
 import java.sql.{PreparedStatement, ResultSet}
 
 trait PgPostGISSupport extends geom.PgPostGISExtensions { driver: PostgresDriver =>
+  import driver.api._
 
   trait PostGISAssistants extends BasePostGISAssistants[Geometry, Point, LineString, Polygon, GeometryCollection]
 
@@ -24,9 +25,9 @@ trait PgPostGISSupport extends geom.PgPostGISExtensions { driver: PostgresDriver
     implicit val multiLineStringTypeMapper = new GeometryJdbcType[MultiLineString]
 
     ///
-    implicit def geometryColumnExtensionMethods[G1 <: Geometry](c: Column[G1]) =
+    implicit def geometryColumnExtensionMethods[G1 <: Geometry](c: Rep[G1]) =
       new GeometryColumnExtensionMethods[Geometry, Point, LineString, Polygon, GeometryCollection, G1, G1](c)
-    implicit def geometryOptionColumnExtensionMethods[G1 <: Geometry](c: Column[Option[G1]]) =
+    implicit def geometryOptionColumnExtensionMethods[G1 <: Geometry](c: Rep[Option[G1]]) =
       new GeometryColumnExtensionMethods[Geometry, Point, LineString, Polygon, GeometryCollection, G1, Option[G1]](c)
   }
 
@@ -58,7 +59,7 @@ trait PgPostGISSupport extends geom.PgPostGISExtensions { driver: PostgresDriver
 
     override def sqlType: Int = java.sql.Types.OTHER
 
-    override def sqlTypeName: String = "geometry"
+    override def sqlTypeName(size: Option[Length]): String = "geometry"
 
     override def getValue(r: ResultSet, idx: Int): T = {
       val value = r.getString(idx)

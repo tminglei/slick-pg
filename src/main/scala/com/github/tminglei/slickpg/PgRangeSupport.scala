@@ -1,9 +1,8 @@
 package com.github.tminglei.slickpg
 
-import scala.slick.driver.PostgresDriver
-import scala.slick.lifted.Column
+import slick.driver.PostgresDriver
 import java.sql.{Date, Timestamp}
-import scala.slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
+import slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
 
 // edge type definitions
 sealed trait EdgeType
@@ -30,6 +29,7 @@ case class Range[T](start: T, end: T, edge: EdgeType = `[_,_)`) {
  * simple range support; if all you want is just getting from / saving to db, and using pg range operations/methods, it should be enough
  */
 trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+  import driver.api._
   import PgRangeSupportUtils._
 
   private def toTimestamp(str: String) = Timestamp.valueOf(str)
@@ -45,11 +45,11 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
     implicit val simpleTimestampRangeTypeMapper = new GenericJdbcType[Range[Timestamp]]("tsrange", mkRangeFn(toTimestamp))
     implicit val simpleDateRangeTypeMapper = new GenericJdbcType[Range[Date]]("daterange", mkRangeFn(toSQLDate))
 
-    implicit def simpleRangeColumnExtensionMethods[B0](c: Column[Range[B0]])(
+    implicit def simpleRangeColumnExtensionMethods[B0](c: Rep[Range[B0]])(
       implicit tm: JdbcType[B0], tm1: JdbcType[Range[B0]]) = {
         new RangeColumnExtensionMethods[Range, B0, Range[B0]](c)
       }
-    implicit def simpleRangeOptionColumnExtensionMethods[B0](c: Column[Option[Range[B0]]])(
+    implicit def simpleRangeOptionColumnExtensionMethods[B0](c: Rep[Option[Range[B0]]])(
       implicit tm: JdbcType[B0], tm1: JdbcType[Range[B0]]) = {
         new RangeColumnExtensionMethods[Range, B0, Option[Range[B0]]](c)
       }

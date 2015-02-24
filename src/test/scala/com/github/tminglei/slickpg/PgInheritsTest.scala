@@ -85,10 +85,10 @@ class PgInheritsTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
-      Try { (tabs1.ddl ++ tabs2.ddl).dropStatements.foreach(s => println(s"[inherits] $s")) }
-      Try { (tabs1.ddl ++ tabs2.ddl).drop }
-      Try { (tabs1.ddl ++ tabs2.ddl).createStatements.foreach(s => println(s"[inherits] $s")) }
-      Try { (tabs1.ddl ++ tabs2.ddl).create }
+      Try { (tabs1.schema ++ tabs2.schema).dropStatements.foreach(s => println(s"[inherits] $s")) }
+      Try { (tabs1.schema ++ tabs2.schema).drop }
+      Try { (tabs1.schema ++ tabs2.schema).createStatements.foreach(s => println(s"[inherits] $s")) }
+      Try { (tabs1.schema ++ tabs2.schema).create }
     }
   }
 }

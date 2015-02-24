@@ -3,11 +3,11 @@ package com.github.tminglei.slickpg
 import org.junit._
 import org.junit.Assert._
 import org.threeten.bp._
-import scala.slick.jdbc.{StaticQuery => Q, GetResult}
+import slick.jdbc.{StaticQuery => Q, GetResult}
 import scala.util.Try
 
 class PgDate2bpSupportTest {
-  import scala.slick.driver.PostgresDriver
+  import slick.driver.PostgresDriver
 
   object MyPostgresDriver extends PostgresDriver
                             with PgDateSupport2bp {
@@ -62,8 +62,8 @@ class PgDate2bpSupportTest {
   @Test
   def testDatetimeFunctions(): Unit = {
     db withSession { implicit session: Session =>
-      Try { Datetimes.ddl drop }
-      Try { Datetimes.ddl create }
+      Try { Datetimes.schema drop }
+      Try { Datetimes.schema create }
 
       (Q.u + "SET TIMEZONE TO '+8';").execute
       Datetimes forceInsertAll (testRec1, testRec2, testRec3)
