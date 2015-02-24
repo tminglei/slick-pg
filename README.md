@@ -124,7 +124,7 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.8.1"
+libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.8.2"
 ```
 
 
@@ -133,7 +133,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.10</artifactId>
-    <version>0.8.1</version>
+    <version>0.8.2</version>
 </dependency>
 ```
 
@@ -213,6 +213,10 @@ Details
 
 History
 ------------------------------
+v0.8.2 (24-Feb-2015):  
+1) add ?-contained operators support  
+2) add plain sql support for composite
+
 v0.8.1 (3-Feb-2015):  
 1) add postgres 9.4 jsonb support  
 2) add more json operators/functions
