@@ -1,7 +1,7 @@
 package demo
 
-import scala.slick.ast.ColumnOption
-import scala.slick.driver.PostgresDriver
+import slick.ast.ColumnOption
+import slick.driver.PostgresDriver
 import Config._
 
 /**
@@ -38,7 +38,7 @@ object CustomizedCodeGenerator {
     PostgresDriver.createModel( Some(tables) )
   }
 
-  val codegen = new scala.slick.codegen.SourceCodeGenerator(model) {
+  val codegen = new slick.codegen.SourceCodeGenerator(model) {
     override def Table = new Table(_) { table =>
       override def Column = new Column(_) { column =>
         // customize db type -> scala type mapping, pls adjust it according to your environment

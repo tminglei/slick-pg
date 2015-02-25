@@ -1,14 +1,13 @@
 package com.github.tminglei.slickpg
 
-import scala.slick.driver.PostgresDriver
-import scala.slick.jdbc.{PositionedParameters, SetParameter, PositionedResult, JdbcType}
-import scala.slick.lifted.Column
+import slick.driver.PostgresDriver
+import slick.jdbc.{PositionedParameters, SetParameter, PositionedResult, JdbcType}
 
 case class TsVector(value: String)
 case class TsQuery(value: String)
 
 trait PgSearchSupport extends search.PgSearchExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
-  import driver.Implicit._
+  import driver.api._
 
   trait SearchAssistants extends BaseSearchAssistants[TsVector, TsQuery]
 
@@ -19,19 +18,19 @@ trait PgSearchSupport extends search.PgSearchExtensions with utils.PgCommonJdbcT
     implicit val simpleTsVectorTypeMapper = new GenericJdbcType[TsVector]("tsvector", TsVector, _.value)
     implicit val simpleTsQueryTypeMapper = new GenericJdbcType[TsQuery]("tsquery", TsQuery, _.value)
 
-    implicit def simpleTsVectorColumnExtensionMethods(c: Column[TsVector])(
+    implicit def simpleTsVectorColumnExtensionMethods(c: Rep[TsVector])(
       implicit tm: JdbcType[TsVector], tm1: JdbcType[TsQuery]) = {
         new TsVectorColumnExtensionMethods[TsVector, TsQuery, TsVector](c)
       }
-    implicit def simpleTsVectorOptionColumnExtensionMethods(c: Column[Option[TsVector]])(
+    implicit def simpleTsVectorOptionColumnExtensionMethods(c: Rep[Option[TsVector]])(
       implicit tm: JdbcType[TsVector], tm1: JdbcType[TsQuery]) = {
         new TsVectorColumnExtensionMethods[TsVector, TsQuery, Option[TsVector]](c)
       }
-    implicit def simpleTsQueryColumnExtensionMethods(c: Column[TsQuery])(
+    implicit def simpleTsQueryColumnExtensionMethods(c: Rep[TsQuery])(
       implicit tm: JdbcType[TsVector], tm1: JdbcType[TsQuery]) = {
         new TsQueryColumnExtensionMethods[TsVector, TsQuery, TsQuery](c)
       }
-    implicit def simpleTsQueryOptionColumnExtensionMethods(c: Column[Option[TsQuery]])(
+    implicit def simpleTsQueryOptionColumnExtensionMethods(c: Rep[Option[TsQuery]])(
       implicit tm: JdbcType[TsVector], tm1: JdbcType[TsQuery]) = {
         new TsQueryColumnExtensionMethods[TsVector, TsQuery, Option[TsQuery]](c)
       }

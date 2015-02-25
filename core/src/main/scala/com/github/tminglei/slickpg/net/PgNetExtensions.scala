@@ -1,14 +1,15 @@
 package com.github.tminglei.slickpg
 package net
 
-import scala.slick.ast.Library.{SqlFunction, SqlOperator}
-import scala.slick.driver.{PostgresDriver, JdbcTypesComponent}
-import scala.slick.lifted.{FunctionSymbolExtensionMethods, ExtensionMethods, Column}
-import scala.slick.jdbc.JdbcType
+import slick.ast.TypedType
+import slick.ast.Library.{SqlFunction, SqlOperator}
+import slick.driver.{PostgresDriver, JdbcTypesComponent}
+import slick.lifted.{FunctionSymbolExtensionMethods, ExtensionMethods}
+import slick.jdbc.JdbcType
 import FunctionSymbolExtensionMethods._
 
 trait PgNetExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
-  import driver.Implicit._
+  import driver.api._
 
   object NetLibrary {
     val << = new SqlOperator("<<")
@@ -35,34 +36,37 @@ trait PgNetExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     val trunc = new SqlFunction("trunc")
   }
 
-  class InetColumnExtensionMethods[B1, P1](val c: Column[P1])(
+  class InetColumnExtensionMethods[B1, P1](val c: Rep[P1])(
               implicit tm: JdbcType[B1]) extends ExtensionMethods[B1, P1] {
-    def <<[P2, R](e: Column[P2])(implicit om: o#arg[B1, P2]#to[Boolean, R]) = {
+
+    protected implicit def b1Type: TypedType[B1] = implicitly[TypedType[B1]]
+
+    def <<[P2, R](e: Rep[P2])(implicit om: o#arg[B1, P2]#to[Boolean, R]) = {
         om.column(NetLibrary.<<, n, e.toNode)
       }
-    def <<=[P2, R](e: Column[P2])(implicit om: o#arg[B1, P2]#to[Boolean, R]) = {
+    def <<=[P2, R](e: Rep[P2])(implicit om: o#arg[B1, P2]#to[Boolean, R]) = {
         om.column(NetLibrary.<<=, n, e.toNode)
       }
-    def >>[P2, R](e: Column[P2])(implicit om: o#arg[B1, P2]#to[Boolean, R]) = {
+    def >>[P2, R](e: Rep[P2])(implicit om: o#arg[B1, P2]#to[Boolean, R]) = {
         om.column(NetLibrary.>>, n, e.toNode)
       }
-    def >>=[P2, R](e: Column[P2])(implicit om: o#arg[B1, P2]#to[Boolean, R]) = {
+    def >>=[P2, R](e: Rep[P2])(implicit om: o#arg[B1, P2]#to[Boolean, R]) = {
         om.column(NetLibrary.>>=, n, e.toNode)
       }
-    def &&&[P2, R](e: Column[P2])(implicit om: o#arg[B1, P2]#to[Boolean, R]) = {
+    def &&&[P2, R](e: Rep[P2])(implicit om: o#arg[B1, P2]#to[Boolean, R]) = {
         om.column(NetLibrary.&&, n, e.toNode)
       }
 
     def unary_~ = NetLibrary.~.column[P1](n)
-    def &[P2, R](e: Column[P2])(implicit om: o#arg[B1, P2]#to[B1, R]) = {
+    def &[P2, R](e: Rep[P2])(implicit om: o#arg[B1, P2]#to[B1, R]) = {
         om.column(NetLibrary.&, n, e.toNode)
       }
-    def |[P2, R](e: Column[P2])(implicit om: o#arg[B1, P2]#to[B1, R]) = {
+    def |[P2, R](e: Rep[P2])(implicit om: o#arg[B1, P2]#to[B1, R]) = {
         om.column(NetLibrary.|, n, e.toNode)
       }
-    def +(e: Column[Int]) = NetLibrary.+.column[P1](n, e.toNode)
-    def -(e: Column[Int]) = NetLibrary.-.column[P1](n, e.toNode)
-    def --[P2, R](e: Column[P2])(implicit om: o#arg[B1, P2]#to[Int, R]) = {
+    def +(e: Rep[Int]) = NetLibrary.+.column[P1](n, e.toNode)
+    def -(e: Rep[Int]) = NetLibrary.-.column[P1](n, e.toNode)
+    def --[P2, R](e: Rep[P2])(implicit om: o#arg[B1, P2]#to[Int, R]) = {
         om.column(NetLibrary.-, n, e.toNode)
       }
 
@@ -75,16 +79,19 @@ trait PgNetExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     def netmask[R](implicit om: o#to[B1, R], tm: JdbcType[R]) = NetLibrary.netmask.column[R](n)
     def network[R](implicit om: o#to[B1, R], tm: JdbcType[R]) = NetLibrary.network.column[R](n)
     def text[R](implicit om: o#to[String, R], tm: JdbcType[R]) = NetLibrary.text.column[R](n)
-    def setMasklen(e: Column[Int]) = NetLibrary.set_masklen.column[P1](n, e.toNode)
+    def setMasklen(e: Rep[Int]) = NetLibrary.set_masklen.column[P1](n, e.toNode)
   }
 
-  class MacAddrColumnExtensionMethods[B1, P1](val c: Column[P1])(
+  class MacAddrColumnExtensionMethods[B1, P1](val c: Rep[P1])(
               implicit tm: JdbcType[B1]) extends ExtensionMethods[B1, P1] {
+
+    protected implicit def b1Type: TypedType[B1] = implicitly[TypedType[B1]]
+
     def unary_~ = NetLibrary.~.column[P1](n)
-    def &[P2, R](e: Column[P2])(implicit om: o#arg[B1, P2]#to[B1, R]) = {
+    def &[P2, R](e: Rep[P2])(implicit om: o#arg[B1, P2]#to[B1, R]) = {
         om.column(NetLibrary.&, n, e.toNode)
       }
-    def |[P2, R](e: Column[P2])(implicit om: o#arg[B1, P2]#to[B1, R]) = {
+    def |[P2, R](e: Rep[P2])(implicit om: o#arg[B1, P2]#to[B1, R]) = {
         om.column(NetLibrary.|, n, e.toNode)
       }
 

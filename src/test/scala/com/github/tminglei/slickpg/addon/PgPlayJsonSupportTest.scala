@@ -3,11 +3,11 @@ package com.github.tminglei.slickpg
 import org.junit._
 import org.junit.Assert._
 import play.api.libs.json._
-import scala.slick.jdbc.{StaticQuery => Q, GetResult}
+import slick.jdbc.{StaticQuery => Q, GetResult}
 import scala.util.Try
 
 class PgPlayJsonSupportTest {
-  import scala.slick.driver.PostgresDriver
+  import slick.driver.PostgresDriver
 
   object MyPostgresDriver extends PostgresDriver
                             with PgPlayJsonSupport
@@ -46,8 +46,8 @@ class PgPlayJsonSupportTest {
   @Test
   def testJsonFunctions(): Unit = {
     db withSession { implicit session: Session =>
-      Try { JsonTests.ddl drop }
-      Try { JsonTests.ddl create }
+      Try { JsonTests.schema drop }
+      Try { JsonTests.schema create }
 
       JsonTests forceInsertAll (testRec1, testRec2, testRec3)
 

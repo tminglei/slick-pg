@@ -1,10 +1,10 @@
 package com.github.tminglei.slickpg
 
-import scala.slick.driver.PostgresDriver
-import scala.slick.lifted.Column
-import scala.slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
+import slick.driver.PostgresDriver
+import slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
 
 trait PgArgonautSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+  import driver.api._
   import argonaut._, Argonaut._
 
   val pgjson = "json"
@@ -21,11 +21,11 @@ trait PgArgonautSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
         hasLiteralForm = false
       )
 
-    implicit def argonautJsonColumnExtensionMethods(c: Column[Json])(
+    implicit def argonautJsonColumnExtensionMethods(c: Rep[Json])(
       implicit tm: JdbcType[Json], tm1: JdbcType[List[String]]) = {
         new JsonColumnExtensionMethods[Json, Json](c)
       }
-    implicit def argonautJsonOptionColumnExtensionMethods(c: Column[Option[Json]])(
+    implicit def argonautJsonOptionColumnExtensionMethods(c: Rep[Option[Json]])(
       implicit tm: JdbcType[Json], tm1: JdbcType[List[String]]) = {
         new JsonColumnExtensionMethods[Json, Option[Json]](c)
       }

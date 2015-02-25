@@ -4,11 +4,11 @@ import org.junit._
 import org.junit.Assert._
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import com.vividsolutions.jts.io.{WKTWriter, WKBWriter, WKTReader}
-import scala.slick.jdbc.{StaticQuery => Q, GetResult}
+import slick.jdbc.{StaticQuery => Q, GetResult}
 import scala.util.Try
 
 class PgPostGISSupportTest {
-  import scala.slick.driver.PostgresDriver
+  import slick.driver.PostgresDriver
 
   object MyPostgresDriver extends PostgresDriver
                             with PgPostGISSupport {
@@ -585,9 +585,9 @@ class PgPostGISSupportTest {
   @Before
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
-      Try { (GeomTests.ddl ++ PointTests.ddl) drop }
-      Try { (GeomTests.ddl ++ PointTests.ddl).createStatements.foreach(s => println(s"[jts] $s")) }
-      Try { (GeomTests.ddl ++ PointTests.ddl) create }
+      Try { (GeomTests.schema ++ PointTests.schema) drop }
+      Try { (GeomTests.schema ++ PointTests.schema).createStatements.foreach(s => println(s"[jts] $s")) }
+      Try { (GeomTests.schema ++ PointTests.schema) create }
     }
   }
 }

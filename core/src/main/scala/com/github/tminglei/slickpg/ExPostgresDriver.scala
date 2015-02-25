@@ -1,8 +1,8 @@
 package com.github.tminglei.slickpg
 
-import scala.slick.ast.{TableNode, TableExpansion, Select, ColumnOption}
-import scala.slick.lifted.PrimaryKey
-import scala.slick.driver.{PostgresDriver, JdbcDriver}
+import slick.ast.{TableNode, TableExpansion, Select, ColumnOption}
+import slick.lifted.PrimaryKey
+import slick.driver.{PostgresDriver, JdbcDriver}
 
 trait ExPostgresDriver extends JdbcDriver with PostgresDriver { driver =>
 

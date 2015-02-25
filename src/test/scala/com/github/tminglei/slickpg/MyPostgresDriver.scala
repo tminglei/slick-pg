@@ -33,9 +33,9 @@ trait MyPostgresDriver extends ExPostgresDriver
 object MyPostgresDriver extends MyPostgresDriver
 
 /// for plain sql tests
-import scala.slick.driver.PostgresDriver
+import slick.driver.PostgresDriver
 import scala.reflect.runtime.{universe => u}
-import scala.slick.jdbc.PositionedResult
+import slick.jdbc.PositionedResult
 
 import utils.SimpleArrayUtils._
 

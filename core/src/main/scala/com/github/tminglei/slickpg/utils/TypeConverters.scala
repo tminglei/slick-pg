@@ -1,7 +1,7 @@
 package com.github.tminglei.slickpg
 package utils
 
-import scala.slick.util.Logging
+import slick.util.Logging
 import scala.reflect.runtime.{universe => u}
 import java.sql.{Timestamp, Time, Date}
 import java.util.UUID

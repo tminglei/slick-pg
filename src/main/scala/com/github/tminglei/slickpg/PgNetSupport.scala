@@ -1,8 +1,7 @@
 package com.github.tminglei.slickpg
 
-import scala.slick.driver.PostgresDriver
-import scala.slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
-import scala.slick.lifted.Column
+import slick.driver.PostgresDriver
+import slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
 
 /** simple inet string wrapper */
 case class InetString(value: String) {
@@ -23,6 +22,7 @@ case class MacAddrString(value: String)
  * simple inet/macaddr support; if all you want is just getting from / saving to db, and using pg json operations/methods, it should be enough
  */
 trait PgNetSupport extends net.PgNetExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+  import driver.api._
 
   /// alias
   trait NetImplicits extends SimpleNetImplicits
@@ -41,20 +41,20 @@ trait PgNetSupport extends net.PgNetExtensions with utils.PgCommonJdbcTypes { dr
         hasLiteralForm = false
       )
 
-    implicit def simpleInetColumnExtensionMethods(c: Column[InetString])(
+    implicit def simpleInetColumnExtensionMethods(c: Rep[InetString])(
       implicit tm: JdbcType[InetString]) = {
         new InetColumnExtensionMethods[InetString, InetString](c)
       }
-    implicit def simpleInetOptionColumnExtensionMethods(c: Column[Option[InetString]])(
+    implicit def simpleInetOptionColumnExtensionMethods(c: Rep[Option[InetString]])(
       implicit tm: JdbcType[InetString]) = {
         new InetColumnExtensionMethods[InetString, Option[InetString]](c)
       }
 
-    implicit def simpleMacAddrColumnExtensionMethods(c: Column[MacAddrString])(
+    implicit def simpleMacAddrColumnExtensionMethods(c: Rep[MacAddrString])(
       implicit tm: JdbcType[MacAddrString]) = {
         new MacAddrColumnExtensionMethods[MacAddrString, MacAddrString](c)
       }
-    implicit def simpleMacAddrOptionColumnExtensionMethods(c: Column[Option[MacAddrString]])(
+    implicit def simpleMacAddrOptionColumnExtensionMethods(c: Rep[Option[MacAddrString]])(
       implicit tm: JdbcType[MacAddrString]) = {
         new MacAddrColumnExtensionMethods[MacAddrString, Option[MacAddrString]](c)
       }

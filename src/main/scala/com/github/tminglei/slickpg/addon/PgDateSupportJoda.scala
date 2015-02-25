@@ -1,13 +1,13 @@
 package com.github.tminglei.slickpg
 
-import scala.slick.driver.PostgresDriver
+import slick.driver.PostgresDriver
 import org.joda.time._
 import org.joda.time.format.{ISODateTimeFormat, DateTimeFormat}
-import scala.slick.jdbc.{SetParameter, PositionedParameters, PositionedResult}
-import scala.slick.lifted.Column
+import slick.jdbc.{SetParameter, PositionedParameters, PositionedResult}
 import org.postgresql.util.PGInterval
 
 trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+  import driver.api._
   import PgJodaSupportUtils._
 
   /// alias
@@ -42,29 +42,29 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
       hasLiteralForm = false)
 
     ///
-    implicit def jodaDateColumnExtensionMethods(c: Column[LocalDate]) =
+    implicit def jodaDateColumnExtensionMethods(c: Rep[LocalDate]) =
       new DateColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, LocalDate](c)
-    implicit def jodaDateOptColumnExtensionMethods(c: Column[Option[LocalDate]]) =
+    implicit def jodaDateOptColumnExtensionMethods(c: Rep[Option[LocalDate]]) =
       new DateColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Option[LocalDate]](c)
 
-    implicit def jodaTimeColumnExtensionMethods(c: Column[LocalTime]) =
+    implicit def jodaTimeColumnExtensionMethods(c: Rep[LocalTime]) =
       new TimeColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, LocalTime](c)
-    implicit def jodaTimeOptColumnExtensionMethods(c: Column[Option[LocalTime]]) =
+    implicit def jodaTimeOptColumnExtensionMethods(c: Rep[Option[LocalTime]]) =
       new TimeColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Option[LocalTime]](c)
 
-    implicit def jodaTimestampColumnExtensionMethods(c: Column[LocalDateTime]) =
+    implicit def jodaTimestampColumnExtensionMethods(c: Rep[LocalDateTime]) =
       new TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, LocalDateTime](c)
-    implicit def jodaTimestampOptColumnExtensionMethods(c: Column[Option[LocalDateTime]]) =
+    implicit def jodaTimestampOptColumnExtensionMethods(c: Rep[Option[LocalDateTime]]) =
       new TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Option[LocalDateTime]](c)
 
-    implicit def jodaIntervalColumnExtensionMethods(c: Column[Period]) =
+    implicit def jodaIntervalColumnExtensionMethods(c: Rep[Period]) =
       new IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Period](c)
-    implicit def jodaIntervalOptColumnExtensionMethods(c: Column[Option[Period]]) =
+    implicit def jodaIntervalOptColumnExtensionMethods(c: Rep[Option[Period]]) =
       new IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Option[Period]](c)
 
-    implicit def jodaTzTimestampColumnExtensionMethods(c: Column[DateTime]) =
+    implicit def jodaTzTimestampColumnExtensionMethods(c: Rep[DateTime]) =
       new TimestampColumnExtensionMethods[LocalDate, LocalTime, DateTime, Period, DateTime](c)
-    implicit def jodaTzTimestampOptColumnExtensionMethods(c: Column[Option[DateTime]]) =
+    implicit def jodaTzTimestampOptColumnExtensionMethods(c: Rep[Option[DateTime]]) =
       new TimestampColumnExtensionMethods[LocalDate, LocalTime, DateTime, Period, Option[DateTime]](c)
   }
 

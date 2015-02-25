@@ -2,7 +2,8 @@ package com.github.tminglei.slickpg
 package array
 
 import scala.reflect.ClassTag
-import scala.slick.driver.{PostgresDriver, JdbcTypesComponent}
+import slick.driver.{PostgresDriver, JdbcTypesComponent}
+import slick.profile.RelationalProfile.ColumnOption.Length
 import java.sql.{ResultSet, PreparedStatement}
 
 trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
@@ -24,7 +25,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
     override def sqlType: Int = java.sql.Types.ARRAY
 
-    override def sqlTypeName: String = s"$sqlBaseType ARRAY"
+    override def sqlTypeName(size: Option[Length]): String = s"$sqlBaseType ARRAY"
 
     override def getValue(r: ResultSet, idx: Int): Seq[T] = {
       val value = r.getArray(idx)
@@ -84,7 +85,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
     override def sqlType: Int = java.sql.Types.ARRAY
 
-    override def sqlTypeName: String = s"$sqlBaseType ARRAY"
+    override def sqlTypeName(size: Option[Length]): String = s"$sqlBaseType ARRAY"
 
     override def getValue(r: ResultSet, idx: Int): Seq[T] = {
       val value = r.getString(idx)
@@ -112,7 +113,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
     override def sqlType: Int = delegate.sqlType
 
-    override def sqlTypeName: String = delegate.sqlTypeName
+    override def sqlTypeName(size: Option[Length]): String = delegate.sqlTypeName(size)
 
     override def getValue(r: ResultSet, idx: Int): SEQ[T] = Option(delegate.getValue(r, idx)).map(conv).getOrElse(null.asInstanceOf[SEQ[T]])
 

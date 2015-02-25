@@ -1,13 +1,14 @@
 package com.github.tminglei.slickpg
 package json
 
-import scala.slick.ast.Library.{SqlFunction, SqlOperator}
-import scala.slick.lifted.{ExtensionMethods, Column}
-import scala.slick.driver.{JdbcTypesComponent, PostgresDriver}
-import scala.slick.jdbc.JdbcType
+import slick.ast.TypedType
+import slick.ast.Library.{SqlFunction, SqlOperator}
+import slick.lifted.{ExtensionMethods}
+import slick.driver.{JdbcTypesComponent, PostgresDriver}
+import slick.jdbc.JdbcType
 
 trait PgJsonExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
-  import driver.Implicit._
+  import driver.api._
 
   class JsonLibrary(pgjson: String) {
     val Arrow  = new SqlOperator("->")
@@ -38,41 +39,44 @@ trait PgJsonExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
 //    val jsonToRecordSet = new SqlFunction(pgjson + "_to_recordset")  //not support, since "row" type not supported by slick/slick-pg yet
   }
 
-  class JsonColumnExtensionMethods[JSONType, P1](val c: Column[P1])(
+  class JsonColumnExtensionMethods[JSONType, P1](val c: Rep[P1])(
                 implicit tm: JdbcType[JSONType], tm1: JdbcType[List[String]]) extends ExtensionMethods[JSONType, P1] {
-    val jsonLib = new JsonLibrary(tm.sqlTypeName)
+
+    protected implicit def b1Type: TypedType[JSONType] = implicitly[TypedType[JSONType]]
+
+    val jsonLib = new JsonLibrary(tm.sqlTypeName(None))
     /** Note: json array's index starts with 0   */
-    def ~> [P2, R](index: Column[P2])(implicit om: o#arg[Int, P2]#to[JSONType, R]) = {
+    def ~> [P2, R](index: Rep[P2])(implicit om: o#arg[Int, P2]#to[JSONType, R]) = {
         om.column(jsonLib.Arrow, n, index.toNode)
       }
-    def ~>>[P2, R](index: Column[P2])(implicit om: o#arg[Int, P2]#to[String, R]) = {
+    def ~>>[P2, R](index: Rep[P2])(implicit om: o#arg[Int, P2]#to[String, R]) = {
         om.column(jsonLib.BiArrow, n, index.toNode)
       }
-    def +> [P2, R](key: Column[P2])(implicit om: o#arg[String, P2]#to[JSONType, R]) = {
+    def +> [P2, R](key: Rep[P2])(implicit om: o#arg[String, P2]#to[JSONType, R]) = {
         om.column(jsonLib.Arrow, n, key.toNode)
       }
-    def +>>[P2, R](key: Column[P2])(implicit om: o#arg[String, P2]#to[String, R]) = {
+    def +>>[P2, R](key: Rep[P2])(implicit om: o#arg[String, P2]#to[String, R]) = {
         om.column(jsonLib.BiArrow, n, key.toNode)
       }
-    def #> [P2, R](keyPath: Column[P2])(implicit om: o#arg[List[String], P2]#to[JSONType, R]) = {
+    def #> [P2, R](keyPath: Rep[P2])(implicit om: o#arg[List[String], P2]#to[JSONType, R]) = {
         om.column(jsonLib.PoundArrow, n, keyPath.toNode)
       }
-    def #>>[P2, R](keyPath: Column[P2])(implicit om: o#arg[List[String], P2]#to[String, R]) = {
+    def #>>[P2, R](keyPath: Rep[P2])(implicit om: o#arg[List[String], P2]#to[String, R]) = {
         om.column(jsonLib.PoundBiArrow, n, keyPath.toNode)
       }
-    def @>[P2,R](c2: Column[P2])(implicit om: o#arg[JSONType, P2]#to[Boolean, R]) = {
+    def @>[P2,R](c2: Rep[P2])(implicit om: o#arg[JSONType, P2]#to[Boolean, R]) = {
         om.column(jsonLib.Contains, n, c2.toNode)
       }
-    def <@:[P2,R](c2: Column[P2])(implicit om: o#arg[JSONType, P2]#to[Boolean, R]) = {
+    def <@:[P2,R](c2: Rep[P2])(implicit om: o#arg[JSONType, P2]#to[Boolean, R]) = {
         om.column(jsonLib.ContainsBy, c2.toNode, n)
       }
-    def ??[P2, R](c2: Column[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
+    def ??[P2, R](c2: Rep[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
         om.column(jsonLib.Exists, n, c2.toNode)
       }
-    def ?|[P2, R](c2: Column[P2])(implicit om: o#arg[List[String], P2]#to[Boolean, R]) = {
+    def ?|[P2, R](c2: Rep[P2])(implicit om: o#arg[List[String], P2]#to[Boolean, R]) = {
         om.column(jsonLib.ExistsAny, n, c2.toNode)
       }
-    def ?&[P2, R](c2: Column[P2])(implicit om: o#arg[List[String], P2]#to[Boolean, R]) = {
+    def ?&[P2, R](c2: Rep[P2])(implicit om: o#arg[List[String], P2]#to[Boolean, R]) = {
         om.column(jsonLib.ExistsAll, n, c2.toNode)
       }
 

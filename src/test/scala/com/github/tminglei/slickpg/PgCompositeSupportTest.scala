@@ -2,8 +2,8 @@ package com.github.tminglei.slickpg
 
 import org.junit._
 import org.junit.Assert._
-import scala.slick.driver.PostgresDriver
-import scala.slick.jdbc.{StaticQuery => Q, GetResult, PositionedResult}
+import slick.driver.PostgresDriver
+import slick.jdbc.{StaticQuery => Q, GetResult, PositionedResult}
 import scala.reflect.runtime.{universe => u}
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
@@ -192,7 +192,7 @@ class PgCompositeSupportTest {
   def createTables(): Unit = {
     db withSession { implicit session: Session =>
       // clear first
-      Try { (CompositeTests.ddl ++ CompositeTests1.ddl) drop }
+      Try { (CompositeTests.schema ++ CompositeTests1.schema) drop }
       Try { (Q[Int] + "drop type composite3").execute }
       Try { (Q[Int] + "drop type composite2").execute }
       Try { (Q[Int] + "drop type composite1").execute }
@@ -201,8 +201,8 @@ class PgCompositeSupportTest {
       Try { (Q[Int] + "create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)").execute }
       Try { (Q[Int] + "create type composite2 as (id int8, comp1 composite1, confirm boolean)").execute }
       Try { (Q[Int] + "create type composite3 as (txt text, id int4, code int4, bool boolean)").execute }
-      Try { (CompositeTests.ddl ++ CompositeTests1.ddl).createStatements.foreach(s => println(s"[composite] $s")) }
-      Try { (CompositeTests.ddl ++ CompositeTests1.ddl) create }
+      Try { (CompositeTests.schema ++ CompositeTests1.schema).createStatements.foreach(s => println(s"[composite] $s")) }
+      Try { (CompositeTests.schema ++ CompositeTests1.schema) create }
     }
   }
 }

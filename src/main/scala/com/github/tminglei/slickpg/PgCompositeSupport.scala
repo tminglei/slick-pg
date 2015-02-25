@@ -1,11 +1,11 @@
 package com.github.tminglei.slickpg
 
-import scala.slick.driver.PostgresDriver
+import slick.driver.PostgresDriver
 import scala.reflect.runtime.{universe => u, currentMirror => rm}
 import scala.reflect.ClassTag
 import composite.Struct
 
-import scala.slick.jdbc.PositionedResult
+import slick.jdbc.PositionedResult
 
 trait PgCompositeSupport extends utils.PgCommonJdbcTypes with array.PgArrayJdbcTypes { driver: PostgresDriver =>
   import PgCompositeSupportUtils._

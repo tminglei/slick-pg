@@ -1,27 +1,28 @@
 package com.github.tminglei.slickpg
 
-import scala.slick.jdbc.JdbcType
-import scala.slick.driver.PostgresDriver
-import scala.slick.lifted.Column
+import slick.jdbc.JdbcType
+import slick.driver.PostgresDriver
+import slick.profile.RelationalProfile.ColumnOption.Length
 import scala.reflect.ClassTag
 import java.sql.{PreparedStatement, ResultSet}
 
 trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes { driver: PostgresDriver =>
+  import driver.api._
   import PgEnumSupportUtils.sqlName
-  
+
   def createEnumColumnExtensionMethodsBuilder[T <: Enumeration](enumObject: T)(
-      implicit tm: JdbcType[enumObject.Value], tm1: JdbcType[List[enumObject.Value]]) = 
-    (c: Column[enumObject.Value]) => {
+      implicit tm: JdbcType[enumObject.Value], tm1: JdbcType[List[enumObject.Value]]) =
+    (c: Rep[enumObject.Value]) => {
       new EnumColumnExtensionMethods[enumObject.Value, enumObject.Value](c)(tm, tm1)
     }
   def createEnumOptionColumnExtensionMethodsBuilder[T <: Enumeration](enumObject: T)(
-      implicit tm: JdbcType[enumObject.Value], tm1: JdbcType[List[enumObject.Value]]) = 
-    (c: Column[Option[enumObject.Value]]) => {
+      implicit tm: JdbcType[enumObject.Value], tm1: JdbcType[List[enumObject.Value]]) =
+    (c: Rep[Option[enumObject.Value]]) => {
       new EnumColumnExtensionMethods[enumObject.Value, Option[enumObject.Value]](c)(tm, tm1)
     }
 
   //-----------------------------------------------------------------------------------
-  
+
   def createEnumListJdbcType[T <: Enumeration](sqlEnumTypeName: String, enumObject: T, quoteName: Boolean = false)(
              implicit tag: ClassTag[List[enumObject.Value]]): JdbcType[List[enumObject.Value]] = {
 
@@ -39,7 +40,7 @@ trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes {
 
       override def sqlType: Int = java.sql.Types.OTHER
 
-      override def sqlTypeName: String = sqlName(sqlEnumTypeName, quoteName)
+      override def sqlTypeName(size: Option[Length]): String = sqlName(sqlEnumTypeName, quoteName)
 
       override def getValue(r: ResultSet, idx: Int): enumObject.Value = {
         val value = r.getString(idx)
@@ -62,7 +63,7 @@ trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes {
 }
 
 object PgEnumSupportUtils {
-  import scala.slick.jdbc.{StaticQuery => Q, Invoker}
+  import slick.jdbc.{StaticQuery => Q, Invoker}
 
   def sqlName(sqlTypeName: String, quoteName: Boolean) = if (quoteName)
     '"' + sqlTypeName + '"' else sqlTypeName.toLowerCase
@@ -72,7 +73,7 @@ object PgEnumSupportUtils {
     val enumValuesString = enumObject.values.toStream.map(e => s"'$e'").mkString(",")
     Q[Int] + s"create type ${sqlName(sqlTypeName, quoteName)} as enum ($enumValuesString)"
   }
-  
+
   def buildDropSql(sqlTypeName: String, quoteName: Boolean = false): Invoker[Int] =
     Q[Int] + s"drop type ${sqlName(sqlTypeName, quoteName)}"
 }

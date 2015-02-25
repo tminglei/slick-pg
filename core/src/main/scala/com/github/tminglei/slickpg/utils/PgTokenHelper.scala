@@ -4,7 +4,7 @@ package utils
 import scala.util.parsing.combinator.RegexParsers
 import scala.util.parsing.input.CharSequenceReader
 import scala.collection.mutable
-import scala.slick.SlickException
+import slick.SlickException
 
 object PgTokenHelper {
 

@@ -1,10 +1,10 @@
 package com.github.tminglei.slickpg
 
-import scala.slick.driver.PostgresDriver
-import scala.slick.lifted.Column
-import scala.slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
+import slick.driver.PostgresDriver
+import slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
 
 trait PgPlayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+  import driver.api._
   import play.api.libs.json._
 
   val pgjson = "json"
@@ -21,11 +21,11 @@ trait PgPlayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
         hasLiteralForm = false
       )
 
-    implicit def playJsonColumnExtensionMethods(c: Column[JsValue])(
+    implicit def playJsonColumnExtensionMethods(c: Rep[JsValue])(
       implicit tm: JdbcType[JsValue], tm1: JdbcType[List[String]]) = {
         new JsonColumnExtensionMethods[JsValue, JsValue](c)
       }
-    implicit def playJsonOptionColumnExtensionMethods(c: Column[Option[JsValue]])(
+    implicit def playJsonOptionColumnExtensionMethods(c: Rep[Option[JsValue]])(
       implicit tm: JdbcType[JsValue], tm1: JdbcType[List[String]]) = {
         new JsonColumnExtensionMethods[JsValue, Option[JsValue]](c)
       }

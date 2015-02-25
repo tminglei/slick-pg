@@ -1,10 +1,10 @@
 package com.github.tminglei.slickpg
 
-import scala.slick.driver.PostgresDriver
-import scala.slick.lifted.Column
-import scala.slick.jdbc.{PositionedResult, SetParameter, PositionedParameters, JdbcType}
+import slick.driver.PostgresDriver
+import slick.jdbc.{PositionedResult, SetParameter, PositionedParameters, JdbcType}
 
 trait PgJson4sSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+  import driver.api._
   import org.json4s._
 
   type DOCType
@@ -24,11 +24,11 @@ trait PgJson4sSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes
         hasLiteralForm = false
       )
 
-    implicit def json4sJsonColumnExtensionMethods(c: Column[JValue])(
+    implicit def json4sJsonColumnExtensionMethods(c: Rep[JValue])(
       implicit tm: JdbcType[JValue], tm1: JdbcType[List[String]]) = {
         new JsonColumnExtensionMethods[JValue, JValue](c)
       }
-    implicit def json4sJsonOptionColumnExtensionMethods(c: Column[Option[JValue]])(
+    implicit def json4sJsonOptionColumnExtensionMethods(c: Rep[Option[JValue]])(
       implicit tm: JdbcType[JValue], tm1: JdbcType[List[String]]) = {
         new JsonColumnExtensionMethods[JValue, Option[JValue]](c)
       }

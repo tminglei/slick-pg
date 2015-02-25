@@ -3,7 +3,7 @@ package com.github.tminglei.slickpg
 import org.junit.Assert._
 import org.junit._
 
-import scala.slick.jdbc.{StaticQuery => Q, GetResult}
+import slick.jdbc.{StaticQuery => Q, GetResult}
 import scala.util.Try
 
 class PgJsonSupportTest {
@@ -30,8 +30,8 @@ class PgJsonSupportTest {
   @Test
   def testJsonFunctions(): Unit = {
     db withSession { implicit session: Session =>
-      Try { JsonTests.ddl drop }
-      Try { JsonTests.ddl create }
+      Try { JsonTests.schema drop }
+      Try { JsonTests.schema create }
 
       JsonTests forceInsertAll (testRec1, testRec2, testRec3)
 

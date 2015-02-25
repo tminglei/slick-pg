@@ -57,7 +57,7 @@ object SlickPgBuild extends Build {
       </developers>
     )
   )
-  
+
   def mainDependencies(scalaVersion: String) = {
     val extractedLibs = CrossVersion.partialVersion(scalaVersion) match {
       case Some((2, scalaMajor)) if scalaMajor >= 11 =>
@@ -67,7 +67,7 @@ object SlickPgBuild extends Build {
     }
     Seq (
       "org.scala-lang" % "scala-reflect" % scalaVersion % "provided",
-      "com.typesafe.slick" %% "slick" % "2.1.0",
+      "com.typesafe.slick" %% "slick" % "3.0.0-RC1",
       "org.postgresql" % "postgresql" % "9.4-1200-jdbc41",
       "junit" % "junit" % "4.11" % "test",
       "com.novocode" % "junit-interface" % "0.10" % "test"

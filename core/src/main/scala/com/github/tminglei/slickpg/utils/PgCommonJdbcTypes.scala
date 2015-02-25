@@ -1,19 +1,22 @@
 package com.github.tminglei.slickpg
 package utils
 
-import scala.slick.driver.{PostgresDriver, JdbcTypesComponent}
+import slick.driver.{PostgresDriver, JdbcTypesComponent}
+import slick.profile.RelationalProfile.ColumnOption.Length
 import scala.reflect.ClassTag
 import java.sql.{PreparedStatement, ResultSet}
 
 trait PgCommonJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
-  class GenericJdbcType[T](override val sqlTypeName: String,
+  class GenericJdbcType[T](val sqlTypeName: String,
                            fnFromString: (String => T),
                            fnToString: (T => String) = ((r: T) => r.toString),
                            val sqlType: Int = java.sql.Types.OTHER,
                            zero: T = null.asInstanceOf[T],
                            override val hasLiteralForm: Boolean = false)(
                   implicit override val classTag: ClassTag[T]) extends DriverJdbcType[T] {
+
+    override def sqlTypeName(size: Option[Length]): String = sqlTypeName
 
     override def getValue(r: ResultSet, idx: Int): T = {
       val value = r.getString(idx)
