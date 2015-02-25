@@ -57,7 +57,7 @@ object SlickPgBuild extends Build {
       </developers>
     )
   )
-  
+
   def mainDependencies(scalaVersion: String) = {
     val extractedLibs = CrossVersion.partialVersion(scalaVersion) match {
       case Some((2, scalaMajor)) if scalaMajor >= 11 =>
@@ -90,9 +90,9 @@ object SlickPgBuild extends Build {
         "joda-time" % "joda-time" % "2.4" % "provided",
         "org.joda" % "joda-convert" % "1.7" % "provided",
         "org.threeten" % "threetenbp" % "1.0" % "provided",
-        "org.json4s" %% "json4s-ast" % "3.2.10" % "provided",
-        "org.json4s" %% "json4s-core" % "3.2.10" % "provided",
-        "org.json4s" %% "json4s-native" % "3.2.10" % "test",
+        "org.json4s" %% "json4s-ast" % "3.2.11" % "provided",
+        "org.json4s" %% "json4s-core" % "3.2.11" % "provided",
+        "org.json4s" %% "json4s-native" % "3.2.11" % "test",
         "com.typesafe.play" %% "play-json" % "2.3.0" % "provided",
         "io.spray" %%  "spray-json" % "1.3.1" % "provided",
         "io.argonaut" %% "argonaut" % "6.0.4" % "provided",
