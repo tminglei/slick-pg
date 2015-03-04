@@ -137,7 +137,9 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 </dependency>
 ```
 
-**ps: `slick-pg` now declares other 3rd party dependencies as optional, except `slick` and postgres JDBC driver, so you need ensure other related dependencies in your projects if you want use them.**
+> **And don't forget add `scala-reflect` _corresponding to your scala version_ to your project.**
+
+> _For other related 3rd party dependencies, pls manually add to your project when you need them._
 
 
 
