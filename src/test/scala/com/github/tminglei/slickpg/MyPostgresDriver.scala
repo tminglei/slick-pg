@@ -9,25 +9,18 @@ trait MyPostgresDriver extends ExPostgresDriver
                           with PgRangeSupport
                           with PgHStoreSupport
                           with PgSearchSupport {
+
   override val pgjson = "jsonb"
   ///
-  override lazy val Implicit = new ImplicitsPlus {}
-  override val simple = new SimpleQLPlus {}
-
-  //////
-  trait ImplicitsPlus extends Implicits
-                        with ArrayImplicits
-                        with DateTimeImplicits
-                        with SimpleJsonImplicits
-                        with NetImplicits
-                        with LTreeImplicits
-                        with RangeImplicits
-                        with HStoreImplicits
-                        with SearchImplicits
-
-  trait SimpleQLPlus extends SimpleQL
-                        with ImplicitsPlus
-                        with SearchAssistants
+  override val api = new API with ArrayImplicits
+                             with DateTimeImplicits
+                             with SimpleJsonImplicits
+                             with NetImplicits
+                             with LTreeImplicits
+                             with RangeImplicits
+                             with HStoreImplicits
+                             with SearchImplicits
+                             with SearchAssistants {}
 }
 
 object MyPostgresDriver extends MyPostgresDriver
@@ -48,13 +41,13 @@ object MyPlainPostgresDriver extends PostgresDriver
                               with PgHStoreSupport
                               with PgSearchSupport {
   ///
-  val plainImplicits = new Implicits with SimpleArrayPlainImplicits
-                                     with SimpleJsonPlainImplicits
-                                     with SimpleNetPlainImplicits
-                                     with SimpleLTreePlainImplicits
-                                     with SimpleRangePlainImplicits
-                                     with SimpleHStorePlainImplicits
-                                     with SimpleSearchPlainImplicits {
+  val plainAPI = new API with SimpleArrayPlainImplicits
+                         with SimpleJsonPlainImplicits
+                         with SimpleNetPlainImplicits
+                         with SimpleLTreePlainImplicits
+                         with SimpleRangePlainImplicits
+                         with SimpleHStorePlainImplicits
+                         with SimpleSearchPlainImplicits {
     override protected def extNextArray(tpe: u.Type, r: PositionedResult): (Boolean, Option[Seq[_]]) =
       tpe match {
         case tpe if tpe.typeConstructor =:= u.typeOf[LTree].typeConstructor =>

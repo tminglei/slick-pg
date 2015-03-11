@@ -6,10 +6,10 @@ import slick.driver.{PostgresDriver, JdbcDriver}
 
 trait ExPostgresDriver extends JdbcDriver with PostgresDriver { driver =>
 
-  override val simple = new SimpleQL {}
+  override val api = new API {}
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
 
-  trait SimpleQL extends super.SimpleQL {
+  trait API extends super.API {
     type InheritingTable = driver.InheritingTable
   }
 

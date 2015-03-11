@@ -3,8 +3,9 @@ package com.github.tminglei.slickpg
 import org.junit._
 import org.junit.Assert._
 import spray.json._
-import slick.jdbc.{StaticQuery => Q, GetResult}
-import scala.util.Try
+import slick.jdbc.GetResult
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class PgSprayJsonSupportTest {
   import slick.driver.PostgresDriver
@@ -14,16 +15,15 @@ class PgSprayJsonSupportTest {
                             with array.PgArrayJdbcTypes {
     override val pgjson = "jsonb"
 
-    override lazy val Implicit = new Implicits with JsonImplicits
-    override val simple = new Implicits with SimpleQL with JsonImplicits {
+    override val api = new API with JsonImplicits {
       implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
     }
 
-    val plainImplicits = new Implicits with SprayJsonPlainImplicits
+    val plainAPI = new API with SprayJsonPlainImplicits
   }
 
   ///
-  import MyPostgresDriver.simple._
+  import MyPostgresDriver.api._
 
   val db = Database.forURL(url = dbUrl, driver = "org.postgresql.Driver")
 
@@ -45,114 +45,109 @@ class PgSprayJsonSupportTest {
 
   @Test
   def testJsonFunctions(): Unit = {
-    db withSession { implicit session: Session =>
-      Try { JsonTests.schema drop }
-      Try { JsonTests.schema create }
+    val json1 = """ {"a":"v1","b":2} """.parseJson
+    val json2 = """ {"a":"v5","b":3} """.parseJson
 
-      JsonTests forceInsertAll (testRec1, testRec2, testRec3)
 
-      val json1 = """ {"a":"v1","b":2} """.parseJson
-      val json2 = """ {"a":"v5","b":3} """.parseJson
-
-      val q0 = JsonTests.filter(_.id === testRec2.id.bind).map(_.json)
-      println(s"[spray-json] sql0 = ${q0.selectStatement}")
-      assertEquals(JsArray(json1,json2), q0.first)
-
-// pretty(render(JsNumber(101))) will get "101", but parse("101") will fail, since json string must start with '{' or '['
-//      println(s"'+>' sql = ${q1.selectStatement}")
-//      assertEquals(JsNumber(101), q1.first)
-
-      val q11 = JsonTests.filter(_.json.+>>("a") === "101".bind).map(_.json.+>>("c"))
-      println(s"[spray-json] '+>>' sql = ${q11.selectStatement}")
-      assertEquals("[3,4,5,9]", q11.first.replace(" ", ""))
-
-      val q12 = JsonTests.filter(_.json.+>>("a") === "101".bind).map(_.json.+>("c"))
-      println(s"[spray-json] '+>' sql = ${q12.selectStatement}")
-      assertEquals(JsArray(JsNumber(3), JsNumber(4), JsNumber(5), JsNumber(9)), q12.first)
-
-      // json array's index starts with 0
-      val q2 = JsonTests.filter(_.id === testRec2.id).map(_.json.~>(1))
-      println(s"[spray-json] '~>' sql = ${q2.selectStatement}")
-      assertEquals(json2, q2.first)
-
-      val q21 = JsonTests.filter(_.id === testRec2.id).map(_.json.~>>(1))
-      println(s"[spray-json] '~>>' sql = ${q21.selectStatement}")
-      assertEquals("""{"a":"v5","b":3}""", q21.first.replace(" ", ""))
-
-      val q3 = JsonTests.filter(_.id === testRec2.id).map(_.json.arrayLength)
-      println(s"[spray-json] 'arrayLength' sql = ${q3.selectStatement}")
-      assertEquals(2, q3.first)
-
-      val q4 = JsonTests.filter(_.id === testRec2.id).map(_.json.arrayElements)
-      println(s"[spray-json] 'arrayElements' sql = ${q4.selectStatement}")
-      assertEquals(List(json1, json2), q4.list)
-
-      val q41 = JsonTests.filter(_.id === testRec2.id).map(_.json.arrayElements)
-      println(s"[spray-json] 'arrayElements' sql = ${q41.selectStatement}")
-      assertEquals(json1, q41.first)
-
-      val q42 = JsonTests.filter(_.id === testRec2.id).map(_.json.arrayElementsText)
-      println(s"[spray-json] 'arrayElementsText' sql = ${q42.selectStatement}")
-      assertEquals(json1.toString.replace(" ", ""), q42.first.replace(" ", ""))
-
-      val q5 = JsonTests.filter(_.id === testRec1.id).map(_.json.objectKeys)
-      println(s"[spray-json] 'objectKeys' sql = ${q5.selectStatement}")
-      assertEquals(List("a","b","c"), q5.list)
-
-      val q51 = JsonTests.filter(_.id === testRec1.id).map(_.json.objectKeys)
-      println(s"[spray-json] 'objectKeys' sql = ${q51.selectStatement}")
-      assertEquals("a", q51.first)
-
-      val q6 = JsonTests.filter(_.json @> """ {"b":"aaa"} """.parseJson).map(_.id)
-      println(s"[spray-json] '@>' sql = ${q6.selectStatement}")
-      assertEquals(33L, q6.first)
-
-      val q7 = JsonTests.filter(""" {"b":"aaa"} """.parseJson <@: _.json).map(_.id)
-      println(s"[spray-json] '<@' sql = ${q7.selectStatement}")
-      assertEquals(33L, q7.first)
-
-      val q8 = JsonTests.filter(_.id === testRec1.id).map(_.json.+>("a").jsonType)
-      println(s"[spray-json] 'typeof' sql = ${q8.selectStatement}")
-      assertEquals("number", q8.first.toLowerCase)
-
-      val q9 = JsonTests.filter(_.json ?? "b".bind).map(r => r)
-      println(s"[spray-json] '??' sql = ${q9.selectStatement}")
-      assertEquals(List(testRec1, testRec3), q9.list)
-
-      val q91 = JsonTests.filter(_.json ?| List("a", "c").bind).map(r => r)
-      println(s"[spray-json] '?|' sql = ${q91.selectStatement}")
-      assertEquals(List(testRec1, testRec3), q91.list)
-
-      val q92 = JsonTests.filter(_.json ?& List("a", "c").bind).map(r => r)
-      println(s"[spray-json] '?&' sql = ${q92.selectStatement}")
-      assertEquals(List(testRec1), q92.list)
-    }
+    db.run(DBIO.seq(
+      JsonTests.schema create,
+      ///
+      JsonTests forceInsertAll List(testRec1, testRec2, testRec3),
+      // 0. simple test
+      JsonTests.filter(_.id === testRec2.id.bind).map(_.json).result.head.map(
+        assertEquals(JsArray(json1,json2), _)
+      ),
+      // 1. '->>'/'->'/'#>'/'#>>' (note: json array's index starts with 0)
+      JsonTests.filter(_.json.+>>("a") === "101").map(_.json.+>>("c")).result.head.map(
+        r => assertEquals("[3,4,5,9]", r.replace(" ", ""))
+      ),
+      JsonTests.filter(_.json.+>>("a") === "101".bind).map(_.json.+>("c")).result.head.map(
+        assertEquals(JsArray(JsNumber(3), JsNumber(4), JsNumber(5), JsNumber(9)), _)
+      ),
+      JsonTests.filter(_.id === testRec2.id).map(_.json.~>(1)).result.head.map(
+        assertEquals(json2, _)
+      ),
+      JsonTests.filter(_.id === testRec2.id).map(_.json.~>>(1)).result.head.map(
+        r => assertEquals("""{"a":"v5","b":3}""", r.replace(" ", ""))
+      ),
+      JsonTests.filter(_.id === testRec1.id).map(_.json.#>(List("c"))).result.head.map(
+        assertEquals("[3,4,5,9]".parseJson, _)
+      ),
+      JsonTests.filter(_.json.#>>(List("a")) === "101").result.head.map(
+        assertEquals(testRec1, _)
+      ),
+      // 2. '_array_length'
+      JsonTests.filter(_.id === testRec2.id).map(_.json.arrayLength).result.head.map(
+        assertEquals(2, _)
+      ),
+      // 3. '_array_elements'/'_array_elements_text'
+      JsonTests.filter(_.id === testRec2.id).map(_.json.arrayElements).to[List].result.map(
+        assertEquals(List(json1, json2), _)
+      ),
+      JsonTests.filter(_.id === testRec2.id).map(_.json.arrayElements).result.head.map(
+        assertEquals(json1, _)
+      ),
+      JsonTests.filter(_.id === testRec2.id).map(_.json.arrayElementsText).result.head.map(
+        r => assertEquals(json1.toString.replace(" ", ""), r.replace(" ", ""))
+      ),
+      // 4. '_object_keys'
+      JsonTests.filter(_.id === testRec1.id).map(_.json.objectKeys).to[List].result.map(
+        assertEquals(List("a","b","c"), _)
+      ),
+      JsonTests.filter(_.id === testRec1.id).map(_.json.objectKeys).result.head.map(
+        assertEquals("a", _)
+      ),
+      // 5. '@>'/'<@'
+      JsonTests.filter(_.json @> """ {"b":"aaa"} """.parseJson).result.head.map(
+        assertEquals(33L, _)
+      ),
+      JsonTests.filter(_.json @> """ [{"a":"v5"}] """.parseJson).result.head.map(
+        assertEquals(35L, _)
+      ),
+      JsonTests.filter(""" {"b":"aaa"} """.parseJson <@: _.json).result.head.map(
+        assertEquals(33L, _)
+      ),
+      // 6. '_typeof'
+      JsonTests.filter(_.id === testRec1.id).map(_.json.+>("a").jsonType).result.head.map(
+        r => assertEquals("number", r.toLowerCase)
+      ),
+      // 7. '?'/'?|'/'?&'
+      JsonTests.filter(_.json ?? "b".bind).to[List].result.map(
+        assertEquals(List(testRec1, testRec3), _)
+      ),
+      JsonTests.filter(_.json ?| List("a", "c").bind).to[List].result.map(
+        assertEquals(List(testRec1, testRec3), _)
+      ),
+      JsonTests.filter(_.json ?& List("a", "c").bind).to[List].result.map(
+        assertEquals(List(testRec1), _)
+      ),
+      ///
+      JsonTests.schema drop
+    ).transactionally)
   }
 
   //------------------------------------------------------------------------------
 
   @Before
   def createTables(): Unit = {
-    import MyPostgresDriver.plainImplicits._
+    import MyPostgresDriver.plainAPI._
 
     implicit val getJsonBeanResult = GetResult(r => JsonBean(r.nextLong(), r.nextJson()))
 
-    db withSession { implicit session: Session =>
-      Try { Q.updateNA("drop table if exists JsonTest3 cascade").execute }
-      Try {
-        Q.updateNA("create table JsonTest3("+
-          "id int8 not null primary key, "+
-          "json json not null)"
-        ).execute
-      }
+    val b = JsonBean(37L, """ { "a":101, "b":"aaa", "c":[3,4,5,9] } """.parseJson)
 
-      val jsonBean = JsonBean(37L, """ { "a":101, "b":"aaa", "c":[3,4,5,9] } """.parseJson)
-
-      (Q.u + "insert into JsonTest3 values(" +? jsonBean.id + ", " +? jsonBean.json + ")").execute
-
-      val found = (Q[JsonBean] + "select * from JsonTest3 where id = " +? jsonBean.id).first
-
-      assertEquals(jsonBean, found)
-    }
+    db.run(DBIO.seq(
+      sqlu"""create table JsonTest3(
+            |  id int8 not null primary key,
+            |  json json not null)
+          """,
+      ///
+      sqlu"insert into JsonTest3 values(${b.id}, ${b.json})",
+      sql"select * from JsonTest3 where id = ${b.id}".as[JsonBean].head.map(
+        assertEquals(b, _)
+      ),
+      ///
+      sqlu"drop table if exists JsonTest3 cascade"
+    ).transactionally)
   }
 }

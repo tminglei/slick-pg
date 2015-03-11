@@ -2,10 +2,11 @@ package com.github.tminglei.slickpg
 
 import org.junit._
 import org.junit.Assert._
-import scala.util.Try
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class PgInheritsTest {
-  import ExPostgresDriver.simple._
+  import ExPostgresDriver.api._
 
   val db = Database.forURL(url = dbUrl, driver = "org.postgresql.Driver")
 
@@ -36,59 +37,38 @@ class PgInheritsTest {
 
   @Test
   def testInherits {
-    db withSession { implicit session: Session =>
+    db.run(DBIO.seq(
+      (tabs1.schema ++ tabs2.schema) create,
+      ///
       tabs1 ++= Seq(
         Tab1("foo", "bar",  "bat", 1),
         Tab1("foo", "bar",  "bat", 2),
         Tab1("foo", "quux", "bat", 3),
         Tab1("baz", "quux", "bat", 4)
-      )
+      ),
       tabs2 ++= Seq(
         Tab2("plus", "bar",  "bat", 5, 101),
         Tab2("plus", "quux", "bat", 6, 102)
-      )
-
+      ),
       ///
-      val expected = Seq(
-        Tab1("foo", "bar",  "bat", 1),
-        Tab1("foo", "bar",  "bat", 2),
-        Tab1("foo", "quux", "bat", 3),
-        Tab1("baz", "quux", "bat", 4),
-        Tab1("plus", "bar",  "bat", 5),
-        Tab1("plus", "quux", "bat", 6)
-      )
-      val q = tabs1.sortBy(_.col4)
-      println(s"q = ${q.selectStatement}")
-      assertEquals(expected, q.list)
-
+      tabs1.sortBy(_.col4).to[List].result.map(
+        r => assertEquals(Seq(
+          Tab1("foo", "bar",  "bat", 1),
+          Tab1("foo", "bar",  "bat", 2),
+          Tab1("foo", "quux", "bat", 3),
+          Tab1("baz", "quux", "bat", 4),
+          Tab1("plus", "bar",  "bat", 5),
+          Tab1("plus", "quux", "bat", 6)
+        ), r)
+      ),
+      tabs2.sortBy(_.col4).to[List].result.map(
+        r => assertEquals(Seq(
+          Tab2("plus", "bar",  "bat", 5, 101),
+          Tab2("plus", "quux", "bat", 6, 102)
+        ), r)
+      ),
       ///
-      val expected1 = Seq(
-        Tab2("plus", "bar",  "bat", 5, 101),
-        Tab2("plus", "quux", "bat", 6, 102)
-      )
-      val q1 = tabs2.sortBy(_.col4)
-      println(s"q1 = ${q1.selectStatement}")
-      assertEquals(expected1, q1.list)
-
-      //
-      tabs2.filter(_.col4 === 5.bind).mutate { m =>
-        m.row = m.row.copy(col3 = "bat1")
-      }
-      val q2 = tabs2.filter(_.col4 === 5.bind)
-      val expect2 = Tab2("plus", "bar",  "bat1", 5, 101)
-      assertEquals(expect2, q2.first)
-    }
-  }
-
-  //////////////////////////////////////////////////////////////////////
-
-  @Before
-  def createTables(): Unit = {
-    db withSession { implicit session: Session =>
-      Try { (tabs1.schema ++ tabs2.schema).dropStatements.foreach(s => println(s"[inherits] $s")) }
-      Try { (tabs1.schema ++ tabs2.schema).drop }
-      Try { (tabs1.schema ++ tabs2.schema).createStatements.foreach(s => println(s"[inherits] $s")) }
-      Try { (tabs1.schema ++ tabs2.schema).create }
-    }
+      (tabs1.schema ++ tabs2.schema) drop
+    ).transactionally)
   }
 }

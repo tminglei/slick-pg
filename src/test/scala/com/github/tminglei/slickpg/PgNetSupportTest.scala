@@ -3,11 +3,12 @@ package com.github.tminglei.slickpg
 import org.junit._
 import org.junit.Assert._
 
-import slick.jdbc.{StaticQuery => Q, GetResult}
-import scala.util.Try
+import slick.jdbc.GetResult
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class PgNetSupportTest {
-  import com.github.tminglei.slickpg.MyPostgresDriver.simple._
+  import MyPostgresDriver.api._
 
   val db = Database.forURL(url = dbUrl, driver = "org.postgresql.Driver")
 
@@ -43,145 +44,122 @@ class PgNetSupportTest {
 
   @Test
   def testNetFunctions(): Unit = {
-    db withSession { implicit session: Session =>
-      Try { NetTests.schema drop }
-      Try { NetTests.schema create }
-
-      NetTests forceInsertAll (testRec1, testRec2, testRec3)
-
-      val q0 = NetTests.map(r => r)
-      assertEquals(List(testRec1, testRec2, testRec3), q0.list)
-
+    db.run(DBIO.seq(
+      NetTests.schema create,
+      ///
+      NetTests forceInsertAll List(testRec1, testRec2, testRec3),
+      NetTests.to[List].result.map(
+        assertEquals(List(testRec1, testRec2, testRec3), _)
+      ),
       //-- test inet extension methods
-      val q1 = NetTests.filter(_.id === 35L.bind).map(_.inet << InetString("192.168.1.5/20"))
-      println(s"[inet] '<<' sql = ${q1.selectStatement}")
-      assertEquals(true, q1.first)
-
-      val q2 = NetTests.filter(_.inet <<= InetString("192.168.1.5/24")).map(r => r)
-      println(s"[inet] '<<=' sql = ${q2.selectStatement}")
-      assertEquals(List(testRec2), q2.list)
-
-      val q3 = NetTests.filter(_.inet >> InetString("10.1.0.1/24")).map(r => r)
-      println(s"[inet] '>>' sql = ${q3.selectStatement}")
-      assertEquals(List(testRec1), q3.list)
-
-      val q4 = NetTests.filter(_.inet >>= InetString("10.1.0.1/16")).map(r => r)
-      println(s"[inet] '>>=' sql = ${q4.selectStatement}")
-      assertEquals(List(testRec1), q4.list)
-
-      // start support from postgres 9.4
-//      val q5 = NetTests.filter(_.inet &&& InetString("192.168.22.5/24")).map(r => r)
-//      println(s"[inet] &&' sql = ${q5.selectStatement}")
-//      assertEquals(List(testRec2), q5.list)
-
-      val q6 = NetTests.filter(_.id === 33L).map(~ _.inet)
-      println(s"[inet] '~' sql = ${q6.selectStatement}")
-      assertEquals(InetString("245.254.255.255/16"), q6.first)
-
-      val q7 = NetTests.filter(_.id === 33L.bind).map(_.inet & InetString("0.0.0.255"))
-      println(s"[inet] '&' sql = ${q7.selectStatement}")
-      assertEquals(InetString("0.0.0.0"), q7.first)
-
-      val q8 = NetTests.filter(_.id === 35L).map(_.inet | InetString("192.168.23.20/30"))
-      println(s"[inet] '|' sql = ${q8.selectStatement}")
-      assertEquals(InetString("192.168.23.21/30"), q8.first)
-
-      val q9 = NetTests.filter(_.id === 35L).map(_.inet + 35)
-      println(s"[inet] '+' sql = ${q9.selectStatement}")
-      assertEquals(InetString("192.168.1.40/24"), q9.first)
-
-      val q10 = NetTests.filter(_.id === 37L).map(_.inet - 101)
-      println(s"[inet] '-' sql = ${q10.selectStatement}")
-      assertEquals(InetString("2001:4f8:3:ba:2e0:81ff:fe22:d18c/127"), q10.first)
-
-      val q11 = NetTests.filter(_.id === 37L).map(_.inet -- InetString("2001:4f8:3:ba:2e0:81ff:fe22:d18c/32"))
-      println(s"[inet] '--' sql = ${q11.selectStatement}")
-      assertEquals(101, q11.first)
-
-      val q12 = NetTests.filter(_.id === 33L).map(_.inet abbrev)
-      println(s"[inet] 'abbrev' sql = ${q12.selectStatement}")
-      assertEquals("10.1.0.0/16", q12.first)
-
-      val q13 = NetTests.filter(_.id === 35L).map(_.inet broadcast)
-      println(s"[inet] 'broadcast' sql = ${q13.selectStatement}")
-      assertEquals(InetString("192.168.1.255/24"), q13.first)
-
-      val q14 = NetTests.filter(_.id === 37L).map(_.inet family)
-      println(s"[inet] 'family' sql = ${q14.selectStatement}")
-      assertEquals(6, q14.first)
-
-      val q15 = NetTests.filter(_.id === 35L).map(_.inet host)
-      println(s"[inet] 'host' sql = ${q15.selectStatement}")
-      assertEquals("192.168.1.5", q15.first)
-
-      val q16 = NetTests.filter(_.id === 35L).map(_.inet hostmask)
-      println(s"[inet] 'hostmask' sql = ${q16.selectStatement}")
-      assertEquals(InetString("0.0.0.255"), q16.first)
-
-      val q17 = NetTests.filter(_.id === 37L).map(_.inet masklen)
-      println(s"[inet] 'masklen' sql = ${q17.selectStatement}")
-      assertEquals(127, q17.first)
-
-      val q18 = NetTests.filter(_.id === 35L).map(_.inet netmask)
-      println(s"[inet] 'netmask' sql = ${q18.selectStatement}")
-      assertEquals(InetString("255.255.255.0"), q18.first)
-
-      val q19 = NetTests.filter(_.id === 35L).map(_.inet network)
-      println(s"[inet] 'network' sql = ${q19.selectStatement}")
-      assertEquals(InetString("192.168.1.0/24"), q19.first)
-
-      val q21 = NetTests.filter(_.id === 37L).map(_.inet text)
-      println(s"[inet] 'text' sql = ${q21.selectStatement}")
-      assertEquals("2001:4f8:3:ba:2e0:81ff:fe22:d1f1/127", q21.first)
-
-      val q20 = NetTests.filter(_.id === 35L).map(_.inet.setMasklen(16))
-      println(s"[inet] 'set_masklen' sql = ${q20.selectStatement}")
-      assertEquals(InetString("192.168.1.5/16"), q20.first)
-
+      // 1.1. '<<'/'<<='/'>>'/'>>='
+      NetTests.filter(_.id === 35L.bind).map(_.inet << InetString("192.168.1.5/20")).result.head.map(
+        assertEquals(true, _)
+      ),
+      NetTests.filter(_.inet <<= InetString("192.168.1.5/24")).to[List].result.map(
+        assertEquals(List(testRec2), _)
+      ),
+      NetTests.filter(_.inet >> InetString("10.1.0.1/24")).to[List].result.map(
+        assertEquals(List(testRec1), _)
+      ),
+      NetTests.filter(_.inet >>= InetString("10.1.0.1/16")).to[List].result.map(
+        assertEquals(List(testRec1), _)
+      ),
+      // 1.2. '&&'/'~'/'&'/'|'/'+'/'-'
+      NetTests.filter(_.inet &&& InetString("192.168.22.5/24")).to[List].result.map(
+        assertEquals(List(testRec2), _)
+      ),
+      NetTests.filter(_.id === 33L).map(~ _.inet).result.head.map(
+        assertEquals(InetString("245.254.255.255/16"), _)
+      ),
+      NetTests.filter(_.id === 33L.bind).map(_.inet & InetString("0.0.0.255")).result.head.map(
+        assertEquals(InetString("0.0.0.0"), _)
+      ),
+      NetTests.filter(_.id === 35L).map(_.inet | InetString("192.168.23.20/30")).result.head.map(
+        assertEquals(InetString("192.168.23.21/30"), _)
+      ),
+      NetTests.filter(_.id === 35L).map(_.inet + 35).result.head.map(
+        assertEquals(InetString("192.168.1.40/24"), _)
+      ),
+      NetTests.filter(_.id === 37L).map(_.inet - 101).result.head.map(
+        assertEquals(InetString("2001:4f8:3:ba:2e0:81ff:fe22:d18c/127"), _)
+      ),
+      NetTests.filter(_.id === 37L).map(_.inet -- InetString("2001:4f8:3:ba:2e0:81ff:fe22:d18c/32")).result.head.map(
+        assertEquals(101, _)
+      ),
+      // 1.3. 'abbrev'/'broadcast'/'family'/'host'
+      NetTests.filter(_.id === 33L).map(_.inet abbrev).result.head.map(
+        assertEquals("10.1.0.0/16", _)
+      ),
+      NetTests.filter(_.id === 35L).map(_.inet broadcast).result.head.map(
+        assertEquals(InetString("192.168.1.255/24"), _)
+      ),
+      NetTests.filter(_.id === 37L).map(_.inet family).result.head.map(
+        assertEquals(6, _)
+      ),
+      NetTests.filter(_.id === 35L).map(_.inet host).result.head.map(
+        assertEquals("192.168.1.5", _)
+      ),
+      // 1.4. 'hostmask'/'masklen'/'netmask'/'network'/'text'/'set_masklen'
+      NetTests.filter(_.id === 35L).map(_.inet hostmask).result.head.map(
+        assertEquals(InetString("0.0.0.255"), _)
+      ),
+      NetTests.filter(_.id === 37L).map(_.inet masklen).result.head.map(
+        assertEquals(127, _)
+      ),
+      NetTests.filter(_.id === 35L).map(_.inet netmask).result.head.map(
+        assertEquals(InetString("255.255.255.0"), _)
+      ),
+      NetTests.filter(_.id === 35L).map(_.inet network).result.head.map(
+        assertEquals(InetString("192.168.1.0/24"), _)
+      ),
+      NetTests.filter(_.id === 37L).map(_.inet text).result.head.map(
+        assertEquals("2001:4f8:3:ba:2e0:81ff:fe22:d1f1/127", _)
+      ),
+      NetTests.filter(_.id === 35L).map(_.inet.setMasklen(16)).result.head.map(
+        assertEquals(InetString("192.168.1.5/16"), _)
+      ),
       //-- test mac addr extension methods
-      val q22 = NetTests.filter(_.id === 33L).map(~ _.mac)
-      println(s"[mac] '~' sql = ${q22.selectStatement}")
-      assertEquals(Some(MacAddrString("ed:cb:a9:87:6f:54")), q22.first)
-
-      val q23 = NetTests.filter(_.id === 33L.bind).map(_.mac & MacAddrString("08:00:2b:01:02:03"))
-      println(s"[mac] '&' sql = ${q23.selectStatement}")
-      assertEquals(Some(MacAddrString("00:00:02:00:00:03")), q23.first)
-
-      val q24 = NetTests.filter(_.id === 33L).map(_.mac | MacAddrString("08:00:2b:01:02:03"))
-      println(s"[mac] '|' sql = ${q24.selectStatement}")
-      assertEquals(Some(MacAddrString("1a:34:7f:79:92:ab")), q24.first)
-
-      val q25 = NetTests.filter(_.id === 33L).map(_.mac trunc)
-      println(s"[mac] 'trunc' sql = ${q25.selectStatement}")
-      assertEquals(Some(MacAddrString("12:34:56:00:00:00")), q25.first)
-    }
+      NetTests.filter(_.id === 33L).map(~ _.mac).result.head.map(
+        assertEquals(Some(MacAddrString("ed:cb:a9:87:6f:54")), _)
+      ),
+      NetTests.filter(_.id === 33L.bind).map(_.mac & MacAddrString("08:00:2b:01:02:03")).result.head.map(
+        assertEquals(Some(MacAddrString("00:00:02:00:00:03")), _)
+      ),
+      NetTests.filter(_.id === 33L).map(_.mac | MacAddrString("08:00:2b:01:02:03")).result.head.map(
+        assertEquals(Some(MacAddrString("1a:34:7f:79:92:ab")), _)
+      ),
+      NetTests.filter(_.id === 33L).map(_.mac trunc).result.head.map(
+        assertEquals(Some(MacAddrString("12:34:56:00:00:00")), _)
+      ),
+      ///
+      NetTests.schema drop
+    ).transactionally)
   }
 
   //------------------------------------------------------------------------------
 
   @Test
   def testPlainNetFunctions(): Unit = {
-    import MyPlainPostgresDriver.plainImplicits._
+    import MyPlainPostgresDriver.plainAPI._
 
     implicit val getNetBeanResult = GetResult(r => NetBean(r.nextLong(), r.nextIPAddr(), r.nextMacAddrOption()))
 
-    db withSession { implicit session: Session =>
-      Try { Q.updateNA("drop table if exists net_test cascade").execute }
-      Try {
-        Q.updateNA("create table net_test(" +
-          "id int8 not null primary key, " +
-          "inet inet not null, " +
-          "mac macaddr)"
-        ).execute
-      }
+    val b = NetBean(33L, InetString("10.1.0.0/16"), Some(MacAddrString("12:34:56:78:90:ab")))
 
-      val netBean = NetBean(33L, InetString("10.1.0.0/16"), Some(MacAddrString("12:34:56:78:90:ab")))
-
-      (Q.u + "insert into net_test values(" +? netBean.id + ", " +? netBean.inet + ", " +? netBean.mac + ")").execute
-
-      val found = (Q[NetBean] + "select * from net_test where id = " +? netBean.id).first
-
-      assertEquals(netBean, found)
-    }
+    db.run(DBIO.seq(
+      sqlu"""create table net_test(
+            |  id int8 not null primary key,
+            |  inet inet not null,
+            |  mac macaddr)
+          """,
+      ///
+      sqlu"insert into net_test values(${b.id}, ${b.inet}, ${b.mac})",
+      sql"select * from net_test where id = ${b.id}".as[NetBean].head.map(
+        assertEquals(b, _)
+      ),
+      ///
+      sqlu"drop table if exists net_test cascade"
+    ).transactionally)
   }
 }
