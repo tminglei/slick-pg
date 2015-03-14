@@ -200,8 +200,11 @@ class PgDateSupportJodaTest {
     implicit val getDateBean = GetResult(r => DatetimeBean(
       r.nextLong(), r.nextLocalDate(), r.nextLocalTime(), r.nextLocalDateTime(), r.nextZonedDateTime(), r.nextPeriod()))
 
-    val b = new DatetimeBean(107L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01.101357"),
+    val b1 = new DatetimeBean(107L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01.101357"),
       LocalDateTime.parse("2001-01-03T13:21:00.223571"), DateTime.parse("2001-01-03 13:21:00.102203+08", jodaTzDateTimeFormatter),
+      Period.parse("P1DT1H1M0.335701S"))
+    val b2 = new DatetimeBean(108L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01"),
+      LocalDateTime.parse("2001-01-03T13:21:00"), DateTime.parse("2001-01-03 13:21:00+08", jodaTzDateTimeFormatter_NoFraction),
       Period.parse("P1DT1H1M0.335701S"))
 
     db.run(DBIO.seq(
@@ -215,9 +218,13 @@ class PgDateSupportJodaTest {
           """,
       sqlu"SET TIMEZONE TO '+8';",
       ///
-      sqlu"insert into DatetimeJodaTest values(${b.id}, ${b.date}, ${b.time}, ${b.dateTime}, ${b.dateTimetz}, ${b.interval})",
-      sql"select * from DatetimeJodaTest where id = ${b.id}".as[DatetimeBean].head.map(
-        assertEquals(b, _)
+      sqlu"insert into DatetimeJodaTest values(${b1.id}, ${b1.date}, ${b1.time}, ${b1.dateTime}, ${b1.dateTimetz}, ${b1.interval})",
+      sql"select * from DatetimeJodaTest where id = ${b1.id}".as[DatetimeBean].head.map(
+        assertEquals(b1, _)
+      ),
+      sqlu"insert into DatetimeJodaTest values(${b2.id}, ${b2.date}, ${b2.time}, ${b2.dateTime}, ${b2.dateTimetz}, ${b2.interval})",
+      sql"select * from DatetimeJodaTest where id = ${b2.id}".as[DatetimeBean].head.map(
+        assertEquals(b2, _)
       ),
       ///
       sqlu"drop table if exists DatetimeJodaTest cascade"
