@@ -7,7 +7,7 @@ object SlickPgBuild extends Build {
     organizationName := "slick-pg",
     organization := "com.github.tminglei",
     name := "slick-pg",
-    version := "0.8.2",
+    version := "0.9.0-beta",
 
     scalaVersion := "2.11.5",
     crossScalaVersions := Seq("2.11.5", "2.10.4"),
@@ -66,7 +66,7 @@ object SlickPgBuild extends Build {
         Seq()
     }
     Seq (
-      "org.scala-lang" % "scala-reflect" % scalaVersion % "provided",
+      "org.scala-lang" % "scala-reflect" % scalaVersion,
       "com.typesafe.slick" %% "slick" % "3.0.0-RC1",
       "org.postgresql" % "postgresql" % "9.4-1201-jdbc41",
       "junit" % "junit" % "4.11" % "test",
@@ -82,6 +82,7 @@ object SlickPgBuild extends Build {
     )
   )
 
+  val json4sVersion = "3.2.10"
   lazy val slickPgProject = Project(id = "slick-pg", base = file("."),
     settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
       name := "slick-pg",
@@ -90,9 +91,9 @@ object SlickPgBuild extends Build {
         "joda-time" % "joda-time" % "2.4" % "provided",
         "org.joda" % "joda-convert" % "1.7" % "provided",
         "org.threeten" % "threetenbp" % "1.0" % "provided",
-        "org.json4s" %% "json4s-ast" % "3.2.10" % "provided",
-        "org.json4s" %% "json4s-core" % "3.2.10" % "provided",
-        "org.json4s" %% "json4s-native" % "3.2.10" % "test",
+        "org.json4s" %% "json4s-ast" % json4sVersion % "provided",
+        "org.json4s" %% "json4s-core" % json4sVersion % "provided",
+        "org.json4s" %% "json4s-native" % json4sVersion % "test",
         "com.typesafe.play" %% "play-json" % "2.3.0" % "provided",
         "io.spray" %%  "spray-json" % "1.3.1" % "provided",
         "io.argonaut" %% "argonaut" % "6.0.4" % "provided",
