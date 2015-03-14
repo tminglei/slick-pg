@@ -137,9 +137,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 </dependency>
 ```
 
-> **And don't forget add `scala-reflect` _corresponding to your scala version_ to your project.**
-
-> _For other related 3rd party dependencies, pls manually add to your project when you need them._
+> _For other related 3rd party dependencies, pls manually add to your project when necessary._
 
 
 
