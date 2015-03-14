@@ -75,11 +75,14 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
       def nextLocalDate() = nextLocalDateOption().orNull
       def nextLocalDateOption() = r.nextStringOption().map(LocalDate.parse(_, jodaDateFormatter))
       def nextLocalTime() = nextLocalTimeOption().orNull
-      def nextLocalTimeOption() = r.nextStringOption().map(LocalTime.parse(_, jodaTimeFormatter))
+      def nextLocalTimeOption() = r.nextStringOption().map(s => LocalTime.parse(s,
+        if(s.indexOf(".") > 0 ) jodaTimeFormatter else jodaTimeFormatter_NoFraction))
       def nextLocalDateTime() = nextLocalDateTimeOption().orNull
-      def nextLocalDateTimeOption() = r.nextStringOption().map(LocalDateTime.parse(_, jodaDateTimeFormatter))
+      def nextLocalDateTimeOption() = r.nextStringOption().map(s => LocalDateTime.parse(s,
+        if(s.indexOf(".") > 0 ) jodaDateTimeFormatter else jodaDateTimeFormatter_NoFraction))
       def nextZonedDateTime() = nextZonedDateTimeOption().orNull
-      def nextZonedDateTimeOption() = r.nextStringOption().map(DateTime.parse(_, jodaTzDateTimeFormatter))
+      def nextZonedDateTimeOption() = r.nextStringOption().map(s => DateTime.parse(s,
+        if(s.indexOf(".") > 0 ) jodaTzDateTimeFormatter else jodaTzDateTimeFormatter_NoFraction))
       def nextPeriod() = nextPeriodOption().orNull
       def nextPeriodOption() = r.nextStringOption().map(pgIntervalStr2jodaPeriod)
     }

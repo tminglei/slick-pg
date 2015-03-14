@@ -240,16 +240,23 @@ class PgDateSupportJodaTest {
       }
       (Q.u + "SET TIMEZONE TO '+8';").execute
 
-      val dateBean = new DatetimeBean(107L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01.101357"),
+      val b1 = new DatetimeBean(107L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01.101357"),
         LocalDateTime.parse("2001-01-03T13:21:00.223571"), DateTime.parse("2001-01-03 13:21:00.102203+08", jodaTzDateTimeFormatter),
         Period.parse("P1DT1H1M0.335701S"))
+      val b2 = new DatetimeBean(108L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01"),
+        LocalDateTime.parse("2001-01-03T13:21:00"), DateTime.parse("2001-01-03 13:21:00+08", jodaTzDateTimeFormatter_NoFraction),
+        Period.parse("P1DT1H1M0.335701S"))
 
-      (Q.u + "insert into DatetimeJodaTest values(" +?dateBean.id + ", " +? dateBean.date + ", " +? dateBean.time
-        + ", " +? dateBean.dateTime + ", " +? dateBean.dateTimetz + ", " +? dateBean.interval + ")").execute
+      (Q.u + "insert into DatetimeJodaTest values(" +?b1.id + ", " +? b1.date + ", " +? b1.time
+        + ", " +? b1.dateTime + ", " +? b1.dateTimetz + ", " +? b1.interval + ")").execute
+      (Q.u + "insert into DatetimeJodaTest values(" +?b2.id + ", " +? b2.date + ", " +? b2.time
+        + ", " +? b2.dateTime + ", " +? b2.dateTimetz + ", " +? b2.interval + ")").execute
 
-      val found = (Q[DatetimeBean] + "select * from DatetimeJodaTest where id = " +? dateBean.id).first
+      val f1 = (Q[DatetimeBean] + "select * from DatetimeJodaTest where id = " +? b1.id).first
+      val f2 = (Q[DatetimeBean] + "select * from DatetimeJodaTest where id = " +? b2.id).first
 
-      assertEquals(dateBean, found)
+      assertEquals(b1, f1)
+      assertEquals(b2, f2)
     }
   }
 }
