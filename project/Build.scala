@@ -70,7 +70,7 @@ object SlickPgBuild extends Build {
       "com.typesafe.slick" %% "slick" % "3.0.0-RC1",
       "org.postgresql" % "postgresql" % "9.4-1200-jdbc41",
       "junit" % "junit" % "4.11" % "test",
-      "com.novocode" % "junit-interface" % "0.10" % "test"
+      "com.novocode" % "junit-interface" % "0.11" % "test"
     ) ++ extractedLibs
   }
 
