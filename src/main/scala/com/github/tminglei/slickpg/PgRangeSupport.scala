@@ -47,11 +47,11 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
 
     implicit def simpleRangeColumnExtensionMethods[B0](c: Rep[Range[B0]])(
       implicit tm: JdbcType[B0], tm1: JdbcType[Range[B0]]) = {
-        new RangeColumnExtensionMethods[Range, B0, Range[B0]](c)
+        new RangeColumnExtensionMethods[Range[B0], B0, Range[B0]](c)
       }
     implicit def simpleRangeOptionColumnExtensionMethods[B0](c: Rep[Option[Range[B0]]])(
       implicit tm: JdbcType[B0], tm1: JdbcType[Range[B0]]) = {
-        new RangeColumnExtensionMethods[Range, B0, Option[Range[B0]]](c)
+        new RangeColumnExtensionMethods[Range[B0], B0, Option[Range[B0]]](c)
       }
   }
 
