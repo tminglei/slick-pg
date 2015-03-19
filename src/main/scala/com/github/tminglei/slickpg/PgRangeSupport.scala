@@ -45,13 +45,22 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
     implicit val simpleTimestampRangeTypeMapper = new GenericJdbcType[Range[Timestamp]]("tsrange", mkRangeFn(toTimestamp))
     implicit val simpleDateRangeTypeMapper = new GenericJdbcType[Range[Date]]("daterange", mkRangeFn(toSQLDate))
 
+
     implicit def simpleRangeColumnExtensionMethods[B0](c: Rep[Range[B0]])(
       implicit tm: JdbcType[B0], tm1: JdbcType[Range[B0]]) = {
         new RangeColumnExtensionMethods[Range[B0], B0, Range[B0]](c)
       }
+    implicit def simpleRangeMappedColumnExtensionMethods[B0, P1](c: Rep[P1])(
+      implicit mapper: MappedJdbcType[P1, Range[B0]], tm: JdbcType[B0], tm1: JdbcType[Range[B0]]) = {
+        new RangeColumnExtensionMethods[P1, B0, P1](c)
+      }
     implicit def simpleRangeOptionColumnExtensionMethods[B0](c: Rep[Option[Range[B0]]])(
       implicit tm: JdbcType[B0], tm1: JdbcType[Range[B0]]) = {
         new RangeColumnExtensionMethods[Range[B0], B0, Option[Range[B0]]](c)
+      }
+    implicit def simpleRangeOptionMappedColumnExtensionMethods[B0, P1](c: Rep[Option[P1]])(
+      implicit mapper: MappedJdbcType[P1, Range[B0]], tm: JdbcType[B0], tm1: JdbcType[Range[B0]]) = {
+        new RangeColumnExtensionMethods[P1, B0, Option[P1]](c)
       }
   }
 
