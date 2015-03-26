@@ -5,6 +5,8 @@ import org.junit.Assert._
 import java.sql.Timestamp
 import slick.jdbc.GetResult
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class PgRangeSupportTest {
@@ -42,7 +44,7 @@ class PgRangeSupportTest {
 
   @Test
   def testRangeFunctions(): Unit = {
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       RangeTests.schema create,
       ///
       RangeTests forceInsertAll List(testRec1, testRec2, testRec3),
@@ -98,7 +100,7 @@ class PgRangeSupportTest {
       ),
       ///
       RangeTests.schema drop
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 
   //////////////////////////////////////////////////////////////////////
@@ -112,12 +114,12 @@ class PgRangeSupportTest {
 
     val b = RangeBean(33L, Range(3, 5), Range(1.5f, 3.3f), Some(Range(ts("2010-01-01 14:30:00"), ts("2010-01-03 15:30:00"))))
 
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       sqlu"""create table RangeTest(
-            |  id int8 not null primary key,
-            |  int_range int4range not null,
-            |  float_range numrange not null,
-            |  ts_range tsrange)
+              id int8 not null primary key,
+              int_range int4range not null,
+              float_range numrange not null,
+              ts_range tsrange)
           """,
       ///
       sqlu"insert into RangeTest values(${b.id}, ${b.intRange}, ${b.floatRange}, ${b.tsRange})",
@@ -126,6 +128,6 @@ class PgRangeSupportTest {
       ),
       ///
       sqlu"drop table if exists RangeTest cascade"
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 }

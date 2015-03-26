@@ -6,6 +6,8 @@ import java.sql.{Timestamp, Time, Date}
 import java.util.Calendar
 import java.text.SimpleDateFormat
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class PgDateSupportTest {
@@ -55,7 +57,7 @@ class PgDateSupportTest {
 
   @Test
   def testDatetimeFunctions(): Unit = {
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       sqlu"SET TIMEZONE TO '+8';",
       Datetimes.schema create,
       ///
@@ -163,6 +165,6 @@ class PgDateSupportTest {
       ),
       ///
       Datetimes.schema drop
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 }

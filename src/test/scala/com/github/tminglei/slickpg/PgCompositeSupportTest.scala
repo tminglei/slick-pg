@@ -9,6 +9,8 @@ import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import composite.Struct
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object PgCompositeSupportTest {
@@ -132,7 +134,7 @@ class PgCompositeSupportTest {
 
   @Test
   def testCompositeTypes(): Unit = {
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       sqlu"create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)",
       sqlu"create type composite2 as (id int8, comp1 composite1, confirm boolean)",
       sqlu"create type composite3 as (txt text, id int4, code int4, bool boolean)",
@@ -153,7 +155,7 @@ class PgCompositeSupportTest {
       sqlu"drop type composite3",
       sqlu"drop type composite2",
       sqlu"drop type composite1"
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 
   ///
@@ -163,7 +165,7 @@ class PgCompositeSupportTest {
 
   @Test
   def testCompositeTypes1(): Unit = {
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       sqlu"create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)",
       sqlu"create type composite2 as (id int8, comp1 composite1, confirm boolean)",
       sqlu"create type composite3 as (txt text, id int4, code int4, bool boolean)",
@@ -184,7 +186,7 @@ class PgCompositeSupportTest {
       sqlu"drop type composite3",
       sqlu"drop type composite2",
       sqlu"drop type composite1"
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 
   @Test
@@ -194,7 +196,7 @@ class PgCompositeSupportTest {
     implicit val getTestBeanResult = GetResult(r => TestBean(r.nextLong(), r.nextArray[Composite2]().toList))
     implicit val getTestBean1Result = GetResult(r => TestBean1(r.nextLong(), r.nextArray[Composite3]().toList))
 
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       sqlu"create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)",
       sqlu"create type composite2 as (id int8, comp1 composite1, confirm boolean)",
       sqlu"create type composite3 as (txt text, id int4, code int4, bool boolean)",
@@ -215,6 +217,6 @@ class PgCompositeSupportTest {
       sqlu"drop type composite3",
       sqlu"drop type composite2",
       sqlu"drop type composite1"
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 }

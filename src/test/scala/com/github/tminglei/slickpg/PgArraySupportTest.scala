@@ -10,6 +10,8 @@ import scala.collection.mutable.Buffer
 import slick.driver.PostgresDriver
 import slick.jdbc.GetResult
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class PgArraySupportTest {
@@ -83,7 +85,7 @@ class PgArraySupportTest {
 
   @Test
   def testArrayFunctions(): Unit = {
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       ///-- setup
       (ArrayTests.schema) create,
       //
@@ -142,7 +144,7 @@ class PgArraySupportTest {
       ),
       ///-- clearup
       (ArrayTests.schema) drop
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 
   //------------------------------------------------------------------------
@@ -185,20 +187,20 @@ class PgArraySupportTest {
     val b = ArrayBean1(101L, List(UUID.randomUUID()), List("tewe", "ttt"), List(111L), List(1, 2), Vector(3, 5), List(1.2f, 43.32f), List(21.35d), List(true, true),
       List(new Date(System.currentTimeMillis())), List(new Time(System.currentTimeMillis())), List(new Timestamp(System.currentTimeMillis())))
 
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       sqlu"""create table ArrayTest1(
-            |   id int8 not null primary key,
-            |   uuid_arr uuid[] not null,
-            |   str_arr text[] not null,
-            |   long_arr int8[] not null,
-            |   int_arr int4[] not null,
-            |   short_arr int2[] not null,
-            |   float_arr float4[] not null,
-            |   double_arr float8[] not null,
-            |   bool_arr bool[] not null,
-            |   date_arr date[] not null,
-            |   time_arr time[] not null,
-            |   ts_arr timestamp[] not null)
+               id int8 not null primary key,
+               uuid_arr uuid[] not null,
+               str_arr text[] not null,
+               long_arr int8[] not null,
+               int_arr int4[] not null,
+               short_arr int2[] not null,
+               float_arr float4[] not null,
+               double_arr float8[] not null,
+               bool_arr bool[] not null,
+               date_arr date[] not null,
+               time_arr time[] not null,
+               ts_arr timestamp[] not null)
           """,
       ///
       sqlu"insert into ArrayTest1 values(${b.id}, ${b.uuidArr}, ${b.strArr}, ${b.longArr}, ${b.intArr}, ${b.shortArr}, ${b.floatArr}, ${b.doubleArr}, ${b.boolArr}, ${b.dateArr}, ${b.timeArr}, ${b.tsArr})",
@@ -219,6 +221,6 @@ class PgArraySupportTest {
       ),
       ///
       sqlu"drop table if exists ArrayTest1 cascade"
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 }

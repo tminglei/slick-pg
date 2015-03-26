@@ -5,6 +5,7 @@ import org.junit.Assert._
 import org.joda.time._
 import slick.jdbc.GetResult
 
+import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class PgDateSupportJodaTest {
@@ -63,7 +64,7 @@ class PgDateSupportJodaTest {
     val now1 = DateTime.now
     val now2 = LocalTime.now
 
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       Datetimes.schema create,
       ///
       sqlu"SET TIMEZONE TO '+8';",
@@ -188,7 +189,7 @@ class PgDateSupportJodaTest {
       ),
       ///
       Datetimes.schema drop
-    ).transactionally)
+    ).transactionally), concurrent.duration.Duration.Inf)
   }
 
   //////////////////////////////////////////////////////////////////////
@@ -207,14 +208,14 @@ class PgDateSupportJodaTest {
       LocalDateTime.parse("2001-01-03T13:21:00"), DateTime.parse("2001-01-03 13:21:00+08", jodaTzDateTimeFormatter_NoFraction),
       Period.parse("P1DT1H1M0.335701S"))
 
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       sqlu"""create table DatetimeJodaTest(
-            |  id int8 not null primary key,
-            |  date date not null,
-            |  time time not null,
-            |  ts timestamp not null,
-            |  tstz timestamptz not null,
-            |  period interval not null)
+              id int8 not null primary key,
+              date date not null,
+              time time not null,
+              ts timestamp not null,
+              tstz timestamptz not null,
+              period interval not null)
           """,
       sqlu"SET TIMEZONE TO '+8';",
       ///
@@ -228,6 +229,6 @@ class PgDateSupportJodaTest {
       ),
       ///
       sqlu"drop table if exists DatetimeJodaTest cascade"
-    ).transactionally)
+    ).transactionally), concurrent.duration.Duration.Inf)
   }
 }

@@ -65,8 +65,9 @@ trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes {
 object PgEnumSupportUtils {
   import slick.driver.JdbcDriver.api._
 
-  def sqlName(sqlTypeName: String, quoteName: Boolean) = if (quoteName)
-    '"' + sqlTypeName + '"' else sqlTypeName.toLowerCase
+  def sqlName(sqlTypeName: String, quoteName: Boolean) = {
+    if (quoteName) '"' + sqlTypeName + '"' else sqlTypeName.toLowerCase
+  }
 
   def buildCreateSql[T <: Enumeration](sqlTypeName: String, enumObject: T, quoteName: Boolean = false) = {
     // `toStream` to prevent re-ordering after `map(e => s"'${e.toString}'")`
@@ -74,6 +75,7 @@ object PgEnumSupportUtils {
     sqlu"create type ${sqlName(sqlTypeName, quoteName)} as enum ($enumValuesString)"
   }
 
-  def buildDropSql(sqlTypeName: String, quoteName: Boolean = false) =
+  def buildDropSql(sqlTypeName: String, quoteName: Boolean = false) = {
     sqlu"drop type ${sqlName(sqlTypeName, quoteName)}"
+  }
 }

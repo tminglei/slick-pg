@@ -3,6 +3,8 @@ package com.github.tminglei.slickpg
 import org.junit._
 import org.junit.Assert._
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class PgInheritsTest {
@@ -37,7 +39,7 @@ class PgInheritsTest {
 
   @Test
   def testInherits {
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       (tabs1.schema ++ tabs2.schema) create,
       ///
       tabs1 ++= Seq(
@@ -69,6 +71,6 @@ class PgInheritsTest {
       ),
       ///
       (tabs1.schema ++ tabs2.schema) drop
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 }

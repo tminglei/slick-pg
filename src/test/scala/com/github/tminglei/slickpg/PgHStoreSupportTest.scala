@@ -4,6 +4,8 @@ import org.junit._
 import org.junit.Assert._
 import slick.jdbc.GetResult
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class PgHStoreSupportTest {
@@ -30,7 +32,7 @@ class PgHStoreSupportTest {
 
   @Test
   def testHStoreFunctions(): Unit = {
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       HStoreTests.schema create,
       ///
       HStoreTests forceInsertAll List(testRec1, testRec2, testRec3, testRec4),
@@ -90,7 +92,7 @@ class PgHStoreSupportTest {
       ),
       ///
       HStoreTests.schema drop
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 
   //------------------------------------------------------------------------------
@@ -103,10 +105,10 @@ class PgHStoreSupportTest {
 
     val b = MapBean(33L, Map("a"->"val1", "b"->"val3", "c"->"321"))
 
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       sqlu"""create table HStoreTest(
-            |  id int8 not null primary key,
-            |  hstoreMap hstore not null)
+              id int8 not null primary key,
+              hstoreMap hstore not null)
           """,
       ///
       sqlu"insert into HStoreTest values(${b.id}, ${b.hstore})",
@@ -115,6 +117,6 @@ class PgHStoreSupportTest {
       ),
       ///
       sqlu"drop table if exists HStoreTest cascade"
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 }

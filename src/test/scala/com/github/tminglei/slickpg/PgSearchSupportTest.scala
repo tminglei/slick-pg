@@ -4,6 +4,8 @@ import org.junit._
 import org.junit.Assert._
 import slick.jdbc.GetResult
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class PgSearchSupportTest {
@@ -29,7 +31,7 @@ class PgSearchSupportTest {
 
   @Test
   def testSearchFunctions(): Unit = {
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       Tests.schema create,
       ///
       Tests forceInsertAll List(testRec1, testRec2),
@@ -84,14 +86,14 @@ class PgSearchSupportTest {
       ),
       ///
       Tests.schema drop
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 
   @Test
   def testOtherFunctions(): Unit = {
     val query = tsQuery("neutrino|(dark & matter)".bind)
 
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       Tests.schema create,
       ///
       Tests.forceInsert(TestBean(11L, "Neutrinos in the Sun", "")),
@@ -116,7 +118,7 @@ class PgSearchSupportTest {
       ),
       ///
       Tests.schema drop
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 
   //--------------------------------------------------------------------------------
@@ -131,11 +133,11 @@ class PgSearchSupportTest {
 
     val b = SearchBean(101L, TsVector("'ate' 'cat' 'fat' 'rat'"), TsQuery("'rat'"))
 
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       sqlu"""create table tsTestTable(
-            |  id int8 not null primary key,
-            |  tsvec tsvector not null,
-            |  tsquery tsquery)
+              id int8 not null primary key,
+              tsvec tsvector not null,
+              tsquery tsquery)
           """,
       ///
       sqlu"insert into tsTestTable values(${b.id}, ${b.tVec}, ${b.tQ})",
@@ -144,6 +146,6 @@ class PgSearchSupportTest {
       ),
       ///
       sqlu"drop table if exists tsTestTable cascade"
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 }

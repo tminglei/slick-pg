@@ -5,6 +5,8 @@ import org.junit.Assert._
 
 import slick.jdbc.GetResult
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class PgLTreeSupportTest {
@@ -42,7 +44,7 @@ class PgLTreeSupportTest {
 
   @Test
   def testLTreeMethods(): Unit = {
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       LTreeTests.schema create,
       ///
       LTreeTests forceInsertAll List(rec1, rec2, rec3, rec4, rec5, rec6, rec7, rec8, rec9, rec10, rec11, rec12, rec13),
@@ -98,12 +100,12 @@ class PgLTreeSupportTest {
       ),
       ///
       LTreeTests.schema drop
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 
   @Test
   def testLTreeListMethods(): Unit = {
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       LTreeTests.schema create,
       ///
       LTreeTests forceInsertAll List(rec1, rec2, rec3, rec4, rec5, rec6, rec7, rec8, rec9, rec10, rec11, rec12, rec13),
@@ -143,7 +145,7 @@ class PgLTreeSupportTest {
       ),
       ///
       LTreeTests.schema drop
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 
   //------------------------------------------------------------------------------
@@ -156,11 +158,11 @@ class PgLTreeSupportTest {
 
     val b = LTreeBean(101L, LTree("Top"), List(LTree("Top.Science"), LTree("Top.Collections")))
 
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       sqlu"""create table ltree_test(
-            |  id int8 not null primary key,
-            |  path ltree not null,
-            |  tree_arr ltree[] not null)
+              id int8 not null primary key,
+              path ltree not null,
+              tree_arr ltree[] not null)
           """,
       ///
       sqlu"insert into ltree_test values(${b.id}, ${b.path}, ${b.treeArr})",
@@ -169,6 +171,6 @@ class PgLTreeSupportTest {
       ),
       ///
       sqlu"drop table if exists ltree_test cascade"
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 }

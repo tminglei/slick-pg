@@ -4,6 +4,8 @@ import org.junit._
 import org.junit.Assert._
 import slick.driver.PostgresDriver
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class PgEnumSupportTest {
@@ -61,10 +63,12 @@ class PgEnumSupportTest {
 
   @Test
   def testEnumFunctions(): Unit = {
-    db.run(DBIO.seq(
-      PgEnumSupportUtils.buildCreateSql("WeekDay", WeekDays),
-      PgEnumSupportUtils.buildCreateSql("Rainbow", Rainbows, true),
-      TestEnums.schema create,
+    Await.result(db.run(DBIO.seq(
+//      PgEnumSupportUtils.buildCreateSql("WeekDay", WeekDays),
+//      PgEnumSupportUtils.buildCreateSql("Rainbow", Rainbows, true),
+      sqlu"create type weekday as enum ('Mon','Tue','Wed','Thu','Fri','Sat','Sun')",
+      sqlu"""create type "Rainbow" as enum ('red','orange','yellow','green','blue','purple')""",
+      (TestEnums.schema) create,
       ///
       TestEnums forceInsertAll List(testRec1, testRec2, testRec3),
       // 0. simple test
@@ -91,9 +95,11 @@ class PgEnumSupportTest {
         assertEquals(List(Mon, Tue, Wed), _)
       ),
       ///
-      TestEnums.schema drop,
-      PgEnumSupportUtils.buildDropSql("weekday"),
-      PgEnumSupportUtils.buildDropSql("Rainbow", true)
-    ).transactionally)
+      (TestEnums.schema) drop,
+      sqlu"""drop type "Rainbow"""",
+      sqlu"drop type weekday"
+//      PgEnumSupportUtils.buildDropSql("Rainbow", true),
+//      PgEnumSupportUtils.buildDropSql("weekday")
+    ).transactionally), Duration.Inf)
   }
 }

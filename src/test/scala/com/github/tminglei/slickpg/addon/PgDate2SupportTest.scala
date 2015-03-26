@@ -5,6 +5,7 @@ import org.junit.Assert._
 import java.time._
 import slick.jdbc.GetResult
 
+import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class PgDate2SupportTest {
@@ -61,7 +62,7 @@ class PgDate2SupportTest {
 
   @Test
   def testDatetimeFunctions(): Unit = {
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       sqlu"SET TIMEZONE TO '+8';",
       Datetimes.schema create,
       ///
@@ -176,7 +177,7 @@ class PgDate2SupportTest {
       ),
       ///
       Datetimes.schema drop
-    ).transactionally)
+    ).transactionally), concurrent.duration.Duration.Inf)
   }
 
   //////////////////////////////////////////////////////////////////////
@@ -193,15 +194,15 @@ class PgDate2SupportTest {
       LocalDateTime.parse("2001-01-03T13:21:00.223571"), ZonedDateTime.parse("2001-01-03 13:21:00.102203+08", date2TzDateTimeFormatter),
       Duration.parse("P1DT1H1M0.335701S"), Period.parse("P1Y2M3W4D"))
 
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       sqlu"""create table Datetime2Test(
-            |  id int8 not null primary key,
-            |  date date not null,
-            |  time time not null,
-            |  ts timestamp not null,
-            |  tstz timestamptz not null,
-            |  duration interval not null,
-            |  period interval not null)
+              id int8 not null primary key,
+              date date not null,
+              time time not null,
+              ts timestamp not null,
+              tstz timestamptz not null,
+              duration interval not null,
+              period interval not null)
           """,
       sqlu"SET TIMEZONE TO '+8';",
       ///
@@ -211,6 +212,6 @@ class PgDate2SupportTest {
       ),
       ///
       sqlu"drop table if exists Datetime2Test cascade"
-    ).transactionally)
+    ).transactionally), concurrent.duration.Duration.Inf)
   }
 }

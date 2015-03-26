@@ -5,6 +5,8 @@ import org.junit.Assert._
 
 import slick.jdbc.GetResult
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class PgNetSupportTest {
@@ -44,7 +46,7 @@ class PgNetSupportTest {
 
   @Test
   def testNetFunctions(): Unit = {
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       NetTests.schema create,
       ///
       NetTests forceInsertAll List(testRec1, testRec2, testRec3),
@@ -134,7 +136,7 @@ class PgNetSupportTest {
       ),
       ///
       NetTests.schema drop
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 
   //------------------------------------------------------------------------------
@@ -147,11 +149,11 @@ class PgNetSupportTest {
 
     val b = NetBean(33L, InetString("10.1.0.0/16"), Some(MacAddrString("12:34:56:78:90:ab")))
 
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       sqlu"""create table net_test(
-            |  id int8 not null primary key,
-            |  inet inet not null,
-            |  mac macaddr)
+              id int8 not null primary key,
+              inet inet not null,
+              mac macaddr)
           """,
       ///
       sqlu"insert into net_test values(${b.id}, ${b.inet}, ${b.mac})",
@@ -160,6 +162,6 @@ class PgNetSupportTest {
       ),
       ///
       sqlu"drop table if exists net_test cascade"
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 }

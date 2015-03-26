@@ -5,6 +5,8 @@ import org.junit.Assert._
 import spray.json._
 import slick.jdbc.GetResult
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class PgSprayJsonSupportTest {
@@ -49,7 +51,7 @@ class PgSprayJsonSupportTest {
     val json2 = """ {"a":"v5","b":3} """.parseJson
 
 
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       JsonTests.schema create,
       ///
       JsonTests forceInsertAll List(testRec1, testRec2, testRec3),
@@ -123,7 +125,7 @@ class PgSprayJsonSupportTest {
       ),
       ///
       JsonTests.schema drop
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 
   //------------------------------------------------------------------------------
@@ -136,10 +138,10 @@ class PgSprayJsonSupportTest {
 
     val b = JsonBean(37L, """ { "a":101, "b":"aaa", "c":[3,4,5,9] } """.parseJson)
 
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       sqlu"""create table JsonTest3(
-            |  id int8 not null primary key,
-            |  json json not null)
+              id int8 not null primary key,
+              json json not null)
           """,
       ///
       sqlu"insert into JsonTest3 values(${b.id}, ${b.json})",
@@ -148,6 +150,6 @@ class PgSprayJsonSupportTest {
       ),
       ///
       sqlu"drop table if exists JsonTest3 cascade"
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 }

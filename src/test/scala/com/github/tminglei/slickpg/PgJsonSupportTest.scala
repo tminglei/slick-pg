@@ -5,6 +5,8 @@ import org.junit._
 
 import slick.jdbc.GetResult
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class PgJsonSupportTest {
@@ -33,7 +35,7 @@ class PgJsonSupportTest {
     val json1 = """{"a":"v1","b":2}"""
     val json2 = """{"a":"v5","b":3}"""
 
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       JsonTests.schema create,
       ///
       JsonTests forceInsertAll List(testRec1, testRec2, testRec3),
@@ -104,7 +106,7 @@ class PgJsonSupportTest {
       ),
       ///
       JsonTests.schema drop
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 
   //------------------------------------------------------------------------------
@@ -117,10 +119,10 @@ class PgJsonSupportTest {
 
     val b = JsonBean(37L, JsonString(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """))
 
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       sqlu"""create table JsonTest0(
-            |  id int8 not null primary key,
-            |  json json not null)
+              id int8 not null primary key,
+              json json not null)
           """,
       ///
       sqlu"insert into JsonTest0 values(${b.id}, ${b.json})",
@@ -129,6 +131,6 @@ class PgJsonSupportTest {
       ),
       ///
       sqlu"drop table if exists JsonTest0 cascade"
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 }

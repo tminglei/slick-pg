@@ -5,6 +5,8 @@ import org.junit.Assert._
 import org.json4s._
 import slick.jdbc.GetResult
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class PgJson4sSupportTest {
@@ -52,7 +54,7 @@ class PgJson4sSupportTest {
     val json1 = parse(""" {"a":"v1","b":2} """)
     val json2 = parse(""" {"a":"v5","b":3} """)
 
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       JsonTests.schema create,
       ///
       JsonTests forceInsertAll List(testRec1, testRec2, testRec3),
@@ -126,7 +128,7 @@ class PgJson4sSupportTest {
       ),
       ///
       JsonTests.schema drop
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 
   //------------------------------------------------------------------------------
@@ -139,10 +141,10 @@ class PgJson4sSupportTest {
 
     val b = JsonBean(37L, parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """))
 
-    db.run(DBIO.seq(
+    Await.result(db.run(DBIO.seq(
       sqlu"""create table JsonTest1(
-            |  id int8 not null primary key,
-            |  json json not null)
+              id int8 not null primary key,
+              json json not null)
           """,
       ///
       sqlu"insert into JsonTest1 values(${b.id}, ${b.json})",
@@ -151,6 +153,6 @@ class PgJson4sSupportTest {
       ),
       ///
       sqlu"drop table if exists JsonTest1 cascade"
-    ).transactionally)
+    ).transactionally), Duration.Inf)
   }
 }
