@@ -48,20 +48,57 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
   }
 
   trait Date2DateTimeImplicits[INTERVAL] extends Date2DateTimeFormatters {
+
+    private def fromInfinitable[T](max: T, min: T, parse: String => T): String => T = {
+      case "infinity" => max
+      case "-infinity" => min
+      case finite => parse(finite)
+    }
+    private val fromDateOrInfinity: String => LocalDate =
+      fromInfinitable(LocalDate.MAX, LocalDate.MIN, LocalDate.parse(_, date2DateFormatter))
+    private val fromDateTimeOrInfinity: String => LocalDateTime =
+      fromInfinitable(LocalDateTime.MAX, LocalDateTime.MIN, LocalDateTime.parse(_, date2DateTimeFormatter))
+    private val fromOffsetDateTimeOrInfinity: String => OffsetDateTime = fromInfinitable(
+      LocalDateTime.MAX.atOffset(ZoneOffset.UTC),
+      LocalDateTime.MIN.atOffset(ZoneOffset.UTC),
+      OffsetDateTime.parse(_, date2TzDateTimeFormatter)
+    )
+    private val fromZonedDateTimeOrInfinity: String => ZonedDateTime = fromInfinitable(
+      LocalDateTime.MAX.atZone(ZoneId.of("UTC")),
+      LocalDateTime.MIN.atZone(ZoneId.of("UTC")),
+      ZonedDateTime.parse(_, date2TzDateTimeFormatter)
+    )
+
+    private def toInfinitable[T,U](f: T => U, max: U, min: U, format: T => String): T => String = {
+      v => f(v) match {
+        case `max` =>  "infinity"
+        case `min` =>  "-infinity"
+        case _ => format(v)
+      }
+    }
+    private val toDateOrInfinity: LocalDate => String =
+      toInfinitable(v => v, LocalDate.MAX, LocalDate.MIN, _.format(date2DateFormatter))
+    private val toDateTimeOrInfinity: LocalDateTime => String =
+      toInfinitable(v => v, LocalDateTime.MAX, LocalDateTime.MIN, _.format(date2DateTimeFormatter))
+    private val toOffsetDateTimeOrInfinity: OffsetDateTime => String =
+      toInfinitable(o => o.toLocalDateTime, LocalDateTime.MAX, LocalDateTime.MIN, _.format(date2TzDateTimeFormatter))
+    private val toZonedDateTimeOrInfinity: ZonedDateTime => String =
+      toInfinitable(z => z.toLocalDateTime, LocalDateTime.MAX, LocalDateTime.MIN, _.format(date2TzDateTimeFormatter))
+
     implicit val date2DateTypeMapper = new GenericJdbcType[LocalDate]("date",
-      LocalDate.parse(_, date2DateFormatter), _.format(date2DateFormatter), hasLiteralForm=false)
+      fromDateOrInfinity, toDateOrInfinity, hasLiteralForm=false)
     implicit val date2TimeTypeMapper = new GenericJdbcType[LocalTime]("time",
       LocalTime.parse(_, date2TimeFormatter), _.format(date2TimeFormatter), hasLiteralForm=false)
     implicit val date2DateTimeTypeMapper = new GenericJdbcType[LocalDateTime]("timestamp",
-      LocalDateTime.parse(_, date2DateTimeFormatter), _.format(date2DateTimeFormatter), hasLiteralForm=false)
+      fromDateTimeOrInfinity, toDateTimeOrInfinity, hasLiteralForm=false)
     implicit val date2PeriodTypeMapper = new GenericJdbcType[Period]("interval", pgIntervalStr2Period, hasLiteralForm=false)
     implicit val durationTypeMapper = new GenericJdbcType[Duration]("interval", pgIntervalStr2Duration, hasLiteralForm=false)
     implicit val date2TzTimeTypeMapper = new GenericJdbcType[OffsetTime]("timetz",
       OffsetTime.parse(_, date2TzTimeFormatter), _.format(date2TzTimeFormatter), hasLiteralForm=false)
     implicit val date2TzTimestampTypeMapper = new GenericJdbcType[OffsetDateTime]("timestamptz",
-      OffsetDateTime.parse(_, date2TzDateTimeFormatter), _.format(date2TzDateTimeFormatter), hasLiteralForm=false)
+      fromOffsetDateTimeOrInfinity, toOffsetDateTimeOrInfinity, hasLiteralForm=false)
     implicit val date2TzTimestamp1TypeMapper = new GenericJdbcType[ZonedDateTime]("timestamptz",
-      ZonedDateTime.parse(_, date2TzDateTimeFormatter), _.format(date2TzDateTimeFormatter), hasLiteralForm=false)
+      fromZonedDateTimeOrInfinity, toZonedDateTimeOrInfinity, hasLiteralForm=false)
 
     ///
     implicit def date2DateColumnExtensionMethods(c: Rep[LocalDate])(implicit tm: JdbcType[INTERVAL]) =
