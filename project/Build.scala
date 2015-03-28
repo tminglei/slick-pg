@@ -67,7 +67,7 @@ object SlickPgBuild extends Build {
     }
     Seq (
       "org.scala-lang" % "scala-reflect" % scalaVersion,
-      "com.typesafe.slick" %% "slick" % "3.0.0-RC1",
+      "com.typesafe.slick" %% "slick" % "3.0.0-RC2",
       "org.postgresql" % "postgresql" % "9.4-1201-jdbc41",
       "junit" % "junit" % "4.11" % "test",
       "com.novocode" % "junit-interface" % "0.11" % "test"

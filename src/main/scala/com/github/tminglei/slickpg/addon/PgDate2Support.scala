@@ -99,6 +99,7 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
       fromOffsetDateTimeOrInfinity, toOffsetDateTimeOrInfinity, hasLiteralForm=false)
     implicit val date2TzTimestamp1TypeMapper = new GenericJdbcType[ZonedDateTime]("timestamptz",
       fromZonedDateTimeOrInfinity, toZonedDateTimeOrInfinity, hasLiteralForm=false)
+    implicit val date2ZoneMapper = new GenericJdbcType[ZoneId]("text", ZoneId.of(_), _.getId, hasLiteralForm=false)
 
     ///
     implicit def date2DateColumnExtensionMethods(c: Rep[LocalDate])(implicit tm: JdbcType[INTERVAL]) =
@@ -176,6 +177,8 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
       def nextPeriodOption() = r.nextStringOption().map(pgIntervalStr2Period)
       def nextDuration() = nextDurationOption().orNull
       def nextDurationOption() = r.nextStringOption().map(pgIntervalStr2Duration)
+      def nextZoneId() = nextZoneIdOption().orNull
+      def nextZoneIdOption() = r.nextStringOption().map(ZoneId.of)
     }
 
     /////////////////////////////////////////////////////////////////////////////
@@ -233,6 +236,13 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
     }
     implicit object SetDurationOption extends SetParameter[Option[Duration]] {
       def apply(v: Option[Duration], pp: PositionedParameters) = setDateTime(Types.OTHER, "interval", v.map(_.toString), pp)
+    }
+    ///
+    implicit object SetZone extends SetParameter[ZoneId] {
+      def apply(v: ZoneId, pp: PositionedParameters) = setDateTime(Types.VARCHAR, "text", Option(v).map(_.toString), pp)
+    }
+    implicit object SetZoneOption extends SetParameter[Option[ZoneId]] {
+      def apply(v: Option[ZoneId], pp: PositionedParameters) = setDateTime(Types.VARCHAR, "text", v.map(_.toString), pp)
     }
 
     ///
