@@ -33,7 +33,8 @@ class PgDate2SupportTest {
     dateTimeOffset: OffsetDateTime,
     dateTimeTz: ZonedDateTime,
     duration: Duration,
-    period: Period
+    period: Period,
+    zone: ZoneId
     )
 
   class DatetimeTable(tag: Tag) extends Table[DatetimeBean](tag,"Datetime2Test") {
@@ -45,8 +46,10 @@ class PgDate2SupportTest {
     def dateTimeTz = column[ZonedDateTime]("dateTimeTz")
     def duration = column[Duration]("duration")
     def period = column[Period]("period")
+    def zone = column[ZoneId]("zone")
 
-    def * = (id, date, time, dateTime, dateTimeOffset, dateTimeTz, duration, period) <> (DatetimeBean.tupled, DatetimeBean.unapply)
+    def * = (id, date, time, dateTime, dateTimeOffset, dateTimeTz, duration, period, zone) <>
+            (DatetimeBean.tupled, DatetimeBean.unapply)
   }
   val Datetimes = TableQuery[DatetimeTable]
 
@@ -56,13 +59,13 @@ class PgDate2SupportTest {
     LocalDateTime.parse("2001-01-03T13:21:00.223571"),
     OffsetDateTime.parse("2001-01-03 13:21:00.102203+08", date2TzDateTimeFormatter),
     ZonedDateTime.parse("2001-01-03 13:21:00.102203+08", date2TzDateTimeFormatter),
-    Duration.parse("P1DT1H1M0.335701S"), Period.parse("P1Y2M3W4D"))
+    Duration.parse("P1DT1H1M0.335701S"), Period.parse("P1Y2M3W4D"), ZoneId.of("America/New_York"))
   val testRec2 = new DatetimeBean(102L, LocalDate.MAX, LocalTime.parse("03:14:07"),
     LocalDateTime.MAX, LocalDateTime.MAX.atOffset(ZoneOffset.UTC), LocalDateTime.MAX.atZone(ZoneId.of("UTC")),
-    Duration.parse("P1587D"), Period.parse("P15M7D"))
+    Duration.parse("P1587D"), Period.parse("P15M7D"), ZoneId.of("Europe/London"))
   val testRec3 = new DatetimeBean(103L, LocalDate.MIN, LocalTime.parse("11:13:34"),
     LocalDateTime.MIN, LocalDateTime.MIN.atOffset(ZoneOffset.UTC), LocalDateTime.MIN.atZone(ZoneId.of("UTC")),
-    Duration.parse("PT63H16M2S"), Period.parse("P3M5D"))
+    Duration.parse("PT63H16M2S"), Period.parse("P3M5D"), ZoneId.of("Asia/Shanghai"))
 
   @Test
   def testDatetimeFunctions(): Unit = {
@@ -179,7 +182,7 @@ class PgDate2SupportTest {
       Datetimes.filter(_.id === 103L.bind).map(r => r.duration.justifyInterval).result.head.map(
         assertEquals(Duration.parse("P2DT15H16M2S"), _)
       ),
-      // timestamp with time zone
+      // 7. timestamp with time zone
       Datetimes.filter(_.id === 101L.bind).map(r => r.dateTimeTz.age === r.dateTimeTz.age(Functions.currentDate.asColumnOf[ZonedDateTime])).result.head.map(
         assertEquals(true, _)
       ),
@@ -189,7 +192,11 @@ class PgDate2SupportTest {
       Datetimes.filter(_.id === 101L.bind).map(r => r.dateTimeTz.trunc("day")).result.head.map(
         assertEquals(ZonedDateTime.parse("2001-01-03 00:00:00+08", date2TzDateTimeFormatter), _)
       ),
-      // 8. +/-infinity
+      // 8. Timezones
+      Datetimes.filter(_.id === 101L.bind).map(r => r.zone).result.head.map(
+        assertEquals(ZoneId.of("America/New_York"), _)
+      ),
+      // 9. +/-infinity
       Datetimes.filter(_.id === 102L.bind).map { r => (r.date, r.dateTime, r.dateTimeOffset, r.dateTimeTz) }.result.head.map(
         assertEquals((LocalDate.MAX, LocalDateTime.MAX,
           LocalDateTime.MAX.atOffset(ZoneOffset.UTC), LocalDateTime.MAX.atZone(ZoneId.of("UTC"))), _)
@@ -211,13 +218,13 @@ class PgDate2SupportTest {
 
     implicit val getDateBean = GetResult(r => DatetimeBean(
       r.nextLong(), r.nextLocalDate(), r.nextLocalTime(), r.nextLocalDateTime(), r.nextOffsetDateTime(), r.nextZonedDateTime(),
-      r.nextDuration(), r.nextPeriod()))
+      r.nextDuration(), r.nextPeriod(), r.nextZoneId))
 
     val b = new DatetimeBean(107L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01.101357"),
       LocalDateTime.parse("2001-01-03T13:21:00.223571"),
       OffsetDateTime.parse("2001-01-03 13:21:00.102203+08", date2TzDateTimeFormatter),
       ZonedDateTime.parse("2001-01-03 13:21:00.102203+08", date2TzDateTimeFormatter),
-      Duration.parse("P1DT1H1M0.335701S"), Period.parse("P1Y2M3W4D"))
+      Duration.parse("P1DT1H1M0.335701S"), Period.parse("P1Y2M3W4D"), ZoneId.of("Africa/Johannesburg"))
 
     Await.result(db.run(DBIO.seq(
       sqlu"""create table Datetime2Test(
@@ -228,11 +235,12 @@ class PgDate2SupportTest {
               tsos timestamptz not null,
               tstz timestamptz not null,
               duration interval not null,
-              period interval not null)
+              period interval not null,
+              zone text not null)
           """,
       sqlu"SET TIMEZONE TO '+8';",
       ///
-      sqlu"insert into Datetime2Test values(${b.id}, ${b.date}, ${b.time}, ${b.dateTime}, ${b.dateTimeOffset}, ${b.dateTimeTz}, ${b.duration}, ${b.period})",
+      sqlu"insert into Datetime2Test values(${b.id}, ${b.date}, ${b.time}, ${b.dateTime}, ${b.dateTimeOffset}, ${b.dateTimeTz}, ${b.duration}, ${b.period}, ${b.zone})",
       sql"select * from Datetime2Test where id = ${b.id}".as[DatetimeBean].head.map(
         assertEquals(b, _)
       ),
