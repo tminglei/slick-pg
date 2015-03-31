@@ -131,7 +131,7 @@ class PgJsonSupportTest {
 
       val found = (Q[JsonBean] + "select * from \"JsonTest0\" where id = " +? jsonBean.id).first
 
-      assertEquals(jsonBean, found)
+      assertEquals(jsonBean.json.value.replace(" ", ""), found.json.value.replace(" ", ""))
     }
   }
 }
