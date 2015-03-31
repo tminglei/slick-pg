@@ -138,19 +138,14 @@ class PgPlayJsonSupportTest {
     implicit val getJsonBeanResult = GetResult(r => JsonBean(r.nextLong(), r.nextJson()))
 
     db withSession { implicit session: Session =>
-      Try { Q.updateNA("drop table if exists JsonTest2 cascade").execute }
-      Try {
-        Q.updateNA("create table JsonTest2("+
-          "id int8 not null primary key, "+
-          "json json not null)"
-        ).execute
-      }
+      Try { JsonTests.ddl drop }
+      Try { JsonTests.ddl create }
 
       val jsonBean = JsonBean(37L, Json.parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """))
 
-      (Q.u + "insert into JsonTest2 values(" +? jsonBean.id + ", " +? jsonBean.json + ")").execute
+      (Q.u + "insert into \"JsonTest2\" values(" +? jsonBean.id + ", " +? jsonBean.json + ")").execute
 
-      val found = (Q[JsonBean] + "select * from JsonTest2 where id = " +? jsonBean.id).first
+      val found = (Q[JsonBean] + "select * from \"JsonTest2\" where id = " +? jsonBean.id).first
 
       assertEquals(jsonBean, found)
     }
