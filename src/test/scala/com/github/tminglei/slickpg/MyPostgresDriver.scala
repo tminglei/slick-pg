@@ -47,6 +47,7 @@ object MyPlainPostgresDriver extends PostgresDriver
                               with PgRangeSupport
                               with PgHStoreSupport
                               with PgSearchSupport {
+  override val pgjson = "jsonb"
   ///
   val plainImplicits = new Implicits with SimpleArrayPlainImplicits
                                      with SimpleJsonPlainImplicits
