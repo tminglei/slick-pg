@@ -7,7 +7,7 @@ trait PgPlayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
   import driver.api._
   import play.api.libs.json._
 
-  val pgjson = "json"
+  def pgjson: String
 
   /// alias
   trait JsonImplicits extends PlayJsonImplicits
@@ -47,7 +47,7 @@ trait PgPlayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
 
     ///
     private def setJson(v: Option[JsValue], p: PositionedParameters) = v match {
-      case Some(v) => p.setObject(utils.mkPGobject("json", Json.stringify(v)), java.sql.Types.OTHER)
+      case Some(v) => p.setObject(utils.mkPGobject(pgjson, Json.stringify(v)), java.sql.Types.OTHER)
       case None    => p.setNull(java.sql.Types.OTHER)
     }
   }

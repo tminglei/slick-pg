@@ -1,14 +1,12 @@
 package com.github.tminglei.slickpg
 
-import org.junit._
-import org.junit.Assert._
+import org.scalatest.FunSuite
 import slick.driver.PostgresDriver
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 
-class PgEnumSupportTest {
+class PgEnumSupportSuite extends FunSuite {
   object WeekDays extends Enumeration {
     type WeekDay = Value
     val Mon, Tue, Wed, Thu, Fri, Sat, Sun = Value
@@ -61,45 +59,50 @@ class PgEnumSupportTest {
   val testRec2 = TestEnumBean(102L, Wed, Some(blue), List(Sat, Sun), List(green))
   val testRec3 = TestEnumBean(103L, Fri, None, List(Thu), Nil)
 
-  @Test
-  def testEnumFunctions(): Unit = {
-    Await.result(db.run(DBIO.seq(
+  test("Enum Lifted support") {
+    Await.result(db.run(
+      DBIO.seq(
 //      PgEnumSupportUtils.buildCreateSql("WeekDay", WeekDays),
 //      PgEnumSupportUtils.buildCreateSql("Rainbow", Rainbows, true),
-      sqlu"create type weekday as enum ('Mon','Tue','Wed','Thu','Fri','Sat','Sun')",
-      sqlu"""create type "Rainbow" as enum ('red','orange','yellow','green','blue','purple')""",
-      (TestEnums.schema) create,
-      ///
-      TestEnums forceInsertAll List(testRec1, testRec2, testRec3),
-      // 0. simple test
-      TestEnums.sortBy(_.id).to[List].result.map(
-        assertEquals(List(testRec1, testRec2, testRec3), _)
-      ),
-      // 1. 'first'
-      TestEnums.filter(_.id === 101L.bind).map(t => t.weekday.first).result.head.map(
-        assertEquals(Mon, _)
-      ),
-      // 2. 'last'
-      TestEnums.filter(_.id === 101L.bind).map(t => t.rainbow.last).result.head.map(
-        assertEquals(Some(purple), _)
-      ),
-      // 3. 'all'
-      TestEnums.filter(_.id === 101L.bind).map(t => t.weekday.all).result.head.map(
-        assertEquals(WeekDays.values.toList, _)
-      ),
-      // 4. 'range'
-      TestEnums.filter(_.id === 102L.bind).map(t => t.weekday range null.asInstanceOf[WeekDay]).result.head.map(
-        assertEquals(List(Wed, Thu, Fri, Sat, Sun), _)
-      ),
-      TestEnums.filter(_.id === 102L.bind).map(t => null.asInstanceOf[WeekDay].bind range t.weekday).result.head.map(
-        assertEquals(List(Mon, Tue, Wed), _)
-      ),
-      ///
-      (TestEnums.schema) drop,
-      sqlu"""drop type "Rainbow"""",
-      sqlu"drop type weekday"
-//      PgEnumSupportUtils.buildDropSql("Rainbow", true),
-//      PgEnumSupportUtils.buildDropSql("weekday")
-    ).transactionally), Duration.Inf)
+        sqlu"create type weekday as enum ('Mon','Tue','Wed','Thu','Fri','Sat','Sun')",
+        sqlu"""create type "Rainbow" as enum ('red','orange','yellow','green','blue','purple')""",
+        (TestEnums.schema) create,
+        ///
+        TestEnums forceInsertAll List(testRec1, testRec2, testRec3)
+      ).andThen(
+        DBIO.seq(
+          TestEnums.sortBy(_.id).to[List].result.map(
+            r => assert(List(testRec1, testRec2, testRec3) === r)
+          ),
+          // first
+          TestEnums.filter(_.id === 101L.bind).map(t => t.weekday.first).result.head.map(
+            r => assert(Mon === r)
+          ),
+          // last
+          TestEnums.filter(_.id === 101L.bind).map(t => t.rainbow.last).result.head.map(
+            r => assert(Some(purple) === r)
+          ),
+          // all
+          TestEnums.filter(_.id === 101L.bind).map(t => t.weekday.all).result.head.map(
+            r => assert(WeekDays.values.toList === r)
+          ),
+          // range
+          TestEnums.filter(_.id === 102L.bind).map(t => t.weekday range null.asInstanceOf[WeekDay]).result.head.map(
+            r => assert(List(Wed, Thu, Fri, Sat, Sun) === r)
+          ),
+          TestEnums.filter(_.id === 102L.bind).map(t => null.asInstanceOf[WeekDay].bind range t.weekday).result.head.map(
+            r => assert(List(Mon, Tue, Wed) === r)
+          )
+        )
+      ).andFinally(
+        DBIO.seq(
+          (TestEnums.schema) drop,
+          sqlu"""drop type "Rainbow"""",
+          sqlu"drop type weekday"
+  //      PgEnumSupportUtils.buildDropSql("Rainbow", true),
+  //      PgEnumSupportUtils.buildDropSql("weekday")
+        )
+      ) .transactionally
+    ), Duration.Inf)
   }
 }

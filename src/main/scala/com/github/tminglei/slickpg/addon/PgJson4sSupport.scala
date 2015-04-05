@@ -8,7 +8,7 @@ trait PgJson4sSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes
   import org.json4s._
 
   type DOCType
-  val pgjson = "json"
+  def pgjson: String
 
   val jsonMethods: JsonMethods[DOCType]
 
@@ -50,7 +50,7 @@ trait PgJson4sSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes
 
     ///
     private def setJson(v: Option[JValue], p: PositionedParameters) = v match {
-      case Some(v) => p.setObject(utils.mkPGobject("json", jsonMethods.compact(jsonMethods.render(v))), java.sql.Types.OTHER)
+      case Some(v) => p.setObject(utils.mkPGobject(pgjson, jsonMethods.compact(jsonMethods.render(v))), java.sql.Types.OTHER)
       case None    => p.setNull(java.sql.Types.OTHER)
     }
   }

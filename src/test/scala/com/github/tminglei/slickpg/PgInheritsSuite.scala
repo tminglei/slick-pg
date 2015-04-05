@@ -1,13 +1,11 @@
 package com.github.tminglei.slickpg
 
-import org.junit._
-import org.junit.Assert._
+import org.scalatest.FunSuite
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 
-class PgInheritsTest {
+class PgInheritsSuite extends FunSuite {
   import ExPostgresDriver.api._
 
   val db = Database.forURL(url = dbUrl, driver = "org.postgresql.Driver")
@@ -37,40 +35,43 @@ class PgInheritsTest {
   }
   val tabs2 = TableQuery(new Tabs2(_))
 
-  @Test
-  def testInherits {
-    Await.result(db.run(DBIO.seq(
-      (tabs1.schema ++ tabs2.schema) create,
-      ///
-      tabs1 ++= Seq(
-        Tab1("foo", "bar",  "bat", 1),
-        Tab1("foo", "bar",  "bat", 2),
-        Tab1("foo", "quux", "bat", 3),
-        Tab1("baz", "quux", "bat", 4)
-      ),
-      tabs2 ++= Seq(
-        Tab2("plus", "bar",  "bat", 5, 101),
-        Tab2("plus", "quux", "bat", 6, 102)
-      ),
-      ///
-      tabs1.sortBy(_.col4).to[List].result.map(
-        r => assertEquals(Seq(
+  test("Inherits support") {
+    Await.result(db.run(
+      DBIO.seq(
+        (tabs1.schema ++ tabs2.schema) create,
+        ///
+        tabs1 ++= Seq(
           Tab1("foo", "bar",  "bat", 1),
           Tab1("foo", "bar",  "bat", 2),
           Tab1("foo", "quux", "bat", 3),
-          Tab1("baz", "quux", "bat", 4),
-          Tab1("plus", "bar",  "bat", 5),
-          Tab1("plus", "quux", "bat", 6)
-        ), r)
-      ),
-      tabs2.sortBy(_.col4).to[List].result.map(
-        r => assertEquals(Seq(
+          Tab1("baz", "quux", "bat", 4)
+        ),
+        tabs2 ++= Seq(
           Tab2("plus", "bar",  "bat", 5, 101),
           Tab2("plus", "quux", "bat", 6, 102)
-        ), r)
-      ),
-      ///
-      (tabs1.schema ++ tabs2.schema) drop
-    ).transactionally), Duration.Inf)
+        )
+      ).andThen(
+        DBIO.seq(
+          tabs1.sortBy(_.col4).to[List].result.map(
+            r => assert(Seq(
+              Tab1("foo", "bar",  "bat", 1),
+              Tab1("foo", "bar",  "bat", 2),
+              Tab1("foo", "quux", "bat", 3),
+              Tab1("baz", "quux", "bat", 4),
+              Tab1("plus", "bar",  "bat", 5),
+              Tab1("plus", "quux", "bat", 6)
+            ) === r)
+          ),
+          tabs2.sortBy(_.col4).to[List].result.map(
+            r => assert(Seq(
+              Tab2("plus", "bar",  "bat", 5, 101),
+              Tab2("plus", "quux", "bat", 6, 102)
+            ) === r)
+          )
+        )
+      ).andFinally(
+        (tabs1.schema ++ tabs2.schema) drop
+      ).transactionally
+    ), Duration.Inf)
   }
 }

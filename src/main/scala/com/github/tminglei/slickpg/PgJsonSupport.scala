@@ -12,7 +12,7 @@ case class JsonString(value: String)
 trait PgJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import driver.api._
 
-  val pgjson = "json"
+  def pgjson: String
 
   /// alias
   trait JsonImplicits extends SimpleJsonImplicits
@@ -53,7 +53,7 @@ trait PgJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes {
 
     ///
     private def setJson(v: Option[JsonString], p: PositionedParameters) = v match {
-      case Some(v) => p.setObject(utils.mkPGobject("json", v.value), java.sql.Types.OTHER)
+      case Some(v) => println(s"json type: $pgjson"); p.setObject(utils.mkPGobject(pgjson, v.value), java.sql.Types.OTHER)
       case None    => p.setNull(java.sql.Types.OTHER)
     }
   }

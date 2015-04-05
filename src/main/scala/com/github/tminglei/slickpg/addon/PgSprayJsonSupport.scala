@@ -8,7 +8,7 @@ trait PgSprayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
   import spray.json._
   import DefaultJsonProtocol._ // !!! IMPORTANT, otherwise `convertTo` and `toJson` won't work correctly.
 
-  val pgjson = "json"
+  def pgjson: String
 
   /// alias
   trait JsonImplicits extends SparyJsonImplicits
@@ -48,7 +48,7 @@ trait PgSprayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
 
     ///
     private def setJson(v: Option[JsValue], p: PositionedParameters) = v match {
-      case Some(v) => p.setObject(utils.mkPGobject("json", v.toJson.compactPrint), java.sql.Types.OTHER)
+      case Some(v) => p.setObject(utils.mkPGobject(pgjson, v.toJson.compactPrint), java.sql.Types.OTHER)
       case None    => p.setNull(java.sql.Types.OTHER)
     }
   }

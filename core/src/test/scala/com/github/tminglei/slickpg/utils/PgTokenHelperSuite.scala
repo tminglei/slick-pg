@@ -1,14 +1,12 @@
 package com.github.tminglei.slickpg
 package utils
 
-import org.junit._
-import org.junit.Assert._
+import org.scalatest.FunSuite
 
-class PgTokenHelperTest {
+class PgTokenHelperSuite extends FunSuite {
   import PgTokenHelper._
 
-  @Test
-  def testTokenize(): Unit = {
+  test("tokenize") {
     val input = """{"(201,\"(101,\"\"(test1'\"\",\"\"2001-01-03 13:21:00\"\",\"\"[\"\"\"\"2010-01-01 14:30:00\"\"\"\",\"\"\"\"2010-01-03 15:30:00\"\"\"\")\"\")\",t)"}"""
     val tokens = Tokenizer.tokenize(input)
 
@@ -16,11 +14,10 @@ class PgTokenHelperTest {
       Comma +: Marker("\\\"\\\"") +: Chunk("2001-01-03 13:21:00") +: Marker("\\\"\\\"") +: Comma +: Open("[","\\\"\\\"") +: Marker("\\\"\\\"\\\"\\\"") +: Chunk("2010-01-01 14:30:00") +: Marker("\\\"\\\"\\\"\\\"") +:
       Comma +: Marker("\\\"\\\"\\\"\\\"") +: Chunk("2010-01-03 15:30:00") +: Marker("\\\"\\\"\\\"\\\"") +: Close(")","\\\"\\\"") +: Close(")","\\\"") +: Comma +: Chunk("t") +: Close(")","\"") +: Close("}") +: Nil
 
-    assertEquals(expected, tokens)
+    assert(expected === tokens)
   }
 
-  @Test
-  def testGrouping(): Unit = {
+  test("grouping") {
     val tokens = Open("{") +: Open("(","\"") +: Chunk("201") +: Comma +: Open("(","\\\"") +: Chunk("101") +: Comma +: Open("(","\\\"\\\"") +: Chunk("test1'") +: Marker("\\\"\\\"") +:
       Comma +: Marker("\\\"\\\"") +: Chunk("2001-01-03 13:21:00") +: Marker("\\\"\\\"") +: Comma +: Open("[","\\\"\\\"") +: Marker("\\\"\\\"\\\"\\\"") +: Chunk("2010-01-01 14:30:00") +: Marker("\\\"\\\"\\\"\\\"") +:
       Comma +: Marker("\\\"\\\"\\\"\\\"") +: Chunk("2010-01-03 15:30:00") +: Marker("\\\"\\\"\\\"\\\"") +: Close(")","\\\"\\\"") +: Close(")","\\\"") +: Comma +: Chunk("t") +: Close(")","\"") +: Close("}") +: Nil
@@ -73,7 +70,7 @@ class PgTokenHelperTest {
         Close("}")
       ))
 
-    assertEquals(expected, root)
+    assert(expected === root)
 
     val root1 = grouping(Tokenizer.tokenize("""{"(\"(test1'\",,,)"}"""))
     val expected1 =
@@ -96,7 +93,7 @@ class PgTokenHelperTest {
         )),
         Close("}")
       ))
-    assertEquals(expected1, root1)
+    assert(expected1 === root1)
 
     val root2 = grouping(Tokenizer.tokenize(("""{"(,102,,)"}""")))
     val expected2 =
@@ -115,7 +112,7 @@ class PgTokenHelperTest {
         )),
         Close("}")
       ))
-    assertEquals(expected2, root2)
+    assert(expected2 === root2)
 
     val root3 = grouping(Tokenizer.tokenize("""{"(,,,)"}"""))
     val expected3 =
@@ -134,11 +131,10 @@ class PgTokenHelperTest {
         )),
         Close("}")
       ))
-    assertEquals(expected3, root3)
+    assert(expected3 === root3)
   }
 
-  @Test
-  def testGetString(): Unit = {
+  test("get string") {
     val input =
       GroupToken(List(
         Open("[","\\\"\\\""),
@@ -158,11 +154,10 @@ class PgTokenHelperTest {
     val rangeStr = getString(input, 2)
 
     val expected = """["2010-01-01 14:30:00","2010-01-03 15:30:00")"""
-    assertEquals(expected, rangeStr)
+    assert(expected === rangeStr)
   }
 
-  @Test
-  def testGetChildren(): Unit = {
+  test("get children") {
     val input =
       GroupToken(List(
         Open("[","\\\"\\\""),
@@ -195,11 +190,10 @@ class PgTokenHelperTest {
         ))
       )
 
-    assertEquals(expected, children)
+    assert(expected === children)
   }
 
-  @Test
-  def testCreateString(): Unit = {
+  test("create string") {
     val input =
       GroupToken(List(
         Open("{"),
@@ -244,7 +238,7 @@ class PgTokenHelperTest {
 
     val expected = """{"(201,\"(101,\"\"(test1'\"\",\"\"2001-01-03 13:21:00\"\",\"\"[\\\\\"\"2010-01-01 14:30:00\\\\\"\",\\\\\"\"2010-01-03 15:30:00\\\\\"\")\"\")\",t)"}"""
 
-    assertEquals(expected, pgStr)
+    assert(expected === pgStr)
 
     ///
     val input1 =
@@ -286,7 +280,6 @@ class PgTokenHelperTest {
     val pgStr1 = createString(input1)
 
     val expected1 = """(201,"(101,""(test1'"",""2001-01-03 13:21:00"",""[\\""2010-01-01 14:30:00\\"",\\""2010-01-03 15:30:00\\"")"")",t)"""
-    assertEquals(expected1, pgStr1)
+    assert(expected1 === pgStr1)
   }
-
 }

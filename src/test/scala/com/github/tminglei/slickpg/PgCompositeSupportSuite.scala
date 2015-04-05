@@ -1,7 +1,7 @@
 package com.github.tminglei.slickpg
 
-import org.junit._
-import org.junit.Assert._
+import org.scalatest.FunSuite
+
 import slick.driver.PostgresDriver
 import slick.jdbc.{GetResult, PositionedResult}
 import scala.reflect.runtime.{universe => u}
@@ -11,9 +11,8 @@ import composite.Struct
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 
-object PgCompositeSupportTest {
+object PgCompositeSupportSuite {
   val tsFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
   def ts(str: String) = new Timestamp(tsFormat.parse(str).getTime)
 
@@ -92,8 +91,8 @@ object PgCompositeSupportTest {
 }
 
 ///
-class PgCompositeSupportTest {
-  import PgCompositeSupportTest._
+class PgCompositeSupportSuite extends FunSuite {
+  import PgCompositeSupportSuite._
   import MyPostgresDriver1.api._
 
   val db = Database.forURL(url = dbUrl, driver = "org.postgresql.Driver")
@@ -110,7 +109,7 @@ class PgCompositeSupportTest {
 
   class TestTable(tag: Tag) extends Table[TestBean](tag, "CompositeTest") {
     def id = column[Long]("id")
-    def comps = column[List[Composite2]]("comps", O.SqlType("composite2[]"), O.Default(Nil))
+    def comps = column[List[Composite2]]("comps", O.Default(Nil))
 
     def * = (id,comps) <> (TestBean.tupled, TestBean.unapply)
   }
@@ -118,7 +117,7 @@ class PgCompositeSupportTest {
 
   class TestTable1(tag: Tag) extends Table[TestBean1](tag, "CompositeTest1") {
     def id = column[Long]("id")
-    def comps = column[List[Composite3]]("comps", O.SqlType("composite3[]"))
+    def comps = column[List[Composite3]]("comps")
 
     def * = (id,comps) <> (TestBean1.tupled, TestBean1.unapply)
   }
@@ -132,65 +131,55 @@ class PgCompositeSupportTest {
 		  							Some(Range(ts("2011-01-01 14:30:00"), ts("2011-11-01 15:30:00")))), false)))
   val rec3 = TestBean(337, List(Composite2(203, Composite1(103, "ABC ABC", ts("2015-3-8 17:17:03"), None), false)))
 
-  @Test
-  def testCompositeTypes(): Unit = {
-    Await.result(db.run(DBIO.seq(
-      sqlu"create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)",
-      sqlu"create type composite2 as (id int8, comp1 composite1, confirm boolean)",
-      sqlu"create type composite3 as (txt text, id int4, code int4, bool boolean)",
-      (CompositeTests.schema ++ CompositeTests1.schema) create,
-      ///
-      CompositeTests forceInsertAll List(rec1, rec2, rec3),
-      CompositeTests.filter(_.id === 333L.bind).result.head.map(
-        assertEquals(rec1, _)
-      ),
-      CompositeTests.filter(_.id === 335L.bind).result.head.map(
-        assertEquals(rec2, _)
-      ),
-      CompositeTests.filter(_.id === 337L.bind).result.head.map(
-        assertEquals(rec3, _)
-      ),
-      ///
-      (CompositeTests.schema ++ CompositeTests1.schema) drop,
-      sqlu"drop type composite3",
-      sqlu"drop type composite2",
-      sqlu"drop type composite1"
-    ).transactionally), Duration.Inf)
-  }
-
-  ///
   val rec11 = TestBean1(111, List(Composite3(Some("(test1'"))))
   val rec12 = TestBean1(112, List(Composite3(code = Some(102))))
   val rec13 = TestBean1(113, List(Composite3()))
 
-  @Test
-  def testCompositeTypes1(): Unit = {
-    Await.result(db.run(DBIO.seq(
-      sqlu"create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)",
-      sqlu"create type composite2 as (id int8, comp1 composite1, confirm boolean)",
-      sqlu"create type composite3 as (txt text, id int4, code int4, bool boolean)",
-      (CompositeTests.schema ++ CompositeTests1.schema) create,
-      ///
-      CompositeTests1 forceInsertAll List(rec11, rec12, rec13),
-      CompositeTests1.filter(_.id === 111L.bind).result.head.map(
-        assertEquals(rec11, _)
-      ),
-      CompositeTests1.filter(_.id === 112L.bind).result.head.map(
-        assertEquals(rec12, _)
-      ),
-      CompositeTests1.filter(_.id === 113L.bind).result.head.map(
-        assertEquals(rec13, _)
-      ),
-      ///
-      (CompositeTests.schema ++ CompositeTests1.schema) drop,
-      sqlu"drop type composite3",
-      sqlu"drop type composite2",
-      sqlu"drop type composite1"
-    ).transactionally), Duration.Inf)
+  test("Composite type Lifted support") {
+    Await.result(db.run(
+      DBIO.seq(
+        sqlu"create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)",
+        sqlu"create type composite2 as (id int8, comp1 composite1, confirm boolean)",
+        sqlu"create type composite3 as (txt text, id int4, code int4, bool boolean)",
+        (CompositeTests.schema ++ CompositeTests1.schema) create,
+        CompositeTests forceInsertAll List(rec1, rec2, rec3),
+        CompositeTests1 forceInsertAll List(rec11, rec12, rec13)
+      ).andThen(
+        DBIO.seq(
+          CompositeTests.filter(_.id === 333L.bind).result.head.map(
+            r => assert(rec1 === r)
+          ),
+          CompositeTests.filter(_.id === 335L.bind).result.head.map(
+            r => assert(rec2 === r)
+          ),
+          CompositeTests.filter(_.id === 337L.bind).result.head.map(
+            r => assert(rec3 === r)
+          )
+        )
+      ).andThen(
+        DBIO.seq(
+          CompositeTests1.filter(_.id === 111L.bind).result.head.map(
+            r => assert(rec11 === r)
+          ),
+          CompositeTests1.filter(_.id === 112L.bind).result.head.map(
+            r => assert(rec12 === r)
+          ),
+          CompositeTests1.filter(_.id === 113L.bind).result.head.map(
+            r => assert(rec13 === r)
+          )
+        )
+      ).andFinally(
+        DBIO.seq(
+          (CompositeTests.schema ++ CompositeTests1.schema) drop,
+          sqlu"drop type composite3",
+          sqlu"drop type composite2",
+          sqlu"drop type composite1"
+        )
+      ).transactionally
+    ), Duration.Inf)
   }
 
-  @Test
-  def testPlainCompositeTypes(): Unit = {
+  test("Composite type Plain SQL support") {
     import MyPostgresDriver1.plainImplicits._
 
     implicit val getTestBeanResult = GetResult(r => TestBean(r.nextLong(), r.nextArray[Composite2]().toList))
@@ -205,11 +194,11 @@ class PgCompositeSupportTest {
       ///
       sqlu"insert into CompositeTest values(${rec1.id}, ${rec1.comps})",
       sql"select * from CompositeTest where id = ${rec1.id}".as[TestBean].head.map(
-        assertEquals(rec1, _)
+        r => assert(rec1 === r)
       ),
       sqlu"insert into CompositeTest1 values(${rec11.id}, ${rec11.comps})",
       sql"select * from CompositeTest1 where id = ${rec11.id}".as[TestBean1].head.map(
-        assertEquals(rec11, _)
+        r => assert(rec11 === r)
       ),
       ///
       sqlu"drop table CompositeTest1",

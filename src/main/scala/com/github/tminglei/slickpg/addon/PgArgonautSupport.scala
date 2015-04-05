@@ -7,7 +7,7 @@ trait PgArgonautSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
   import driver.api._
   import argonaut._, Argonaut._
 
-  val pgjson = "json"
+  def pgjson: String
 
   /// alias
   trait JsonImplicits extends ArgonautJsonImplicits
@@ -47,7 +47,7 @@ trait PgArgonautSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
 
     ///
     private def setJson(v: Option[Json], p: PositionedParameters) = v match {
-      case Some(v) => p.setObject(utils.mkPGobject("json", v.nospaces), java.sql.Types.OTHER)
+      case Some(v) => p.setObject(utils.mkPGobject(pgjson, v.nospaces), java.sql.Types.OTHER)
       case None    => p.setNull(java.sql.Types.OTHER)
     }
   }
