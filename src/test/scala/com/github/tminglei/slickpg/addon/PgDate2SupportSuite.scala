@@ -260,6 +260,22 @@ class PgDate2SupportSuite extends FunSuite {
           r => assert(b === r)
         ),
         ///
+        sqlu""" insert into Datetime2Test values(${b.id + 1}, 'infinity', ${b.time}, 'infinity', 'infinity', 'infinity', ${b.duration}, ${b.period}, ${b.zone}) """,
+        sql""" select * from Datetime2Test where id = ${b.id + 1} """.as[DatetimeBean].head.map { r =>
+          assert(LocalDate.MAX === r.date)
+          assert(LocalDateTime.MAX === r.dateTime)
+          assert(LocalDateTime.MAX === r.dateTimeOffset.toLocalDateTime)
+          assert(LocalDateTime.MAX === r.dateTimeTz.toLocalDateTime)
+        },
+        ///
+        sqlu""" insert into Datetime2Test values(${b.id + 2}, '-infinity', ${b.time}, '-infinity', '-infinity', '-infinity', ${b.duration}, ${b.period}, ${b.zone}) """,
+        sql""" select * from Datetime2Test where id = ${b.id + 2} """.as[DatetimeBean].head.map { r =>
+          assert(LocalDate.MIN === r.date)
+          assert(LocalDateTime.MIN === r.dateTime)
+          assert(LocalDateTime.MIN === r.dateTimeOffset.toLocalDateTime)
+          assert(LocalDateTime.MIN === r.dateTimeTz.toLocalDateTime)
+        },
+        ///
         sqlu"drop table if exists Datetime2Test cascade"
       ).transactionally
     ), concurrent.duration.Duration.Inf)
