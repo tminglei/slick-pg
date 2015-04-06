@@ -45,30 +45,29 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
         .optionalEnd()
         .appendOffset("+HH:mm","+00")
         .toFormatter()
-  }
 
-  trait Date2DateTimeImplicits[INTERVAL] extends Date2DateTimeFormatters {
-
-    private def fromInfinitable[T](max: T, min: T, parse: String => T): String => T = {
+    protected def fromInfinitable[T](max: T, min: T, parse: String => T): String => T = {
       case "infinity" => max
       case "-infinity" => min
       case finite => parse(finite)
     }
-    private val fromDateOrInfinity: String => LocalDate =
+    protected val fromDateOrInfinity: String => LocalDate =
       fromInfinitable(LocalDate.MAX, LocalDate.MIN, LocalDate.parse(_, date2DateFormatter))
-    private val fromDateTimeOrInfinity: String => LocalDateTime =
+    protected val fromDateTimeOrInfinity: String => LocalDateTime =
       fromInfinitable(LocalDateTime.MAX, LocalDateTime.MIN, LocalDateTime.parse(_, date2DateTimeFormatter))
-    private val fromOffsetDateTimeOrInfinity: String => OffsetDateTime = fromInfinitable(
+    protected val fromOffsetDateTimeOrInfinity: String => OffsetDateTime = fromInfinitable(
       LocalDateTime.MAX.atOffset(ZoneOffset.UTC),
       LocalDateTime.MIN.atOffset(ZoneOffset.UTC),
       OffsetDateTime.parse(_, date2TzDateTimeFormatter)
     )
-    private val fromZonedDateTimeOrInfinity: String => ZonedDateTime = fromInfinitable(
+    protected val fromZonedDateTimeOrInfinity: String => ZonedDateTime = fromInfinitable(
       LocalDateTime.MAX.atZone(ZoneId.of("UTC")),
       LocalDateTime.MIN.atZone(ZoneId.of("UTC")),
       ZonedDateTime.parse(_, date2TzDateTimeFormatter)
     )
+  }
 
+  trait Date2DateTimeImplicits[INTERVAL] extends Date2DateTimeFormatters {
     private def toInfinitable[T,U](f: T => U, max: U, min: U, format: T => String): T => String = {
       v => f(v) match {
         case `max` =>  "infinity"
@@ -162,17 +161,17 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
 
     implicit class PgDate2TimePositionedResult(r: PositionedResult) {
       def nextLocalDate() = nextLocalDateOption().orNull
-      def nextLocalDateOption() = r.nextStringOption().map(LocalDate.parse(_, date2DateFormatter))
+      def nextLocalDateOption() = r.nextStringOption().map(fromDateOrInfinity)
       def nextLocalTime() = nextLocalTimeOption().orNull
       def nextLocalTimeOption() = r.nextStringOption().map(LocalTime.parse(_, date2TimeFormatter))
       def nextLocalDateTime() = nextLocalDateTimeOption().orNull
-      def nextLocalDateTimeOption() = r.nextStringOption().map(LocalDateTime.parse(_, date2DateTimeFormatter))
+      def nextLocalDateTimeOption() = r.nextStringOption().map(fromDateTimeOrInfinity)
       def nextOffsetTime() = nextOffsetTimeOption().orNull
       def nextOffsetTimeOption() = r.nextStringOption().map(OffsetTime.parse(_, date2TzTimeFormatter))
       def nextOffsetDateTime() = nextOffsetDateTimeOption().orNull
-      def nextOffsetDateTimeOption() = r.nextStringOption().map(OffsetDateTime.parse(_, date2TzDateTimeFormatter))
+      def nextOffsetDateTimeOption() = r.nextStringOption().map(fromOffsetDateTimeOrInfinity)
       def nextZonedDateTime() = nextZonedDateTimeOption().orNull
-      def nextZonedDateTimeOption() = r.nextStringOption().map(ZonedDateTime.parse(_, date2TzDateTimeFormatter))
+      def nextZonedDateTimeOption() = r.nextStringOption().map(fromZonedDateTimeOrInfinity)
       def nextPeriod() = nextPeriodOption().orNull
       def nextPeriodOption() = r.nextStringOption().map(pgIntervalStr2Period)
       def nextDuration() = nextDurationOption().orNull
