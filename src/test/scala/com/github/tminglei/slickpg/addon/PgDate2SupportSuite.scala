@@ -59,10 +59,10 @@ class PgDate2SupportSuite extends FunSuite {
     ZonedDateTime.parse("2001-01-03 13:21:00.102203+08", date2TzDateTimeFormatter),
     Duration.parse("P1DT1H1M0.335701S"), Period.parse("P1Y2M3W4D"), ZoneId.of("America/New_York"))
   val testRec2 = new DatetimeBean(102L, LocalDate.MAX, LocalTime.parse("03:14:07"),
-    LocalDateTime.MAX, LocalDateTime.MAX.atOffset(ZoneOffset.UTC), LocalDateTime.MAX.atZone(ZoneId.of("UTC")),
+    LocalDateTime.MAX, OffsetDateTime.MAX, LocalDateTime.MAX.atZone(ZoneId.of("UTC")),
     Duration.parse("P1587D"), Period.parse("P15M7D"), ZoneId.of("Europe/London"))
   val testRec3 = new DatetimeBean(103L, LocalDate.MIN, LocalTime.parse("11:13:34"),
-    LocalDateTime.MIN, LocalDateTime.MIN.atOffset(ZoneOffset.UTC), LocalDateTime.MIN.atZone(ZoneId.of("UTC")),
+    LocalDateTime.MIN, OffsetDateTime.MIN, LocalDateTime.MIN.atZone(ZoneId.of("UTC")),
     Duration.parse("PT63H16M2S"), Period.parse("P3M5D"), ZoneId.of("Asia/Shanghai"))
 
   test("Java8 date Lifted support") {
@@ -212,11 +212,11 @@ class PgDate2SupportSuite extends FunSuite {
           // +/-infinity
           Datetimes.filter(_.id === 102L.bind).map { r => (r.date, r.dateTime, r.dateTimeOffset, r.dateTimeTz) }.result.head.map(
             r => assert((LocalDate.MAX, LocalDateTime.MAX,
-              LocalDateTime.MAX.atOffset(ZoneOffset.UTC), LocalDateTime.MAX.atZone(ZoneId.of("UTC"))) === r)
+              OffsetDateTime.MAX, LocalDateTime.MAX.atZone(ZoneId.of("UTC"))) === r)
           ),
           Datetimes.filter(_.id === 103L.bind).map { r => (r.date, r.dateTime, r.dateTimeOffset, r.dateTimeTz) }.result.head.map(
             r => assert((LocalDate.MIN, LocalDateTime.MIN,
-              LocalDateTime.MIN.atOffset(ZoneOffset.UTC), LocalDateTime.MIN.atZone(ZoneId.of("UTC"))) === r)
+              OffsetDateTime.MIN, LocalDateTime.MIN.atZone(ZoneId.of("UTC"))) === r)
           )
         )
       ).andFinally(
@@ -239,6 +239,9 @@ class PgDate2SupportSuite extends FunSuite {
       OffsetDateTime.parse("2001-01-03 13:21:00.102203+08", date2TzDateTimeFormatter),
       ZonedDateTime.parse("2001-01-03 13:21:00.102203+08", date2TzDateTimeFormatter),
       Duration.parse("P1DT1H1M0.335701S"), Period.parse("P1Y2M3W4D"), ZoneId.of("Africa/Johannesburg"))
+    val b1 = new DatetimeBean(108L, LocalDate.MAX, LocalTime.parse("12:33:01.101357"),
+      LocalDateTime.MIN, OffsetDateTime.MAX, LocalDateTime.MIN.atZone(ZoneId.of("UTC")),
+      Duration.parse("P1DT1H1M0.335701S"), Period.parse("P1Y2M3W4D"), ZoneId.of("Africa/Johannesburg"))
 
     Await.result(db.run(
       DBIO.seq(
@@ -260,21 +263,10 @@ class PgDate2SupportSuite extends FunSuite {
           r => assert(b === r)
         ),
         ///
-        sqlu""" insert into Datetime2Test values(${b.id + 1}, 'infinity', ${b.time}, 'infinity', 'infinity', 'infinity', ${b.duration}, ${b.period}, ${b.zone}) """,
-        sql""" select * from Datetime2Test where id = ${b.id + 1} """.as[DatetimeBean].head.map { r =>
-          assert(LocalDate.MAX === r.date)
-          assert(LocalDateTime.MAX === r.dateTime)
-          assert(LocalDateTime.MAX === r.dateTimeOffset.toLocalDateTime)
-          assert(LocalDateTime.MAX === r.dateTimeTz.toLocalDateTime)
-        },
-        ///
-        sqlu""" insert into Datetime2Test values(${b.id + 2}, '-infinity', ${b.time}, '-infinity', '-infinity', '-infinity', ${b.duration}, ${b.period}, ${b.zone}) """,
-        sql""" select * from Datetime2Test where id = ${b.id + 2} """.as[DatetimeBean].head.map { r =>
-          assert(LocalDate.MIN === r.date)
-          assert(LocalDateTime.MIN === r.dateTime)
-          assert(LocalDateTime.MIN === r.dateTimeOffset.toLocalDateTime)
-          assert(LocalDateTime.MIN === r.dateTimeTz.toLocalDateTime)
-        },
+        sqlu""" insert into Datetime2Test values(${b1.id}, ${b1.date}, ${b1.time}, ${b1.dateTime}, ${b1.dateTimeOffset}, ${b1.dateTimeTz}, ${b1.duration}, ${b1.period}, ${b1.zone}) """,
+        sql""" select * from Datetime2Test where id = ${b1.id} """.as[DatetimeBean].head.map(
+          r => assert(b1 === r)
+        ),
         ///
         sqlu"drop table if exists Datetime2Test cascade"
       ).transactionally

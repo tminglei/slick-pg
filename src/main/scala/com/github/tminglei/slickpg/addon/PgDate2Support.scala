@@ -55,35 +55,31 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
       fromInfinitable(LocalDate.MAX, LocalDate.MIN, LocalDate.parse(_, date2DateFormatter))
     protected val fromDateTimeOrInfinity: String => LocalDateTime =
       fromInfinitable(LocalDateTime.MAX, LocalDateTime.MIN, LocalDateTime.parse(_, date2DateTimeFormatter))
-    protected val fromOffsetDateTimeOrInfinity: String => OffsetDateTime = fromInfinitable(
-      LocalDateTime.MAX.atOffset(ZoneOffset.UTC),
-      LocalDateTime.MIN.atOffset(ZoneOffset.UTC),
-      OffsetDateTime.parse(_, date2TzDateTimeFormatter)
-    )
+    protected val fromOffsetDateTimeOrInfinity: String => OffsetDateTime =
+      fromInfinitable(OffsetDateTime.MAX, OffsetDateTime.MIN, OffsetDateTime.parse(_, date2TzDateTimeFormatter))
     protected val fromZonedDateTimeOrInfinity: String => ZonedDateTime = fromInfinitable(
-      LocalDateTime.MAX.atZone(ZoneId.of("UTC")),
-      LocalDateTime.MIN.atZone(ZoneId.of("UTC")),
+      LocalDateTime.MAX.atZone(ZoneId.of("UTC")), LocalDateTime.MIN.atZone(ZoneId.of("UTC")),
       ZonedDateTime.parse(_, date2TzDateTimeFormatter)
+    )
+    ///
+    protected def toInfinitable[T](max: T, min: T, format: T => String): T => String = {
+      case `max` =>  "infinity"
+      case `min` =>  "-infinity"
+      case finite => format(finite)
+    }
+    protected val toDateOrInfinity: LocalDate => String =
+      toInfinitable[LocalDate](LocalDate.MAX, LocalDate.MIN, _.format(date2DateFormatter))
+    protected val toDateTimeOrInfinity: LocalDateTime => String =
+      toInfinitable[LocalDateTime](LocalDateTime.MAX, LocalDateTime.MIN, _.format(date2DateTimeFormatter))
+    protected val toOffsetDateTimeOrInfinity: OffsetDateTime => String =
+      toInfinitable[OffsetDateTime](OffsetDateTime.MAX, OffsetDateTime.MIN, _.format(date2TzDateTimeFormatter))
+    protected val toZonedDateTimeOrInfinity: ZonedDateTime => String =
+      toInfinitable[ZonedDateTime](LocalDateTime.MAX.atZone(ZoneId.of("UTC")), LocalDateTime.MIN.atZone(ZoneId.of("UTC")),
+      _.format(date2TzDateTimeFormatter)
     )
   }
 
   trait Date2DateTimeImplicits[INTERVAL] extends Date2DateTimeFormatters {
-    private def toInfinitable[T,U](f: T => U, max: U, min: U, format: T => String): T => String = {
-      v => f(v) match {
-        case `max` =>  "infinity"
-        case `min` =>  "-infinity"
-        case _ => format(v)
-      }
-    }
-    private val toDateOrInfinity: LocalDate => String =
-      toInfinitable(v => v, LocalDate.MAX, LocalDate.MIN, _.format(date2DateFormatter))
-    private val toDateTimeOrInfinity: LocalDateTime => String =
-      toInfinitable(v => v, LocalDateTime.MAX, LocalDateTime.MIN, _.format(date2DateTimeFormatter))
-    private val toOffsetDateTimeOrInfinity: OffsetDateTime => String =
-      toInfinitable(o => o.toLocalDateTime, LocalDateTime.MAX, LocalDateTime.MIN, _.format(date2TzDateTimeFormatter))
-    private val toZonedDateTimeOrInfinity: ZonedDateTime => String =
-      toInfinitable(z => z.toLocalDateTime, LocalDateTime.MAX, LocalDateTime.MIN, _.format(date2TzDateTimeFormatter))
-
     implicit val date2DateTypeMapper = new GenericJdbcType[LocalDate]("date",
       fromDateOrInfinity, toDateOrInfinity, hasLiteralForm=false)
     implicit val date2TimeTypeMapper = new GenericJdbcType[LocalTime]("time",
@@ -182,10 +178,10 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
 
     /////////////////////////////////////////////////////////////////////////////
     implicit object SetLocalDate extends SetParameter[LocalDate] {
-      def apply(v: LocalDate, pp: PositionedParameters) = setDateTime(Types.DATE, "date", Option(v).map(_.format(date2DateFormatter)), pp)
+      def apply(v: LocalDate, pp: PositionedParameters) = setDateTime(Types.DATE, "date", Option(v).map(toDateOrInfinity), pp)
     }
     implicit object SetLocalDateOption extends SetParameter[Option[LocalDate]] {
-      def apply(v: Option[LocalDate], pp: PositionedParameters) = setDateTime(Types.DATE, "date", v.map(_.format(date2DateFormatter)), pp)
+      def apply(v: Option[LocalDate], pp: PositionedParameters) = setDateTime(Types.DATE, "date", v.map(toDateOrInfinity), pp)
     }
     ///
     implicit object SetLocalTime extends SetParameter[LocalTime] {
@@ -196,10 +192,10 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
     }
     ///
     implicit object SetLocalDateTime extends SetParameter[LocalDateTime] {
-      def apply(v: LocalDateTime, pp: PositionedParameters) = setDateTime(Types.TIMESTAMP, "timestamp", Option(v).map(_.format(date2DateTimeFormatter)), pp)
+      def apply(v: LocalDateTime, pp: PositionedParameters) = setDateTime(Types.TIMESTAMP, "timestamp", Option(v).map(toDateTimeOrInfinity), pp)
     }
     implicit object SetLocalDateTimeOption extends SetParameter[Option[LocalDateTime]] {
-      def apply(v: Option[LocalDateTime], pp: PositionedParameters) = setDateTime(Types.TIMESTAMP, "timestamp", v.map(_.format(date2DateTimeFormatter)), pp)
+      def apply(v: Option[LocalDateTime], pp: PositionedParameters) = setDateTime(Types.TIMESTAMP, "timestamp", v.map(toDateTimeOrInfinity), pp)
     }
     ///
     implicit object SetOffsetTime extends SetParameter[OffsetTime] {
@@ -210,17 +206,17 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
     }
     ///
     implicit object SetOffsetDateTime extends SetParameter[OffsetDateTime] {
-      def apply(v: OffsetDateTime, pp: PositionedParameters) = setDateTime(Types.TIMESTAMP_WITH_TIMEZONE, "timestamptz", Option(v).map(_.format(date2TzDateTimeFormatter)), pp)
+      def apply(v: OffsetDateTime, pp: PositionedParameters) = setDateTime(Types.TIMESTAMP_WITH_TIMEZONE, "timestamptz", Option(v).map(toOffsetDateTimeOrInfinity), pp)
     }
     implicit object SetOffsetDateTimeOption extends SetParameter[Option[OffsetDateTime]] {
-      def apply(v: Option[OffsetDateTime], pp: PositionedParameters) = setDateTime(Types.TIMESTAMP_WITH_TIMEZONE, "timestamptz", v.map(_.format(date2TzDateTimeFormatter)), pp)
+      def apply(v: Option[OffsetDateTime], pp: PositionedParameters) = setDateTime(Types.TIMESTAMP_WITH_TIMEZONE, "timestamptz", v.map(toOffsetDateTimeOrInfinity), pp)
     }
     ///
     implicit object SetZonedDateTime extends SetParameter[ZonedDateTime] {
-      def apply(v: ZonedDateTime, pp: PositionedParameters) = setDateTime(Types.TIMESTAMP_WITH_TIMEZONE, "timestamptz", Option(v).map(_.format(date2TzDateTimeFormatter)), pp)
+      def apply(v: ZonedDateTime, pp: PositionedParameters) = setDateTime(Types.TIMESTAMP_WITH_TIMEZONE, "timestamptz", Option(v).map(toZonedDateTimeOrInfinity), pp)
     }
     implicit object SetZonedDateTimeOption extends SetParameter[Option[ZonedDateTime]] {
-      def apply(v: Option[ZonedDateTime], pp: PositionedParameters) = setDateTime(Types.TIMESTAMP_WITH_TIMEZONE, "timestamptz", v.map(_.format(date2TzDateTimeFormatter)), pp)
+      def apply(v: Option[ZonedDateTime], pp: PositionedParameters) = setDateTime(Types.TIMESTAMP_WITH_TIMEZONE, "timestamptz", v.map(toZonedDateTimeOrInfinity), pp)
     }
     ///
     implicit object SetPeriod extends SetParameter[Period] {
