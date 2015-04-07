@@ -62,10 +62,8 @@ class PgEnumSupportSuite extends FunSuite {
   test("Enum Lifted support") {
     Await.result(db.run(
       DBIO.seq(
-//      PgEnumSupportUtils.buildCreateSql("WeekDay", WeekDays),
-//      PgEnumSupportUtils.buildCreateSql("Rainbow", Rainbows, true),
-        sqlu"create type weekday as enum ('Mon','Tue','Wed','Thu','Fri','Sat','Sun')",
-        sqlu"""create type "Rainbow" as enum ('red','orange','yellow','green','blue','purple')""",
+        PgEnumSupportUtils.buildCreateSql("WeekDay", WeekDays),
+        PgEnumSupportUtils.buildCreateSql("Rainbow", Rainbows, true),
         (TestEnums.schema) create,
         ///
         TestEnums forceInsertAll List(testRec1, testRec2, testRec3)
@@ -97,10 +95,8 @@ class PgEnumSupportSuite extends FunSuite {
       ).andFinally(
         DBIO.seq(
           (TestEnums.schema) drop,
-          sqlu"""drop type "Rainbow"""",
-          sqlu"drop type weekday"
-  //      PgEnumSupportUtils.buildDropSql("Rainbow", true),
-  //      PgEnumSupportUtils.buildDropSql("weekday")
+          PgEnumSupportUtils.buildDropSql("Rainbow", true),
+          PgEnumSupportUtils.buildDropSql("weekday")
         )
       ) .transactionally
     ), Duration.Inf)

@@ -146,7 +146,7 @@ class PgSprayJsonSupportSuite extends FunSuite {
       DBIO.seq(
         sqlu"""create table JsonTest3(
               id int8 not null primary key,
-              json jsonb not null)
+              json #${MyPostgresDriver.pgjson} not null)
           """,
         ///
         sqlu""" insert into JsonTest3 values(${b.id}, ${b.json}) """,

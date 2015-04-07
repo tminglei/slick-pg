@@ -143,7 +143,7 @@ class PgArgonautSupportSuite extends FunSuite {
       DBIO.seq(
         sqlu"""create table JsonTest4(
               id int8 not null primary key,
-              json jsonb not null)
+              json #${MyPostgresDriver.pgjson} not null)
           """,
         ///
         sqlu""" insert into JsonTest4 values(${b.id}, ${b.json}) """,
