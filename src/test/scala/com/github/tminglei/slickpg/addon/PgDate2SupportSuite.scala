@@ -269,11 +269,13 @@ class PgDate2SupportSuite extends FunSuite {
         ),
         ///
         sqlu""" insert into Datetime2Test values(${b.id + 2}, '-infinity', ${b.time}, '-infinity', 'infinity', 'infinity', ${b.duration}, ${b.period}, ${b.zone}) """,
-        sql""" select * from Datetime2Test where id = ${b.id + 2} """.as[DatetimeBean].head.map { r =>
-          assert(LocalDate.MIN === r.date)
-          assert(LocalDateTime.MIN === r.dateTime)
-          assert(OffsetDateTime.MAX === r.dateTimeOffset)
-          assert(LocalDateTime.MAX === r.dateTimeTz.toLocalDateTime)
+        sql""" select * from Datetime2Test where id = ${b.id + 2} and isfinite(date) != true and isfinite(tsos) != true and isfinite(tstz) != true """.as[DatetimeBean].head.map {
+          r => {
+            assert(LocalDate.MIN === r.date)
+            assert(LocalDateTime.MIN === r.dateTime)
+            assert(OffsetDateTime.MAX === r.dateTimeOffset)
+            assert(LocalDateTime.MAX === r.dateTimeTz.toLocalDateTime)
+          }
         },
         ///
         sqlu"drop table if exists Datetime2Test cascade"
