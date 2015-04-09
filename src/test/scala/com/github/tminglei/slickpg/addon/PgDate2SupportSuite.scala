@@ -239,8 +239,13 @@ class PgDate2SupportSuite extends FunSuite {
       OffsetDateTime.parse("2001-01-03 13:21:00.102203+08", date2TzDateTimeFormatter),
       ZonedDateTime.parse("2001-01-03 13:21:00.102203+08", date2TzDateTimeFormatter),
       Duration.parse("P1DT1H1M0.335701S"), Period.parse("P1Y2M3W4D"), ZoneId.of("Africa/Johannesburg"))
-    val b1 = new DatetimeBean(108L, LocalDate.MAX, LocalTime.parse("12:33:01.101357"),
-      LocalDateTime.MIN, OffsetDateTime.MAX, LocalDateTime.MIN.atZone(ZoneId.of("UTC")),
+    // -infinity
+    val b1 = new DatetimeBean(108L, LocalDate.MIN, LocalTime.parse("12:33:01.101357"),
+      LocalDateTime.MIN, OffsetDateTime.MIN, LocalDateTime.MIN.atZone(ZoneId.of("UTC")),
+      Duration.parse("P1DT1H1M0.335701S"), Period.parse("P1Y2M3W4D"), ZoneId.of("Africa/Johannesburg"))
+    // +infinity
+    val b2 = new DatetimeBean(109L, LocalDate.MAX, LocalTime.parse("12:33:01.101357"),
+      LocalDateTime.MAX, OffsetDateTime.MAX, LocalDateTime.MAX.atZone(ZoneId.of("UTC")),
       Duration.parse("P1DT1H1M0.335701S"), Period.parse("P1Y2M3W4D"), ZoneId.of("Africa/Johannesburg"))
 
     Await.result(db.run(
@@ -262,17 +267,32 @@ class PgDate2SupportSuite extends FunSuite {
         sql""" select * from Datetime2Test where id = ${b.id} """.as[DatetimeBean].head.map(
           r => assert(b === r)
         ),
-        ///
+        /// inserting MIN date/time: PostgreSQL should store as infinity, but we see as MIN/MAX
         sqlu""" insert into Datetime2Test values(${b1.id}, ${b1.date}, ${b1.time}, ${b1.dateTime}, ${b1.dateTimeOffset}, ${b1.dateTimeTz}, ${b1.duration}, ${b1.period}, ${b1.zone}) """,
-        sql""" select * from Datetime2Test where id = ${b1.id} """.as[DatetimeBean].head.map(
+        sql""" select * from Datetime2Test where id = ${b1.id} and isfinite(date) != true and isfinite(ts) != true and isfinite(tsos) != true and isfinite(tstz) != true """.as[DatetimeBean].head.map {
           r => assert(b1 === r)
-        ),
-        ///
-        sqlu""" insert into Datetime2Test values(${b.id + 2}, '-infinity', ${b.time}, '-infinity', 'infinity', 'infinity', ${b.duration}, ${b.period}, ${b.zone}) """,
-        sql""" select * from Datetime2Test where id = ${b.id + 2} and isfinite(date) != true and isfinite(tsos) != true and isfinite(tstz) != true """.as[DatetimeBean].head.map {
+        },
+        /// same for MAX date/time
+        sqlu""" insert into Datetime2Test values(${b2.id}, ${b2.date}, ${b2.time}, ${b2.dateTime}, ${b2.dateTimeOffset}, ${b2.dateTimeTz}, ${b2.duration}, ${b2.period}, ${b2.zone}) """,
+        sql""" select * from Datetime2Test where id = ${b2.id} and isfinite(date) != true and isfinite(ts) != true and isfinite(tsos) != true and isfinite(tstz) != true """.as[DatetimeBean].head.map {
+          r => assert(b2 === r)
+        },
+        // inserting literal infinity also possible, first minus
+        sqlu""" insert into Datetime2Test values(${b.id + 3}, '-infinity', ${b.time}, '-infinity', '-infinity', '-infinity', ${b.duration}, ${b.period}, ${b.zone}) """,
+        sql""" select * from Datetime2Test where id = ${b.id + 3} and isfinite(date) != true and isfinite(ts) != true and isfinite(tsos) != true and isfinite(tstz) != true """.as[DatetimeBean].head.map {
           r => {
             assert(LocalDate.MIN === r.date)
             assert(LocalDateTime.MIN === r.dateTime)
+            assert(OffsetDateTime.MIN === r.dateTimeOffset)
+            assert(LocalDateTime.MIN === r.dateTimeTz.toLocalDateTime)
+          }
+        },
+        // literal plus infinity
+        sqlu""" insert into Datetime2Test values(${b.id + 4}, 'infinity', ${b.time}, 'infinity', 'infinity', 'infinity', ${b.duration}, ${b.period}, ${b.zone}) """,
+        sql""" select * from Datetime2Test where id = ${b.id + 4} and isfinite(date) != true and isfinite(ts) != true and isfinite(tsos) != true and isfinite(tstz) != true """.as[DatetimeBean].head.map {
+          r => {
+            assert(LocalDate.MAX === r.date)
+            assert(LocalDateTime.MAX === r.dateTime)
             assert(OffsetDateTime.MAX === r.dateTimeOffset)
             assert(LocalDateTime.MAX === r.dateTimeTz.toLocalDateTime)
           }
