@@ -181,7 +181,13 @@ case class Interval(
 }
 
 object Interval {
-  private val secondsFormat = new DecimalFormat("0.00####")
+  private val secondsFormat = {
+    val format = new DecimalFormat("0.00####")
+    val dfs = format.getDecimalFormatSymbols()
+    dfs.setDecimalSeparator('.')
+    format.setDecimalFormatSymbols(dfs)
+    format
+  }
 
   def apply(interval: String): Interval = fromPgInterval(new PGInterval(interval))
 
