@@ -20,6 +20,11 @@ class PgJson4sSupportSuite extends FunSuite {
 
     override val api = new API with JsonImplicits {
       implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
+      implicit val json4sJsonArrayTypeMapper =
+        new AdvancedArrayJdbcType[JValue](pgjson,
+          (s) => utils.SimpleArrayUtils.fromString[JValue](jsonMethods.parse(_))(s).orNull,
+          (v) => utils.SimpleArrayUtils.mkString[JValue](j=>jsonMethods.compact(jsonMethods.render(j)))(v)
+        ).to(_.toList)
     }
 
     val plainAPI = new API with Json4sJsonPlainImplicits
@@ -31,21 +36,22 @@ class PgJson4sSupportSuite extends FunSuite {
 
   val db = Database.forURL(url = dbUrl, driver = "org.postgresql.Driver")
 
-  case class JsonBean(id: Long, json: JValue)
+  case class JsonBean(id: Long, json: JValue, jsons: List[JValue])
 
   class JsonTestTable(tag: Tag) extends Table[JsonBean](tag, "JsonTest1") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def json = column[JValue]("json")
+    def jsons = column[List[JValue]]("jsons")
 
-    def * = (id, json) <> (JsonBean.tupled, JsonBean.unapply)
+    def * = (id, json, jsons) <> (JsonBean.tupled, JsonBean.unapply)
   }
   val JsonTests = TableQuery[JsonTestTable]
 
   //------------------------------------------------------------------------------
 
-  val testRec1 = JsonBean(33L, parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """))
-  val testRec2 = JsonBean(35L, parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """))
-  val testRec3 = JsonBean(37L, parse(""" ["a", "b"] """))
+  val testRec1 = JsonBean(33L, parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """), List(parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """)))
+  val testRec2 = JsonBean(35L, parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """), List(parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """)))
+  val testRec3 = JsonBean(37L, parse(""" ["a", "b"] """), Nil)
 
   test("Json4s Lifted support") {
     val json1 = parse(""" {"a":"v1","b":2} """)
@@ -60,6 +66,9 @@ class PgJson4sSupportSuite extends FunSuite {
         DBIO.seq(
           JsonTests.filter(_.id === testRec2.id.bind).map(_.json).result.head.map(
             r => assert(JArray(List(json1,json2)) === r)
+          ),
+          JsonTests.to[List].result.map(
+            r => assert(List(testRec1, testRec2, testRec3) === r)
           ),
           // ->>/->
           JsonTests.filter(_.json.+>>("a") === "101").map(_.json.+>>("c")).result.head.map(
@@ -139,12 +148,14 @@ class PgJson4sSupportSuite extends FunSuite {
 
   //------------------------------------------------------------------------------
 
+  case class JsonBean1(id: Long, json: JValue)
+
   test("Json4s Plain SQL support") {
     import MyPostgresDriver.plainAPI._
 
-    implicit val getJsonBeanResult = GetResult(r => JsonBean(r.nextLong(), r.nextJson()))
+    implicit val getJsonBeanResult = GetResult(r => JsonBean1(r.nextLong(), r.nextJson()))
 
-    val b = JsonBean(34L, parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """))
+    val b = JsonBean1(34L, parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """))
 
     Await.result(db.run(
       DBIO.seq(
@@ -154,7 +165,7 @@ class PgJson4sSupportSuite extends FunSuite {
           """,
         ///
         sqlu""" insert into JsonTest1 values(${b.id}, ${b.json}) """,
-        sql""" select * from JsonTest1 where id = ${b.id} """.as[JsonBean].head.map(
+        sql""" select * from JsonTest1 where id = ${b.id} """.as[JsonBean1].head.map(
           r => assert(b === r)
         ),
         ///

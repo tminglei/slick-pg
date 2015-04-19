@@ -17,6 +17,11 @@ class PgPlayJsonSupportSuite extends FunSuite {
 
     override val api = new API with JsonImplicits {
       implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
+      implicit val json4sJsonArrayTypeMapper =
+        new AdvancedArrayJdbcType[JsValue](pgjson,
+          (s) => utils.SimpleArrayUtils.fromString[JsValue](Json.parse(_))(s).orNull,
+          (v) => utils.SimpleArrayUtils.mkString[JsValue](_.toString())(v)
+        ).to(_.toList)
     }
 
     val plainAPI = new API with PlayJsonPlainImplicits
@@ -27,21 +32,22 @@ class PgPlayJsonSupportSuite extends FunSuite {
 
   val db = Database.forURL(url = dbUrl, driver = "org.postgresql.Driver")
 
-  case class JsonBean(id: Long, json: JsValue)
+  case class JsonBean(id: Long, json: JsValue, jsons: List[JsValue])
 
   class JsonTestTable(tag: Tag) extends Table[JsonBean](tag, "JsonTest2") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def json = column[JsValue]("json", O.Default(Json.parse(""" {"a":"v1","b":2} """)))
+    def jsons = column[List[JsValue]]("jsons")
 
-    def * = (id, json) <> (JsonBean.tupled, JsonBean.unapply)
+    def * = (id, json, jsons) <> (JsonBean.tupled, JsonBean.unapply)
   }
   val JsonTests = TableQuery[JsonTestTable]
 
   //------------------------------------------------------------------------------
 
-  val testRec1 = JsonBean(33L, Json.parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """))
-  val testRec2 = JsonBean(35L, Json.parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """))
-  val testRec3 = JsonBean(37L, Json.parse(""" ["a", "b"] """))
+  val testRec1 = JsonBean(33L, Json.parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """), List(Json.parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """)))
+  val testRec2 = JsonBean(35L, Json.parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """), List(Json.parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """)))
+  val testRec3 = JsonBean(37L, Json.parse(""" ["a", "b"] """), Nil)
 
   test("Play json Lifted support") {
     val json1 = Json.parse(""" {"a":"v1","b":2} """)
@@ -56,6 +62,9 @@ class PgPlayJsonSupportSuite extends FunSuite {
         DBIO.seq(
           JsonTests.filter(_.id === testRec2.id.bind).map(_.json).result.head.map(
             r => assert(JsArray(List(json1,json2)) === r)
+          ),
+          JsonTests.to[List].result.map(
+            r => assert(List(testRec1, testRec2, testRec3) === r)
           ),
           // ->>/->
           JsonTests.filter(_.json.+>>("a") === "101").map(_.json.+>>("c")).result.head.map(
@@ -135,12 +144,14 @@ class PgPlayJsonSupportSuite extends FunSuite {
 
   //------------------------------------------------------------------------------
 
+  case class JsonBean1(id: Long, json: JsValue)
+
   test("Json Plain SQL support") {
     import MyPostgresDriver.plainAPI._
 
-    implicit val getJsonBeanResult = GetResult(r => JsonBean(r.nextLong(), r.nextJson()))
+    implicit val getJsonBeanResult = GetResult(r => JsonBean1(r.nextLong(), r.nextJson()))
 
-    val b = JsonBean(34L, Json.parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """))
+    val b = JsonBean1(34L, Json.parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """))
 
     Await.result(db.run(
       DBIO.seq(
@@ -150,7 +161,7 @@ class PgPlayJsonSupportSuite extends FunSuite {
           """,
         ///
         sqlu""" insert into JsonTest2 values(${b.id}, ${b.json}) """,
-        sql""" select * from JsonTest2 where id = ${b.id} """.as[JsonBean].head.map(
+        sql""" select * from JsonTest2 where id = ${b.id} """.as[JsonBean1].head.map(
           r => assert(b === r)
         ),
         ///
