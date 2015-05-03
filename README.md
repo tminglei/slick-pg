@@ -21,17 +21,16 @@ Slick-pg
 - composite type (`basic`)
 
 
-** _tested on `PostgreSQL` `v9.4` with `Slick` `v2.1.0`._
+** _tested on `PostgreSQL` `v9.4` with `Slick` `v3.0.0`._
 
 
 Usage
 ------
 Before using it, you need integrate it with PostgresDriver maybe like this:
 ```scala
-import slick.driver.PostgresDriver
 import com.github.tminglei.slickpg._
 
-trait MyPostgresDriver extends PostgresDriver
+trait MyPostgresDriver extends ExPostgresDriver
                           with PgArraySupport
                           with PgDateSupport
                           with PgRangeSupport
@@ -41,23 +40,24 @@ trait MyPostgresDriver extends PostgresDriver
                           with PgPostGISSupport {
   override val pgjson = "jsonb" //to keep back compatibility, pgjson's value was "json" by default
 
-  override lazy val Implicit = new ImplicitsPlus {}
-  override val simple = new SimpleQLPlus {}
+  override val api = MyAPI
 
-  //////
-  trait ImplicitsPlus extends Implicits
-                        with ArrayImplicits
-                        with DateTimeImplicits
-                        with RangeImplicits
-                        with HStoreImplicits
-                        with JsonImplicits
-                        with SearchImplicits
-                        with PostGISImplicits
-
-  trait SimpleQLPlus extends SimpleQL
-                        with ImplicitsPlus
-                        with SearchAssistants
-                        with PostGISAssistants
+  object MyAPI extends API with ArrayImplicits
+                           with DateTimeImplicits
+                           with JsonImplicits
+                           with NetImplicits
+                           with LTreeImplicits
+                           with RangeImplicits
+                           with HStoreImplicits
+                           with SearchImplicits
+                           with SearchAssistants {
+    implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
+    implicit val json4sJsonArrayTypeMapper =
+      new AdvancedArrayJdbcType[JsValue](pgjson,
+        (s) => utils.SimpleArrayUtils.fromString[JsValue](Json.parse(_))(s).orNull,
+        (v) => utils.SimpleArrayUtils.mkString[JsValue](_.toString())(v)
+      ).to(_.toList)
+  }
 }
 
 object MyPostgresDriver extends MyPostgresDriver
@@ -66,7 +66,7 @@ object MyPostgresDriver extends MyPostgresDriver
 
 then in your codes you can use it like this:
 ```scala
-import MyPostgresDriver.simple._
+import MyPostgresDriver.api._
 
 class TestTable(tag: Tag) extends Table[Test](tag, Some("xxx"), "Test") {
   def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
@@ -118,13 +118,13 @@ object tests extends TableQuery(new TestTable(_)) {
 ...
 ```
 
-_p.s. above codes are for `Slick` Lifted Embedding SQL. Except that, `slick-pg` also support for `Slick` Plain SQL._
+_p.s. above codes are for `Slick` Lifted Embedding SQL. Except that, `slick-pg` also support for `Slick` Plain SQL, for details and usages pls refer to source codes and tests._
 
 Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.8.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.9.0"
 ```
 
 
@@ -132,8 +132,8 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 ```xml
 <dependency>
     <groupId>com.github.tminglei</groupId>
-    <artifactId>slick-pg_2.10</artifactId>
-    <version>0.8.2</version>
+    <artifactId>slick-pg_2.11</artifactId>
+    <version>0.9.0</version>
 </dependency>
 ```
 
@@ -213,6 +213,9 @@ Details
 
 History
 ------------------------------
+v0.9.0 (4-May-2015):  
+1) upgrade to slick v3.0.0
+
 v0.8.2 (24-Feb-2015):  
 1) add ?-contained operators support  
 2) add plain sql support for composite
