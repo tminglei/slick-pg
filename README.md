@@ -137,8 +137,8 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 </dependency>
 ```
 
-> _For other related 3rd party dependencies, pls manually add to your project when necessary._
-
+**For other related 3rd party dependencies, pls manually add them to your project.**  
+> _Note: from `slick-pg` v0.7.0, I declared 3rd party dependencies as `provided`, and merged all of the plugin codes into main package. So you needn't add these **plugins** any more, but for these used 3rd party dependencies, you're still required to add them to your project manually._
 
 
 Configurable type/mappers
