@@ -95,7 +95,7 @@ object SlickPgBuild extends Build {
         "org.json4s" %% "json4s-native" % json4sVersion % "test",
         "com.typesafe.play" %% "play-json" % "2.3.0" % "provided",
         "io.spray" %%  "spray-json" % "1.3.1" % "provided",
-        "io.argonaut" %% "argonaut" % "6.0.4" % "provided",
+        "io.argonaut" %% "argonaut" % "6.1" % "provided",
         "com.vividsolutions" % "jts" % "1.13" % "provided"
       )
     )
