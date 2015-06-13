@@ -1,5 +1,6 @@
-package myUtils
+package util
 
+import java.time.{LocalDate, LocalDateTime}
 import java.util.UUID
 import com.github.tminglei.slickpg.PgRangeSupportUtils
 import play.api.data.format.Formats
@@ -8,7 +9,6 @@ import play.api.data.FormError
 import com.vividsolutions.jts.io.{WKTReader, WKTWriter}
 import com.vividsolutions.jts.geom.Geometry
 import play.api.libs.json._
-import org.joda.time.LocalDateTime
 
 /**
  * my play form data formatters
@@ -24,7 +24,14 @@ object MyFormats {
   }
 
   ///
-  def jodaDateTimeFormat: Formatter[LocalDateTime] = new Formatter[LocalDateTime] {
+  def j8DateFormat: Formatter[LocalDate] = new Formatter[LocalDate] {
+    override val format = Some(("format.datetime", Nil))
+
+    def bind(key: String, data: Map[String, String]) =
+      parsing(LocalDate.parse, "error.datetime", Nil)(key, data)
+    def unbind(key: String, value: LocalDate) = Map(key -> value.toString)
+  }
+  def j8DateTimeFormat: Formatter[LocalDateTime] = new Formatter[LocalDateTime] {
     override val format = Some(("format.datetime", Nil))
 
     def bind(key: String, data: Map[String, String]) =

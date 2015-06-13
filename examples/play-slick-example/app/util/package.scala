@@ -1,12 +1,13 @@
+import java.time.{LocalDateTime, LocalDate}
+
 import com.github.tminglei.slickpg
 import com.vividsolutions.jts.geom._
 import play.api.data._
 import play.api.data.format._
 import java.util.UUID
-import org.joda.time.{LocalDateTime, LocalDate}
 import play.api.libs.json.JsValue
 
-package object myUtils {
+package object util {
   type Range[T] = slickpg.Range[T]
   val Range = slickpg.Range
 
@@ -15,8 +16,8 @@ package object myUtils {
   implicit val longFormat = Formats.longFormat
   implicit val intFormat = Formats.intFormat
   implicit val booleanFormat = Formats.booleanFormat
-  implicit val jodaDateFormat = Formats.jodaLocalDateFormat
-  implicit val jodaDateTimeFormat = MyFormats.jodaDateTimeFormat
+  implicit val j8DateFormat = MyFormats.j8DateFormat
+  implicit val j8DateTimeFormat = MyFormats.j8DateTimeFormat
   implicit val uuidFormat = MyFormats.uuidFormat
   implicit val intRangeFormat = MyFormats.rangeFormat[Int](_.toInt)
   implicit val longRangeFormat = MyFormats.rangeFormat[Long](_.toLong)
