@@ -2,20 +2,18 @@ package dao
 
 import java.time.LocalDate
 import java.util.Date
+import javax.inject.{Inject,Singleton}
 
 import util.MyPostgresDriver
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import models.Company
 import models.Computer
 import models.Page
-import play.api.Play
-import play.api.db.slick.DatabaseConfigProvider
-import play.api.db.slick.HasDatabaseConfig
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.db.slick.{HasDatabaseConfigProvider, DatabaseConfigProvider}
 
-class ComputersDAO extends CompaniesComponent with HasDatabaseConfig[MyPostgresDriver] {
-  protected val dbConfig =  DatabaseConfigProvider.get[MyPostgresDriver](Play.current)
+@Singleton
+class ComputersDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext) extends CompaniesComponent with HasDatabaseConfigProvider[MyPostgresDriver] {
 
   import driver.api._
 
