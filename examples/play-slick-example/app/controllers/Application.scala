@@ -1,5 +1,7 @@
 package controllers
 
+import javax.inject.Inject
+
 import models.Computer
 import play.api.Play
 import play.api.data.Form
@@ -7,7 +9,6 @@ import play.api.data.Forms.longNumber
 import play.api.data.Forms.mapping
 import play.api.data.Forms.nonEmptyText
 import play.api.data.Forms.optional
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.Action
 import play.api.mvc.Controller
 import views.html
@@ -18,10 +19,10 @@ import dao.ComputersDAO
 
 import util._
 
+import scala.concurrent.ExecutionContext
+
 /** Manage a database of computers. */
-object Application extends Controller {
-  def companiesDao = new CompaniesDAO
-  def computersDao = new ComputersDAO
+class Application @Inject() (companiesDao:CompaniesDAO, computersDao:ComputersDAO)(implicit ec: ExecutionContext) extends Controller {
 
   /** This result directly redirect to the application home.*/
   val Home = Redirect(routes.Application.list(0, 2, ""))

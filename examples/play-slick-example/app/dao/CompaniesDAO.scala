@@ -1,15 +1,14 @@
 package dao
 
+import javax.inject.{Inject, Singleton}
+
 import play.api.libs.json.JsValue
 import util.MyPostgresDriver
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 import models.Company
-import play.api.Play
-import play.api.db.slick.DatabaseConfigProvider
-import play.api.db.slick.HasDatabaseConfig
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.db.slick.{HasDatabaseConfigProvider, DatabaseConfigProvider, HasDatabaseConfig}
 
 trait CompaniesComponent { self: HasDatabaseConfig[MyPostgresDriver] =>
   import driver.api._
@@ -23,8 +22,8 @@ trait CompaniesComponent { self: HasDatabaseConfig[MyPostgresDriver] =>
   }
 }
 
-class CompaniesDAO extends CompaniesComponent with HasDatabaseConfig[MyPostgresDriver] {
-  protected val dbConfig =  DatabaseConfigProvider.get[MyPostgresDriver](Play.current)
+@Singleton
+class CompaniesDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext) extends CompaniesComponent with HasDatabaseConfigProvider[MyPostgresDriver] {
 
   import driver.api._
 
