@@ -29,6 +29,7 @@ Usage
 Before using it, you need integrate it with PostgresDriver maybe like this:
 ```scala
 import com.github.tminglei.slickpg._
+import org.json4s._
 
 trait MyPostgresDriver extends ExPostgresDriver
                           with PgArraySupport
@@ -54,10 +55,11 @@ trait MyPostgresDriver extends ExPostgresDriver
                            with SearchImplicits
                            with SearchAssistants {
     implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
+    val jsonMethods = org.json4s.native.JsonMethods
     implicit val json4sJsonArrayTypeMapper =
-      new AdvancedArrayJdbcType[JsValue](pgjson,
-        (s) => utils.SimpleArrayUtils.fromString[JsValue](Json.parse(_))(s).orNull,
-        (v) => utils.SimpleArrayUtils.mkString[JsValue](_.toString())(v)
+      new AdvancedArrayJdbcType[JValue](pgjson,
+        (s) => utils.SimpleArrayUtils.fromString[JValue](jsonMethods.parse(_))(s).orNull,
+        (v) => utils.SimpleArrayUtils.mkString[JValue](j=>jsonMethods.compact(jsonMethods.render(j)))(v)
       ).to(_.toList)
   }
 }
