@@ -27,24 +27,22 @@ object stagedBuild extends Build {
     base=file("codegen"),
     settings = sharedSettings ++ Seq(
       libraryDependencies ++= List(
-        "com.typesafe.slick" %% "slick-codegen" % "2.1.0-RC3"
+        "com.typesafe.slick" %% "slick-codegen" % "3.0.0"
       )
     )
   )
   
   // shared sbt config between main project and codegen project
-  val sharedSettings = Project.defaultSettings ++ Seq(
-    scalaVersion := "2.10.4",
+  val sharedSettings = Defaults.coreDefaultSettings ++ Seq(
+    scalaVersion := "2.11.6",
     libraryDependencies ++= List(
-      "com.typesafe.slick" %% "slick" % "2.1.0-RC3",
-      "org.postgresql" % "postgresql" % "9.3-1100-jdbc41",
-      "com.github.tminglei" %% "slick-pg" % "0.6.0-M2",
-      "com.github.tminglei" %% "slick-pg_joda-time" % "0.6.0-M2",
-      "com.github.tminglei" %% "slick-pg_jts" % "0.6.0-M2",
-      "joda-time" % "joda-time" % "2.3",
-      "org.joda" % "joda-convert" % "1.5",
+      "com.typesafe.slick" %% "slick" % "3.0.0",
+      "org.postgresql" % "postgresql" % "9.4-1201-jdbc41",
+      "com.github.tminglei" %% "slick-pg" % "0.9.0",
+      "joda-time" % "joda-time" % "2.4",
+      "org.joda" % "joda-convert" % "1.7",
       "com.vividsolutions" % "jts" % "1.13",
-      "org.slf4j" % "slf4j-nop" % "1.6.4"
+      "org.slf4j" % "slf4j-nop" % "1.7.12"
     )
   )
 

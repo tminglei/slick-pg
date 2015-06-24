@@ -4,27 +4,24 @@ import com.github.tminglei.slickpg._
 
 trait MyPostgresDriver extends ExPostgresDriver
                           with PgArraySupport
-                          with PgDateSupportJoda
+                          with PgDate2Support
+                          with PgEnumSupport
                           with PgRangeSupport
                           with PgHStoreSupport
                           with PgSearchSupport
                           with PgPostGISSupport {
-  ///
-  override lazy val Implicit = new ImplicitsPlus {}
-  override val simple = new SimpleQLPlus {}
+
+  override val api = new MyAPI {}
 
   //////
-  trait ImplicitsPlus extends Implicits
-                         with ArrayImplicits
-                         with DateTimeImplicits
-                         with RangeImplicits
-                         with HStoreImplicits
-                         with SearchImplicits
-                         with PostGISImplicits
-
-  trait SimpleQLPlus extends SimpleQL
-                        with ImplicitsPlus
-                        with SearchAssistants
+  trait MyAPI extends API
+                with ArrayImplicits
+                with DateTimeImplicits
+                with RangeImplicits
+                with HStoreImplicits
+                with SearchImplicits
+                with PostGISImplicits
+                with SearchAssistants
 }
 
 object MyPostgresDriver extends MyPostgresDriver
