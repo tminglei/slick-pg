@@ -112,7 +112,7 @@ object tests extends TableQuery(new TestTable(_)) {
   //   from test where to_tsvector(text) @@ to_tsquery(?) 
   //   order by ts_rank(to_tsvector(text), to_tsquery(?))
   def search(queryStr: String) = tests
-        .filter(tsVector(_.text) @@ tsQuery(queryStr.bind))
+        .filter( t => {tsVector(t.text) @@ tsQuery(queryStr.bind)})
         .map(r => (r.id, r.text, tsRank(tsVector(r.text), tsQuery(queryStr.bind))))
         .sortBy(_._3)
 }
