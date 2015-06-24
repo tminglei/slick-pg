@@ -54,7 +54,7 @@ trait MyPostgresDriver extends ExPostgresDriver
                            with SearchImplicits
                            with SearchAssistants {
     implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
-    implicit val json4sJsonArrayTypeMapper =
+    implicit val playJsonArrayTypeMapper =
       new AdvancedArrayJdbcType[JsValue](pgjson,
         (s) => utils.SimpleArrayUtils.fromString[JsValue](Json.parse(_))(s).orNull,
         (v) => utils.SimpleArrayUtils.mkString[JsValue](_.toString())(v)
