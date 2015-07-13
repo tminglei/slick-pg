@@ -375,6 +375,8 @@ class PgPostGISSupportTest {
       assertEquals(true, q11.first)
       val q12 = GeomTests.filter(_.id === polygonbean.id.bind).map(r => multiPoints.bind.dWithin(r.geom, 10d.bind))
       assertEquals(true, q12.first)
+      val q121 = GeomTests.filter(_.id === polygonbean.id.bind).map(r => multiPoints.bind.?.dWithin(r.geom, 10d.bind))
+      assertEquals(Some(true), q121.first)
       val q13 = GeomTests.filter(_.id === polygonbean.id.bind).map(r => point.bind.dFullyWithin(r.geom, 200d.bind))
       assertEquals(true, q13.first)
 
