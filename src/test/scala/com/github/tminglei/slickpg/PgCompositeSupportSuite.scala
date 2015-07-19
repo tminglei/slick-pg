@@ -1,9 +1,11 @@
 package com.github.tminglei.slickpg
 
+import org.postgresql.util.HStoreConverter
 import org.scalatest.FunSuite
 
 import slick.driver.PostgresDriver
 import slick.jdbc.{GetResult, PositionedResult}
+import scala.collection.convert.{WrapAsScala, WrapAsJava}
 import scala.reflect.runtime.{universe => u}
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
@@ -26,7 +28,8 @@ object PgCompositeSupportSuite {
   case class Composite2(
     id: Long,
     comp1: Composite1,
-    confirm: Boolean
+    confirm: Boolean,
+    map: Map[String, String]
     ) extends Struct
 
   case class Composite3(
@@ -42,10 +45,16 @@ object PgCompositeSupportSuite {
 
     val plainImplicits = new Implicits with CompositePlainImplicits {}
 
+    def mapToString(m: Map[String, String]): String = HStoreConverter.toString(WrapAsJava.mapAsJavaMap(m))
+    def stringToMap(s: String): Map[String, String] = WrapAsScala.mapAsScalaMap(HStoreConverter.fromString(s)
+      .asInstanceOf[java.util.Map[String, String]]).toMap
+
     ///
     trait CompositeImplicits {
       utils.TypeConverters.register(PgRangeSupportUtils.mkRangeFn(ts))
       utils.TypeConverters.register(PgRangeSupportUtils.toStringFn[Timestamp](tsFormat.format))
+      utils.TypeConverters.register(mapToString)
+      utils.TypeConverters.register(stringToMap)
 
       implicit val composite1TypeMapper = createCompositeJdbcType[Composite1]("composite1")
       implicit val composite2TypeMapper = createCompositeJdbcType[Composite2]("composite2")
@@ -126,10 +135,10 @@ class PgCompositeSupportSuite extends FunSuite {
   //-------------------------------------------------------------------
 
   val rec1 = TestBean(333, List(Composite2(201, Composite1(101, "(test1'", ts("2001-1-3 13:21:00"),
-		  							Some(Range(ts("2010-01-01 14:30:00"), ts("2010-01-03 15:30:00")))), true)))
+		  							Some(Range(ts("2010-01-01 14:30:00"), ts("2010-01-03 15:30:00")))), true, Map("t" -> "haha", "t2" -> "133"))))
   val rec2 = TestBean(335, List(Composite2(202, Composite1(102, "test2\\", ts("2012-5-8 11:31:06"),
-		  							Some(Range(ts("2011-01-01 14:30:00"), ts("2011-11-01 15:30:00")))), false)))
-  val rec3 = TestBean(337, List(Composite2(203, Composite1(103, "ABC ABC", ts("2015-3-8 17:17:03"), None), false)))
+		  							Some(Range(ts("2011-01-01 14:30:00"), ts("2011-11-01 15:30:00")))), false, Map("t't" -> "1,363"))))
+  val rec3 = TestBean(337, List(Composite2(203, Composite1(103, "ABC ABC", ts("2015-3-8 17:17:03"), None), false, Map("t,t" -> "ewtew"))))
 
   val rec11 = TestBean1(111, List(Composite3(Some("(test1'"))))
   val rec12 = TestBean1(112, List(Composite3(code = Some(102))))
@@ -139,7 +148,7 @@ class PgCompositeSupportSuite extends FunSuite {
     Await.result(db.run(
       DBIO.seq(
         sqlu"create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)",
-        sqlu"create type composite2 as (id int8, comp1 composite1, confirm boolean)",
+        sqlu"create type composite2 as (id int8, comp1 composite1, confirm boolean, map hstore)",
         sqlu"create type composite3 as (txt text, id int4, code int4, bool boolean)",
         (CompositeTests.schema ++ CompositeTests1.schema) create,
         CompositeTests forceInsertAll List(rec1, rec2, rec3),
@@ -187,7 +196,7 @@ class PgCompositeSupportSuite extends FunSuite {
 
     Await.result(db.run(DBIO.seq(
       sqlu"create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)",
-      sqlu"create type composite2 as (id int8, comp1 composite1, confirm boolean)",
+      sqlu"create type composite2 as (id int8, comp1 composite1, confirm boolean, map hstore)",
       sqlu"create type composite3 as (txt text, id int4, code int4, bool boolean)",
       sqlu"create table CompositeTest (id BIGINT NOT NULL, comps composite2[] DEFAULT '{}' NOT NULL)",
       sqlu"create table CompositeTest1 (id BIGINT NOT NULL, comps composite3[] NOT NULL)",
