@@ -201,13 +201,15 @@ object PgTokenHelper {
         }
         //-- process marker tokens
         // mark + escape
-        case Marker(m) if (level(m) != math.round(level(m)) && tokens(i-1) == Comma) => {
-          val index = math.pow(2, stack.top.level).toInt
+        case Marker(m) if (level(m) != math.round(level(m))
+                       && (tokens(i-1) == Comma || tokens(i-1).isInstanceOf[Open])) => {
+          val index = math.pow(2, stack.top.level +1).toInt
           stack.push(WorkingGroup(Marker(m.substring(0, index)), stack.top.level +1))
           stack.top.tokens += Marker(m.substring(0, index)) += Escape(m.substring(index))
         }
         // escape + mark
-        case Marker(m) if (level(m) != math.round(level(m)) && tokens(i+1) == Comma) => {
+        case Marker(m) if (level(m) != math.round(level(m))
+                       && (tokens(i+1) == Comma || tokens(i+1).isInstanceOf[Close])) => {
           val existed = stack.find(g => m.endsWith(g.border.marker)).get
           for (_ <- 0 to stack.lastIndexOf(existed)) {
             if (stack.top == existed) {
@@ -219,23 +221,30 @@ object PgTokenHelper {
           }
         }
         // mark + escape + mark
-        case Marker(m) if (tokens(i-1) == Comma && tokens(i+1) == Comma) => {
+        case Marker(m) if ((tokens(i-1) == Comma || tokens(i-1).isInstanceOf[Open])
+                        && (tokens(i+1) == Comma || tokens(i+1).isInstanceOf[Close])) => {
           val topMarker = stack.top.border.marker
           if ((m.length > topMarker.length * 2) && m.startsWith(topMarker) && m.endsWith(topMarker)) {
             stack.top.tokens += Escape(m.substring(topMarker.length -1, m.length -topMarker.length))
           } else stack.top.tokens += Escape(m)
         }
         case t @ Marker(m) => {
-          val existed = stack.find(g => g.border.marker == m)
-          if (existed.isDefined) {
-            for (_ <- 0 to stack.lastIndexOf(existed.get)) {
-              if (stack.top == existed.get) stack.top.tokens += t
-              val toBeMerged = GroupToken(stack.pop.tokens.toList)
-              stack.top.tokens += toBeMerged
+          val escape = stack.top.tokens.find(e => e.isInstanceOf[Escape] && e.value == m)
+          // mark + escape ... + [escape]
+          if (escape.isDefined) {
+            stack.top.tokens += Escape(m)
+          } else { // others
+            val existed = stack.find(g => g.border.marker == m)
+            if (existed.isDefined) {
+              for (_ <- 0 to stack.lastIndexOf(existed.get)) {
+                if (stack.top == existed.get) stack.top.tokens += t
+                val toBeMerged = GroupToken(stack.pop.tokens.toList)
+                stack.top.tokens += toBeMerged
+              }
+            } else {
+              stack.push(WorkingGroup(t, stack.top.level +1))
+              stack.top.tokens += t
             }
-          } else {
-            stack.push(WorkingGroup(t, stack.top.level +1))
-            stack.top.tokens += t
           }
         }
         //-- process close tokens
