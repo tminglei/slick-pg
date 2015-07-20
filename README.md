@@ -126,7 +126,7 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.9.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.9.1"
 ```
 
 
@@ -135,7 +135,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.11</artifactId>
-    <version>0.9.0</version>
+    <version>0.9.1</version>
 </dependency>
 ```
 
@@ -211,84 +211,6 @@ Details
 - Search's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/search "Search's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgSearchSupportSuite.scala "test cases")
 - Geometry's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/geom "Geometry's oper/functions"), usage cases for [postgis](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/addon/PgPostGISSupportSuite.scala "test cases")
 - `basic` Composite type [support](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/composite "Composite type Support"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgCompositeSupportSuite.scala "test cases")
-
-
-History
-------------------------------
-v0.9.0 (4-May-2015):  
-1) upgrade to slick v3.0.0
-
-v0.8.2 (24-Feb-2015):  
-1) add ?-contained operators support  
-2) add plain sql support for composite
-
-v0.8.1 (3-Feb-2015):  
-1) add postgres 9.4 jsonb support  
-2) add more json operators/functions
-
-v0.8.0 (17-Jan-2015):  
-1) add plain sql support  
-2) allow to specify scala type for pg array  
-3) refactor and add public search type support
-
-v0.7.0 (4-Dec-2014):  
-1) merge add-on support codes into `slick-pg` main jar, and declare these 3rd dependencies optional
-
-v0.6.5 (3-Oct-2014):  
-1) add pg ltree support  
-2) pg search support: more operators/methods; allow to specify language  
-3) date2/threeten addons: allow `Duration`/`Period` selective binding; microseconds support  
-4) pg date/range support: allow multiple binding
-
-v0.6.3 (20-Aug-2014):  
-1) add pg inet/macaddr support
-
-v0.6.2 (14-Aug-2014):  
-1) add default json support
-
-v0.6.0 (4-Aug-2014):  
-1) upgrade to slick v2.1.0  
-2) added pg inherits support  
-3) add argonaut json support  
-4) re-implement composite support
-
-v0.5.3 (13-Apr-2014):  
-1) added jdk8 time support  
-2) added pg enum support
-
-v0.5.2 (13-Mar-2014):  
-1) added spray-json support
-
-v0.5.1 (22-Feb-2014):  
-1) added more postgis/geom functions
-
-v0.5.0 (7-Feb-2014):  
-1) upgrade to slick v2.0.0  
-2) add basic composite type support  
-3) array support: allow nested composite type  
-4) add play-json support  
-5) add timestamp with zone support  
-6) modularization for third party scala type (e.g. `play-json`/`jts`) support
-
-v0.2.2 (04-Nov-2013):  
-1) support Joda date/time, binding to Pg Date/Time  
-2) support threetenbp date/time, binding to Pg Date/Time
-
-v0.2.0 (01-Nov-2013):  
-1) re-arch to support configurable type/mappers
-
-v0.1.5 (29-Sep-2013):  
-1) support pg json
-
-v0.1.2 (31-Jul-2013):  
-1) add pg datetime support  
-
-v0.1.0 (20-May-2013):  
-1) support pg array  
-2) support pg range  
-3) support pg hstore  
-4) support pg search  
-5) support pg geometry  
 
 
 License
