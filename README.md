@@ -41,7 +41,7 @@ trait MyPostgresDriver extends ExPostgresDriver
                           with PgPostGISSupport 
                           with PgNetSupport 
                           with PgLTreeSupport {
-  override val pgjson = "jsonb" //to keep back compatibility, pgjson's value was "json" by default
+  def pgjson = "jsonb" // jsonb support is in postgres 9.4.0 onward; for 9.3.x use "json"
 
   override val api = MyAPI
 
