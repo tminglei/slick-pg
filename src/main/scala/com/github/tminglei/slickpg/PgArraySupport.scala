@@ -40,19 +40,19 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
   /// static sql support, NOTE: no extension methods available for static sql usage
   private var nextArrayConverters = Map.empty[u.Type, PositionedResult => Option[Seq[_]]]
 
-  def addNextArrayConverter[T](tpe: u.Type, conv: PositionedResult => Option[Seq[T]]) = {
-    println(s"[info]\u001B[36m >>> adding next array converter for $tpe \u001B[0m")
-    val existed = nextArrayConverters.get(tpe)
+  def addNextArrayConverter[T](conv: PositionedResult => Option[Seq[T]])(implicit ttag: u.TypeTag[T]) = {
+    println(s"[info]\u001B[36m >>> adding next array converter for ${u.typeOf[T]} \u001B[0m")
+    val existed = nextArrayConverters.get(u.typeOf[T])
     if (existed.isDefined) new RuntimeException(
-      s"\u001B[31m[warn] >>> DUPLICATED BINDING for $tpe!!!\u001B[0m").printStackTrace()
-    nextArrayConverters += (tpe -> conv)
+      s"\u001B[31m[warn] >>> DUPLICATED BINDING for ${u.typeOf[T]}!!!\u001B[0m").printStackTrace()
+    nextArrayConverters += (u.typeOf[T] -> conv)
   }
   
   trait SimpleArrayPlainImplicits {
     import utils.PlainSQLUtils._
 
     {
-      addNextArrayConverter(u.typeOf[Short], (r) => simpleNextArray[Int](r).map(_.map(_.toShort)))
+      addNextArrayConverter((r) => simpleNextArray[Int](r).map(_.map(_.toShort)))
     }
 
     implicit class PgArrayPositionedResult(r: PositionedResult) {
