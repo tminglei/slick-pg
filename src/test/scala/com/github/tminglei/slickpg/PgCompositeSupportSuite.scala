@@ -43,7 +43,7 @@ object PgCompositeSupportSuite {
   object MyPostgresDriver1 extends PostgresDriver with PgCompositeSupport with PgArraySupport with utils.PgCommonJdbcTypes {
     override val api = new API with ArrayImplicits with CompositeImplicits {}
 
-    val plainImplicits = new Implicits with CompositePlainImplicits {}
+    val plainImplicits = new API with CompositePlainImplicits {}
 
     def mapToString(m: Map[String, String]): String = HStoreConverter.toString(WrapAsJava.mapAsJavaMap(m))
     def stringToMap(s: String): Map[String, String] = WrapAsScala.mapAsScalaMap(HStoreConverter.fromString(s)

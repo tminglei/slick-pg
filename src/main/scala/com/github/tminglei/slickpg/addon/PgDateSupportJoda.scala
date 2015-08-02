@@ -71,6 +71,17 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
   trait JodaDateTimePlainImplicits extends JodaDateTimeFormatters {
     import java.sql.Types
     import utils.PlainSQLUtils._
+    import scala.reflect.classTag
+
+    if (driver.isInstanceOf[ExPostgresDriver]) {
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("date", classTag[LocalDate])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("time", classTag[LocalTime])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("timestamp", classTag[LocalDateTime])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("timestamptz", classTag[DateTime])
+      // let users do it by themselves
+//      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("interval", classTag[Duration])
+//      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("interval", classTag[Period])
+    }
 
     implicit class PgDate2TimePositionedResult(r: PositionedResult) {
       def nextLocalDate() = nextLocalDateOption().orNull

@@ -47,9 +47,24 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
       s"\u001B[31m[warn] >>> DUPLICATED BINDING for ${u.typeOf[T]}!!!\u001B[0m").printStackTrace()
     nextArrayConverters += (u.typeOf[T] -> conv)
   }
-  
+
   trait SimpleArrayPlainImplicits {
     import utils.PlainSQLUtils._
+    import scala.reflect.classTag
+
+    if (driver.isInstanceOf[ExPostgresDriver]) {
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("uuid", classTag[Seq[UUID]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("text", classTag[Seq[String]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("int8", classTag[Seq[Long]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("int4", classTag[Seq[Int]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("int2", classTag[Seq[Short]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("float4", classTag[Seq[Float]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("float8", classTag[Seq[Double]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("bool", classTag[Seq[Boolean]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("date", classTag[Seq[Date]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("time", classTag[Seq[Time]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("timestamp", classTag[Seq[Timestamp]])
+    }
 
     {
       addNextArrayConverter((r) => simpleNextArray[Int](r).map(_.map(_.toShort)))

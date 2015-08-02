@@ -33,6 +33,11 @@ trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcT
   /// static sql support, NOTE: no extension methods available for static sql usage
   trait SimpleHStorePlainImplicits {
     import utils.PlainSQLUtils._
+    import scala.reflect.classTag
+
+    if (driver.isInstanceOf[ExPostgresDriver]) {
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("hstore", classTag[Map[String, String]])
+    }
 
     implicit class PgHStorePositionedResult(r: PositionedResult) {
       def nextHStore() = nextHStoreOption().getOrElse(Map.empty)

@@ -62,6 +62,12 @@ trait PgNetSupport extends net.PgNetExtensions with utils.PgCommonJdbcTypes { dr
 
   trait SimpleNetPlainImplicits {
     import utils.PlainSQLUtils._
+    import scala.reflect.classTag
+
+    if (driver.isInstanceOf[ExPostgresDriver]) {
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("inet", classTag[InetString])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("macaddr", classTag[MacAddrString])
+    }
 
     implicit class PgNetPositionedResult(r: PositionedResult) {
       def nextIPAddr() = nextIPAddrOption().orNull

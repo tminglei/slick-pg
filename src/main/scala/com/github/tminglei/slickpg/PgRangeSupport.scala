@@ -57,6 +57,15 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
 
   trait SimpleRangePlainImplicits {
     import utils.PlainSQLUtils._
+    import scala.reflect.classTag
+
+    if (driver.isInstanceOf[ExPostgresDriver]) {
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("int4range", classTag[Range[Int]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("int8range", classTag[Range[Long]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("numrange", classTag[Range[Float]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("tsrange", classTag[Range[Timestamp]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("daterange", classTag[Range[Date]])
+    }
 
     implicit class PgRangePositionedResult(r: PositionedResult) {
       def nextIntRange() = nextIntRangeOption().orNull
