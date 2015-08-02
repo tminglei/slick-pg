@@ -38,32 +38,43 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
   }
 
   /// static sql support, NOTE: no extension methods available for static sql usage
+  private var nextArrayConverters = Map.empty[u.Type, PositionedResult => Option[Seq[_]]]
+
+  def addNextArrayConverter[T](tpe: u.Type, conv: PositionedResult => Option[Seq[T]]) = {
+    println(s"[info]\u001B[36m >>> adding next array converter for $tpe \u001B[0m")
+    val existed = nextArrayConverters.get(tpe)
+    if (existed.isDefined) new RuntimeException(
+      s"\u001B[31m[warn] >>> DUPLICATED BINDING for $tpe!!!\u001B[0m").printStackTrace()
+    nextArrayConverters += (tpe -> conv)
+  }
+  
   trait SimpleArrayPlainImplicits {
     import utils.PlainSQLUtils._
 
+    {
+      addNextArrayConverter(u.typeOf[Short], (r) => simpleNextArray[Int](r).map(_.map(_.toShort)))
+    }
+
     implicit class PgArrayPositionedResult(r: PositionedResult) {
       def nextArray[T]()(implicit tpe: u.TypeTag[T]): Seq[T] = nextArrayOption[T]().getOrElse(Nil)
-      def nextArrayOption[T]()(implicit tpe: u.TypeTag[T]): Option[Seq[T]] =
-        (u.typeOf[T] match {
-          case tpe if tpe.typeConstructor =:= u.typeOf[Short].typeConstructor =>
-            internalNextArray[Int](r).map(_.map(_.toShort))
-          case tpe => {
-            val (matched, result) = extNextArray(tpe, r)
-            if (matched) result else internalNextArray[T](r)
-          }
-        }).asInstanceOf[Option[Seq[T]]]
+      def nextArrayOption[T]()(implicit ttag: u.TypeTag[T]): Option[Seq[T]] = {
+        val (matched, result) = extNextArray(u.typeOf[T], r)
+        (if (matched) result else nextArrayConverters.get(u.typeOf[T]).map(_.apply(r))
+          .getOrElse(simpleNextArray[T](r))).asInstanceOf[Option[Seq[T]]]
+      }
     }
 
     /**
      * pls override this when you need additional array support
      * @return (matched, result)
      **/
+    @deprecated(message = "pls use `addNextArrayConverter` instead", since = "0.10")
     protected def extNextArray(tpe: u.Type, r: PositionedResult): (Boolean, Option[Seq[_]]) =
       tpe match {
         case _ => (false, None)
       }
 
-    private def internalNextArray[T](r: PositionedResult): Option[Seq[T]] = {
+    private def simpleNextArray[T](r: PositionedResult): Option[Seq[T]] = {
       val value = r.rs.getArray(r.skip.currentPos)
       if (r.rs.wasNull) None else Some(
         value.getArray.asInstanceOf[Array[Any]].map(_.asInstanceOf[T]))
