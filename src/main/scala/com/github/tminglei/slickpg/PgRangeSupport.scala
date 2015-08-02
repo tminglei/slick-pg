@@ -2,7 +2,7 @@ package com.github.tminglei.slickpg
 
 import slick.driver.PostgresDriver
 import java.sql.{Date, Timestamp}
-import slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
+import slick.jdbc.{PositionedResult, JdbcType}
 
 // edge type definitions
 sealed trait EdgeType
@@ -56,6 +56,7 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
   }
 
   trait SimpleRangePlainImplicits {
+    import utils.PlainSQLUtils._
 
     implicit class PgRangePositionedResult(r: PositionedResult) {
       def nextIntRange() = nextIntRangeOption().orNull
@@ -71,46 +72,20 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
     }
 
     ////////////////////////////////////////////////////////////////////
-    implicit object SetIntRange extends SetParameter[Range[Int]] {
-      def apply(v: Range[Int], pp: PositionedParameters) = setRange("int4range", Option(v), pp)
-    }
-    implicit object SetIntRangeOption extends SetParameter[Option[Range[Int]]] {
-      def apply(v: Option[Range[Int]], pp: PositionedParameters) = setRange("int4range", v, pp)
-    }
-    ///
-    implicit object SetLongRange extends SetParameter[Range[Long]] {
-      def apply(v: Range[Long], pp: PositionedParameters) = setRange("int8range", Option(v), pp)
-    }
-    implicit object SetLongRangeOption extends SetParameter[Option[Range[Long]]] {
-      def apply(v: Option[Range[Long]], pp: PositionedParameters) = setRange("int8range", v, pp)
-    }
-    ///
-    implicit object SetFloatRange extends SetParameter[Range[Float]] {
-      def apply(v: Range[Float], pp: PositionedParameters) = setRange("numrange", Option(v), pp)
-    }
-    implicit object SetFloatRangeOption extends SetParameter[Option[Range[Float]]] {
-      def apply(v: Option[Range[Float]], pp: PositionedParameters) = setRange("numrange", v, pp)
-    }
-    ///
-    implicit object SetTimestampRange extends SetParameter[Range[Timestamp]] {
-      def apply(v: Range[Timestamp], pp: PositionedParameters) = setRange("tsrange", Option(v), pp)
-    }
-    implicit object SetTimestampRangeOption extends SetParameter[Option[Range[Timestamp]]] {
-      def apply(v: Option[Range[Timestamp]], pp: PositionedParameters) = setRange("tsrange", v, pp)
-    }
-    ///
-    implicit object SetDateRange extends SetParameter[Range[Date]] {
-      def apply(v: Range[Date], pp: PositionedParameters) = setRange("daterange", Option(v), pp)
-    }
-    implicit object SetDateRangeOption extends SetParameter[Option[Range[Date]]] {
-      def apply(v: Option[Range[Date]], pp: PositionedParameters) = setRange("daterange", v, pp)
-    }
+    implicit val setIntRange = mkSetParameter[Range[Int]]("int4range")
+    implicit val setIntRangeOption = mkOptionSetParameter[Range[Int]]("int4range")
 
-    ///
-    private def setRange[T](typeName: String, v: Option[Range[T]], p: PositionedParameters) = v match {
-      case Some(v) => p.setObject(utils.mkPGobject(typeName, v.toString), java.sql.Types.OTHER)
-      case None    => p.setNull(java.sql.Types.OTHER)
-    }
+    implicit val setLongRange = mkSetParameter[Range[Long]]("int8range")
+    implicit val setLongRangeOption = mkOptionSetParameter[Range[Long]]("int8range")
+
+    implicit val setFloatRange = mkSetParameter[Range[Float]]("numrange")
+    implicit val setFloatRangeOption = mkOptionSetParameter[Range[Float]]("numrange")
+
+    implicit val setTimestampRange = mkSetParameter[Range[Timestamp]]("tsrange")
+    implicit val setTimestampRangeOption = mkOptionSetParameter[Range[Timestamp]]("tsrange")
+
+    implicit val setDateRange = mkSetParameter[Range[Date]]("daterange")
+    implicit val setDateRangeOption = mkOptionSetParameter[Range[Date]]("daterange")
   }
 }
 

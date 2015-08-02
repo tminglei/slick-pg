@@ -1,7 +1,7 @@
 package com.github.tminglei.slickpg
 
 import slick.driver.PostgresDriver
-import slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
+import slick.jdbc.{PositionedResult, JdbcType}
 
 /** simple inet string wrapper */
 case class InetString(value: String) {
@@ -61,6 +61,7 @@ trait PgNetSupport extends net.PgNetExtensions with utils.PgCommonJdbcTypes { dr
   }
 
   trait SimpleNetPlainImplicits {
+    import utils.PlainSQLUtils._
 
     implicit class PgNetPositionedResult(r: PositionedResult) {
       def nextIPAddr() = nextIPAddrOption().orNull
@@ -69,28 +70,11 @@ trait PgNetSupport extends net.PgNetExtensions with utils.PgCommonJdbcTypes { dr
       def nextMacAddrOption() = r.nextStringOption().map(MacAddrString)
     }
 
-    implicit object SetIPAddr extends SetParameter[InetString] {
-      def apply(v: InetString, pp: PositionedParameters) = setIPAddr(Option(v), pp)
-    }
-    implicit object SetIPAddrOption extends SetParameter[Option[InetString]] {
-      def apply(v: Option[InetString], pp: PositionedParameters) = setIPAddr(v, pp)
-    }
-    ///
-    implicit object SetMacAddr extends SetParameter[MacAddrString] {
-      def apply(v: MacAddrString, pp: PositionedParameters) = setMacAddr(Option(v), pp)
-    }
-    implicit object SetMacAddrOption extends SetParameter[Option[MacAddrString]] {
-      def apply(v: Option[MacAddrString], pp: PositionedParameters) = setMacAddr(v, pp)
-    }
+    /////////////////////////////////////////////////////////////////
+    implicit val setIPAddr = mkSetParameter[InetString]("inet", _.value)
+    implicit val setIPAddrOption = mkOptionSetParameter[InetString]("inet", _.value)
 
-    ///
-    private def setIPAddr(v: Option[InetString], p: PositionedParameters) = v match {
-      case Some(v) => p.setObject(utils.mkPGobject("inet", v.value), java.sql.Types.OTHER)
-      case None    => p.setNull(java.sql.Types.OTHER)
-    }
-    private def setMacAddr(v: Option[MacAddrString], p: PositionedParameters) = v match {
-      case Some(v) => p.setObject(utils.mkPGobject("macaddr", v.value), java.sql.Types.OTHER)
-      case None    => p.setNull(java.sql.Types.OTHER)
-    }
+    implicit val setMacAddr = mkSetParameter[MacAddrString]("macaddr", _.value)
+    implicit val setMacAddrOption = mkOptionSetParameter[MacAddrString]("macaddr", _.value)
   }
 }

@@ -1,7 +1,7 @@
 package com.github.tminglei.slickpg
 
 import slick.driver.PostgresDriver
-import slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
+import slick.jdbc.{PositionedResult, JdbcType}
 
 /** simple ltree wrapper */
 case class LTree(value: List[String]) {

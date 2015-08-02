@@ -7,19 +7,22 @@ import slick.jdbc.{SetParameter, PositionedParameters}
 object PlainSQLUtils {
   import SimpleArrayUtils._
 
-  def mkSetParameter[T](sqlType: String, toStr: (T => String) = (v: T) => v.toString): SetParameter[T] =
+  def mkSetParameter[T](typeName: String, toStr: (T => String) = (v: T) => v.toString,
+            sqlType: Int = java.sql.Types.OTHER): SetParameter[T] =
     new SetParameter[T] {
-      def apply(v: T, pp: PositionedParameters) = internalSet(sqlType, Option(v), pp, toStr)
+      def apply(v: T, pp: PositionedParameters) = internalSet(sqlType, typeName, Option(v), pp, toStr)
     }
-  def mkOptionSetParameter[T](sqlType: String, toStr: (T => String) = (v: T) => v.toString): SetParameter[Option[T]] =
+  def mkOptionSetParameter[T](typeName: String, toStr: (T => String) = (v: T) => v.toString,
+            sqlType: Int = java.sql.Types.OTHER): SetParameter[Option[T]] =
     new SetParameter[Option[T]] {
-      def apply(v: Option[T], pp: PositionedParameters) = internalSet(sqlType, v, pp, toStr)
+      def apply(v: Option[T], pp: PositionedParameters) = internalSet(sqlType, typeName, v, pp, toStr)
     }
 
-  private def internalSet[T](sqlType: String, v: Option[T], p: PositionedParameters, toStr: (T => String)) = v match {
-    case Some(v) => p.setObject(utils.mkPGobject(sqlType, v.toString), java.sql.Types.OTHER)
-    case None    => p.setNull(java.sql.Types.OTHER)
-  }
+  private def internalSet[T](sqlType: Int, typeName: String, v: Option[T], p: PositionedParameters, toStr: (T => String)) =
+    v match {
+      case Some(v) => p.setObject(utils.mkPGobject(typeName, toStr(v)), java.sql.Types.OTHER)
+      case None    => p.setNull(sqlType)
+    }
 
   ///
   def mkArraySetParameter[T: ClassTag](baseType: String, toStr: (T => String) = (v: T) => v.toString,

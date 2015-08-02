@@ -1,7 +1,7 @@
 package com.github.tminglei.slickpg
 
 import slick.driver.PostgresDriver
-import slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
+import slick.jdbc.{PositionedResult, JdbcType}
 
 trait PgPlayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import driver.api._
@@ -32,23 +32,15 @@ trait PgPlayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
   }
 
   trait PlayJsonPlainImplicits {
+    import utils.PlainSQLUtils._
 
     implicit class PgJsonPositionedResult(r: PositionedResult) {
       def nextJson() = nextJsonOption().getOrElse(JsNull)
       def nextJsonOption() = r.nextStringOption().map(Json.parse)
     }
 
-    implicit object SetJson extends SetParameter[JsValue] {
-      def apply(v: JsValue, pp: PositionedParameters) = setJson(Option(v), pp)
-    }
-    implicit object SetJsonOption extends SetParameter[Option[JsValue]] {
-      def apply(v: Option[JsValue], pp: PositionedParameters) = setJson(v, pp)
-    }
-
-    ///
-    private def setJson(v: Option[JsValue], p: PositionedParameters) = v match {
-      case Some(v) => p.setObject(utils.mkPGobject(pgjson, Json.stringify(v)), java.sql.Types.OTHER)
-      case None    => p.setNull(java.sql.Types.OTHER)
-    }
+    /////////////////////////////////////////////////////////
+    implicit val setJson = mkSetParameter[JsValue](pgjson, Json.stringify)
+    implicit val setJsonOption = mkOptionSetParameter[JsValue](pgjson, Json.stringify)
   }
 }

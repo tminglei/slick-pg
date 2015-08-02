@@ -3,7 +3,7 @@ package com.github.tminglei.slickpg
 import slick.driver.PostgresDriver
 import org.joda.time._
 import org.joda.time.format.{ISODateTimeFormat, DateTimeFormat}
-import slick.jdbc.{SetParameter, PositionedParameters, PositionedResult}
+import slick.jdbc.PositionedResult
 import org.postgresql.util.PGInterval
 
 trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
@@ -70,6 +70,7 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
 
   trait JodaDateTimePlainImplicits extends JodaDateTimeFormatters {
     import java.sql.Types
+    import utils.PlainSQLUtils._
 
     implicit class PgDate2TimePositionedResult(r: PositionedResult) {
       def nextLocalDate() = nextLocalDateOption().orNull
@@ -88,46 +89,23 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
     }
 
     /////////////////////////////////////////////////////////////////////////////
-    implicit object SetLocalDate extends SetParameter[LocalDate] {
-      def apply(v: LocalDate, pp: PositionedParameters) = setDateTime(Types.DATE, "date", Option(v).map(_.toString(jodaDateFormatter)), pp)
-    }
-    implicit object SetLocalDateOption extends SetParameter[Option[LocalDate]] {
-      def apply(v: Option[LocalDate], pp: PositionedParameters) = setDateTime(Types.DATE, "date", v.map(_.toString(jodaDateFormatter)), pp)
-    }
-    ///
-    implicit object SetLocalTime extends SetParameter[LocalTime] {
-      def apply(v: LocalTime, pp: PositionedParameters) = setDateTime(Types.DATE, "time", Option(v).map(_.toString(jodaTimeFormatter)), pp)
-    }
-    implicit object SetLocalTimeOption extends SetParameter[Option[LocalTime]] {
-      def apply(v: Option[LocalTime], pp: PositionedParameters) = setDateTime(Types.DATE, "time", v.map(_.toString(jodaTimeFormatter)), pp)
-    }
-    ///
-    implicit object SetLocalDateTime extends SetParameter[LocalDateTime] {
-      def apply(v: LocalDateTime, pp: PositionedParameters) = setDateTime(Types.TIMESTAMP, "timestamp", Option(v).map(_.toString(jodaDateTimeFormatter)), pp)
-    }
-    implicit object SetLocalDateTimeOption extends SetParameter[Option[LocalDateTime]] {
-      def apply(v: Option[LocalDateTime], pp: PositionedParameters) = setDateTime(Types.TIMESTAMP, "timestamp", v.map(_.toString(jodaDateTimeFormatter)), pp)
-    }
-    ///
-    implicit object SetZonedDateTime extends SetParameter[DateTime] {
-      def apply(v: DateTime, pp: PositionedParameters) = setDateTime(Types.TIMESTAMP_WITH_TIMEZONE, "timestamptz", Option(v).map(_.toString(jodaTzDateTimeFormatter)), pp)
-    }
-    implicit object SetZonedDateTimeOption extends SetParameter[Option[DateTime]] {
-      def apply(v: Option[DateTime], pp: PositionedParameters) = setDateTime(Types.TIMESTAMP_WITH_TIMEZONE, "timestamptz", v.map(_.toString(jodaTzDateTimeFormatter)), pp)
-    }
-    ///
-    implicit object SetPeriod extends SetParameter[Period] {
-      def apply(v: Period, pp: PositionedParameters) = setDateTime(Types.OTHER, "interval", Option(v).map(_.toString), pp)
-    }
-    implicit object SetPeriodOption extends SetParameter[Option[Period]] {
-      def apply(v: Option[Period], pp: PositionedParameters) = setDateTime(Types.OTHER, "interval", v.map(_.toString), pp)
-    }
+    implicit val setLocalDate = mkSetParameter[LocalDate]("date", _.toString(jodaDateFormatter), sqlType = Types.DATE)
+    implicit val setLocalDateOption = mkOptionSetParameter[LocalDate]("date", _.toString(jodaDateFormatter), sqlType = Types.DATE)
 
-    ///
-    private def setDateTime(sqlType: Int, typeName: String, v: => Option[String], p: PositionedParameters) = v match {
-      case Some(v) => p.setObject(utils.mkPGobject(typeName, v), Types.OTHER)
-      case None    => p.setNull(sqlType)
-    }
+    implicit val setLocalTime = mkSetParameter[LocalTime]("time", _.toString(jodaTimeFormatter), sqlType = Types.TIME)
+    implicit val setLocalTimeOption = mkOptionSetParameter[LocalTime]("time", _.toString(jodaTimeFormatter), sqlType = Types.TIME)
+
+    implicit val setLocalDateTime = mkSetParameter[LocalDateTime]("timestamp", _.toString(jodaDateTimeFormatter), sqlType = Types.TIMESTAMP)
+    implicit val setLocalDateTimeOption = mkOptionSetParameter[LocalDateTime]("timestamp", _.toString(jodaDateTimeFormatter), sqlType = Types.TIMESTAMP)
+
+    implicit val setZonedDateTime = mkSetParameter[DateTime]("timestamptz", _.toString(jodaTzDateTimeFormatter), sqlType = Types.TIMESTAMP_WITH_TIMEZONE)
+    implicit val setZonedDateTimeOption = mkOptionSetParameter[DateTime]("timestamptz", _.toString(jodaTzDateTimeFormatter), sqlType = Types.TIMESTAMP_WITH_TIMEZONE)
+
+    implicit val setPeriod = mkSetParameter[Period]("interval")
+    implicit val setPeriodOption = mkOptionSetParameter[Period]("interval")
+
+    implicit val setDuration = mkSetParameter[Duration]("interval")
+    implicit val setDurationOption = mkOptionSetParameter[Duration]("interval")
   }
 }
 

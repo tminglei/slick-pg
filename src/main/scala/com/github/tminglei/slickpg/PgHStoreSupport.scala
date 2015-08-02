@@ -3,7 +3,7 @@ package com.github.tminglei.slickpg
 import scala.collection.convert.{WrapAsJava, WrapAsScala}
 import slick.driver.PostgresDriver
 import org.postgresql.util.HStoreConverter
-import slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
+import slick.jdbc.{PositionedResult, JdbcType}
 
 trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import driver.api._
@@ -32,6 +32,7 @@ trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcT
 
   /// static sql support, NOTE: no extension methods available for static sql usage
   trait SimpleHStorePlainImplicits {
+    import utils.PlainSQLUtils._
 
     implicit class PgHStorePositionedResult(r: PositionedResult) {
       def nextHStore() = nextHStoreOption().getOrElse(Map.empty)
@@ -41,17 +42,9 @@ trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcT
     }
 
     ////////////////////////////////////////////////////////////////////////
-    implicit object SetHStore extends SetParameter[Map[String, String]] {
-      def apply(v: Map[String, String], pp: PositionedParameters) = setHStore(Option(v), pp)
-    }
-    implicit object SetHStoreOption extends SetParameter[Option[Map[String, String]]] {
-      def apply(v: Option[Map[String, String]], pp: PositionedParameters) = setHStore(v, pp)
-    }
-
-    ///
-    private def setHStore(v: Option[Map[String,String]], p: PositionedParameters) = v match {
-      case Some(v) => p.setObject(utils.mkPGobject("hstore", HStoreConverter.toString(WrapAsJava.mapAsJavaMap(v))), java.sql.Types.OTHER)
-      case None    => p.setNull(java.sql.Types.OTHER)
-    }
+    implicit val setHStore = mkSetParameter[Map[String, String]]("hstore",
+      (v) => HStoreConverter.toString(WrapAsJava.mapAsJavaMap(v)))
+    implicit val setHStoreOption = mkOptionSetParameter[Map[String, String]]("hstore",
+      (v) => HStoreConverter.toString(WrapAsJava.mapAsJavaMap(v)))
   }
 }

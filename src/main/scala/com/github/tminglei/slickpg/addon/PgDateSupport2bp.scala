@@ -6,7 +6,7 @@ import slick.driver.PostgresDriver
 import org.threeten.bp._
 import org.threeten.bp.format.{DateTimeFormatterBuilder, DateTimeFormatter}
 import org.postgresql.util.PGInterval
-import slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
+import slick.jdbc.{PositionedResult, JdbcType}
 
 trait PgDateSupport2bp extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import driver.api._
@@ -121,6 +121,7 @@ trait PgDateSupport2bp extends date.PgDateExtensions with utils.PgCommonJdbcType
 
   trait BpDateTimePlainImplicits extends BpDateTimeFormatters {
     import java.sql.Types
+    import utils.PlainSQLUtils._
 
     implicit class PgDate2TimePositionedResult(r: PositionedResult) {
       def nextLocalDate() = nextLocalDateOption().orNull
@@ -139,70 +140,37 @@ trait PgDateSupport2bp extends date.PgDateExtensions with utils.PgCommonJdbcType
       def nextPeriodOption() = r.nextStringOption().map(pgIntervalStr2Period)
       def nextDuration() = nextDurationOption().orNull
       def nextDurationOption() = r.nextStringOption().map(pgIntervalStr2Duration)
+      def nextZoneId() = nextZoneIdOption().orNull
+      def nextZoneIdOption() = r.nextStringOption().map(ZoneId.of)
     }
 
     /////////////////////////////////////////////////////////////////////////////
-    implicit object SetLocalDate extends SetParameter[LocalDate] {
-      def apply(v: LocalDate, pp: PositionedParameters) = setDateTime(Types.DATE, "date", Option(v).map(_.format(bpDateFormatter)), pp)
-    }
-    implicit object SetLocalDateOption extends SetParameter[Option[LocalDate]] {
-      def apply(v: Option[LocalDate], pp: PositionedParameters) = setDateTime(Types.DATE, "date", v.map(_.format(bpDateFormatter)), pp)
-    }
-    ///
-    implicit object SetLocalTime extends SetParameter[LocalTime] {
-      def apply(v: LocalTime, pp: PositionedParameters) = setDateTime(Types.DATE, "time", Option(v).map(_.format(bpTimeFormatter)), pp)
-    }
-    implicit object SetLocalTimeOption extends SetParameter[Option[LocalTime]] {
-      def apply(v: Option[LocalTime], pp: PositionedParameters) = setDateTime(Types.DATE, "time", v.map(_.format(bpTimeFormatter)), pp)
-    }
-    ///
-    implicit object SetLocalDateTime extends SetParameter[LocalDateTime] {
-      def apply(v: LocalDateTime, pp: PositionedParameters) = setDateTime(Types.TIMESTAMP, "timestamp", Option(v).map(_.format(bpDateTimeFormatter)), pp)
-    }
-    implicit object SetLocalDateTimeOption extends SetParameter[Option[LocalDateTime]] {
-      def apply(v: Option[LocalDateTime], pp: PositionedParameters) = setDateTime(Types.TIMESTAMP, "timestamp", v.map(_.format(bpDateTimeFormatter)), pp)
-    }
-    ///
-    implicit object SetOffsetTime extends SetParameter[OffsetTime] {
-      def apply(v: OffsetTime, pp: PositionedParameters) = setDateTime(Types.TIME_WITH_TIMEZONE, "timetz", Option(v).map(_.format(bpTzTimeFormatter)), pp)
-    }
-    implicit object SetOffsetTimeOption extends SetParameter[Option[OffsetTime]] {
-      def apply(v: Option[OffsetTime], pp: PositionedParameters) = setDateTime(Types.TIME_WITH_TIMEZONE, "timetz", v.map(_.format(bpTzTimeFormatter)), pp)
-    }
-    ///
-    implicit object SetOffsetDateTime extends SetParameter[OffsetDateTime] {
-      def apply(v: OffsetDateTime, pp: PositionedParameters) = setDateTime(Types.TIMESTAMP_WITH_TIMEZONE, "timestamptz", Option(v).map(_.format(bpTzDateTimeFormatter)), pp)
-    }
-    implicit object SetOffsetDateTimeOption extends SetParameter[Option[OffsetDateTime]] {
-      def apply(v: Option[OffsetDateTime], pp: PositionedParameters) = setDateTime(Types.TIMESTAMP_WITH_TIMEZONE, "timestamptz", v.map(_.format(bpTzDateTimeFormatter)), pp)
-    }
-    ///
-    implicit object SetZonedDateTime extends SetParameter[ZonedDateTime] {
-      def apply(v: ZonedDateTime, pp: PositionedParameters) = setDateTime(Types.TIMESTAMP_WITH_TIMEZONE, "timestamptz", Option(v).map(_.format(bpTzDateTimeFormatter)), pp)
-    }
-    implicit object SetZonedDateTimeOption extends SetParameter[Option[ZonedDateTime]] {
-      def apply(v: Option[ZonedDateTime], pp: PositionedParameters) = setDateTime(Types.TIMESTAMP_WITH_TIMEZONE, "timestamptz", v.map(_.format(bpTzDateTimeFormatter)), pp)
-    }
-    ///
-    implicit object SetPeriod extends SetParameter[Period] {
-      def apply(v: Period, pp: PositionedParameters) = setDateTime(Types.OTHER, "interval", Option(v).map(_.toString), pp)
-    }
-    implicit object SetPeriodOption extends SetParameter[Option[Period]] {
-      def apply(v: Option[Period], pp: PositionedParameters) = setDateTime(Types.OTHER, "interval", v.map(_.toString), pp)
-    }
-    ///
-    implicit object SetDuration extends SetParameter[Duration] {
-      def apply(v: Duration, pp: PositionedParameters) = setDateTime(Types.OTHER, "interval", Option(v).map(_.toString), pp)
-    }
-    implicit object SetDurationOption extends SetParameter[Option[Duration]] {
-      def apply(v: Option[Duration], pp: PositionedParameters) = setDateTime(Types.OTHER, "interval", v.map(_.toString), pp)
-    }
+    implicit val setLocalDate = mkSetParameter[LocalDate]("date", _.format(bpDateFormatter), sqlType = Types.DATE)
+    implicit val setLocalDateOption = mkOptionSetParameter[LocalDate]("date", _.format(bpDateFormatter), sqlType = Types.DATE)
 
-    ///
-    private def setDateTime(sqlType: Int, typeName: String, v: => Option[String], p: PositionedParameters) = v match {
-      case Some(v) => p.setObject(utils.mkPGobject(typeName, v), Types.OTHER)
-      case None    => p.setNull(sqlType)
-    }
+    implicit val setLocalTime = mkSetParameter[LocalTime]("time", _.format(bpTimeFormatter), sqlType = Types.TIME)
+    implicit val setLocalTimeOption = mkOptionSetParameter[LocalTime]("time", _.format(bpTimeFormatter), sqlType = Types.TIME)
+
+    implicit val setLocalDateTime = mkSetParameter[LocalDateTime]("timestamp", _.format(bpDateTimeFormatter), sqlType = Types.TIMESTAMP)
+    implicit val setLocalDateTimeOption = mkOptionSetParameter[LocalDateTime]("timestamp", _.format(bpDateTimeFormatter), sqlType = Types.TIMESTAMP)
+
+    implicit val setOffsetTime = mkSetParameter[OffsetTime]("timetz", _.format(bpTzTimeFormatter), sqlType = Types.TIME_WITH_TIMEZONE)
+    implicit val setOffsetTimeOption = mkOptionSetParameter[OffsetTime]("timetz", _.format(bpTzTimeFormatter), sqlType = Types.TIME_WITH_TIMEZONE)
+
+    implicit val setOffsetDateTime = mkSetParameter[OffsetDateTime]("timestamptz", _.format(bpTzDateTimeFormatter), sqlType = Types.TIMESTAMP_WITH_TIMEZONE)
+    implicit val setOffsetDateTimeOption = mkOptionSetParameter[OffsetDateTime]("timestamptz", _.format(bpTzDateTimeFormatter), sqlType = Types.TIMESTAMP_WITH_TIMEZONE)
+
+    implicit val setZonedDateTime = mkSetParameter[ZonedDateTime]("timestamptz", _.format(bpTzDateTimeFormatter), sqlType = Types.TIMESTAMP_WITH_TIMEZONE)
+    implicit val setZonedDateTimeOption = mkOptionSetParameter[ZonedDateTime]("timestamptz", _.format(bpTzDateTimeFormatter), sqlType = Types.TIMESTAMP_WITH_TIMEZONE)
+
+    implicit val setPeriod = mkSetParameter[Period]("interval")
+    implicit val setPeriodOption = mkOptionSetParameter[Period]("interval")
+
+    implicit val setDuration = mkSetParameter[Duration]("interval")
+    implicit val setDurationOption = mkOptionSetParameter[Duration]("interval")
+
+    implicit val setZone = mkSetParameter[ZoneId]("text", sqlType = Types.VARCHAR)
+    implicit val setZoneOption = mkOptionSetParameter[ZoneId]("text", sqlType = Types.VARCHAR)
   }
 }
 

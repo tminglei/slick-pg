@@ -1,7 +1,7 @@
 package com.github.tminglei.slickpg
 
 import slick.driver.PostgresDriver
-import slick.jdbc.{PositionedParameters, SetParameter, PositionedResult, JdbcType}
+import slick.jdbc.{PositionedResult, JdbcType}
 
 case class TsVector(value: String)
 case class TsQuery(value: String)
@@ -37,6 +37,7 @@ trait PgSearchSupport extends search.PgSearchExtensions with utils.PgCommonJdbcT
   }
 
   trait SimpleSearchPlainImplicits {
+    import utils.PlainSQLUtils._
 
     implicit class PgSearchPositionedResult(r: PositionedResult) {
       def nextTsVector() = nextTsVectorOption().orNull
@@ -45,28 +46,11 @@ trait PgSearchSupport extends search.PgSearchExtensions with utils.PgCommonJdbcT
       def nextTsQueryOption() = r.nextStringOption().map(TsQuery)
     }
 
-    implicit object SetTsVector extends SetParameter[TsVector] {
-      def apply(v: TsVector, pp: PositionedParameters) = setTsVector(Option(v), pp)
-    }
-    implicit object SetTsVectorOption extends SetParameter[Option[TsVector]] {
-      def apply(v: Option[TsVector], pp: PositionedParameters) = setTsVector(v, pp)
-    }
-    ///
-    implicit object SetTsQuery extends SetParameter[TsQuery] {
-      def apply(v: TsQuery, pp: PositionedParameters) = setTsQuery(Option(v), pp)
-    }
-    implicit object SetTsQueryOption extends SetParameter[Option[TsQuery]] {
-      def apply(v: Option[TsQuery], pp: PositionedParameters) = setTsQuery(v, pp)
-    }
+    ////////////////////////////////////////////////////////////////
+    implicit val setTsVector = mkSetParameter[TsVector]("tsvector", _.value)
+    implicit val setTsVectorOption = mkOptionSetParameter[TsVector]("tsvector", _.value)
 
-    ///
-    private def setTsVector(v: Option[TsVector], p: PositionedParameters) = v match {
-      case Some(v) => p.setObject(utils.mkPGobject("tsvector", v.value), java.sql.Types.OTHER)
-      case None    => p.setNull(java.sql.Types.OTHER)
-    }
-    private def setTsQuery(v: Option[TsQuery], p: PositionedParameters) = v match {
-      case Some(v) => p.setObject(utils.mkPGobject("tsquery", v.value), java.sql.Types.OTHER)
-      case None    => p.setNull(java.sql.Types.OTHER)
-    }
+    implicit val setTsQuery = mkSetParameter[TsQuery]("tsquery", _.value)
+    implicit val setTsQueryOption = mkOptionSetParameter[TsQuery]("tsquery", _.value)
   }
 }

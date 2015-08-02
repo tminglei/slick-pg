@@ -1,7 +1,7 @@
 package com.github.tminglei.slickpg
 
 import slick.driver.PostgresDriver
-import slick.jdbc.{SetParameter, PositionedParameters, PositionedResult, JdbcType}
+import slick.jdbc.{PositionedResult, JdbcType}
 
 trait PgArgonautSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import driver.api._
@@ -32,23 +32,15 @@ trait PgArgonautSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
   }
 
   trait ArgonautJsonPlainImplicits {
+    import utils.PlainSQLUtils._
 
     implicit class PgJsonPositionedResult(r: PositionedResult) {
       def nextJson() = nextJsonOption().getOrElse(jNull)
       def nextJsonOption() = r.nextStringOption().flatMap(_.parse.toOption)
     }
 
-    implicit object SetJson extends SetParameter[Json] {
-      def apply(v: Json, pp: PositionedParameters) = setJson(Option(v), pp)
-    }
-    implicit object SetJsonOption extends SetParameter[Option[Json]] {
-      def apply(v: Option[Json], pp: PositionedParameters) = setJson(v, pp)
-    }
-
-    ///
-    private def setJson(v: Option[Json], p: PositionedParameters) = v match {
-      case Some(v) => p.setObject(utils.mkPGobject(pgjson, v.nospaces), java.sql.Types.OTHER)
-      case None    => p.setNull(java.sql.Types.OTHER)
-    }
+    ///////////////////////////////////////////////////////////
+    implicit val setJson = mkSetParameter[Json](pgjson, _.nospaces)
+    implicit val setJsonOption = mkOptionSetParameter[Json](pgjson, _.nospaces)
   }
 }
