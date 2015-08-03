@@ -39,7 +39,9 @@ trait PgPlayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
       def nextJsonOption() = r.nextStringOption().map(Json.parse)
     }
 
-    /////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
+    implicit val getJson = mkGetResult(_.nextJson())
+    implicit val getJsonOption = mkGetResult(_.nextJsonOption())
     implicit val setJson = mkSetParameter[JsValue](pgjson, Json.stringify)
     implicit val setJsonOption = mkOptionSetParameter[JsValue](pgjson, Json.stringify)
   }

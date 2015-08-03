@@ -145,32 +145,50 @@ trait PgDateSupport2bp extends date.PgDateExtensions with utils.PgCommonJdbcType
     }
 
     /////////////////////////////////////////////////////////////////////////////
+    implicit val getLocalDate = mkGetResult(_.nextLocalDate())
+    implicit val getLocalDateOption = mkGetResult(_.nextLocalDateOption())
     implicit val setLocalDate = mkSetParameter[LocalDate]("date", _.format(bpDateFormatter), sqlType = Types.DATE)
     implicit val setLocalDateOption = mkOptionSetParameter[LocalDate]("date", _.format(bpDateFormatter), sqlType = Types.DATE)
 
+    implicit val getLocalTime = mkGetResult(_.nextLocalTime())
+    implicit val getLocalTimeOption = mkGetResult(_.nextLocalTimeOption())
     implicit val setLocalTime = mkSetParameter[LocalTime]("time", _.format(bpTimeFormatter), sqlType = Types.TIME)
     implicit val setLocalTimeOption = mkOptionSetParameter[LocalTime]("time", _.format(bpTimeFormatter), sqlType = Types.TIME)
 
+    implicit val getLocalDateTime = mkGetResult(_.nextLocalDateTime())
+    implicit val getLocalDateTimeOption = mkGetResult(_.nextLocalDateTimeOption())
     implicit val setLocalDateTime = mkSetParameter[LocalDateTime]("timestamp", _.format(bpDateTimeFormatter), sqlType = Types.TIMESTAMP)
     implicit val setLocalDateTimeOption = mkOptionSetParameter[LocalDateTime]("timestamp", _.format(bpDateTimeFormatter), sqlType = Types.TIMESTAMP)
 
+    implicit val getOffsetTime = mkGetResult(_.nextOffsetTime())
+    implicit val getOffsetTimeOption = mkGetResult(_.nextOffsetTimeOption())
     implicit val setOffsetTime = mkSetParameter[OffsetTime]("timetz", _.format(bpTzTimeFormatter), sqlType = Types.TIME_WITH_TIMEZONE)
     implicit val setOffsetTimeOption = mkOptionSetParameter[OffsetTime]("timetz", _.format(bpTzTimeFormatter), sqlType = Types.TIME_WITH_TIMEZONE)
 
+    implicit val getOffsetDateTime = mkGetResult(_.nextOffsetDateTime())
+    implicit val getOffsetDateTimeOption = mkGetResult(_.nextOffsetDateTimeOption())
     implicit val setOffsetDateTime = mkSetParameter[OffsetDateTime]("timestamptz", _.format(bpTzDateTimeFormatter), sqlType = Types.TIMESTAMP_WITH_TIMEZONE)
     implicit val setOffsetDateTimeOption = mkOptionSetParameter[OffsetDateTime]("timestamptz", _.format(bpTzDateTimeFormatter), sqlType = Types.TIMESTAMP_WITH_TIMEZONE)
 
+    implicit val getZonedDateTime = mkGetResult(_.nextZonedDateTime())
+    implicit val getZonedDateTimeOption = mkGetResult(_.nextZonedDateTimeOption())
     implicit val setZonedDateTime = mkSetParameter[ZonedDateTime]("timestamptz", _.format(bpTzDateTimeFormatter), sqlType = Types.TIMESTAMP_WITH_TIMEZONE)
     implicit val setZonedDateTimeOption = mkOptionSetParameter[ZonedDateTime]("timestamptz", _.format(bpTzDateTimeFormatter), sqlType = Types.TIMESTAMP_WITH_TIMEZONE)
 
+    implicit val getPeriod = mkGetResult(_.nextPeriod())
+    implicit val getPeriodOption = mkGetResult(_.nextPeriodOption())
     implicit val setPeriod = mkSetParameter[Period]("interval")
     implicit val setPeriodOption = mkOptionSetParameter[Period]("interval")
 
+    implicit val getDuration = mkGetResult(_.nextDuration())
+    implicit val getDurationOption = mkGetResult(_.nextDurationOption())
     implicit val setDuration = mkSetParameter[Duration]("interval")
     implicit val setDurationOption = mkOptionSetParameter[Duration]("interval")
 
-    implicit val setZone = mkSetParameter[ZoneId]("text", sqlType = Types.VARCHAR)
-    implicit val setZoneOption = mkOptionSetParameter[ZoneId]("text", sqlType = Types.VARCHAR)
+    implicit val getZoneId = mkGetResult(_.nextZoneId())
+    implicit val getZoneIdOption = mkGetResult(_.nextZoneIdOption())
+    implicit val setZoneId = mkSetParameter[ZoneId]("text", sqlType = Types.VARCHAR)
+    implicit val setZoneIdOption = mkOptionSetParameter[ZoneId]("text", sqlType = Types.VARCHAR)
   }
 }
 

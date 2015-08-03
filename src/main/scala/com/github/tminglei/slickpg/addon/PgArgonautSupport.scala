@@ -40,6 +40,8 @@ trait PgArgonautSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
     }
 
     ///////////////////////////////////////////////////////////
+    implicit val getJson = mkGetResult(_.nextJson())
+    implicit val getJsonOption = mkGetResult(_.nextJsonOption())
     implicit val setJson = mkSetParameter[Json](pgjson, _.nospaces)
     implicit val setJsonOption = mkOptionSetParameter[Json](pgjson, _.nospaces)
   }

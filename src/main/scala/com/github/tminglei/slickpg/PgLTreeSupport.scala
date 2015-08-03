@@ -55,6 +55,9 @@ trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcType
 
   trait SimpleLTreePlainImplicits {
     import utils.PlainSQLUtils._
+    {
+      addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(LTree.apply)(r.nextString()))
+    }
 
     implicit class PgLTreePositionedResult(r: PositionedResult) {
       def nextLTree() = nextLTreeOption().orNull
@@ -62,6 +65,8 @@ trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcType
     }
 
     ///////////////////////////////////////////////////////////
+    implicit val getLTree = mkGetResult(_.nextLTree())
+    implicit val getLTreeOption = mkGetResult(_.nextLTreeOption())
     implicit val setLTree = mkSetParameter[LTree]("ltree")
     implicit val setLTreeOption = mkOptionSetParameter[LTree]("ltree")
     ///

@@ -57,6 +57,13 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
 
   trait SimpleRangePlainImplicits {
     import utils.PlainSQLUtils._
+    {
+      addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(_.toInt))(r.nextString()))
+      addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(_.toLong))(r.nextString()))
+      addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(_.toFloat))(r.nextString()))
+      addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(toTimestamp))(r.nextString()))
+      addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(toSQLDate))(r.nextString()))
+    }
 
     implicit class PgRangePositionedResult(r: PositionedResult) {
       def nextIntRange() = nextIntRangeOption().orNull
@@ -72,18 +79,28 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
     }
 
     ////////////////////////////////////////////////////////////////////
+    implicit val getIntRange = mkGetResult(_.nextIntRange())
+    implicit val getIntRangeOption = mkGetResult(_.nextIntRangeOption())
     implicit val setIntRange = mkSetParameter[Range[Int]]("int4range")
     implicit val setIntRangeOption = mkOptionSetParameter[Range[Int]]("int4range")
 
+    implicit val getLongRange = mkGetResult(_.nextLongRange())
+    implicit val getLongRangeOption = mkGetResult(_.nextLongRangeOption())
     implicit val setLongRange = mkSetParameter[Range[Long]]("int8range")
     implicit val setLongRangeOption = mkOptionSetParameter[Range[Long]]("int8range")
 
+    implicit val getFloatRange = mkGetResult(_.nextFloatRange())
+    implicit val getFloatRangeOption = mkGetResult(_.nextFloatRangeOption())
     implicit val setFloatRange = mkSetParameter[Range[Float]]("numrange")
     implicit val setFloatRangeOption = mkOptionSetParameter[Range[Float]]("numrange")
 
+    implicit val getTimestampRange = mkGetResult(_.nextTimestamp())
+    implicit val getTimestampRangeOption = mkGetResult(_.nextTimestampRangeOption())
     implicit val setTimestampRange = mkSetParameter[Range[Timestamp]]("tsrange")
     implicit val setTimestampRangeOption = mkOptionSetParameter[Range[Timestamp]]("tsrange")
 
+    implicit val getDateRange = mkGetResult(_.nextDateRange())
+    implicit val getDateRangeOption = mkGetResult(_.nextDateRangeOption())
     implicit val setDateRange = mkSetParameter[Range[Date]]("daterange")
     implicit val setDateRangeOption = mkOptionSetParameter[Range[Date]]("daterange")
   }
