@@ -2,11 +2,29 @@ package com.github.tminglei.slickpg
 package utils
 
 import scala.reflect.ClassTag
-import slick.jdbc.{SetParameter, PositionedParameters}
+import slick.jdbc.{GetResult, PositionedResult, SetParameter, PositionedParameters}
+
+import scala.reflect.runtime.{universe => u}
 
 object PlainSQLUtils {
   import SimpleArrayUtils._
+  private[slickpg] var nextArrayConverters = Map.empty[u.Type, PositionedResult => Option[Seq[_]]]
 
+  def addNextArrayConverter[T](conv: PositionedResult => Option[Seq[T]])(implicit ttag: u.TypeTag[T]) = {
+    println(s"[info]\u001B[36m >>> adding next array converter for ${u.typeOf[T]} \u001B[0m")
+    val existed = nextArrayConverters.get(u.typeOf[T])
+    if (existed.isDefined) new RuntimeException(
+      s"\u001B[31m[warn] >>> DUPLICATED BINDING for ${u.typeOf[T]}!!!\u001B[0m").printStackTrace()
+    nextArrayConverters += (u.typeOf[T] -> conv)
+  }
+
+  ///
+  def mkGetResult[T](next: (PositionedResult => T)) =
+    new GetResult[T] {
+      def apply(rs: PositionedResult) = next(rs)
+    }
+
+  ///
   def mkSetParameter[T](typeName: String, toStr: (T => String) = (v: T) => v.toString,
             sqlType: Int = java.sql.Types.OTHER): SetParameter[T] =
     new SetParameter[T] {

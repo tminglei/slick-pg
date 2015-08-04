@@ -47,6 +47,8 @@ trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcT
     }
 
     ////////////////////////////////////////////////////////////////////////
+    implicit val getHStore = mkGetResult(_.nextHStore())
+    implicit val getHStoreOption = mkGetResult(_.nextHStoreOption())
     implicit val setHStore = mkSetParameter[Map[String, String]]("hstore",
       (v) => HStoreConverter.toString(WrapAsJava.mapAsJavaMap(v)))
     implicit val setHStoreOption = mkOptionSetParameter[Map[String, String]]("hstore",

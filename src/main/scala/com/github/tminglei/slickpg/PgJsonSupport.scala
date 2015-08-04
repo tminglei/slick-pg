@@ -51,6 +51,8 @@ trait PgJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes {
     }
 
     //////////////////////////////////////////////////////////////
+    implicit val getJson = mkGetResult(_.nextJson())
+    implicit val getJsonOption = mkGetResult(_.nextJsonOption())
     implicit val setJson = mkSetParameter[JsonString](pgjson, _.value)
     implicit val setJsonOption = mkOptionSetParameter[JsonString](pgjson, _.value)
   }

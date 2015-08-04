@@ -53,9 +53,13 @@ trait PgSearchSupport extends search.PgSearchExtensions with utils.PgCommonJdbcT
     }
 
     ////////////////////////////////////////////////////////////////
+    implicit val getTsVector = mkGetResult(_.nextTsVector())
+    implicit val getTsVectorOption = mkGetResult(_.nextTsVectorOption())
     implicit val setTsVector = mkSetParameter[TsVector]("tsvector", _.value)
     implicit val setTsVectorOption = mkOptionSetParameter[TsVector]("tsvector", _.value)
 
+    implicit val getTsQuery = mkGetResult(_.nextTsQuery())
+    implicit val getTsQueryOption = mkGetResult(_.nextTsQueryOption())
     implicit val setTsQuery = mkSetParameter[TsQuery]("tsquery", _.value)
     implicit val setTsQueryOption = mkOptionSetParameter[TsQuery]("tsquery", _.value)
   }

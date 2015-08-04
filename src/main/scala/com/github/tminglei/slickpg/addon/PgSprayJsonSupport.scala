@@ -47,6 +47,8 @@ trait PgSprayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
     }
 
     ///////////////////////////////////////////////////////////
+    implicit val getJson = mkGetResult(_.nextJson())
+    implicit val getJsonOption = mkGetResult(_.nextJsonOption())
     implicit val setJson = mkSetParameter[JsValue](pgjson, _.toJson.compactPrint)
     implicit val setJsonOption = mkOptionSetParameter[JsValue](pgjson, _.toJson.compactPrint)
   }

@@ -100,18 +100,28 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
     }
 
     /////////////////////////////////////////////////////////////////////////////
+    implicit val getLocalDate = mkGetResult(_.nextLocalDate())
+    implicit val getLocalDateOption = mkGetResult(_.nextLocalDateOption())
     implicit val setLocalDate = mkSetParameter[LocalDate]("date", _.toString(jodaDateFormatter), sqlType = Types.DATE)
     implicit val setLocalDateOption = mkOptionSetParameter[LocalDate]("date", _.toString(jodaDateFormatter), sqlType = Types.DATE)
 
+    implicit val getLocalTime = mkGetResult(_.nextLocalTime())
+    implicit val getLocalTimeOption = mkGetResult(_.nextLocalTimeOption())
     implicit val setLocalTime = mkSetParameter[LocalTime]("time", _.toString(jodaTimeFormatter), sqlType = Types.TIME)
     implicit val setLocalTimeOption = mkOptionSetParameter[LocalTime]("time", _.toString(jodaTimeFormatter), sqlType = Types.TIME)
 
+    implicit val getLocalDateTime = mkGetResult(_.nextLocalDateTime())
+    implicit val getLocalDateTimeOption = mkGetResult(_.nextLocalDateTimeOption())
     implicit val setLocalDateTime = mkSetParameter[LocalDateTime]("timestamp", _.toString(jodaDateTimeFormatter), sqlType = Types.TIMESTAMP)
     implicit val setLocalDateTimeOption = mkOptionSetParameter[LocalDateTime]("timestamp", _.toString(jodaDateTimeFormatter), sqlType = Types.TIMESTAMP)
 
+    implicit val getZonedDateTime = mkGetResult(_.nextZonedDateTime())
+    implicit val getZonedDateTimeOption = mkGetResult(_.nextZonedDateTimeOption())
     implicit val setZonedDateTime = mkSetParameter[DateTime]("timestamptz", _.toString(jodaTzDateTimeFormatter), sqlType = Types.TIMESTAMP_WITH_TIMEZONE)
     implicit val setZonedDateTimeOption = mkOptionSetParameter[DateTime]("timestamptz", _.toString(jodaTzDateTimeFormatter), sqlType = Types.TIMESTAMP_WITH_TIMEZONE)
 
+    implicit val getPeriod = mkGetResult(_.nextPeriod())
+    implicit val getPeriodOption = mkGetResult(_.nextPeriodOption())
     implicit val setPeriod = mkSetParameter[Period]("interval")
     implicit val setPeriodOption = mkOptionSetParameter[Period]("interval")
 

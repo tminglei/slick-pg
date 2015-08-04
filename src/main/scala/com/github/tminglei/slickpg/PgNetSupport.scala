@@ -61,8 +61,12 @@ trait PgNetSupport extends net.PgNetExtensions with utils.PgCommonJdbcTypes { dr
   }
 
   trait SimpleNetPlainImplicits {
-    import utils.PlainSQLUtils._
     import scala.reflect.classTag
+    import utils.PlainSQLUtils._
+    {
+      addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(InetString.apply)(r.nextString()))
+      addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(MacAddrString.apply)(r.nextString()))
+    }
 
     if (driver.isInstanceOf[ExPostgresDriver]) {
       driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("inet", classTag[InetString])
@@ -77,9 +81,13 @@ trait PgNetSupport extends net.PgNetExtensions with utils.PgCommonJdbcTypes { dr
     }
 
     /////////////////////////////////////////////////////////////////
+    implicit val getIPAddr = mkGetResult(_.nextIPAddr())
+    implicit val getIPAddrOption = mkGetResult(_.nextIntOption())
     implicit val setIPAddr = mkSetParameter[InetString]("inet", _.value)
     implicit val setIPAddrOption = mkOptionSetParameter[InetString]("inet", _.value)
 
+    implicit val getMacAddr = mkGetResult(_.nextMacAddr())
+    implicit val getMacAddrOption = mkGetResult(_.nextMacAddrOption())
     implicit val setMacAddr = mkSetParameter[MacAddrString]("macaddr", _.value)
     implicit val setMacAddrOption = mkOptionSetParameter[MacAddrString]("macaddr", _.value)
   }
