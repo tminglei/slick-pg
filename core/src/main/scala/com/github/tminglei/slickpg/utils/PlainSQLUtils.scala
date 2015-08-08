@@ -1,5 +1,4 @@
-package com.github.tminglei.slickpg
-package utils
+package com.github.tminglei.slickpg.utils
 
 import scala.reflect.ClassTag
 import slick.jdbc.{GetResult, PositionedResult, SetParameter, PositionedParameters}
@@ -14,7 +13,8 @@ object PlainSQLUtils {
     println(s"[info]\u001B[36m >>> adding next array converter for ${u.typeOf[T]} \u001B[0m")
     val existed = nextArrayConverters.get(u.typeOf[T])
     if (existed.isDefined) new RuntimeException(
-      s"\u001B[31m[warn] >>> DUPLICATED BINDING for ${u.typeOf[T]}!!!\u001B[0m").printStackTrace()
+      s"\u001B[31m[warn] >>> DUPLICATED converter for ${u.typeOf[T]}!!! \u001B[36m If it's expected, pls ignore it.\u001B[0m"
+    ).printStackTrace()
     nextArrayConverters += (u.typeOf[T] -> conv)
   }
 
@@ -38,7 +38,7 @@ object PlainSQLUtils {
 
   private def internalSet[T](sqlType: Int, typeName: String, v: Option[T], p: PositionedParameters, toStr: (T => String)) =
     v match {
-      case Some(v) => p.setObject(utils.mkPGobject(typeName, toStr(v)), java.sql.Types.OTHER)
+      case Some(v) => p.setObject(mkPGobject(typeName, toStr(v)), java.sql.Types.OTHER)
       case None    => p.setNull(sqlType)
     }
 

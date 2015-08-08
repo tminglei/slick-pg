@@ -178,7 +178,7 @@ class PgNetSupportSuite extends FunSuite {
   //------------------------------------------------------------------------------
 
   test("net Plain SQL support") {
-    import MyPlainPostgresDriver.plainAPI._
+    import MyPostgresDriver.plainAPI._
 
     implicit val getNetBeanResult = GetResult(r => NetBean(r.nextLong(), r.nextIPAddr(), r.nextMacAddrOption()))
 

@@ -139,7 +139,7 @@ class PgSearchSupportSuite extends FunSuite {
   //--------------------------------------------------------------------------------
 
   test("Text search Plain SQL support") {
-    import MyPlainPostgresDriver.plainAPI._
+    import MyPostgresDriver.plainAPI._
 
     case class SearchBean(id: Long, tVec: TsVector, tQ: TsQuery)
 

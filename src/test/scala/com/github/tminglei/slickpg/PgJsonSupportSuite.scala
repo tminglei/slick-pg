@@ -118,7 +118,7 @@ class PgJsonSupportSuite extends FunSuite {
   //------------------------------------------------------------------------------
 
   test("Json Plain SQL support") {
-    import MyPlainPostgresDriver.plainAPI._
+    import MyPostgresDriver.plainAPI._
 
     implicit val getJsonBeanResult = GetResult(r => JsonBean(r.nextLong(), r.nextJson()))
 
@@ -128,7 +128,7 @@ class PgJsonSupportSuite extends FunSuite {
       DBIO.seq(
         sqlu"""create table JsonTest0(
               id int8 not null primary key,
-              json #${MyPlainPostgresDriver.pgjson} not null)
+              json #${MyPostgresDriver.pgjson} not null)
           """,
         ///
         sqlu""" insert into JsonTest0 values(${b.id}, ${b.json}) """,

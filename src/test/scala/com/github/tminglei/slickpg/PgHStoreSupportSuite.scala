@@ -105,7 +105,7 @@ class PgHStoreSupportSuite extends FunSuite {
   //------------------------------------------------------------------------------
 
   test("Hstore Plain SQL support") {
-    import MyPlainPostgresDriver.plainAPI._
+    import MyPostgresDriver.plainAPI._
 
     implicit val getMapBeanResult = GetResult(r => MapBean(r.nextLong(), r.nextHStore()))
 

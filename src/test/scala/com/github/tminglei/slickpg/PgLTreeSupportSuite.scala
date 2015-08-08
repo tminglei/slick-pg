@@ -164,7 +164,7 @@ class PgLTreeSupportSuite extends FunSuite {
   //------------------------------------------------------------------------------
 
   test("Ltree Plain SQL support") {
-    import MyPlainPostgresDriver.plainAPI._
+    import MyPostgresDriver.plainAPI._
 
     implicit val getLTreeBeanResult = GetResult(r => LTreeBean(r.nextLong(), r.nextLTree(), r.nextArray[LTree]().toList))
 
