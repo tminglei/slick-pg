@@ -1,16 +1,17 @@
 package com.github.tminglei.slickpg
 
+import java.util.UUID
+
 import slick.ast.{TableNode, TableExpansion, Select, ColumnOption}
 import slick.jdbc.JdbcModelBuilder
 import slick.jdbc.meta.MTable
 import slick.lifted.PrimaryKey
 import slick.driver.{PostgresDriver, JdbcDriver}
-import slick.util.Logging
 
 import scala.concurrent.ExecutionContext
-import scala.reflect.ClassTag
+import scala.reflect.{classTag, ClassTag}
 
-trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { driver =>
+trait ExPostgresDriver extends JdbcDriver with PostgresDriver { driver =>
 
   override val api = new API {}
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
@@ -20,11 +21,18 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
   private var pgTypeToScala = Map.empty[String, ClassTag[_]]
 
   def bindPgTypeToScala(pgType: String, scalaType: ClassTag[_]) = {
-    logger.info(s"binding $pgType -> $scalaType")
+    println(s"[info]\u001B[36m >>> binding $pgType -> $scalaType \u001B[0m")
     val existed = pgTypeToScala.get(pgType)
-    if (existed.isDefined) {
-      logger.warn(s"DUPLICATED BINDING - existed: ${existed.get}, new: $scalaType")
-    } else pgTypeToScala += (pgType -> scalaType)
+    if (existed.isDefined) new RuntimeException(
+      s"\u001B[31m[warn] >>> DUPLICATED BINDING - existed: ${existed.get}, new: $scalaType !!! \u001B[36m If it's expected, pls ignore it.\u001B[0m"
+    ).printStackTrace()
+    pgTypeToScala += (pgType -> scalaType)
+  }
+
+  {
+    bindPgTypeToScala("uuid", classTag[UUID])
+    bindPgTypeToScala("text", classTag[String])
+    bindPgTypeToScala("bool", classTag[Boolean])
   }
 
   ///--
@@ -39,6 +47,7 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
   class ExModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext)
             extends super.ModelBuilder(mTables, ignoreInvalidDefaults) {
     override def jdbcTypeToScala(jdbcType: Int, typeName: String = ""): ClassTag[_] = {
+      println(s"[info]\u001B[36m jdbcTypeToScala - jdbcType $jdbcType, typeName: $typeName \u001B[0m")
       pgTypeToScala.get(typeName).getOrElse(super.jdbcTypeToScala(jdbcType, typeName))
     }
   }
