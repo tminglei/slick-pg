@@ -5,6 +5,7 @@ import org.scalatest.FunSuite
 
 import slick.driver.PostgresDriver
 import slick.jdbc.{GetResult, PositionedResult}
+import slick.lifted.RepShapeImplicits
 import scala.collection.convert.{WrapAsScala, WrapAsJava}
 import scala.reflect.runtime.{universe => u}
 import java.sql.Timestamp
@@ -43,7 +44,7 @@ object PgCompositeSupportSuite {
   object MyPostgresDriver1 extends PostgresDriver with PgCompositeSupport with PgArraySupport with utils.PgCommonJdbcTypes {
     override val api = new API with ArrayImplicits with CompositeImplicits {}
 
-    val plainImplicits = new Implicits with CompositePlainImplicits {}
+    val plainImplicits = new RepShapeImplicits with CompositePlainImplicits {}
 
     def mapToString(m: Map[String, String]): String = HStoreConverter.toString(WrapAsJava.mapAsJavaMap(m))
     def stringToMap(s: String): Map[String, String] = WrapAsScala.mapAsScalaMap(HStoreConverter.fromString(s)
