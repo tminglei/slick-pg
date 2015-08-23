@@ -57,7 +57,7 @@ object PgTokenHelper {
   def getString(token: Token, level: Int): String = {
     def unescape(value: String, level: Int): String = {
       val step = math.pow(2, level).toInt
-      (for(i <- (-1 + step) to (value.length, step)) yield value.charAt(i))
+      (for(i <- (-1 + step) to (value.length, step) if i < value.length) yield value.charAt(i))
         .mkString("")
     }
 
