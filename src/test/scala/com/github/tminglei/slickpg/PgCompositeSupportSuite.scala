@@ -116,6 +116,11 @@ class PgCompositeSupportSuite extends FunSuite {
     comps: List[Composite3]
     )
 
+  case class TestBean2(
+    id: Long,
+    comps: Composite1
+    )
+
   class TestTable(tag: Tag) extends Table[TestBean](tag, "CompositeTest") {
     def id = column[Long]("id")
     def comps = column[List[Composite2]]("comps", O.Default(Nil))
@@ -132,6 +137,14 @@ class PgCompositeSupportSuite extends FunSuite {
   }
   val CompositeTests1 = TableQuery(new TestTable1(_))
 
+  class TestTable2(tag: Tag) extends Table[TestBean2](tag, "CompositeTest2") {
+    def id = column[Long]("id")
+    def comps = column[Composite1]("comp")
+
+    def * = (id,comps) <> (TestBean2.tupled, TestBean2.unapply)
+  }
+  val CompositeTests2 = TableQuery(new TestTable2(_))
+
   //-------------------------------------------------------------------
 
   val rec1 = TestBean(333, List(Composite2(201, Composite1(101, "(test1'", ts("2001-1-3 13:21:00"),
@@ -144,15 +157,18 @@ class PgCompositeSupportSuite extends FunSuite {
   val rec12 = TestBean1(112, List(Composite3(code = Some(102))))
   val rec13 = TestBean1(113, List(Composite3()))
 
+  val rec21 = TestBean2(211, Composite1(201, "test3", ts("2015-1-3 13:21:00"), Some(Range(ts("2015-01-01 14:30:00"), ts("2016-01-03 15:30:00")))))
+
   test("Composite type Lifted support") {
     Await.result(db.run(
       DBIO.seq(
         sqlu"create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)",
         sqlu"create type composite2 as (id int8, comp1 composite1, confirm boolean, map hstore)",
         sqlu"create type composite3 as (txt text, id int4, code int4, bool boolean)",
-        (CompositeTests.schema ++ CompositeTests1.schema) create,
+        (CompositeTests.schema ++ CompositeTests1.schema ++ CompositeTests2.schema) create,
         CompositeTests forceInsertAll List(rec1, rec2, rec3),
-        CompositeTests1 forceInsertAll List(rec11, rec12, rec13)
+        CompositeTests1 forceInsertAll List(rec11, rec12, rec13),
+        CompositeTests2 forceInsertAll List(rec21)
       ).andThen(
         DBIO.seq(
           CompositeTests.filter(_.id === 333L.bind).result.head.map(
@@ -177,9 +193,15 @@ class PgCompositeSupportSuite extends FunSuite {
             r => assert(rec13 === r)
           )
         )
+      ).andThen(
+        DBIO.seq(
+          CompositeTests2.filter(_.id === 211L.bind).result.head.map(
+            r => assert(rec21 === r)
+          )
+        )
       ).andFinally(
         DBIO.seq(
-          (CompositeTests.schema ++ CompositeTests1.schema) drop,
+          (CompositeTests.schema ++ CompositeTests1.schema ++ CompositeTests2.schema) drop,
           sqlu"drop type composite3",
           sqlu"drop type composite2",
           sqlu"drop type composite1"
