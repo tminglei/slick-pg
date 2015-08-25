@@ -1,41 +1,56 @@
 package com.github.tminglei.slickpg
 
 import slick.driver.PostgresDriver
-import scala.reflect.runtime.{universe => u, currentMirror => rm}
+import scala.reflect.runtime.{universe => u}
 import scala.reflect.ClassTag
 import composite.Struct
 
 import slick.jdbc.PositionedResult
 
 trait PgCompositeSupport extends utils.PgCommonJdbcTypes with array.PgArrayJdbcTypes { driver: PostgresDriver =>
-  import PgCompositeSupportUtils._
 
-  def createCompositeJdbcType[T <: Struct](sqlTypeName: String)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) =
-    new GenericJdbcType[T](sqlTypeName, mkCompositeFromString[T], mkStringFromComposite[T])
+  def createCompositeJdbcType[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
+    val util = new PgCompositeSupportUtils(cl)
+    new GenericJdbcType[T](sqlTypeName, util.mkCompositeFromString[T], util.mkStringFromComposite[T])
+  }
 
   @deprecated(message = "pls use `createCompositeArrayJdbcType` instead", since = "0.8.2")
-  def createCompositeListJdbcType[T <: Struct](sqlTypeName: String)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) =
-    createCompositeArrayJdbcType(sqlTypeName).to(_.toList)
-  def createCompositeArrayJdbcType[T <: Struct](sqlTypeName: String)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) =
-    new AdvancedArrayJdbcType[T](sqlTypeName, mkCompositeSeqFromString[T], mkStringFromCompositeSeq[T])
+  def createCompositeListJdbcType[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) =
+    createCompositeArrayJdbcType(sqlTypeName, cl).to(_.toList)
+  def createCompositeArrayJdbcType[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
+    val util = new PgCompositeSupportUtils(cl)
+    new AdvancedArrayJdbcType[T](sqlTypeName, util.mkCompositeSeqFromString[T], util.mkStringFromCompositeSeq[T])
+  }
 
   /// Plain SQL support
-  def nextComposite[T <: Struct](r: PositionedResult)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) =
-    r.nextStringOption().map(mkCompositeFromString[T])
-  def nextCompositeArray[T <: Struct](r: PositionedResult)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) =
-    r.nextStringOption().map(mkCompositeSeqFromString[T])
+  def nextComposite[T <: Struct](r: PositionedResult, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
+    val util = new PgCompositeSupportUtils(cl)
+    r.nextStringOption().map(util.mkCompositeFromString[T])
+  }
+  def nextCompositeArray[T <: Struct](r: PositionedResult, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
+    val util = new PgCompositeSupportUtils(cl)
+    r.nextStringOption().map(util.mkCompositeSeqFromString[T])
+  }
 
-  def createCompositeSetParameter[T <: Struct](sqlTypeName: String)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) =
-    utils.PlainSQLUtils.mkSetParameter[T](sqlTypeName, mkStringFromComposite[T])
-  def createCompositeOptionSetParameter[T <: Struct](sqlTypeName: String)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) =
-    utils.PlainSQLUtils.mkOptionSetParameter[T](sqlTypeName, mkStringFromComposite[T])
-  def createCompositeArraySetParameter[T <: Struct](sqlTypeName: String)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) =
-    utils.PlainSQLUtils.mkArraySetParameter[T](sqlTypeName, seqToStr = Some(mkStringFromCompositeSeq[T]))
-  def createCompositeOptionArraySetParameter[T <: Struct](sqlTypeName: String)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) =
-    utils.PlainSQLUtils.mkArrayOptionSetParameter[T](sqlTypeName, seqToStr = Some(mkStringFromCompositeSeq[T]))
+  def createCompositeSetParameter[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
+    val util = new PgCompositeSupportUtils(cl)
+    utils.PlainSQLUtils.mkSetParameter[T](sqlTypeName, util.mkStringFromComposite[T])
+  }
+  def createCompositeOptionSetParameter[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
+    val util = new PgCompositeSupportUtils(cl)
+    utils.PlainSQLUtils.mkOptionSetParameter[T](sqlTypeName, util.mkStringFromComposite[T])
+  }
+  def createCompositeArraySetParameter[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
+    val util = new PgCompositeSupportUtils(cl)
+    utils.PlainSQLUtils.mkArraySetParameter[T](sqlTypeName, seqToStr = Some(util.mkStringFromCompositeSeq[T]))
+  }
+  def createCompositeOptionArraySetParameter[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
+    val util = new PgCompositeSupportUtils(cl)
+    utils.PlainSQLUtils.mkArrayOptionSetParameter[T](sqlTypeName, seqToStr = Some(util.mkStringFromCompositeSeq[T]))
+  }
 }
 
-object PgCompositeSupportUtils {
+class PgCompositeSupportUtils(cl: ClassLoader) {
   import utils.PgTokenHelper._
   import utils.TypeConverters._
 
@@ -118,13 +133,13 @@ object PgCompositeSupportUtils {
         val args = getChildren(token).zip(convList).map({
           case (token, converter) => converter.fromToken(token)
         })
-        rm.reflectClass(theType.typeSymbol.asClass).reflectConstructor(constructor)
+        u.runtimeMirror(cl).reflectClass(theType.typeSymbol.asClass).reflectConstructor(constructor)
           .apply(args: _*)
       }
     def toToken(value: Any): Token =
       if (value == null) Null
       else {
-        val instanceMirror = rm.reflect(value)
+        val instanceMirror = u.runtimeMirror(cl).reflect(value)
         val tokens = fieldList.zip(convList).map({
           case (field, converter) => converter.toToken(instanceMirror.reflectField(field).get)
         })
@@ -156,3 +171,5 @@ object PgCompositeSupportUtils {
     }
   }
 }
+
+object PgCompositeSupportUtils extends PgCompositeSupportUtils(getClass.getClassLoader)
