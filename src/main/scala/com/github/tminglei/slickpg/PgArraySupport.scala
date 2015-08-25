@@ -48,7 +48,7 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
       def nextArray[T]()(implicit tpe: u.TypeTag[T]): Seq[T] = nextArrayOption[T]().getOrElse(Nil)
       def nextArrayOption[T]()(implicit ttag: u.TypeTag[T]): Option[Seq[T]] = {
         val (matched, result) = extNextArray(u.typeOf[T], r)
-        (if (matched) result else nextArrayConverters.get(u.typeOf[T]).map(_.apply(r))
+        (if (matched) result else nextArrayConverters.get(u.typeOf[T].toString).map(_.apply(r))
           .getOrElse(simpleNextArray[T](r))).asInstanceOf[Option[Seq[T]]]
       }
     }

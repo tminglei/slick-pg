@@ -66,21 +66,18 @@ object PgCompositeSupportSuite {
     }
 
     trait CompositePlainImplicits extends SimpleArrayPlainImplicits {
+      import utils.PlainSQLUtils._
+      {
+        addNextArrayConverter((r) => nextCompositeArray[Composite1](r))
+        addNextArrayConverter((r) => nextCompositeArray[Composite2](r))
+        addNextArrayConverter((r) => nextCompositeArray[Composite3](r))
+      }
+
       implicit class MyCompositePositionedResult(r: PositionedResult) {
         def nextComposite1() = nextComposite[Composite1](r)
         def nextComposite2() = nextComposite[Composite2](r)
         def nextComposite3() = nextComposite[Composite3](r)
       }
-      override protected def extNextArray(tpe: u.Type, r: PositionedResult): (Boolean, Option[Seq[_]]) =
-        tpe match {
-          case tpe if tpe.typeConstructor =:= u.typeOf[Composite1].typeConstructor =>
-            (true, nextCompositeArray[Composite1](r))
-          case tpe if tpe.typeConstructor =:= u.typeOf[Composite2].typeConstructor =>
-            (true, nextCompositeArray[Composite2](r))
-          case tpe if tpe.typeConstructor =:= u.typeOf[Composite3].typeConstructor =>
-            (true, nextCompositeArray[Composite3](r))
-          case _ => super.extNextArray(tpe, r)
-        }
 
       implicit val composite1SetParameter = createCompositeSetParameter[Composite1]("composite1")
       implicit val composite1OptSetParameter = createCompositeOptionSetParameter[Composite1]("composite1")
