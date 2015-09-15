@@ -39,9 +39,24 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
 
   /// static sql support, NOTE: no extension methods available for static sql usage
   trait SimpleArrayPlainImplicits {
+    import scala.reflect.classTag
     import utils.PlainSQLUtils._
     {
       addNextArrayConverter((r) => simpleNextArray[Int](r).map(_.map(_.toShort)))
+    }
+
+    if (driver.isInstanceOf[ExPostgresDriver]) {
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_uuid", classTag[Seq[UUID]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_text", classTag[Seq[String]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_int8", classTag[Seq[Long]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_int4", classTag[Seq[Int]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_int2", classTag[Seq[Short]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_float4", classTag[Seq[Float]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_float8", classTag[Seq[Double]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_bool", classTag[Seq[Boolean]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_date", classTag[Seq[Date]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_time", classTag[Seq[Time]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_timestamp", classTag[Seq[Timestamp]])
     }
 
     implicit class PgArrayPositionedResult(r: PositionedResult) {

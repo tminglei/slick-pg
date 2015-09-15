@@ -8,9 +8,25 @@ import java.time.format.{DateTimeFormatterBuilder, DateTimeFormatter}
 import org.postgresql.util.PGInterval
 import slick.jdbc.{PositionedResult, JdbcType}
 
+import scala.reflect.{ClassTag, classTag}
+
 trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import driver.api._
   import PgDate2SupportUtils._
+
+  def bindPgDateTypesToScala[DATE, TIME, DATETIME, TIMETZ, DATETIMETZ, INTERVAL](
+          implicit ctag1: ClassTag[DATE], ctag2: ClassTag[TIME], ctag3: ClassTag[DATETIME],
+                 ctag4: ClassTag[TIMETZ], ctag5: ClassTag[DATETIMETZ], ctag6: ClassTag[INTERVAL]) = {
+    if (driver.isInstanceOf[ExPostgresDriver]) {
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("date", classTag[DATE])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("time", classTag[TIME])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("timestamp", classTag[DATETIME])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("timetz", classTag[TIMETZ])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("timestamptz", classTag[DATETIMETZ])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("interval", classTag[INTERVAL])
+    }
+    else throw new IllegalArgumentException("The driver MUST BE a `ExPostgresDriver`!")
+  }
 
   /// alias
   trait DateTimeImplicits extends Date2DateTimeImplicitsDuration

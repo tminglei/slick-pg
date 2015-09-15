@@ -38,6 +38,12 @@ trait PgJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes {
 
   trait SimpleJsonPlainImplicits {
     import utils.PlainSQLUtils._
+    import scala.reflect.classTag
+
+    if (driver.isInstanceOf[ExPostgresDriver]) {
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("json", classTag[JsonString])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("jsonb", classTag[JsonString])
+    }
 
     implicit class PgJsonPositionedResult(r: PositionedResult) {
       def nextJson() = nextJsonOption().orNull

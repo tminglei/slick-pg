@@ -38,6 +38,12 @@ trait PgSearchSupport extends search.PgSearchExtensions with utils.PgCommonJdbcT
 
   trait SimpleSearchPlainImplicits {
     import utils.PlainSQLUtils._
+    import scala.reflect.classTag
+
+    if (driver.isInstanceOf[ExPostgresDriver]) {
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("tsvector", classTag[TsVector])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("tsquery", classTag[TsQuery])
+    }
 
     implicit class PgSearchPositionedResult(r: PositionedResult) {
       def nextTsVector() = nextTsVectorOption().orNull

@@ -56,6 +56,7 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
   }
 
   trait SimpleRangePlainImplicits {
+    import scala.reflect.classTag
     import utils.PlainSQLUtils._
     {
       addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(_.toInt))(r.nextString()))
@@ -63,6 +64,14 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
       addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(_.toFloat))(r.nextString()))
       addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(toTimestamp))(r.nextString()))
       addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(toSQLDate))(r.nextString()))
+    }
+
+    if (driver.isInstanceOf[ExPostgresDriver]) {
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("int4range", classTag[Range[Int]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("int8range", classTag[Range[Long]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("numrange", classTag[Range[Float]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("tsrange", classTag[Range[Timestamp]])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("daterange", classTag[Range[Date]])
     }
 
     implicit class PgRangePositionedResult(r: PositionedResult) {

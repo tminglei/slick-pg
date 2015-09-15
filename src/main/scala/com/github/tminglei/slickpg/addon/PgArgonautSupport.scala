@@ -33,6 +33,12 @@ trait PgArgonautSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
 
   trait ArgonautJsonPlainImplicits {
     import utils.PlainSQLUtils._
+    import scala.reflect.classTag
+
+    if (driver.isInstanceOf[ExPostgresDriver]) {
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("json", classTag[Json])
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("jsonb", classTag[Json])
+    }
 
     implicit class PgJsonPositionedResult(r: PositionedResult) {
       def nextJson() = nextJsonOption().getOrElse(jNull)

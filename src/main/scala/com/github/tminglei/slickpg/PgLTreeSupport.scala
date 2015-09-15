@@ -54,9 +54,14 @@ trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcType
   }
 
   trait SimpleLTreePlainImplicits {
+    import scala.reflect.classTag
     import utils.PlainSQLUtils._
     {
       addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(LTree.apply)(r.nextString()))
+    }
+
+    if (driver.isInstanceOf[ExPostgresDriver]) {
+      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("ltree", classTag[LTree])
     }
 
     implicit class PgLTreePositionedResult(r: PositionedResult) {
