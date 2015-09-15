@@ -1,5 +1,6 @@
 package com.github.tminglei.slickpg
 
+import slick.ast.FieldSymbol
 import slick.driver.PostgresDriver
 import com.vividsolutions.jts.geom._
 import slick.jdbc.{SetParameter, PositionedParameters, PositionedResult}
@@ -64,7 +65,7 @@ trait PgPostGISSupport extends geom.PgPostGISExtensions { driver: PostgresDriver
 
     override def sqlType: Int = java.sql.Types.OTHER
 
-    override def sqlTypeName(size: Option[Length]): String = "geometry"
+    override def sqlTypeName(sym: Option[FieldSymbol]): String = "geometry"
 
     override def getValue(r: ResultSet, idx: Int): T = {
       val value = r.getString(idx)

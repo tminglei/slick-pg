@@ -1,5 +1,6 @@
 package com.github.tminglei.slickpg
 
+import slick.ast.FieldSymbol
 import slick.jdbc.JdbcType
 import slick.driver.PostgresDriver
 import slick.profile.RelationalProfile.ColumnOption.Length
@@ -40,7 +41,7 @@ trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes {
 
       override def sqlType: Int = java.sql.Types.OTHER
 
-      override def sqlTypeName(size: Option[Length]): String = sqlName(sqlEnumTypeName, quoteName)
+      override def sqlTypeName(sym: Option[FieldSymbol]): String = sqlName(sqlEnumTypeName, quoteName)
 
       override def getValue(r: ResultSet, idx: Int): enumObject.Value = {
         val value = r.getString(idx)

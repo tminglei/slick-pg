@@ -7,7 +7,7 @@ object SlickPgBuild extends Build {
     organizationName := "slick-pg",
     organization := "com.github.tminglei",
     name := "slick-pg",
-    version := "0.10.0-M2",
+    version := "0.10.0-RC1",
 
     scalaVersion := "2.11.6",
     crossScalaVersions := Seq("2.11.6", "2.10.5"),
@@ -67,7 +67,7 @@ object SlickPgBuild extends Build {
     }
     Seq (
       "org.scala-lang" % "scala-reflect" % scalaVersion,
-      "com.typesafe.slick" %% "slick" % "3.1.0-M2",
+      "com.typesafe.slick" %% "slick" % "3.1.0-RC1",
       "org.postgresql" % "postgresql" % "9.4-1201-jdbc41",
       "org.scalatest" %% "scalatest" % "2.2.4" % "test"
     ) ++ extractedLibs
@@ -94,7 +94,7 @@ object SlickPgBuild extends Build {
         "org.json4s" %% "json4s-core" % json4sVersion % "provided",
         "org.json4s" %% "json4s-native" % json4sVersion % "test",
         "com.typesafe.play" %% "play-json" % "2.3.0" % "provided",
-        "io.spray" %%  "spray-json" % "1.3.1" % "provided",
+        "io.spray" %%  "spray-json" % "1.3.2" % "provided",
         "io.argonaut" %% "argonaut" % "6.1" % "provided",
         "com.vividsolutions" % "jts" % "1.13" % "provided"
       )

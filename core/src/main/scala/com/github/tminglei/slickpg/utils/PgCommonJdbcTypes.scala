@@ -1,6 +1,7 @@
 package com.github.tminglei.slickpg
 package utils
 
+import slick.ast.FieldSymbol
 import slick.driver.{PostgresDriver, JdbcTypesComponent}
 import slick.profile.RelationalProfile.ColumnOption.Length
 import scala.reflect.ClassTag
@@ -16,7 +17,7 @@ trait PgCommonJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
                            override val hasLiteralForm: Boolean = false)(
                   implicit override val classTag: ClassTag[T]) extends DriverJdbcType[T] {
 
-    override def sqlTypeName(size: Option[Length]): String = sqlTypeName
+    override def sqlTypeName(sym: Option[FieldSymbol]): String = sqlTypeName
 
     override def getValue(r: ResultSet, idx: Int): T = {
       val value = r.getString(idx)
