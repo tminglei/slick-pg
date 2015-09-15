@@ -122,9 +122,9 @@ class PgDate2bpSupportSuite extends FunSuite {
             r => assert(LocalDateTime.parse("2010-11-01T22:58:59.664299") === r)
           ),
           // age
-          Datetimes.filter(_.id === 101L.bind).map(r => r.datetime.age === r.datetime.age(Functions.currentDate.asColumnOf[LocalDateTime])).result.head.map(
-            r => assert(true === r)
-          ),
+//          Datetimes.filter(_.id === 101L.bind).map(r => r.datetime.age === r.datetime.age(Functions.currentDate.asColumnOf[LocalDateTime])).result.head.map(
+//            r => assert(true === r)
+//          ),
           // part
           Datetimes.filter(_.id === 101L.bind).map(r => r.datetime.part("year")).result.head.map(
             r => assert(Math.abs(2001 - r) < 0.00001d)
@@ -177,9 +177,9 @@ class PgDate2bpSupportSuite extends FunSuite {
           // timestamp with time zone
           DBIO.seq(
             // age
-            Datetimes.filter(_.id === 101L.bind).map(r => r.dateTimetz.age === r.dateTimetz.age(Functions.currentDate.asColumnOf[ZonedDateTime])).result.head.map(
-              r => assert(true === r)
-            ),
+//            Datetimes.filter(_.id === 101L.bind).map(r => r.dateTimetz.age === r.dateTimetz.age(Functions.currentDate.asColumnOf[ZonedDateTime])).result.head.map(
+//              r => assert(true === r)
+//            ),
             // part
             Datetimes.filter(_.id === 101L.bind).map(r => r.dateTimetz.part("year")).result.head.map(
               r => assert(Math.abs(2001 - r) < 0.00001d)

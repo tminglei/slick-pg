@@ -160,7 +160,7 @@ class PgArraySupportSuite extends FunSuite {
   )
 
   test("Array Plain SQL support") {
-    import MyPlainPostgresDriver.plainAPI._
+    import MyPostgresDriver.plainAPI._
 
     implicit val getArrarBean1Result = GetResult(r =>
       ArrayBean1(r.nextLong(),

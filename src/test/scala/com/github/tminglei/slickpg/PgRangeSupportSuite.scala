@@ -116,7 +116,7 @@ class PgRangeSupportSuite extends FunSuite {
   //////////////////////////////////////////////////////////////////////
 
   test("Range Plain SQL support") {
-    import MyPlainPostgresDriver.plainAPI._
+    import MyPostgresDriver.plainAPI._
 
     implicit val getRangeBeanResult = GetResult(r =>
       RangeBean(r.nextLong(), r.nextIntRange(), r.nextFloatRange(), r.nextTimestampRangeOption()))

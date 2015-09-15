@@ -74,7 +74,7 @@ object ${container} extends {
 /** Slick data model trait for extension, choice of backend or usage in the cake pattern. (Make sure to initialize this late.) */
 trait ${container}${parentType.map(t => s" extends $t").getOrElse("")} {
   val profile: $profile
-  import profile.simple._
+  import profile.api._
   ${indent(code)}
 }
       """.trim()
