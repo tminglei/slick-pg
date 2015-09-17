@@ -39,7 +39,7 @@ class PgArraySupportSuite extends FunSuite {
   //////////////////////////////////////////////////////////////////////////
   import MyPostgresDriver1.api._
 
-  val db = Database.forURL(url = dbUrl, driver = "org.postgresql.Driver")
+  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
   case class ArrayBean(
     id: Long,

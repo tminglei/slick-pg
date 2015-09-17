@@ -38,7 +38,7 @@ class PgEnumSupportSuite extends FunSuite {
   ////////////////////////////////////////////////////////////////////
   import MyPostgresDriver1.api._
 
-  val db = Database.forURL(url = dbUrl, driver = "org.postgresql.Driver")
+  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
   case class TestEnumBean(id: Long, weekday: WeekDay, rainbow: Option[Rainbow], weekdays: List[WeekDay], rainbows: List[Rainbow])
 

@@ -8,7 +8,7 @@ import scala.concurrent.duration._
 class PgInheritsSuite extends FunSuite {
   import ExPostgresDriver.api._
 
-  val db = Database.forURL(url = dbUrl, driver = "org.postgresql.Driver")
+  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
   abstract class BaseT[T](tag: Tag, tname: String = "test_tab1") extends Table[T](tag, tname) {
     def col1 = column[String]("COL1")

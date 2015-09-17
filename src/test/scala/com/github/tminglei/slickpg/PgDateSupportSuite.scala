@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 class PgDateSupportSuite extends FunSuite {
   import MyPostgresDriver.api._
 
-  val db = Database.forURL(url = dbUrl, driver = "org.postgresql.Driver")
+  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
   val timeFormat = new SimpleDateFormat("HH:mm:ss")

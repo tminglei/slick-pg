@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 class PgSearchSupportSuite extends FunSuite {
   import MyPostgresDriver.api._
 
-  val db = Database.forURL(url = dbUrl, driver = "org.postgresql.Driver")
+  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
   case class TestBean(id: Long, text: String, comment: String)
 
