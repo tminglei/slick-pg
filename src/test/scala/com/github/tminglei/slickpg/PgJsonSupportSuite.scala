@@ -10,7 +10,7 @@ import scala.concurrent.duration._
 class PgJsonSupportSuite extends FunSuite {
   import MyPostgresDriver.api._
 
-  val db = Database.forURL(url = dbUrl, driver = "org.postgresql.Driver")
+  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
   case class JsonBean(id: Long, json: JsonString)
 

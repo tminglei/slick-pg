@@ -102,7 +102,7 @@ class PgCompositeSupportSuite extends FunSuite {
   import PgCompositeSupportSuite._
   import MyPostgresDriver1.api._
 
-  val db = Database.forURL(url = dbUrl, driver = "org.postgresql.Driver")
+  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
   case class TestBean(
     id: Long,

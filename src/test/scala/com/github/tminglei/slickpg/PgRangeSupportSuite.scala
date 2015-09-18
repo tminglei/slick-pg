@@ -10,7 +10,7 @@ import scala.concurrent.duration._
 class PgRangeSupportSuite extends FunSuite {
   import MyPostgresDriver.api._
 
-  val db = Database.forURL(url = dbUrl, driver = "org.postgresql.Driver")
+  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
   val tsFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
   def ts(str: String) = new Timestamp(tsFormatter.parse(str).getTime)
