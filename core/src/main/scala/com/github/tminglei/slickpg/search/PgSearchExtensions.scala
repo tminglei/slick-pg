@@ -15,28 +15,28 @@ trait PgSearchExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   trait BaseSearchAssistants[TV, TQ] {
     def currTsConfig() = SearchLibrary.GetCurrTsConfig.column[String]()
 
-    def tsVector[P, R](text: Rep[P])(implicit tm: JdbcType[P], tm1: JdbcType[TV], tm2: JdbcType[TQ],
+    def tsVector[P, R](text: Rep[P])(implicit tm1: JdbcType[TV], tm2: JdbcType[TQ],
       om: OptionMapperDSL.arg[String, P]#to[TV, R]) = {
         om.column(Library.Cast, text.toNode, LiteralNode("tsvector"))
       }
-    def tsQuery[P, R](query: Rep[P])(implicit tm: JdbcType[P], tm1: JdbcType[TV], tm2: JdbcType[TQ],
+    def tsQuery[P, R](query: Rep[P])(implicit tm1: JdbcType[TV], tm2: JdbcType[TQ],
       om: OptionMapperDSL.arg[String, P]#to[TQ, R]) = {
         om.column(Library.Cast, query.toNode, LiteralNode("tsquery"))
       }
     def toTsVector[P, R](text: Rep[P], config: Option[String] = None)(
-        implicit tm: JdbcType[P], tm1: JdbcType[TV], tm2: JdbcType[TQ], om: OptionMapperDSL.arg[String, P]#to[TV, R]) =
+        implicit tm1: JdbcType[TV], tm2: JdbcType[TQ], om: OptionMapperDSL.arg[String, P]#to[TV, R]) =
       config match {
         case Some(conf) => om.column(SearchLibrary.ToTsVector, LiteralNode(conf), text.toNode)
         case None       => om.column(SearchLibrary.ToTsVector, text.toNode)
       }
     def toTsQuery[P, R](query: Rep[P], config: Option[String] = None)(
-        implicit tm: JdbcType[P], tm1: JdbcType[TV], tm2: JdbcType[TQ], om: OptionMapperDSL.arg[String, P]#to[TQ, R]) =
+        implicit tm1: JdbcType[TV], tm2: JdbcType[TQ], om: OptionMapperDSL.arg[String, P]#to[TQ, R]) =
       config match {
         case Some(conf) => om.column(SearchLibrary.ToTsQuery, LiteralNode(conf), query.toNode)
         case None       => om.column(SearchLibrary.ToTsQuery, query.toNode)
       }
     def plainToTsQuery[P, R](query: Rep[P], config: Option[String] = None)(
-        implicit tm: JdbcType[P], tm1: JdbcType[TV], tm2: JdbcType[TQ], om: OptionMapperDSL.arg[String, P]#to[TQ, R]) =
+        implicit tm1: JdbcType[TV], tm2: JdbcType[TQ], om: OptionMapperDSL.arg[String, P]#to[TQ, R]) =
       config match {
         case Some(conf) => om.column(SearchLibrary.PlainToTsQuery, LiteralNode(conf), query.toNode)
         case None       => om.column(SearchLibrary.PlainToTsQuery, query.toNode)

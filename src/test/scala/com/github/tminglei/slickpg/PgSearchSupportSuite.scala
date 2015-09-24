@@ -76,7 +76,7 @@ class PgSearchSupportSuite extends FunSuite {
             r => assert(TsVector("'ate':3A 'cat':2A 'fat':1A 'rat':4A") === r)
           ),
           // numnode
-          Tests.filter(_.id === 33L).map(r => tsQuery("(fat & rat) | cat").numNode).result.head.map(
+          Tests.filter(_.id === 33L).map(r => tsQuery("(fat & rat) | cat".bind.?).numNode).result.head.map(
             r => assert(5 === r)
           ),
           // querytree
@@ -84,7 +84,7 @@ class PgSearchSupportSuite extends FunSuite {
             r => assert("'cat'" === r)
           ),
           // ts_rewrite
-          Tests.filter(_.id === 33L).map(r => tsQuery("a & b").rewrite(tsQuery("a"), tsQuery("foo|bar"))).result.head.map(
+          Tests.filter(_.id === 33L).map(r => tsQuery("a & b".bind.?).rewrite(tsQuery("a"), tsQuery("foo|bar"))).result.head.map(
             r => assert(TsQuery("'b' & ( 'foo' | 'bar' )") === r)
           ),
           Tests.filter(_.id === 33L).map(r => tsQuery("a & b").rewrite("select 'a'::tsquery, 'foo|bar'::tsquery")).result.head.map(
