@@ -77,6 +77,8 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
       LocalDateTime.MAX.atZone(ZoneId.of("UTC")), LocalDateTime.MIN.atZone(ZoneId.of("UTC")),
       ZonedDateTime.parse(_, date2TzDateTimeFormatter)
     )
+    protected val fromInstantOrInfinity: String => Instant = fromInfinitable(
+      Instant.MAX, Instant.MIN, fromDateTimeOrInfinity.andThen(_.toInstant(ZoneOffset.UTC)))
     ///
     protected def toInfinitable[T](max: T, min: T, format: T => String): T => String = {
       case `max` =>  "infinity"
@@ -93,6 +95,8 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
       toInfinitable[ZonedDateTime](LocalDateTime.MAX.atZone(ZoneId.of("UTC")), LocalDateTime.MIN.atZone(ZoneId.of("UTC")),
       _.format(date2TzDateTimeFormatter)
     )
+    protected val toInstantOrInfinity: Instant => String =
+      toInfinitable[Instant](Instant.MAX, Instant.MIN, _.toString)
   }
 
   trait Date2DateTimeImplicits[INTERVAL] extends Date2DateTimeFormatters {
@@ -102,6 +106,8 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
       LocalTime.parse(_, date2TimeFormatter), _.format(date2TimeFormatter), hasLiteralForm=false)
     implicit val date2DateTimeTypeMapper = new GenericJdbcType[LocalDateTime]("timestamp",
       fromDateTimeOrInfinity, toDateTimeOrInfinity, hasLiteralForm=false)
+    implicit val date2InstantTypeMapper = new GenericJdbcType[Instant]("timestamp",
+      fromInstantOrInfinity, toInstantOrInfinity, hasLiteralForm=false)
     implicit val date2PeriodTypeMapper = new GenericJdbcType[Period]("interval", pgIntervalStr2Period, hasLiteralForm=false)
     implicit val durationTypeMapper = new GenericJdbcType[Duration]("interval", pgIntervalStr2Duration, hasLiteralForm=false)
     implicit val date2TzTimeTypeMapper = new GenericJdbcType[OffsetTime]("timetz",
@@ -127,6 +133,11 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
       new TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, INTERVAL, LocalDateTime](c)
     implicit def date2TimestampOptColumnExtensionMethods(c: Rep[Option[LocalDateTime]])(implicit tm: JdbcType[INTERVAL]) =
       new TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, INTERVAL, Option[LocalDateTime]](c)
+
+    implicit def date2Timestamp1ColumnExtensionMethods(c: Rep[Instant])(implicit tm: JdbcType[INTERVAL]) =
+      new TimestampColumnExtensionMethods[LocalDate, LocalTime, Instant, INTERVAL, Instant](c)
+    implicit def date2Timestamp1OptColumnExtensionMethods(c: Rep[Option[Instant]])(implicit tm: JdbcType[INTERVAL]) =
+      new TimestampColumnExtensionMethods[LocalDate, LocalTime, Instant, INTERVAL, Option[Instant]](c)
 
     implicit def date2IntervalColumnExtensionMethods(c: Rep[Period]) =
       new IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Period](c)
@@ -186,6 +197,8 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
       def nextOffsetDateTimeOption() = r.nextStringOption().map(fromOffsetDateTimeOrInfinity)
       def nextZonedDateTime() = nextZonedDateTimeOption().orNull
       def nextZonedDateTimeOption() = r.nextStringOption().map(fromZonedDateTimeOrInfinity)
+      def nextInstant() = nextInstantOption().orNull
+      def nextInstantOption() = r.nextStringOption().map(fromInstantOrInfinity)
       def nextPeriod() = nextPeriodOption().orNull
       def nextPeriodOption() = r.nextStringOption().map(pgIntervalStr2Period)
       def nextDuration() = nextDurationOption().orNull
@@ -224,6 +237,11 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
     implicit val getZonedDateTimeOption = mkGetResult(_.nextZonedDateTimeOption())
     implicit val setZonedDateTime = mkSetParameter[ZonedDateTime]("timestamptz", toZonedDateTimeOrInfinity, sqlType = Types.TIMESTAMP_WITH_TIMEZONE)
     implicit val setZonedDateTimeOption = mkOptionSetParameter[ZonedDateTime]("timestamptz", toZonedDateTimeOrInfinity, sqlType = Types.TIMESTAMP_WITH_TIMEZONE)
+
+    implicit val getInstant = mkGetResult(_.nextInstant())
+    implicit val getInstantOption = mkGetResult(_.nextInstantOption())
+    implicit val setInstant = mkSetParameter[Instant]("timestamp", toInstantOrInfinity, sqlType = Types.TIMESTAMP)
+    implicit val setInstantOption = mkOptionSetParameter[Instant]("timestamp", toInstantOrInfinity, sqlType = Types.TIMESTAMP)
 
     implicit val getPeriod = mkGetResult(_.nextPeriod())
     implicit val getPeriodOption = mkGetResult(_.nextPeriodOption())
