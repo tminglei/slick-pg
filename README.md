@@ -21,7 +21,7 @@ Slick-pg
 - composite type (`basic`)
 
 
-** _tested on `PostgreSQL` `v9.4` with `Slick` `v3.0.0`._
+** _tested on `PostgreSQL` `v9.4` with `Slick` `v3.1.0`._
 
 
 
@@ -179,7 +179,47 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.9.1"
+libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.10.0"
+```
+
+> If you need `joda-time` support, pls append dependency:
+```scala
+libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.10.0"
+```
+
+> If you need `jts` geom support, pls append dependency:
+```scala
+libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.10.0"
+```
+
+> If you need `jdk8 date` support, pls append dependency:
+```scala
+libraryDependencies += "com.github.tminglei" %% "slick-pg_date2" % "0.10.0"
+```
+
+> If you need `threeten-bp` support, pls append dependency:
+```scala
+libraryDependencies += "com.github.tminglei" %% "slick-pg_threeten" % "0.10.0"
+```
+
+> If you need `json4s` support, pls append dependency:
+```scala
+libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.10.0"
+```
+
+> If you need `play-json` support, pls append dependency:
+```scala
+libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.10.0"
+```
+
+> If you need `spray-json` support, pls append dependency:
+```scala
+libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.10.0"
+```
+
+> If you need `argonaut json` support, pls append dependency:
+```scala
+libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.10.0"
 ```
 
 
@@ -188,12 +228,13 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.11</artifactId>
-    <version>0.9.1</version>
+    <version>0.10.0</version>
 </dependency>
+<!-- other addons if necessary -->
+...
 ```
 
-**For other related 3rd party dependencies, pls manually add them to your project.**  
-> _Note: from `slick-pg` v0.7.0, I declared 3rd party dependencies as `provided`, and merged all of the plugin codes into main package. So you needn't add these **plugins** any more, but for these used 3rd party dependencies, you're still required to add them to your project manually._
+> _Note: the plugins' code were ever merged to the main project and published in an all-in-one jar at `slick-pg` v0.7.0, to easy usage, but I restored to publish them as independent jars at `slick-pg` v0.10.0, because of the issue pointed out by @timcharper in #183._
 
 
 
