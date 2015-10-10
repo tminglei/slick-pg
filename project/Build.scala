@@ -7,10 +7,10 @@ object SlickPgBuild extends Build {
     organizationName := "slick-pg",
     organization := "com.github.tminglei",
     name := "slick-pg",
-    version := "0.10.0-RC2",
+    version := "0.10.0",
 
     scalaVersion := "2.11.7",
-    crossScalaVersions := Seq("2.11.7", "2.10.5"),
+    crossScalaVersions := Seq("2.11.7", "2.10.6"),
     scalacOptions ++= Seq("-deprecation", "-feature",
       "-language:implicitConversions",
       "-language:reflectiveCalls",
