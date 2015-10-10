@@ -234,7 +234,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 ...
 ```
 
-> _Note: the plugins' code were ever merged to the main project and published in an all-in-one jar at `slick-pg` v0.7.0, to easy usage, but I restored to publish them as independent jars at `slick-pg` v0.10.0, because of the issue pointed out by @timcharper in #183._
+> _**Note: the plugins' code were ever merged to the main project and published in an all-in-one jar from `slick-pg` v0.7.0, to easy usage, but I restored to publish them as independent jars from `slick-pg` v0.10.0, because of the issue pointed out by @timcharper in #183.**_
 
 
 
