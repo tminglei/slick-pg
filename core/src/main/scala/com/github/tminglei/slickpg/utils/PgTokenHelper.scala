@@ -187,7 +187,7 @@ object PgTokenHelper {
         // open border should prefix a marker, negative case: ',"tt(a...' <--> ',"(tt...' (normal)
         case Open(v, "") => stack.top.tokens += Chunk(v)
         // mark + escape, case: ',"\"(...",' <--> ',"...",' (normal)
-        case Open(v, m) if (level(m) != math.round(level(m))) => {
+        case Open(v, m) if (m != "" && level(m) != math.round(level(m))) => {
           val index = math.pow(2, stack.top.level).toInt
           stack.push(WorkingGroup(Marker(m.substring(0, index)), stack.top.level +1))
           stack.top.tokens += Marker(m.substring(0, index)) += Escape(m.substring(index)) += Chunk(v)
@@ -201,14 +201,14 @@ object PgTokenHelper {
         }
         //-- process marker tokens
         // mark + escape
-        case Marker(m) if (level(m) != math.round(level(m))
+        case Marker(m) if (m != "" && level(m) != math.round(level(m))
                        && (tokens(i-1) == Comma || tokens(i-1).isInstanceOf[Open])) => {
           val index = math.pow(2, stack.top.level +1).toInt
           stack.push(WorkingGroup(Marker(m.substring(0, index)), stack.top.level +1))
           stack.top.tokens += Marker(m.substring(0, index)) += Escape(m.substring(index))
         }
         // escape + mark
-        case Marker(m) if (level(m) != math.round(level(m))
+        case Marker(m) if (m != "" && level(m) != math.round(level(m))
                        && (tokens(i+1) == Comma || tokens(i+1).isInstanceOf[Close])) => {
           val existed = stack.find(g => m.endsWith(g.border.marker)).get
           for (_ <- 0 to stack.lastIndexOf(existed)) {
@@ -253,7 +253,7 @@ object PgTokenHelper {
         // close border should postfix a marker, negative case: ',"...)ttt' <--> ',"...)\",' (normal)
         case Close(v, "") if (v != "}") => stack.top.tokens += Chunk(v)
         // escape + mark, case: '...tt)\"",' <--> '...tt)",..' (normal)
-        case Close(v, m)  if (level(m) != math.round(level(m))) => {
+        case Close(v, m)  if (m != "" && level(m) != math.round(level(m))) => {
           val existed = stack.find(b => m.endsWith(b.border.marker)).get
           for (_ <- 0 to stack.lastIndexOf(existed)) {
             if (stack.top == existed) {
