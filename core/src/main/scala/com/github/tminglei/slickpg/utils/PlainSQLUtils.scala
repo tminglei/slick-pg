@@ -13,9 +13,9 @@ object PlainSQLUtils {
     println(s"[info]\u001B[36m >>> adding next array converter for ${u.typeOf[T]} \u001B[0m")
     val convKey = u.typeOf[T].toString
     val existed = nextArrayConverters.get(convKey)
-    if (existed.isDefined) new RuntimeException(
+    if (existed.isDefined) println(
       s"\u001B[31m[warn] >>> DUPLICATED converter for ${u.typeOf[T]}!!! \u001B[36m If it's expected, pls ignore it.\u001B[0m"
-    ).printStackTrace()
+    )
     nextArrayConverters += (convKey -> conv)
   }
 
