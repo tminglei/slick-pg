@@ -147,7 +147,7 @@ class PgArraySupportSuite extends FunSuite {
   case class ArrayBean1(
     id: Long,
     uuidArr: List[UUID],
-    strArr: Seq[String],
+    strArr: Option[List[String]],
     longArr: Seq[Long],
     intArr: List[Int],
     shortArr: Vector[Short],
@@ -165,7 +165,7 @@ class PgArraySupportSuite extends FunSuite {
     implicit val getArrarBean1Result = GetResult { r =>
       ArrayBean1(r.nextLong(),
         r.<<[Seq[UUID]].toList,
-        r.<<[Seq[String]],
+        r.<<?[Seq[String]].map(_.toList),
         r.<<[Seq[Long]],
         r.<<[Seq[Int]].toList,
         r.<<[Seq[Short]].to[Vector],
@@ -178,7 +178,7 @@ class PgArraySupportSuite extends FunSuite {
       )
     }
 
-    val b = ArrayBean1(101L, List(UUID.randomUUID()), List("tewe", "ttt"), List(111L), List(1, 2), Vector(3, 5), List(1.2f, 43.32f), List(21.35d), List(true, true),
+    val b = ArrayBean1(101L, List(UUID.randomUUID()), Some(List("tewe", "ttt")), List(111L), List(1, 2), Vector(3, 5), List(1.2f, 43.32f), List(21.35d), List(true, true),
       List(new Date(System.currentTimeMillis())), List(new Time(System.currentTimeMillis())), List(new Timestamp(System.currentTimeMillis())))
 
     Await.result(db.run(
