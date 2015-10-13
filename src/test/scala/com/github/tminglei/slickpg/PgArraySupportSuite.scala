@@ -162,21 +162,21 @@ class PgArraySupportSuite extends FunSuite {
   test("Array Plain SQL support") {
     import MyPostgresDriver.plainAPI._
 
-    implicit val getArrarBean1Result = GetResult(r =>
+    implicit val getArrarBean1Result = GetResult { r =>
       ArrayBean1(r.nextLong(),
-        r.nextArray[UUID]().toList,
-        r.nextArray[String](),
-        r.nextArray[Long](),
-        r.nextArray[Int]().toList,
-        r.nextArray[Short]().to[Vector],
-        r.nextArray[Float]().toList,
-        r.nextArray[Double]().toList,
-        r.nextArray[Boolean](),
-        r.nextArray[Date]().toList,
-        r.nextArray[Time]().toList,
-        r.nextArray[Timestamp]()
+        r.<<[Seq[UUID]].toList,
+        r.<<[Seq[String]],
+        r.<<[Seq[Long]],
+        r.<<[Seq[Int]].toList,
+        r.<<[Seq[Short]].to[Vector],
+        r.<<[Seq[Float]].toList,
+        r.<<[Seq[Double]].toList,
+        r.<<[Seq[Boolean]],
+        r.<<[Seq[Date]].toList,
+        r.<<[Seq[Time]].toList,
+        r.<<[Seq[Timestamp]]
       )
-    )
+    }
 
     val b = ArrayBean1(101L, List(UUID.randomUUID()), List("tewe", "ttt"), List(111L), List(1, 2), Vector(3, 5), List(1.2f, 43.32f), List(21.35d), List(true, true),
       List(new Date(System.currentTimeMillis())), List(new Time(System.currentTimeMillis())), List(new Timestamp(System.currentTimeMillis())))
