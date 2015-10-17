@@ -26,10 +26,10 @@ trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes {
 
   def createEnumListJdbcType[T <: Enumeration](sqlEnumTypeName: String, enumObject: T, quoteName: Boolean = false)(
              implicit tag: ClassTag[List[enumObject.Value]]): JdbcType[List[enumObject.Value]] = {
-
-    new SimpleArrayJdbcType[enumObject.Value](sqlName(sqlEnumTypeName, quoteName))
-      .basedOn[String](tmap = _.toString, tcomap = enumObject.withName(_))
-      .to(_.toList)
+    new AdvancedArrayJdbcType[enumObject.Value](sqlName(sqlEnumTypeName, quoteName),
+      fromString = s => utils.SimpleArrayUtils.fromString(s1 => enumObject.withName(s1))(s).orNull,
+      mkString = v => utils.SimpleArrayUtils.mkString[Any](_.toString)(v)
+    ).to(_.toList)
   }
 
   def createEnumJdbcType[T <: Enumeration](sqlEnumTypeName: String, enumObject: T, quoteName: Boolean = false)(

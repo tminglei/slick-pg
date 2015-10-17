@@ -51,19 +51,21 @@ object PgDateSupportUtils {
   /** related codes hacked from [[org.postgresql.jdbc2.TimestampUtils]] */
   def parseCalendar(tsStr: String): Calendar = {
 
-    val ts = tsUtilLoadCalendar.invoke(tsUtilInstance, null, tsStr, "timestamp")
+    val parsedts =
+      if (tsUtilLoadCalendar.getName == "loadCalendar") tsUtilLoadCalendar.invoke(tsUtilInstance, null, tsStr, "timestamp")
+      else /* parseBackendTimestamp(str) */ tsUtilLoadCalendar.invoke(tsUtilInstance, tsStr)
 
-    val (tz, era, year, month, day, hour, minute, second, nanos) = tsUtilGetters(ts)
-    val useCal: Calendar = if (tz.get(ts) == null) Calendar.getInstance() else tz.get(ts).asInstanceOf[Calendar]
+    val (tz, era, year, month, day, hour, minute, second, nanos) = tsUtilGetters(parsedts)
+    val useCal: Calendar = if (tz.get(parsedts) == null) Calendar.getInstance() else tz.get(parsedts).asInstanceOf[Calendar]
 
-    useCal.set(Calendar.ERA, era.get(ts).asInstanceOf[Int])
-    useCal.set(Calendar.YEAR, year.get(ts).asInstanceOf[Int])
-    useCal.set(Calendar.MONTH, month.get(ts).asInstanceOf[Int] - 1)
-    useCal.set(Calendar.DAY_OF_MONTH, day.get(ts).asInstanceOf[Int])
-    useCal.set(Calendar.HOUR_OF_DAY, hour.get(ts).asInstanceOf[Int])
-    useCal.set(Calendar.MINUTE, minute.get(ts).asInstanceOf[Int])
-    useCal.set(Calendar.SECOND, second.get(ts).asInstanceOf[Int])
-    useCal.set(Calendar.MILLISECOND, nanos.get(ts).asInstanceOf[Int] / 1000)
+    useCal.set(Calendar.ERA, era.get(parsedts).asInstanceOf[Int])
+    useCal.set(Calendar.YEAR, year.get(parsedts).asInstanceOf[Int])
+    useCal.set(Calendar.MONTH, month.get(parsedts).asInstanceOf[Int] - 1)
+    useCal.set(Calendar.DAY_OF_MONTH, day.get(parsedts).asInstanceOf[Int])
+    useCal.set(Calendar.HOUR_OF_DAY, hour.get(parsedts).asInstanceOf[Int])
+    useCal.set(Calendar.MINUTE, minute.get(parsedts).asInstanceOf[Int])
+    useCal.set(Calendar.SECOND, second.get(parsedts).asInstanceOf[Int])
+    useCal.set(Calendar.MILLISECOND, nanos.get(parsedts).asInstanceOf[Int] / 1000)
 
     useCal
   }
@@ -85,7 +87,7 @@ object PgDateSupportUtils {
 
   private def tsUtilLoadCalendar = {
     if (tsUtilLoadCalendarHolder.get() == null) {
-      val loadCalendar = classOf[TimestampUtils].getDeclaredMethods.find(_.getName == "loadCalendar").get
+      val loadCalendar = classOf[TimestampUtils].getDeclaredMethods.find(m => m.getName == "loadCalendar" || m.getName == "parseBackendTimestamp").get
       loadCalendar.setAccessible(true)
       tsUtilLoadCalendarHolder.set(loadCalendar)
     }
