@@ -7,11 +7,12 @@ import slick.jdbc.JdbcModelBuilder
 import slick.jdbc.meta.MTable
 import slick.lifted.PrimaryKey
 import slick.driver.{PostgresDriver, JdbcDriver}
+import slick.util.Logging
 
 import scala.concurrent.ExecutionContext
 import scala.reflect.{classTag, ClassTag}
 
-trait ExPostgresDriver extends JdbcDriver with PostgresDriver { driver =>
+trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { driver =>
 
   override val api = new API {}
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
@@ -21,11 +22,11 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver { driver =>
   private var pgTypeToScala = Map.empty[String, ClassTag[_]]
 
   def bindPgTypeToScala(pgType: String, scalaType: ClassTag[_]) = {
-    println(s"[info]\u001B[36m >>> binding $pgType -> $scalaType \u001B[0m")
+    logger.info(s"\u001B[36m >>> binding $pgType -> $scalaType \u001B[0m")
     val existed = pgTypeToScala.get(pgType)
-    if (existed.isDefined) new RuntimeException(
-      s"\u001B[31m[warn] >>> DUPLICATED BINDING - existed: ${existed.get}, new: $scalaType !!! \u001B[36m If it's expected, pls ignore it.\u001B[0m"
-    ).printStackTrace()
+    if (existed.isDefined) logger.warn(
+      s"\u001B[31m >>> DUPLICATED BINDING - existed: ${existed.get}, new: $scalaType !!! \u001B[36m If it's expected, pls ignore it.\u001B[0m"
+    )
     pgTypeToScala += (pgType -> scalaType)
   }
 
@@ -47,7 +48,7 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver { driver =>
   class ExModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext)
             extends super.ModelBuilder(mTables, ignoreInvalidDefaults) {
     override def jdbcTypeToScala(jdbcType: Int, typeName: String = ""): ClassTag[_] = {
-      println(s"[info]\u001B[36m jdbcTypeToScala - jdbcType $jdbcType, typeName: $typeName \u001B[0m")
+      logger.info(s"[info]\u001B[36m jdbcTypeToScala - jdbcType $jdbcType, typeName: $typeName \u001B[0m")
       pgTypeToScala.get(typeName).getOrElse(super.jdbcTypeToScala(jdbcType, typeName))
     }
   }

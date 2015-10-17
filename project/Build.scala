@@ -69,6 +69,7 @@ object SlickPgBuild extends Build {
       "org.scala-lang" % "scala-reflect" % scalaVersion,
       "com.typesafe.slick" %% "slick" % "3.1.0",
       "org.postgresql" % "postgresql" % "9.4-1204-jdbc41",
+      "org.slf4j" % "slf4j-simple" % "1.7.12" % "provided",
       "org.scalatest" %% "scalatest" % "2.2.4" % "test"
     ) ++ extractedLibs
   }
