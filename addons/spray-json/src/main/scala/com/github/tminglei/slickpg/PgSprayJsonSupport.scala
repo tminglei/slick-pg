@@ -23,11 +23,11 @@ trait PgSprayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
       )
 
     implicit def sparyJsonColumnExtensionMethods(c: Rep[JsValue])(
-      implicit tm: JdbcType[JsValue], tm1: JdbcType[List[String]]) = {
+      implicit tm: JdbcType[JsValue]) = {
         new JsonColumnExtensionMethods[JsValue, JsValue](c)
       }
     implicit def sparyJsonOptionColumnExtensionMethods(c: Rep[Option[JsValue]])(
-      implicit tm: JdbcType[JsValue], tm1: JdbcType[List[String]]) = {
+      implicit tm: JdbcType[JsValue]) = {
         new JsonColumnExtensionMethods[JsValue, Option[JsValue]](c)
       }
   }

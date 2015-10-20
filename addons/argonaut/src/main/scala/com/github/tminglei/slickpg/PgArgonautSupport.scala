@@ -22,11 +22,11 @@ trait PgArgonautSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
       )
 
     implicit def argonautJsonColumnExtensionMethods(c: Rep[Json])(
-      implicit tm: JdbcType[Json], tm1: JdbcType[List[String]]) = {
+      implicit tm: JdbcType[Json]) = {
         new JsonColumnExtensionMethods[Json, Json](c)
       }
     implicit def argonautJsonOptionColumnExtensionMethods(c: Rep[Option[Json]])(
-      implicit tm: JdbcType[Json], tm1: JdbcType[List[String]]) = {
+      implicit tm: JdbcType[Json]) = {
         new JsonColumnExtensionMethods[Json, Option[Json]](c)
       }
   }

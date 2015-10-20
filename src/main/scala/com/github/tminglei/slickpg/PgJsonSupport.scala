@@ -27,11 +27,11 @@ trait PgJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes {
       )
 
     implicit def simpleJsonColumnExtensionMethods(c: Rep[JsonString])(
-      implicit tm: JdbcType[JsonString], tm1: JdbcType[List[String]]) = {
+      implicit tm: JdbcType[JsonString]) = {
         new JsonColumnExtensionMethods[JsonString, JsonString](c)
       }
     implicit def simpleJsonOptionColumnExtensionMethods(c: Rep[Option[JsonString]])(
-      implicit tm: JdbcType[JsonString], tm1: JdbcType[List[String]]) = {
+      implicit tm: JdbcType[JsonString]) = {
         new JsonColumnExtensionMethods[JsonString, Option[JsonString]](c)
       }
   }

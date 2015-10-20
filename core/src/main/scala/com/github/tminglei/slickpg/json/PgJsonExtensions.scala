@@ -40,7 +40,7 @@ trait PgJsonExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
   }
 
   class JsonColumnExtensionMethods[JSONType, P1](val c: Rep[P1])(
-                implicit tm: JdbcType[JSONType], tm1: JdbcType[List[String]]) extends ExtensionMethods[JSONType, P1] {
+                implicit tm: JdbcType[JSONType]) extends ExtensionMethods[JSONType, P1] {
 
     protected implicit def b1Type: TypedType[JSONType] = implicitly[TypedType[JSONType]]
 

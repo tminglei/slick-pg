@@ -22,11 +22,11 @@ trait PgPlayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
       )
 
     implicit def playJsonColumnExtensionMethods(c: Rep[JsValue])(
-      implicit tm: JdbcType[JsValue], tm1: JdbcType[List[String]]) = {
+      implicit tm: JdbcType[JsValue]) = {
         new JsonColumnExtensionMethods[JsValue, JsValue](c)
       }
     implicit def playJsonOptionColumnExtensionMethods(c: Rep[Option[JsValue]])(
-      implicit tm: JdbcType[JsValue], tm1: JdbcType[List[String]]) = {
+      implicit tm: JdbcType[JsValue]) = {
         new JsonColumnExtensionMethods[JsValue, Option[JsValue]](c)
       }
   }
