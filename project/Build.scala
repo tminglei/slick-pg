@@ -107,9 +107,9 @@ object SlickPgBuild extends Build {
       name := "slick-pg_json4s",
       description := "Slick extensions for PostgreSQL - json4s module",
       libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-        "org.json4s" %% "json4s-ast" % "3.2.10",
-        "org.json4s" %% "json4s-core" % "3.2.10",
-        "org.json4s" %% "json4s-native" % "3.2.10" % "test"
+        "org.json4s" %% "json4s-ast" % "3.3.0",
+        "org.json4s" %% "json4s-core" % "3.3.0",
+        "org.json4s" %% "json4s-native" % "3.3.0" % "test"
       )
     )
   ) dependsOn (slickPgCore)
