@@ -2,10 +2,11 @@ package com.github.tminglei.slickpg
 
 import java.util.UUID
 
-import slick.ast.{TableNode, TableExpansion, Select, ColumnOption}
+import com.github.tminglei.slickpg.index.{OrderedIndex, PgIndexExtensions}
+import slick.ast._
 import slick.jdbc.JdbcModelBuilder
 import slick.jdbc.meta.MTable
-import slick.lifted.PrimaryKey
+import slick.lifted.{Index, AbstractTable, PrimaryKey}
 import slick.driver.{PostgresDriver, JdbcDriver}
 import slick.util.Logging
 
@@ -78,6 +79,48 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
         val hTableNode = hTable.toNode.asInstanceOf[TableExpansion].table.asInstanceOf[TableNode]
         s"${super.createTable} inherits (${quoteTableName(hTableNode)})"
       } else super.createTable
+    }
+    
+    override protected val indexes: Iterable[slick.lifted.Index] = {
+      val indexs = (for {
+        m <- getClass().getMethods.view
+        if m.getReturnType == classOf[Index] && m.getParameterTypes.length == 0
+      } yield m.invoke(this).asInstanceOf[Index])
+      
+      val orderedIndexs = (for {
+        m <- getClass().getMethods.view
+        if m.getReturnType == classOf[OrderedIndex] && m.getParameterTypes.length == 0
+      } yield m.invoke(this).asInstanceOf[OrderedIndex])
+      
+      (orderedIndexs ++ indexs).sortBy(_.name)
+    }
+
+    override protected def createIndex(idx: Index): String = {
+      idx match {
+        case orderedIdx: OrderedIndex =>
+          import slick.ast.Ordering
+          val b = new StringBuilder append "create "
+          if(orderedIdx.unique) b append "unique "
+          b append "index " append quoteIdentifier(orderedIdx.name) append " on " append quoteTableName(tableNode) append " ("
+          addIndexColumnList(orderedIdx.on, b, orderedIdx.table.tableName)
+          val direction = orderedIdx.ordering.direction match {
+            case Ordering.Asc => Option("ASC")
+            case Ordering.Desc => Option("DESC")
+            case _ => None
+          }
+          
+          val nulls = orderedIdx.ordering.nulls match {
+            case Ordering.NullsLast => Option("NULLS LAST")
+            case Ordering.NullsFirst => Option("NULLS FIRST")
+            case _ => None
+          }
+          
+          b append Seq(direction,nulls).flatten.mkString(" ")
+          
+          b append ")"
+          b.toString
+        case idx: Index => super.createIndex(idx)
+      }
     }
   }
 }
