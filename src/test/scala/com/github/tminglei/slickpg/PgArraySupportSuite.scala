@@ -26,10 +26,10 @@ class PgArraySupportSuite extends FunSuite {
     trait MyArrayImplicitsPlus {
       implicit val simpleLongBufferTypeMapper = new SimpleArrayJdbcType[Long]("int8").to(_.toBuffer)
       implicit val simpleStrVectorTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toVector)
-      implicit val institutionListTypeWrapper =  new SimpleArrayJdbcType[Institution]("int8")
-        .basedOn[Long](_.value, new Institution(_)).to(_.toList)
-      implicit val marketFinancialProductWrapper = new SimpleArrayJdbcType[MarketFinancialProduct]("text")
-        .basedOn[String](_.value, new MarketFinancialProduct(_)).to(_.toList)
+      implicit val institutionListTypeWrapper =  new SimpleArrayJdbcType[Long]("int8")
+        .mapTo[Institution](new Institution(_), _.value).to(_.toList)
+      implicit val marketFinancialProductWrapper = new SimpleArrayJdbcType[String]("text")
+        .mapTo[MarketFinancialProduct](new MarketFinancialProduct(_), _.value).to(_.toList)
       ///
       implicit val advancedStringListTypeMapper = new AdvancedArrayJdbcType[String]("text",
         fromString(identity)(_).orNull, mkString(identity))
