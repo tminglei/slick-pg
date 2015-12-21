@@ -19,9 +19,16 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
   }
 
   //
-  class SimpleArrayJdbcType[T] private (sqlBaseType: String, tmap: Any => T, tcomap: T => Any)(
+  class SimpleArrayJdbcType[T] private (sqlBaseType: String, tmap: Any => T, tcomap: T => Any, mapped: Boolean = false)(
               implicit override val classTag: ClassTag[Seq[T]], ctag: ClassTag[T])
                     extends DriverJdbcType[Seq[T]] { self =>
+
+    if (!mapped) {
+      val builtInSupported = List(classOf[Long], classOf[Int], classOf[Short], classOf[Float], classOf[Double], classOf[Boolean], classOf[String],
+        classOf[java.util.UUID], classOf[java.sql.Date], classOf[java.sql.Time], classOf[java.sql.Timestamp], classOf[java.math.BigDecimal])
+      if (!builtInSupported.contains(ctag.runtimeClass))
+        throw new RuntimeException(s"${ctag.runtimeClass.getSimpleName} is not out-of-box supported in list (${builtInSupported.map(_.getName).mkString(", ")}), pls use `mapTo` way.")
+    }
 
     def this(sqlBaseType: String)(implicit ctag: ClassTag[T]) = this(sqlBaseType, _.asInstanceOf[T], identity)
 
@@ -49,24 +56,10 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
     ///
     @deprecated(message = "please define a base type array first, then `mapTo` target type array", since = "0.11.0")
-    def basedOn[U](tmap: T => U, tcomap: U => T): SimpleArrayJdbcType[T] = {
-      val tmap1 = tmap; val tcomap1 = tcomap
-
-      new SimpleArrayJdbcType[T](sqlBaseType) {
-
-        override def getValue(r: ResultSet, idx: Int): Seq[T] = {
-          val value = r.getArray(idx)
-          if (r.wasNull) null else value.getArray.asInstanceOf[Array[Any]]
-            .map(e => tcomap1(e.asInstanceOf[U]))
-        }
-
-        //--
-        override protected def buildArrayStr(v: Seq[Any]): String = super.buildArrayStr(v.map(e => tmap1(e.asInstanceOf[T])))
-      }
-    }
+    def basedOn[U](tmap: T => U, tcomap: U => T): SimpleArrayJdbcType[T] = ???
 
     def mapTo[U](tmap: T => U, tcomap: U => T)(implicit ctag: ClassTag[U]): SimpleArrayJdbcType[U] =
-      new SimpleArrayJdbcType[U](sqlBaseType, v => tmap(self.tmap(v)), r => self.tcomap(tcomap(r)))
+      new SimpleArrayJdbcType[U](sqlBaseType, v => tmap(self.tmap(v)), r => self.tcomap(tcomap(r)), mapped = true)
 
     def to[SEQ[T] <: Seq[T]](conv: Seq[T] => SEQ[T])(implicit classTag: ClassTag[SEQ[T]]): DriverJdbcType[SEQ[T]] =
       new WrappedConvArrayJdbcType[T, SEQ](this, conv)
