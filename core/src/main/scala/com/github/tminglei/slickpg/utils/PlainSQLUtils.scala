@@ -41,7 +41,7 @@ object PlainSQLUtils extends Logging {
 
   private def internalSet[T](sqlType: Int, typeName: String, v: Option[T], p: PositionedParameters, toStr: (T => String)) =
     v match {
-      case Some(v) => p.setObject(mkPGobject(typeName, toStr(v)), java.sql.Types.OTHER)
+      case Some(v) => p.setObject(toStr(v), java.sql.Types.OTHER)
       case None    => p.setNull(sqlType)
     }
 

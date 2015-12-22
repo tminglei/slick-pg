@@ -48,17 +48,17 @@ trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes {
         if (r.wasNull) null.asInstanceOf[enumObject.Value] else enumObject.withName(value)
       }
 
-      override def setValue(v: enumObject.Value, p: PreparedStatement, idx: Int): Unit = p.setObject(idx, mkPgObject(v), sqlType)
+      override def setValue(v: enumObject.Value, p: PreparedStatement, idx: Int): Unit = {
+        p.setObject(idx, if (v == null) null else v.toString, sqlType)
+      }
 
-      override def updateValue(v: enumObject.Value, r: ResultSet, idx: Int): Unit = r.updateObject(idx, mkPgObject(v))
+      override def updateValue(v: enumObject.Value, r: ResultSet, idx: Int): Unit = {
+        r.updateObject(idx, if (v == null) null else v.toString)
+      }
 
       override def hasLiteralForm: Boolean = true
 
       override def valueToSQLLiteral(v: enumObject.Value) = if (v eq null) "NULL" else s"'$v'"
-
-      ///
-      private def mkPgObject(v: enumObject.Value) =
-        utils.mkPGobject( (if (quoteName) sqlEnumTypeName else sqlEnumTypeName.toLowerCase), (if (v eq null) null else v.toString) )
     }
   }
 }
