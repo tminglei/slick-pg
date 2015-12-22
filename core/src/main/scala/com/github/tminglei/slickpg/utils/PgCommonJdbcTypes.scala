@@ -24,13 +24,10 @@ trait PgCommonJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
       if (r.wasNull) zero else fnFromString(value)
     }
 
-    override def setValue(v: T, p: PreparedStatement, idx: Int): Unit = p.setObject(idx, mkPgObject(v))
+    override def setValue(v: T, p: PreparedStatement, idx: Int): Unit = p.setObject(idx, fnToString(v))
 
-    override def updateValue(v: T, r: ResultSet, idx: Int): Unit = r.updateObject(idx, mkPgObject(v))
+    override def updateValue(v: T, r: ResultSet, idx: Int): Unit = r.updateObject(idx, fnToString(v))
 
     override def valueToSQLLiteral(v: T) = if(v == null) "NULL" else s"'${fnToString(v)}'"
-
-    ///
-    private def mkPgObject(v: T) = mkPGobject(sqlTypeName, if(v == null) null else fnToString(v))
   }
 }
