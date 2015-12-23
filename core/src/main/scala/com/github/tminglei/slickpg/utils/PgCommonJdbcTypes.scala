@@ -3,7 +3,6 @@ package utils
 
 import slick.ast.FieldSymbol
 import slick.driver.{PostgresDriver, JdbcTypesComponent}
-import slick.profile.RelationalProfile.ColumnOption.Length
 import scala.reflect.ClassTag
 import java.sql.{PreparedStatement, ResultSet}
 
@@ -24,13 +23,13 @@ trait PgCommonJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
       if (r.wasNull) zero else fnFromString(value)
     }
 
-    override def setValue(v: T, p: PreparedStatement, idx: Int): Unit = p.setObject(idx, mkPgObject(v))
+    override def setValue(v: T, p: PreparedStatement, idx: Int): Unit = p.setObject(idx, toStr(v), java.sql.Types.OTHER)
 
-    override def updateValue(v: T, r: ResultSet, idx: Int): Unit = r.updateObject(idx, mkPgObject(v))
+    override def updateValue(v: T, r: ResultSet, idx: Int): Unit = r.updateObject(idx, toStr(v), java.sql.Types.OTHER)
 
     override def valueToSQLLiteral(v: T) = if(v == null) "NULL" else s"'${fnToString(v)}'"
 
     ///
-    private def mkPgObject(v: T) = mkPGobject(sqlTypeName, if(v == null) null else fnToString(v))
+    private def toStr(v: T) = if(v == null) null else fnToString(v)
   }
 }
