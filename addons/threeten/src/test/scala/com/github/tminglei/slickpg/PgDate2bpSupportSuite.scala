@@ -42,11 +42,11 @@ class PgDate2bpSupportSuite extends FunSuite {
     def date = column[LocalDate]("date")
     def time = column[LocalTime]("time")
     def datetime = column[LocalDateTime]("datetime")
-    def dateTimetz = column[ZonedDateTime]("dateTimetz")
+    def datetimeTz = column[ZonedDateTime]("datetimeTz")
     def duration = column[Duration]("duration")
     def period = column[Period]("period")
 
-    def * = (id, date, time, datetime, dateTimetz, duration, period) <> (DatetimeBean.tupled, DatetimeBean.unapply)
+    def * = (id, date, time, datetime, datetimeTz, duration, period) <> (DatetimeBean.tupled, DatetimeBean.unapply)
   }
   val Datetimes = TableQuery[DatetimeTable]
 
@@ -140,6 +140,17 @@ class PgDate2bpSupportSuite extends FunSuite {
           Datetimes.filter(_.id === 101L.bind).map(r => r.datetime.trunc("day")).result.head.map(
             r => assert(LocalDateTime.parse("2001-01-03T00:00:00") === r)
           ),
+          // isFinite
+          Datetimes.filter(_.id === 101L.bind).map(r => r.datetime.isFinite).result.head.map(
+            r => assert(true === r)
+          ),
+          // at time zone
+          Datetimes.filter(_.id === 101L.bind).map(r => r.datetimeTz.atTimeZone("MST")).result.head.map(
+            r => assert(r.isInstanceOf[LocalDateTime])
+          ),
+          Datetimes.filter(_.id === 101L.bind).map(r => r.time.atTimeZone("MST")).result.head.map(
+            r => assert(r.isInstanceOf[OffsetTime])
+          ),
           // interval
           DBIO.seq(
             // +
@@ -185,11 +196,11 @@ class PgDate2bpSupportSuite extends FunSuite {
 //              r => assert(true === r)
 //            ),
             // part
-            Datetimes.filter(_.id === 101L.bind).map(r => r.dateTimetz.part("year")).result.head.map(
+            Datetimes.filter(_.id === 101L.bind).map(r => r.datetimeTz.part("year")).result.head.map(
               r => assert(Math.abs(2001 - r) < 0.00001d)
             ),
             // trunc
-            Datetimes.filter(_.id === 101L.bind).map(r => r.dateTimetz.trunc("day")).result.head.map(
+            Datetimes.filter(_.id === 101L.bind).map(r => r.datetimeTz.trunc("day")).result.head.map(
               r => assert(ZonedDateTime.parse("2001-01-03 00:00:00+08", bpTzDateTimeFormatter) === r)
             )
           )

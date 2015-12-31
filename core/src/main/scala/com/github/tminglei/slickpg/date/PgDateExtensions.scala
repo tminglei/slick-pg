@@ -24,11 +24,13 @@ trait PgDateExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     val JustifyDays = new SqlFunction("justify_days")
     val JustifyHours = new SqlFunction("justify_hours")
     val JustifyInterval = new SqlFunction("justify_interval")
+
+    val AtTimeZone = new SqlOperator("at time zone")
   }
 
-  ///
-  class TimestampColumnExtensionMethods[DATE, TIME, TIMESTAMP, INTERVAL, P1](val c: Rep[P1])(
-            implicit tm: JdbcType[INTERVAL], tm1: JdbcType[DATE], tm2: JdbcType[TIME], tm3: JdbcType[TIMESTAMP]
+  /// !!!NOTE: if `TIMESTAMP` is `timestamp with time zone`, `TIMESTAMP_TZ` should be `timestamp without time zone`
+  class TimestampColumnExtensionMethods[DATE, TIME, TIMESTAMP, TIMESTAMP_TZ, INTERVAL, P1](val c: Rep[P1])(
+            implicit tm: JdbcType[INTERVAL], tm1: JdbcType[DATE], tm2: JdbcType[TIME], tm3: JdbcType[TIMESTAMP], tm4: JdbcType[TIMESTAMP_TZ]
         ) extends ExtensionMethods[TIMESTAMP, P1] {
 
     protected implicit def b1Type: TypedType[TIMESTAMP] = implicitly[TypedType[TIMESTAMP]]
@@ -57,11 +59,14 @@ trait PgDateExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
         om.column(DateLibrary.Trunc, field.toNode, n)
       }
     def isFinite[R](implicit om: o#to[Boolean, R]) = om.column(DateLibrary.IsFinite, n)
+
+    def atTimeZone[R](tz: Rep[String])(implicit om: o#to[TIMESTAMP_TZ, R]) =
+      om.column(DateLibrary.AtTimeZone, n, tz.toNode)
   }
 
-  ///
-  class TimeColumnExtensionMethods[DATE, TIME, TIMESTAMP, INTERVAL, P1](val c: Rep[P1])(
-            implicit tm: JdbcType[INTERVAL], tm1: JdbcType[DATE], tm2: JdbcType[TIME], tm3: JdbcType[TIMESTAMP]
+  /// !!!NOTE: if `TIME` is `time with time zone`, `TIME_TZ` should be `time without time zone`
+  class TimeColumnExtensionMethods[DATE, TIME, TIMESTAMP, TIME_TZ, INTERVAL, P1](val c: Rep[P1])(
+            implicit tm: JdbcType[INTERVAL], tm1: JdbcType[DATE], tm2: JdbcType[TIME], tm3: JdbcType[TIMESTAMP], tm4: JdbcType[TIME_TZ]
         ) extends ExtensionMethods[TIME, P1] {
 
     protected implicit def b1Type: TypedType[TIME] = implicitly[TypedType[TIME]]
@@ -78,6 +83,9 @@ trait PgDateExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     def ---[P2, R](e: Rep[P2])(implicit om: o#arg[INTERVAL, P2]#to[TIME, R]) = {
         om.column(DateLibrary.-, n, e.toNode)
       }
+
+    def atTimeZone[R](tz: Rep[String])(implicit om: o#to[TIME_TZ, R]) =
+      om.column(DateLibrary.AtTimeZone, n, tz.toNode)
   }
 
   ///

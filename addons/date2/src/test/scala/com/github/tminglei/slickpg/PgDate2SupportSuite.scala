@@ -160,6 +160,17 @@ class PgDate2SupportSuite extends FunSuite {
           Datetimes.filter(_.id === 101L.bind).map(r => r.dateTime.trunc("day")).result.head.map(
             r => assert(LocalDateTime.parse("2001-01-03T00:00:00") === r)
           ),
+          // isFinite
+          Datetimes.filter(_.id === 101L.bind).map(r => r.dateTime.isFinite).result.head.map(
+            r => assert(true === r)
+          ),
+          // at time zone
+          Datetimes.filter(_.id === 101L.bind).map(r => r.dateTimeTz.atTimeZone("MST")).result.head.map(
+            r => assert(r.isInstanceOf[LocalDateTime])
+          ),
+          Datetimes.filter(_.id === 101L.bind).map(r => r.time.atTimeZone("MST")).result.head.map(
+            r => assert(r.isInstanceOf[OffsetTime])
+          ),
           // interval
           DBIO.seq(
             // +

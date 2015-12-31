@@ -134,6 +134,17 @@ class PgDateSupportSuite extends FunSuite {
           Datetimes.filter(_.id === 101L.bind).map(r => r.timestamp.trunc("day")).result.head.map(
             r => assert(ts("2001-1-3 00:00:00.0") === r)
           ),
+          // isFinite
+          Datetimes.filter(_.id === 101L.bind).map(r => r.timestamp.isFinite).result.head.map(
+            r => assert(true === r)
+          ),
+          // at time zone
+          Datetimes.filter(_.id === 101L.bind).map(r => r.timestamptz.atTimeZone("MST")).result.head.map(
+            r => assert(r.isInstanceOf[Timestamp])
+          ),
+          Datetimes.filter(_.id === 101L.bind).map(r => r.time.atTimeZone("MST")).result.head.map(
+            r => assert(r.isInstanceOf[Calendar])
+          ),
           // interval
           DBIO.seq(
             // +

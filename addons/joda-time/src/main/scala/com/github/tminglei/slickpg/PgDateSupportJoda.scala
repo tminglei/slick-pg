@@ -19,6 +19,8 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
     val jodaTimeFormatter_NoFraction = DateTimeFormat.forPattern("HH:mm:ss")
     val jodaDateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSSSSS")
     val jodaDateTimeFormatter_NoFraction = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
+    val jodaTzTimeFormatter = DateTimeFormat.forPattern("HH:mm:ss.SSSSSSZ")
+    val jodaTzTimeFormatter_NoFraction = DateTimeFormat.forPattern("HH:mm:ssZ")
     val jodaTzDateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSSSSSZ")
     val jodaTzDateTimeFormatter_NoFraction = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ssZ")
   }
@@ -27,17 +29,19 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
     implicit val jodaDateTypeMapper = new GenericJdbcType[LocalDate]("date",
       LocalDate.parse(_, jodaDateFormatter), _.toString(jodaDateFormatter), hasLiteralForm=false)
     implicit val jodaTimeTypeMapper = new GenericJdbcType[LocalTime]("time",
-      fnFromString = (s) => LocalTime.parse(s, if(s.indexOf(".") > 0 ) jodaTimeFormatter else jodaTimeFormatter_NoFraction),
+      fnFromString = (s) => LocalTime.parse(s, if (s.indexOf(".") > 0) jodaTimeFormatter else jodaTimeFormatter_NoFraction),
       fnToString = (v) => v.toString(jodaTimeFormatter),
       hasLiteralForm = false)
     implicit val jodaDateTimeTypeMapper = new GenericJdbcType[LocalDateTime]("timestamp",
-      fnFromString = (s) => LocalDateTime.parse(s, if(s.indexOf(".") > 0 ) jodaDateTimeFormatter else jodaDateTimeFormatter_NoFraction),
+      fnFromString = (s) => LocalDateTime.parse(s, if (s.indexOf(".") > 0) jodaDateTimeFormatter else jodaDateTimeFormatter_NoFraction),
       fnToString = (v) => v.toString(jodaDateTimeFormatter),
       hasLiteralForm = false)
     implicit val jodaPeriodTypeMapper = new GenericJdbcType[Period]("interval",
       pgIntervalStr2jodaPeriod, hasLiteralForm=false)
     implicit val jodaTimestampTZTypeMapper = new GenericJdbcType[DateTime]("timestamptz",
-      fnFromString = (s) => DateTime.parse(s, if(s.indexOf(".") > 0 ) jodaTzDateTimeFormatter else jodaTzDateTimeFormatter_NoFraction),
+      fnFromString = (s) => DateTime.parse(s,
+        if (s.indexOf(":") > 2) { if (s.indexOf(".") > 0) jodaTzDateTimeFormatter else jodaTzDateTimeFormatter_NoFraction }
+        else { if (s.indexOf(".") > 0) jodaTzTimeFormatter else jodaTzTimeFormatter_NoFraction }),
       fnToString = (v) => v.toString(jodaTzDateTimeFormatter),
       hasLiteralForm = false)
 
@@ -48,14 +52,14 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
       new DateColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Option[LocalDate]](c)
 
     implicit def jodaTimeColumnExtensionMethods(c: Rep[LocalTime]) =
-      new TimeColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, LocalTime](c)
+      new TimeColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, DateTime, Period, LocalTime](c)
     implicit def jodaTimeOptColumnExtensionMethods(c: Rep[Option[LocalTime]]) =
-      new TimeColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Option[LocalTime]](c)
+      new TimeColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, DateTime, Period, Option[LocalTime]](c)
 
     implicit def jodaTimestampColumnExtensionMethods(c: Rep[LocalDateTime]) =
-      new TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, LocalDateTime](c)
+      new TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, DateTime, Period, LocalDateTime](c)
     implicit def jodaTimestampOptColumnExtensionMethods(c: Rep[Option[LocalDateTime]]) =
-      new TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Option[LocalDateTime]](c)
+      new TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, DateTime, Period, Option[LocalDateTime]](c)
 
     implicit def jodaIntervalColumnExtensionMethods(c: Rep[Period]) =
       new IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Period](c)
@@ -63,9 +67,9 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
       new IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Option[Period]](c)
 
     implicit def jodaTzTimestampColumnExtensionMethods(c: Rep[DateTime]) =
-      new TimestampColumnExtensionMethods[LocalDate, LocalTime, DateTime, Period, DateTime](c)
+      new TimestampColumnExtensionMethods[LocalDate, LocalTime, DateTime, LocalDateTime, Period, DateTime](c)
     implicit def jodaTzTimestampOptColumnExtensionMethods(c: Rep[Option[DateTime]]) =
-      new TimestampColumnExtensionMethods[LocalDate, LocalTime, DateTime, Period, Option[DateTime]](c)
+      new TimestampColumnExtensionMethods[LocalDate, LocalTime, DateTime, LocalDateTime, Period, Option[DateTime]](c)
   }
 
   trait JodaDateTimePlainImplicits extends JodaDateTimeFormatters {

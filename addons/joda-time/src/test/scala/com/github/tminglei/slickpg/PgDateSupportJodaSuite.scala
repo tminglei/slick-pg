@@ -32,7 +32,7 @@ class PgDateSupportJodaSuite extends FunSuite {
     date: LocalDate,
     time: LocalTime,
     dateTime: LocalDateTime,
-    dateTimetz: DateTime,
+    dateTimeTz: DateTime,
     interval: Period
     )
 
@@ -142,6 +142,17 @@ class PgDateSupportJodaSuite extends FunSuite {
           Datetimes.filter(_.id === 101L.bind).map(r => r.datetime.trunc("day")).result.head.map(
             r => assert(LocalDateTime.parse("2001-01-03T00:00:00") === r)
           ),
+          // isFinite
+          Datetimes.filter(_.id === 101L.bind).map(r => r.datetime.isFinite).result.head.map(
+            r => assert(true === r)
+          ),
+          // at time zone
+          Datetimes.filter(_.id === 101L.bind).map(r => r.datetimetz.atTimeZone("MST")).result.head.map(
+            r => assert(r.isInstanceOf[LocalDateTime])
+          ),
+          Datetimes.filter(_.id === 101L.bind).map(r => r.time.atTimeZone("MST")).result.head.map(
+            r => assert(r.isInstanceOf[DateTime])
+          ),
           // interval
           DBIO.seq(
             // +
@@ -243,11 +254,11 @@ class PgDateSupportJodaSuite extends FunSuite {
               period interval not null)
           """,
         ///
-        sqlu""" insert into DatetimeJodaTest values(${b1.id}, ${b1.date}, ${b1.time}, ${b1.dateTime}, ${b1.dateTimetz}, ${b1.interval}) """,
+        sqlu""" insert into DatetimeJodaTest values(${b1.id}, ${b1.date}, ${b1.time}, ${b1.dateTime}, ${b1.dateTimeTz}, ${b1.interval}) """,
         sql""" select * from DatetimeJodaTest where id = ${b1.id} """.as[DatetimeBean].head.map(
           r => assert(b1 === r)
         ),
-        sqlu""" insert into DatetimeJodaTest values(${b2.id}, ${b2.date}, ${b2.time}, ${b2.dateTime}, ${b2.dateTimetz}, ${b2.interval}) """,
+        sqlu""" insert into DatetimeJodaTest values(${b2.id}, ${b2.date}, ${b2.time}, ${b2.dateTime}, ${b2.dateTimeTz}, ${b2.interval}) """,
         sql""" select * from DatetimeJodaTest where id = ${b2.id} """.as[DatetimeBean].head.map(
           r => assert(b2 === r)
         ),
