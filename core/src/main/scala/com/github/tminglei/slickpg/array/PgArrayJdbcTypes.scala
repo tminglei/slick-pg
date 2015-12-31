@@ -121,7 +121,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
     override def valueToSQLLiteral(vList: SEQ[T]) = delegate.valueToSQLLiteral(Option(vList).orNull)
   }
 
-  /// added to statically check built-in support array types
+  /// added to help check built-in support array types statically
   sealed trait ArrChecked[T]
 
   object ArrChecked {
