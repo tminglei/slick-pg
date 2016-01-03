@@ -4,25 +4,26 @@ package array
 import scala.reflect.ClassTag
 import slick.ast.FieldSymbol
 import slick.driver.{PostgresDriver, JdbcTypesComponent}
-import slick.profile.RelationalProfile.ColumnOption.Length
 import java.sql.{ResultSet, PreparedStatement}
 
 trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
   @deprecated(message = "use 'new SimpleArrayJdbcType[T](..).to[SEQ[T]](..)' instead", since = "0.7.1")
   class SimpleArrayListJdbcType[T](sqlBaseType: String)(
-              implicit override val classTag: ClassTag[List[T]], tag: ClassTag[T])
+              implicit override val classTag: ClassTag[List[T]], tag: ClassTag[T], checked: ArrChecked[T])
                     extends WrappedConvArrayJdbcType[T, List](
-                        new SimpleArrayJdbcType(sqlBaseType), _.toList) {
+                        new SimpleArrayJdbcType[T](sqlBaseType), _.toList) {
 
     def basedOn[U](tmap: T => U, tcomap: U => T): DriverJdbcType[List[T]] =
       delegate.asInstanceOf[SimpleArrayJdbcType[T]].basedOn(tmap, tcomap).to(_.toList)
   }
 
   //
-  class SimpleArrayJdbcType[T](sqlBaseType: String)(
-              implicit override val classTag: ClassTag[Seq[T]], tag: ClassTag[T])
-                    extends DriverJdbcType[Seq[T]] {
+  class SimpleArrayJdbcType[T] private (sqlBaseType: String, tmap: Any => T, tcomap: T => Any)(
+              implicit override val classTag: ClassTag[Seq[T]], ctag: ClassTag[T], checked: ArrChecked[T])
+                    extends DriverJdbcType[Seq[T]] { self =>
+
+    def this(sqlBaseType: String)(implicit ctag: ClassTag[T], checked: ArrChecked[T]) = this(sqlBaseType, _.asInstanceOf[T], identity)
 
     override def sqlType: Int = java.sql.Types.ARRAY
 
@@ -30,7 +31,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
     override def getValue(r: ResultSet, idx: Int): Seq[T] = {
       val value = r.getArray(idx)
-      if (r.wasNull) null else value.getArray.asInstanceOf[Array[Any]].map(_.asInstanceOf[T])
+      if (r.wasNull) null else value.getArray.asInstanceOf[Array[Any]].map(tmap)
     }
 
     override def setValue(vList: Seq[T], p: PreparedStatement, idx: Int): Unit = p.setArray(idx, mkArray(vList))
@@ -42,23 +43,16 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
     override def valueToSQLLiteral(vList: Seq[T]) = if(vList eq null) "NULL" else s"'${buildArrayStr(vList)}'"
 
     //--
-    private def mkArray(v: Seq[T]): java.sql.Array = utils.SimpleArrayUtils.mkArray(buildArrayStr)(sqlBaseType, v)
+    private def mkArray(v: Seq[T]): java.sql.Array = utils.SimpleArrayUtils.mkArray(buildArrayStr)(sqlBaseType, v.map(tcomap))
 
     protected def buildArrayStr(vList: Seq[Any]): String = utils.SimpleArrayUtils.mkString[Any](_.toString)(vList)
 
     ///
-    def basedOn[U](tmap: T => U, tcomap: U => T): SimpleArrayJdbcType[T] =
-      new SimpleArrayJdbcType[T](sqlBaseType) {
+    @deprecated(message = "please define a base type array first, then `mapTo` target type array", since = "0.11.0")
+    def basedOn[U](tmap: T => U, tcomap: U => T): SimpleArrayJdbcType[T] = ???
 
-        override def getValue(r: ResultSet, idx: Int): Seq[T] = {
-          val value = r.getArray(idx)
-          if (r.wasNull) null else value.getArray.asInstanceOf[Array[Any]]
-            .map(e => tcomap(e.asInstanceOf[U]))
-        }
-
-        //--
-        override protected def buildArrayStr(v: Seq[Any]): String = super.buildArrayStr(v.map(e => tmap(e.asInstanceOf[T])))
-      }
+    def mapTo[U](tmap: T => U, tcomap: U => T)(implicit ctags: ClassTag[Seq[U]], ctag: ClassTag[U]): SimpleArrayJdbcType[U] =
+      new SimpleArrayJdbcType[U](sqlBaseType, v => tmap(self.tmap(v)), r => self.tcomap(tcomap(r)))(ctags, ctag, ArrChecked.AnyChecked.asInstanceOf[ArrChecked[U]])
 
     def to[SEQ[T] <: Seq[T]](conv: Seq[T] => SEQ[T])(implicit classTag: ClassTag[SEQ[T]]): DriverJdbcType[SEQ[T]] =
       new WrappedConvArrayJdbcType[T, SEQ](this, conv)
@@ -110,7 +104,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
   /////////////////////////////////////////////////////////////////////////////////////////////
   private[array] class WrappedConvArrayJdbcType[T, SEQ[T] <: Seq[T]](val delegate: DriverJdbcType[Seq[T]], val conv: Seq[T] => SEQ[T])(
-      implicit override val classTag: ClassTag[SEQ[T]], tag: ClassTag[T]) extends DriverJdbcType[SEQ[T]] {
+      implicit override val classTag: ClassTag[SEQ[T]], ctag: ClassTag[T]) extends DriverJdbcType[SEQ[T]] {
 
     override def sqlType: Int = delegate.sqlType
 
@@ -125,5 +119,25 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
     override def hasLiteralForm: Boolean = delegate.hasLiteralForm
 
     override def valueToSQLLiteral(vList: SEQ[T]) = delegate.valueToSQLLiteral(Option(vList).orNull)
+  }
+
+  /// added to help check built-in support array types statically
+  sealed trait ArrChecked[T]
+
+  object ArrChecked {
+    implicit object LongChecked extends ArrChecked[Long]
+    implicit object IntChecked extends ArrChecked[Int]
+    implicit object ShortChecked extends ArrChecked[Short]
+    implicit object FloatChecked extends ArrChecked[Float]
+    implicit object DoubleChecked extends ArrChecked[Double]
+    implicit object BooleanChecked extends ArrChecked[Boolean]
+    implicit object StringChecked extends ArrChecked[String]
+    implicit object UUIDChecked extends ArrChecked[java.util.UUID]
+    implicit object DateChecked extends ArrChecked[java.sql.Date]
+    implicit object TimeChecked extends ArrChecked[java.sql.Time]
+    implicit object TimestampChecked extends ArrChecked[java.sql.Timestamp]
+    implicit object JBigDecimalChecked extends ArrChecked[java.math.BigDecimal]
+
+    object AnyChecked extends ArrChecked[Nothing]
   }
 }
