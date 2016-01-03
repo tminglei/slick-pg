@@ -142,7 +142,7 @@ Here's the related technical details:
 | ----------------------------------- | --------------------- | -------------------------------------- |
 | List[T]                             | ARRAY                 |        no 3rd party dependencies       |
 | `sql` Date<br> Time<br> Timestamp<br> slickpg Interval<br> Calendar | date<br> time<br> timestamp<br> interval<br> timestamptz |    no 3rd party dependencies     |
-| `joda` LocalDate<br> LocalTime<br> LocalDateTime<br> Period<br> DateTime  | date<br> time<br> timestamp<br> interval<br> timestamptz |    `joda-time` v2.4 / `joda-convert` v1.7     |
+| `joda` LocalDate<br> LocalTime<br> LocalDateTime<br> Period<br> DateTime  | date<br> time<br> timestamp<br> interval<br> timestamptz |    `joda-time` v2.8 / `joda-convert` v1.7     |
 | `java.time` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz |    no 3rd party dependencies <br> but require java 8    |
 | `threeten.bp` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz |    `threetenbp` v1.0      |
 | `scala` Enumeration                 | enum                  |        no 3rd party dependencies       |
@@ -152,10 +152,10 @@ Here's the related technical details:
 | `slickpg` InetString                | inet                  |        no 3rd party dependencies       |
 | `slickpg` MacAddrString             | macaddr               |        no 3rd party dependencies       |
 | `slickpg` JsonString                | json                  |        no 3rd party dependencies       |
-| `json4s` JValue                     | json                  |        `json4s` v3.2.10                |
-| `play-json` JsValue                 | json                  |        `play-json` v2.3.0              |
+| `json4s` JValue                     | json                  |        `json4s` v3.3.0                |
+| `play-json` JsValue                 | json                  |        `play-json` v2.4.3             |
 | `spray-json` JsValue                | json                  |        `spray-json` v1.3.1             |
-| `argonaut json` Json                | json                  |        `argonaut` v6.0.4               |
+| `argonaut json` Json                | json                  |        `argonaut` v6.1               |
 | (TsQuery+TsVector)                  | `text` search         |        no 3rd party dependencies       |
 | `jts` Geometry                      | `postgis` geometry    |        `jts` v1.13                     |
 
@@ -181,47 +181,47 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.10.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.11.0"
 ```
 
 > If you need `joda-time` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.10.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.11.0"
 ```
 
 > If you need `jts` geom support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.10.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.11.0"
 ```
 
 > If you need `jdk8 date` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_date2" % "0.10.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_date2" % "0.11.0"
 ```
 
 > If you need `threeten-bp` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_threeten" % "0.10.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_threeten" % "0.11.0"
 ```
 
 > If you need `json4s` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.10.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.11.0"
 ```
 
 > If you need `play-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.10.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.11.0"
 ```
 
 > If you need `spray-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.10.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.11.0"
 ```
 
 > If you need `argonaut json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.10.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.11.0"
 ```
 
 
@@ -230,7 +230,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.11</artifactId>
-    <version>0.10.2</version>
+    <version>0.11.0</version>
 </dependency>
 <!-- other addons if necessary -->
 ...
