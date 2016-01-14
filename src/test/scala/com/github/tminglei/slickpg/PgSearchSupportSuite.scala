@@ -11,21 +11,22 @@ class PgSearchSupportSuite extends FunSuite {
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
-  case class TestBean(id: Long, text: String, comment: String)
+  case class TestBean(id: Long, text: String, search: TsVector, comment: String)
 
   class TestTable(tag: Tag) extends Table[TestBean](tag, "tsTestTable") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def text = column[String]("text")
+    def search = column[TsVector]("search")
     def comment = column[String]("comment")
 
-    def * = (id, text, comment) <> (TestBean.tupled, TestBean.unapply)
+    def * = (id, text, search, comment) <> (TestBean.tupled, TestBean.unapply)
   }
   val Tests = TableQuery[TestTable]
 
   //-----------------------------------------------------------------------------
 
-  val testRec1 = TestBean(33L, "fat cat ate rat", "")
-  val testRec2 = TestBean(37L, "cat", "fat")
+  val testRec1 = TestBean(33L, "fat cat ate rat", TsVector("'ate' 'cat' 'fat' 'rat'"), "")
+  val testRec2 = TestBean(37L, "cat", TsVector("'ca'"), "fat")
 
   test("Text search Lifted support") {
     Await.result(db.run(
@@ -104,16 +105,16 @@ class PgSearchSupportSuite extends FunSuite {
       DBIO.seq(
         Tests.schema create,
         ///
-        Tests.forceInsert(TestBean(11L, "Neutrinos in the Sun", "")),
-        Tests.forceInsert(TestBean(12L, "The Sudbury Neutrino Detector", "")),
-        Tests.forceInsert(TestBean(13L, "A MACHO View of Galactic Dark Matter", "")),
-        Tests.forceInsert(TestBean(14L, "Hot Gas and Dark Matter", "")),
-        Tests.forceInsert(TestBean(15L, "The Virgo Cluster: Hot Plasma and Dark Matter", "")),
-        Tests.forceInsert(TestBean(16L, "Rafting for Solar Neutrinos", "")),
-        Tests.forceInsert(TestBean(17L, "NGC 4650A: Strange Galaxy and Dark Matter", "")),
-        Tests.forceInsert(TestBean(18L, "Hot Gas and Dark Matter", "")),
-        Tests.forceInsert(TestBean(19L, "Ice Fishing for Cosmic Neutrinos", "")),
-        Tests.forceInsert(TestBean(20L, "Weak Lensing Distorts the Universe", ""))
+        Tests.forceInsert(TestBean(11L, "Neutrinos in the Sun", TsVector("'at'"), "")),
+        Tests.forceInsert(TestBean(12L, "The Sudbury Neutrino Detector", TsVector("'ss'"), "")),
+        Tests.forceInsert(TestBean(13L, "A MACHO View of Galactic Dark Matter", TsVector("'at'"), "")),
+        Tests.forceInsert(TestBean(14L, "Hot Gas and Dark Matter", TsVector("'at'"), "")),
+        Tests.forceInsert(TestBean(15L, "The Virgo Cluster: Hot Plasma and Dark Matter", TsVector("'at'"), "")),
+        Tests.forceInsert(TestBean(16L, "Rafting for Solar Neutrinos", TsVector("'at'"), "")),
+        Tests.forceInsert(TestBean(17L, "NGC 4650A: Strange Galaxy and Dark Matter", TsVector("'ga'"), "")),
+        Tests.forceInsert(TestBean(18L, "Hot Gas and Dark Matter", TsVector("'ga'"), "")),
+        Tests.forceInsert(TestBean(19L, "Ice Fishing for Cosmic Neutrinos", TsVector("'fish'"), "")),
+        Tests.forceInsert(TestBean(20L, "Weak Lensing Distorts the Universe", TsVector("'w'"), ""))
       ).andThen(
         DBIO.seq(
           // ts_rank
