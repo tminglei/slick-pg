@@ -11,18 +11,24 @@ case object `(_,_]` extends EdgeType
 case object `(_,_)` extends EdgeType
 case object `[_,_]` extends EdgeType
 
-case class Range[T](start: T, end: T, edge: EdgeType = `[_,_)`) {
+import PgRangeSupportUtils._
+
+case class Range[T](start: Option[T], end: Option[T], edge: EdgeType) {
 
   def as[A](convert: (T => A)): Range[A] = {
-    new Range[A](convert(start), convert(end), edge)
+    new Range[A](start.map(convert), end.map(convert), edge)
   }
 
   override def toString = edge match {
-    case `[_,_)` => s"[$start,$end)"
-    case `(_,_]` => s"($start,$end]"
-    case `(_,_)` => s"($start,$end)"
-    case `[_,_]` => s"[$start,$end]"
+    case `[_,_)` => s"[${oToString(start)},${oToString(end)})"
+    case `(_,_]` => s"(${oToString(start)},${oToString(end)}]"
+    case `(_,_)` => s"(${oToString(start)},${oToString(end)})"
+    case `[_,_]` => s"[${oToString(start)},${oToString(end)}]"
   }
+}
+
+object Range {
+  def apply[T](start: T, end: T, edge: EdgeType = `[_,_)`): Range[T] = Range(Some(start), Some(end), edge)
 }
 
 /**
@@ -30,7 +36,6 @@ case class Range[T](start: T, end: T, edge: EdgeType = `[_,_)`) {
  */
 trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import driver.api._
-  import PgRangeSupportUtils._
 
   private def toTimestamp(str: String) = Timestamp.valueOf(str)
   private def toSQLDate(str: String) = Date.valueOf(str)
@@ -123,30 +128,38 @@ object PgRangeSupportUtils {
   val `(_,_)Range`  = """\("?([^,"]*)"?,[ ]*"?([^,"]*)"?\)""".r   // matches: (_,_)
   val `[_,_]Range`  = """\["?([^,"]*)"?,[ ]*"?([^,"]*)"?\]""".r   // matches: [_,_]
 
-  def mkRangeFn[T](convert: (String => T)): (String => Range[T]) =
+  def mkRangeFn[T](convert: (String => T)): (String => Range[T]) = {
+    def conv[T](str: String, convert: (String => T)): Option[T] =
+      Option(str).filterNot(_.isEmpty).map(convert)
+
     (str: String) => str match {
-      case `[_,_)Range`(start, end) => Range(convert(start), convert(end), `[_,_)`)
-      case `(_,_]Range`(start, end) => Range(convert(start), convert(end), `(_,_]`)
-      case `(_,_)Range`(start, end) => Range(convert(start), convert(end), `(_,_)`)
-      case `[_,_]Range`(start, end) => Range(convert(start), convert(end), `[_,_]`)
+      case `[_,_)Range`(start, end) => Range(conv(start, convert), conv(end, convert), `[_,_)`)
+      case `(_,_]Range`(start, end) => Range(conv(start, convert), conv(end, convert), `(_,_]`)
+      case `(_,_)Range`(start, end) => Range(conv(start, convert), conv(end, convert), `(_,_)`)
+      case `[_,_]Range`(start, end) => Range(conv(start, convert), conv(end, convert), `[_,_]`)
     }
+  }
 
   def toStringFn[T](toString: (T => String)): (Range[T] => String) =
     (r: Range[T]) => r.edge match {
-      case `[_,_)` => s"[${toString(r.start)},${toString(r.end)})"
-      case `(_,_]` => s"(${toString(r.start)},${toString(r.end)}]"
-      case `(_,_)` => s"(${toString(r.start)},${toString(r.end)})"
-      case `[_,_]` => s"[${toString(r.start)},${toString(r.end)}]"
+      case `[_,_)` => s"[${oToString(r.start, toString)},${oToString(r.end, toString)})"
+      case `(_,_]` => s"(${oToString(r.start, toString)},${oToString(r.end, toString)}]"
+      case `(_,_)` => s"(${oToString(r.start, toString)},${oToString(r.end, toString)})"
+      case `[_,_]` => s"[${oToString(r.start, toString)},${oToString(r.end, toString)}]"
     }
 
   ///
   def mkWithLength[T](start: T, length: Double, edge: EdgeType = `[_,_)`) = {
     val upper = (start.asInstanceOf[Double] + length).asInstanceOf[T]
-    new Range[T](start, upper, edge)
+    new Range[T](Some(start), Some(upper), edge)
   }
 
   def mkWithInterval[T <: java.util.Date](start: T, interval: Interval, edge: EdgeType = `[_,_)`) = {
     val end = (start +: interval).asInstanceOf[T]
-    new Range[T](start, end, edge)
+    new Range[T](Some(start), Some(end), edge)
   }
+
+  ////// helper methods
+  private[slickpg] def oToString[T](o: Option[T], toString: (T => String) = (r: T) => r.toString) =
+    o.map(toString).getOrElse("")
 }

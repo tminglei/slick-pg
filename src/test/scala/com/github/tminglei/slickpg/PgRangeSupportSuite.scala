@@ -38,7 +38,7 @@ class PgRangeSupportSuite extends FunSuite {
     Some(Range(ts("2010-01-01 14:30:00"), ts("2010-01-03 15:30:00"))))
   val testRec2 = RangeBean(35L, Range(31, 59), Range(11.5f, 33.3f),
     Some(Range(ts("2011-01-01 14:30:00"), ts("2011-11-01 15:30:00"))))
-  val testRec3 = RangeBean(41L, Range(1, 5), Range(7.5f, 15.3f), None)
+  val testRec3 = RangeBean(41L, Range(1, 5), Range(Some(7.5f), None, `[_,_)`), None)
 
   test("Range Lifted support") {
     Await.result(db.run(
@@ -48,6 +48,9 @@ class PgRangeSupportSuite extends FunSuite {
         RangeTests forceInsertAll List(testRec1, testRec2, testRec3)
       ).andThen(
         DBIO.seq(
+          RangeTests.sortBy(_.id).to[List].result.map(
+            r => assert(List(testRec1, testRec2, testRec3) === r)
+          ),
           // @>
           RangeTests.filter(_.tsRange @>^ ts("2011-10-01 15:30:00")).sortBy(_.id).to[List].result.map(
             r => assert(List(testRec2) === r)
