@@ -89,7 +89,7 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
       def nextTimestampRange() = nextTimestampRangeOption().orNull
       def nextTimestampRangeOption() = r.nextStringOption().map(mkRangeFn(toTimestamp))
       def nextDateRange() = nextDateRangeOption().orNull
-      def nextDateRangeOption() = r.nextStringOption().map(toSQLDate)
+      def nextDateRangeOption() = r.nextStringOption().map(mkRangeFn(toSQLDate))
     }
 
     ////////////////////////////////////////////////////////////////////
