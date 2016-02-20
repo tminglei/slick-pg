@@ -142,6 +142,22 @@ class PgJson4sSupportSuite extends FunSuite {
           // ?&
           JsonTests.filter(_.json ?& List("a", "c").bind).to[List].result.map(
             r => assert(List(testRec1) === r)
+          ),
+          // ||
+          JsonTests.filter(_.id === 33L).map(_.json || parse(""" {"d":"test"} """)).result.head.map(
+            r => assert(""" {"a": 101, "b": "aaa", "c": [3, 4, 5, 9], "d": "test"} """.replace(" ", "") === compact(render(r)))
+          ),
+          // -
+          JsonTests.filter(_.id === 33L).map(_.json - "c".bind).result.head.map(
+            r => assert(""" {"a": 101, "b": "aaa"} """.replace(" ", "") === compact(render(r)))
+          ),
+          // #-
+          JsonTests.filter(_.id === 33L).map(_.json #- List("c")).result.head.map(
+            r => assert(""" {"a": 101, "b": "aaa"} """.replace(" ", "") === compact(render(r)))
+          ),
+          // #-
+          JsonTests.filter(_.id === 33L).map(_.json.set(List("c"), parse(""" [1] """).bind)).result.head.map(
+            r => assert(""" {"a": 101, "b": "aaa", "c": [1]} """.replace(" ", "") === compact(render(r)))
           )
         )
       ).andFinally(

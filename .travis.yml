@@ -1,14 +1,14 @@
 sudo: false
 language: scala
 scala:
-   - 2.10.5
+   - 2.10.6
    - 2.11.7
 jdk:
   - oraclejdk8
 services:
   - postgresql
 addons:
-  postgresql: "9.4"
+  postgresql: "9.5"
 before_script:
   - psql -c 'create database test;' -U postgres
   - psql test -c 'CREATE EXTENSION IF NOT EXISTS hstore;' -U postgres
