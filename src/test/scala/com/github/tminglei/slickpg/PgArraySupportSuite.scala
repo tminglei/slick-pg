@@ -146,6 +146,7 @@ class PgArraySupportSuite extends FunSuite {
 
   case class ArrayBean1(
     id: Long,
+    bytea: Array[Byte],
     uuidArr: List[UUID],
     strArr: Option[List[String]],
     longArr: Seq[Long],
@@ -164,6 +165,7 @@ class PgArraySupportSuite extends FunSuite {
 
     implicit val getArrarBean1Result = GetResult { r =>
       ArrayBean1(r.nextLong(),
+        r.<<[Array[Byte]],
         r.<<[Seq[UUID]].toList,
         r.<<?[Seq[String]].map(_.toList),
         r.<<[Seq[Long]],
@@ -178,13 +180,14 @@ class PgArraySupportSuite extends FunSuite {
       )
     }
 
-    val b = ArrayBean1(101L, List(UUID.randomUUID()), Some(List("tewe", "ttt")), List(111L), List(1, 2), Vector(3, 5), List(1.2f, 43.32f), List(21.35d), List(true, true),
+    val b = ArrayBean1(101L, "tt".getBytes, List(UUID.randomUUID()), Some(List("tewe", "ttt")), List(111L), List(1, 2), Vector(3, 5), List(1.2f, 43.32f), List(21.35d), List(true, true),
       List(new Date(System.currentTimeMillis())), List(new Time(System.currentTimeMillis())), List(new Timestamp(System.currentTimeMillis())))
 
     Await.result(db.run(
       DBIO.seq(
         sqlu"""create table ArrayTest1(
                  id int8 not null primary key,
+                 byte_arr bytea not null,
                  uuid_arr uuid[] not null,
                  str_arr text[] not null,
                  long_arr int8[] not null,
@@ -198,9 +201,10 @@ class PgArraySupportSuite extends FunSuite {
                  ts_arr timestamp[] not null)
             """,
         ///
-        sqlu"insert into ArrayTest1 values(${b.id}, ${b.uuidArr}, ${b.strArr}, ${b.longArr}, ${b.intArr}, ${b.shortArr}, ${b.floatArr}, ${b.doubleArr}, ${b.boolArr}, ${b.dateArr}, ${b.timeArr}, ${b.tsArr})",
+        sqlu"insert into ArrayTest1 values(${b.id}, ${b.bytea}, ${b.uuidArr}, ${b.strArr}, ${b.longArr}, ${b.intArr}, ${b.shortArr}, ${b.floatArr}, ${b.doubleArr}, ${b.boolArr}, ${b.dateArr}, ${b.timeArr}, ${b.tsArr})",
         sql"select * from ArrayTest1 where id = ${b.id}".as[ArrayBean1].head.map(
           f => {
+            b.bytea.zip(f.bytea).map(r => assert(r._1 === r._2))
             b.uuidArr.zip(f.uuidArr).map(r => assert(r._1 === r._2))
             b.strArr.zip(f.strArr).map(r => assert(r._1 === r._2))
             b.longArr.zip(f.longArr).map(r => assert(r._1 === r._2))

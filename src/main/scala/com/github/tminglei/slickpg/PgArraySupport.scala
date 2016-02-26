@@ -4,7 +4,8 @@ import java.util.UUID
 import slick.driver.PostgresDriver
 import java.sql.{Timestamp, Time, Date}
 import scala.reflect.runtime.{universe => u}
-import slick.jdbc.{PositionedResult, JdbcType}
+import slick.jdbc._
+import java.sql.Types
 
 trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes { driver: PostgresDriver =>
   import driver.api._
@@ -85,6 +86,19 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
     }
 
     //////////////////////////////////////////////////////////////////////////
+    implicit val getByteArray = new GetResult[Array[Byte]] {
+      def apply(pr: PositionedResult) = pr.nextBytes()
+    }
+    implicit val getByteArrayOption = new GetResult[Option[Array[Byte]]] {
+      def apply(pr: PositionedResult) = Option(pr.nextBytes())
+    }
+    implicit val setByteArray = new SetParameter[Array[Byte]] {
+      def apply(v: Array[Byte], pp: PositionedParameters) = pp.setBytes(v)
+    }
+    implicit val setByteArrayOption = new SetParameter[Option[Array[Byte]]] {
+      def apply(v: Option[Array[Byte]], pp: PositionedParameters) = pp.setBytesOption(v)
+    }
+    ///
     implicit val getUUIDArray = mkGetResult(_.nextArray[UUID]())
     implicit val getUUIDArrayOption = mkGetResult(_.nextArrayOption[UUID]())
     implicit val setUUIDArray = mkArraySetParameter[UUID]("uuid")
