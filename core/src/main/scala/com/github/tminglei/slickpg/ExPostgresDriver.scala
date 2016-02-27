@@ -45,7 +45,7 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
       def apply(pr: PositionedResult) = pr.nextBytes()
     }
     implicit val getByteArrayOption = new GetResult[Option[Array[Byte]]] {
-      def apply(pr: PositionedResult) = Option(pr.nextBytes())
+      def apply(pr: PositionedResult) = pr.nextBytesOption()
     }
     implicit val setByteArray = new SetParameter[Array[Byte]] {
       def apply(v: Array[Byte], pp: PositionedParameters) = pp.setBytes(v)
