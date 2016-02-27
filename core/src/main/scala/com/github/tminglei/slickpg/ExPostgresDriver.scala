@@ -2,8 +2,8 @@ package com.github.tminglei.slickpg
 
 import java.util.UUID
 
-import slick.ast.{TableNode, TableExpansion, Select, ColumnOption}
-import slick.jdbc.JdbcModelBuilder
+import slick.ast._
+import slick.jdbc._
 import slick.jdbc.meta.MTable
 import slick.lifted.PrimaryKey
 import slick.driver.{PostgresDriver, JdbcDriver}
@@ -39,6 +39,20 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
   ///--
   trait API extends super.API {
     type InheritingTable = driver.InheritingTable
+
+    /** NOTE: Array[Byte] maps to `bytea` instead of `byte ARRAY` */
+    implicit val getByteArray = new GetResult[Array[Byte]] {
+      def apply(pr: PositionedResult) = pr.nextBytes()
+    }
+    implicit val getByteArrayOption = new GetResult[Option[Array[Byte]]] {
+      def apply(pr: PositionedResult) = Option(pr.nextBytes())
+    }
+    implicit val setByteArray = new SetParameter[Array[Byte]] {
+      def apply(v: Array[Byte], pp: PositionedParameters) = pp.setBytes(v)
+    }
+    implicit val setByteArrayOption = new SetParameter[Option[Array[Byte]]] {
+      def apply(v: Option[Array[Byte]], pp: PositionedParameters) = pp.setBytesOption(v)
+    }
   }
 
   trait InheritingTable { sub: Table[_] =>

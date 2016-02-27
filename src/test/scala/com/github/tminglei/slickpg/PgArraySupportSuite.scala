@@ -4,10 +4,9 @@ import java.sql.{Timestamp, Time, Date}
 import java.util.UUID
 
 import org.scalatest.FunSuite
+import slick.jdbc.GetResult
 
 import scala.collection.mutable.Buffer
-import slick.driver.PostgresDriver
-import slick.jdbc.GetResult
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -19,7 +18,7 @@ class PgArraySupportSuite extends FunSuite {
   case class Institution(value: Long)
   case class MarketFinancialProduct(value: String)
 
-  object MyPostgresDriver1 extends PostgresDriver with PgArraySupport {
+  object MyPostgresDriver1 extends ExPostgresDriver with PgArraySupport {
     override val api = new API with ArrayImplicits with MyArrayImplicitsPlus {}
 
     ///
