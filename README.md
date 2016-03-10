@@ -40,8 +40,8 @@ trait MyPostgresDriver extends ExPostgresDriver
                           with PgHStoreSupport
                           with PgPlayJsonSupport
                           with PgSearchSupport
-                          with PgPostGISSupport 
-                          with PgNetSupport 
+                          with PgPostGISSupport
+                          with PgNetSupport
                           with PgLTreeSupport {
   def pgjson = "jsonb" // jsonb support is in postgres 9.4.0 onward; for 9.3.x use "json"
 
@@ -85,34 +85,34 @@ class TestTable(tag: Tag) extends Table[Test](tag, Some("xxx"), "Test") {
 }
 
 object tests extends TableQuery(new TestTable(_)) {
-  // will generate sql like: 
+  // will generate sql like:
   //   select * from test where id = ?
   def byId(ids: Long*) = tests
         .filter(_.id inSetBind ids)
         .map(t => t)
-  // will generate sql like: 
+  // will generate sql like:
   //   select * from test where tags && ?
   def byTag(tags: String*) = tests
         .filter(_.tags @& tags.toList.bind)
         .map(t => t)
-  // will generate sql like: 
+  // will generate sql like:
   //   select * from test where during && ?
   def byTsRange(tsRange: Range[Timestamp]) = tests
         .filter(_.during @& tsRange.bind)
         .map(t => t)
-  // will generate sql like: 
+  // will generate sql like:
   //   select * from test where case(props -> ? as [T]) == ?
   def byProperty[T](key: String, value: T) = tests
         .filter(_.props.>>[T](key.bind) === value.bind)
         .map(t => t)
-  // will generate sql like: 
+  // will generate sql like:
   //   select * from test where ST_DWithin(location, ?, ?)
   def byDistance(point: Point, distance: Int) = tests
         .filter(r => r.location.dWithin(point.bind, distance.bind))
         .map(t => t)
-  // will generate sql like: 
-  //   select id, text, ts_rank(to_tsvector(text), to_tsquery(?)) 
-  //   from test where to_tsvector(text) @@ to_tsquery(?) 
+  // will generate sql like:
+  //   select id, text, ts_rank(to_tsvector(text), to_tsquery(?))
+  //   from test where to_tsvector(text) @@ to_tsquery(?)
   //   order by ts_rank(to_tsvector(text), to_tsquery(?))
   def search(queryStr: String) = tests
         .filter( t => {tsVector(t.text) @@ tsQuery(queryStr.bind)})
@@ -249,7 +249,7 @@ Build instructions
 ```
 
 _To run the test suite, you need:_
-- create a user 'test' and db 'test' on your local postgres server, and 
+- create a user 'test' and db 'test' on your local postgres server, and
 - the user 'test' should be an super user and be the owner of db 'test'
 
 Then you can run the tests like this:
