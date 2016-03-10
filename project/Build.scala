@@ -28,7 +28,7 @@ object SlickPgBuild extends Build {
       if (v.trim.endsWith("SNAPSHOT"))
         Some("snapshots" at nexus + "content/repositories/snapshots")
       else
-        Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+        Some("releases" at nexus + "service/local/staging/deploy/maven2")
     },
     publishMavenStyle := true,
     publishArtifact in Test := false,
@@ -144,6 +144,18 @@ object SlickPgBuild extends Build {
     )
   ) dependsOn (slickPgCore)
 
+  lazy val slickPgCirceJson = Project(id = "slick-pg_circe-json", base = file("./addons/circe-json"),
+    settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
+      name := "slick-pg_circe-json",
+      description := "Slick extensions for PostgreSQL - circe module",
+      libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
+        "io.circe" %% "circe-core" % "0.3.0",
+        "io.circe" %% "circe-generic" % "0.3.0",
+        "io.circe" %% "circe-parser" % "0.3.0"
+      )
+    )
+  ) dependsOn (slickPgCore)
+
   lazy val slickPgArgonaut = Project(id = "slick-pg_argonaut", base = file("./addons/argonaut"),
     settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
       name := "slick-pg_argonaut",
@@ -171,5 +183,4 @@ object SlickPgBuild extends Build {
       libraryDependencies := mainDependencies(scalaVersion.value)
     )
   ) dependsOn (slickPgCore)
-
 }
