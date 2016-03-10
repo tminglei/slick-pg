@@ -23,7 +23,7 @@ Slick-pg
 - composite type (`basic`)
 
 
-** _tested on `PostgreSQL` `v9.4` with `Slick` `v3.1.0`._
+** _tested on `PostgreSQL` `v9.4` with `Slick` `v3.1.1`._
 
 
 
@@ -152,10 +152,11 @@ Here's the related technical details:
 | `slickpg` InetString                | inet                  |        no 3rd party dependencies       |
 | `slickpg` MacAddrString             | macaddr               |        no 3rd party dependencies       |
 | `slickpg` JsonString                | json                  |        no 3rd party dependencies       |
-| `json4s` JValue                     | json                  |        `json4s` v3.3.0                |
-| `play-json` JsValue                 | json                  |        `play-json` v2.4.3             |
-| `spray-json` JsValue                | json                  |        `spray-json` v1.3.1             |
-| `argonaut json` Json                | json                  |        `argonaut` v6.1               |
+| `json4s` JValue                     | json                  |        `json4s` v3.3.0                 |
+| `play-json` JsValue                 | json                  |        `play-json` v2.4.3              |
+| `spray-json` JsValue                | json                  |        `spray-json` v1.3.2             |
+| `argonaut json` Json                | json                  |        `argonaut` v6.1                 |
+| `circe json` Json                   | json                  |        `circe` v0.3.0                  |
 | (TsQuery+TsVector)                  | `text` search         |        no 3rd party dependencies       |
 | `jts` Geometry                      | `postgis` geometry    |        `jts` v1.13                     |
 
@@ -181,47 +182,53 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.11.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.12.0"
 ```
 
 > If you need `joda-time` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.11.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.12.0"
 ```
 
 > If you need `jts` geom support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.11.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.12.0"
 ```
 
 > If you need `jdk8 date` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_date2" % "0.11.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_date2" % "0.12.0"
 ```
 
 > If you need `threeten-bp` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_threeten" % "0.11.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_threeten" % "0.12.0"
 ```
 
 > If you need `json4s` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.11.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.12.0"
 ```
 
 > If you need `play-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.11.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.12.0"
 ```
 
 > If you need `spray-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.11.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.12.0"
 ```
 
 > If you need `argonaut json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.11.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.12.0"
+```
+```
+
+> If you need `circe json` support, pls append dependency:
+```scala
+libraryDependencies += "com.github.tminglei" %% "slick-pg_circe-json" % "0.12.0"
 ```
 
 
@@ -230,7 +237,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.11</artifactId>
-    <version>0.11.2</version>
+    <version>0.12.0</version>
 </dependency>
 <!-- other addons if necessary -->
 ...

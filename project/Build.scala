@@ -7,7 +7,7 @@ object SlickPgBuild extends Build {
     organizationName := "slick-pg",
     organization := "com.github.tminglei",
     name := "slick-pg",
-    version := "0.11.3",
+    version := "0.12.0",
 
     scalaVersion := "2.11.7",
     crossScalaVersions := Seq("2.11.7", "2.10.6"),
@@ -67,7 +67,7 @@ object SlickPgBuild extends Build {
     }
     Seq (
       "org.scala-lang" % "scala-reflect" % scalaVersion,
-      "com.typesafe.slick" %% "slick" % "3.1.0",
+      "com.typesafe.slick" %% "slick" % "3.1.1",
       "org.postgresql" % "postgresql" % "9.4-1201-jdbc41",
       "org.slf4j" % "slf4j-simple" % "1.7.12" % "provided",
       "org.scalatest" %% "scalatest" % "2.2.4" % "test"
