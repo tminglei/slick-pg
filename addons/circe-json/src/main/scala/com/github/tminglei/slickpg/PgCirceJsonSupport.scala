@@ -47,7 +47,6 @@ trait PgCirceJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
     implicit class PgJsonPositionResult(r: PositionedResult) {
       def nextJson() = nextJsonOption().getOrElse(Json.Empty)
       def nextJsonOption() = r.nextStringOption().map(parse(_).getOrElse(Json.Empty))
-      // def nextJsonOption() = r.nextStringOption().map(parse(_))
     }
 
     implicit val getJson = mkGetResult(_.nextJson())
