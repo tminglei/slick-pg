@@ -224,7 +224,6 @@ libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.12.0"
 ```scala
 libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.12.0"
 ```
-```
 
 > If you need `circe json` support, pls append dependency:
 ```scala
