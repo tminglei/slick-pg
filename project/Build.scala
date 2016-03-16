@@ -89,7 +89,7 @@ object SlickPgBuild extends Build {
       libraryDependencies := mainDependencies(scalaVersion.value)
     )
   ).dependsOn (slickPgCore)
-    .aggregate (slickPgCore, slickPgJoda, slickPgJson4s, slickPgJts, slickPgPlayJson, slickPgSprayJson, slickPgArgonaut, slickPgThreeten, slickPgDate2)
+    .aggregate (slickPgCore, slickPgJoda, slickPgJson4s, slickPgJts, slickPgPlayJson, slickPgSprayJson, slickPgCirceJson, slickPgArgonaut, slickPgThreeten, slickPgDate2)
 
   lazy val slickPgJoda = Project(id = "slick-pg_joda-time", base = file("./addons/joda-time"),
     settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
