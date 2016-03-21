@@ -14,13 +14,20 @@ class PgSprayJsonSupportSuite extends FunSuite {
 
   import slick.driver.PostgresDriver
 
+  case class JBean(name: String, count: Int)
+  object MyJsonProtocol extends DefaultJsonProtocol {
+    implicit val jbeanFormat = jsonFormat2(JBean)
+  }
+
   object MyPostgresDriver extends PostgresDriver
                             with PgSprayJsonSupport
                             with array.PgArrayJdbcTypes {
     override val pgjson = "jsonb"
 
     override val api = new API with JsonImplicits {
+      import MyJsonProtocol._
       implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
+      implicit val beanJsonTypeMapper = MappedJdbcType.base[JBean, JsValue](_.toJson, _.convertTo[JBean])
     }
 
     val plainAPI = new API with SprayJsonPlainImplicits
@@ -31,21 +38,22 @@ class PgSprayJsonSupportSuite extends FunSuite {
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
-  case class JsonBean(id: Long, json: JsValue)
+  case class JsonBean(id: Long, json: JsValue, jbean: JBean)
 
   class JsonTestTable(tag: Tag) extends Table[JsonBean](tag, "JsonTest3") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def json = column[JsValue]("json")
+    def jbean = column[JBean]("jbean")
 
-    def * = (id, json) <> (JsonBean.tupled, JsonBean.unapply)
+    def * = (id, json, jbean) <> (JsonBean.tupled, JsonBean.unapply)
   }
   val JsonTests = TableQuery[JsonTestTable]
 
   //------------------------------------------------------------------------------
 
-  val testRec1 = JsonBean(33L, """ { "a":101, "b":"aaa", "c":[3,4,5,9] } """.parseJson)
-  val testRec2 = JsonBean(35L, """ [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """.parseJson)
-  val testRec3 = JsonBean(37L, """ ["a", "b"] """.parseJson)
+  val testRec1 = JsonBean(33L, """ { "a":101, "b":"aaa", "c":[3,4,5,9] } """.parseJson, JBean("tt", 3))
+  val testRec2 = JsonBean(35L, """ [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """.parseJson, JBean("t1", 5))
+  val testRec3 = JsonBean(37L, """ ["a", "b"] """.parseJson, JBean("tx", 7))
 
   test("Spray json Lifted support") {
     val json1 = """ {"a":"v1","b":2} """.parseJson
@@ -60,6 +68,9 @@ class PgSprayJsonSupportSuite extends FunSuite {
         DBIO.seq(
           JsonTests.filter(_.id === testRec2.id.bind).map(_.json).result.head.map(
             r => assert(JsArray(json1,json2) === r)
+          ),
+          JsonTests.filter(_.id === testRec2.id.bind).map(_.jbean).result.head.map(
+            r => assert(JBean("t1", 5) === r)
           ),
           // ->>/->
           JsonTests.filter(_.json.+>>("a") === "101").map(_.json.+>>("c")).result.head.map(
@@ -138,13 +149,14 @@ class PgSprayJsonSupportSuite extends FunSuite {
   }
 
   //------------------------------------------------------------------------------
+  case class JsonBean1(id: Long, json: JsValue)
 
   test("Spary json Plain SQL support") {
     import MyPostgresDriver.plainAPI._
 
-    implicit val getJsonBeanResult = GetResult(r => JsonBean(r.nextLong(), r.nextJson()))
+    implicit val getJsonBeanResult = GetResult(r => JsonBean1(r.nextLong(), r.nextJson()))
 
-    val b = JsonBean(34L, """ { "a":101, "b":"aaa", "c":[3,4,5,9] } """.parseJson)
+    val b = JsonBean1(34L, """ { "a":101, "b":"aaa", "c":[3,4,5,9] } """.parseJson)
 
     Await.result(db.run(
       DBIO.seq(
@@ -154,7 +166,7 @@ class PgSprayJsonSupportSuite extends FunSuite {
           """,
         ///
         sqlu""" insert into JsonTest3 values(${b.id}, ${b.json}) """,
-        sql""" select * from JsonTest3 where id = ${b.id} """.as[JsonBean].head.map(
+        sql""" select * from JsonTest3 where id = ${b.id} """.as[JsonBean1].head.map(
           r => assert(b === r)
         ),
         ///
