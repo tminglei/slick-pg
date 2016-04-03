@@ -15,17 +15,17 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
 
   trait SimpleArrayImplicits {
     /** for type/name, @see [[org.postgresql.core.Oid]] and [[org.postgresql.jdbc2.TypeInfoCache]]*/
-    implicit val simpleUUIDListTypeMapper = new SimpleArrayJdbcType[UUID]("uuid").to(_.toList)
-    implicit val simpleStrListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
-    implicit val simpleLongListTypeMapper = new SimpleArrayJdbcType[Long]("int8").to(_.toList)
-    implicit val simpleIntListTypeMapper = new SimpleArrayJdbcType[Int]("int4").to(_.toList)
-    implicit val simpleShortListTypeMapper = new SimpleArrayJdbcType[Short]("int2").to(_.toList)
-    implicit val simpleFloatListTypeMapper = new SimpleArrayJdbcType[Float]("float4").to(_.toList)
-    implicit val simpleDoubleListTypeMapper = new SimpleArrayJdbcType[Double]("float8").to(_.toList)
-    implicit val simpleBoolListTypeMapper = new SimpleArrayJdbcType[Boolean]("bool").to(_.toList)
-    implicit val simpleDateListTypeMapper = new SimpleArrayJdbcType[Date]("date").to(_.toList)
-    implicit val simpleTimeListTypeMapper = new SimpleArrayJdbcType[Time]("time").to(_.toList)
-    implicit val simpleTsListTypeMapper = new SimpleArrayJdbcType[Timestamp]("timestamp").to(_.toList)
+    implicit val simpleUUIDListTypeMapper: JdbcType[List[UUID]] = new SimpleArrayJdbcType[UUID]("uuid").to(_.toList)
+    implicit val simpleStrListTypeMapper: JdbcType[List[String]] = new SimpleArrayJdbcType[String]("text").to(_.toList)
+    implicit val simpleLongListTypeMapper: JdbcType[List[Long]] = new SimpleArrayJdbcType[Long]("int8").to(_.toList)
+    implicit val simpleIntListTypeMapper: JdbcType[List[Int]] = new SimpleArrayJdbcType[Int]("int4").to(_.toList)
+    implicit val simpleShortListTypeMapper: JdbcType[List[Short]] = new SimpleArrayJdbcType[Short]("int2").to(_.toList)
+    implicit val simpleFloatListTypeMapper: JdbcType[List[Float]] = new SimpleArrayJdbcType[Float]("float4").to(_.toList)
+    implicit val simpleDoubleListTypeMapper: JdbcType[List[Double]] = new SimpleArrayJdbcType[Double]("float8").to(_.toList)
+    implicit val simpleBoolListTypeMapper: JdbcType[List[Boolean]] = new SimpleArrayJdbcType[Boolean]("bool").to(_.toList)
+    implicit val simpleDateListTypeMapper: JdbcType[List[Date]] = new SimpleArrayJdbcType[Date]("date").to(_.toList)
+    implicit val simpleTimeListTypeMapper: JdbcType[List[Time]] = new SimpleArrayJdbcType[Time]("time").to(_.toList)
+    implicit val simpleTsListTypeMapper: JdbcType[List[Timestamp]] = new SimpleArrayJdbcType[Timestamp]("timestamp").to(_.toList)
 
     ///
     implicit def simpleArrayColumnExtensionMethods[B1, SEQ[B1] <: Seq[B1]](c: Rep[SEQ[B1]])(

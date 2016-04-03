@@ -63,19 +63,19 @@ trait PgDateSupport2bp extends date.PgDateExtensions with utils.PgCommonJdbcType
   }
 
   trait BpDateTimeImplicits[INTERVAL] extends BpDateTimeFormatters {
-    implicit val bpDateTypeMapper = new GenericJdbcType[LocalDate]("date",
+    implicit val bpDateTypeMapper: JdbcType[LocalDate] = new GenericJdbcType[LocalDate]("date",
       LocalDate.parse(_, bpDateFormatter), _.format(bpDateFormatter), hasLiteralForm=false)
-    implicit val bpTimeTypeMapper = new GenericJdbcType[LocalTime]("time",
+    implicit val bpTimeTypeMapper: JdbcType[LocalTime] = new GenericJdbcType[LocalTime]("time",
       LocalTime.parse(_, bpTimeFormatter), _.format(bpTimeFormatter), hasLiteralForm=false)
-    implicit val bpDateTimeTypeMapper = new GenericJdbcType[LocalDateTime]("timestamp",
+    implicit val bpDateTimeTypeMapper: JdbcType[LocalDateTime] = new GenericJdbcType[LocalDateTime]("timestamp",
       LocalDateTime.parse(_, bpDateTimeFormatter), _.format(bpDateTimeFormatter), hasLiteralForm=false)
-    implicit val bpPeriodTypeMapper = new GenericJdbcType[Period]("interval", pgIntervalStr2Period, hasLiteralForm=false)
-    implicit val bpDurationTypeMapper = new GenericJdbcType[Duration]("interval", pgIntervalStr2Duration, hasLiteralForm=false)
-    implicit val bpTzTimeTypeMapper = new GenericJdbcType[OffsetTime]("timetz",
+    implicit val bpPeriodTypeMapper: JdbcType[Period] = new GenericJdbcType[Period]("interval", pgIntervalStr2Period, hasLiteralForm=false)
+    implicit val bpDurationTypeMapper: JdbcType[Duration] = new GenericJdbcType[Duration]("interval", pgIntervalStr2Duration, hasLiteralForm=false)
+    implicit val bpTzTimeTypeMapper: JdbcType[OffsetTime] = new GenericJdbcType[OffsetTime]("timetz",
       OffsetTime.parse(_, bpTzTimeFormatter), _.format(bpTzTimeFormatter), hasLiteralForm=false)
-    implicit val bpTzTimestampTypeMapper = new GenericJdbcType[OffsetDateTime]("timestamptz",
+    implicit val bpTzTimestampTypeMapper: JdbcType[OffsetDateTime] = new GenericJdbcType[OffsetDateTime]("timestamptz",
       OffsetDateTime.parse(_, bpTzDateTimeFormatter), _.format(bpTzDateTimeFormatter), hasLiteralForm=false)
-    implicit val bpTzTimestamp1TypeMapper = new GenericJdbcType[ZonedDateTime]("timestamptz",
+    implicit val bpTzTimestamp1TypeMapper: JdbcType[ZonedDateTime] = new GenericJdbcType[ZonedDateTime]("timestamptz",
         ZonedDateTime.parse(_, bpTzDateTimeFormatter), _.format(bpTzDateTimeFormatter))
 
     ///

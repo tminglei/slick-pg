@@ -13,7 +13,7 @@ trait PgArgonautSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
   trait JsonImplicits extends ArgonautJsonImplicits
 
   trait ArgonautJsonImplicits {
-    implicit val argonautJsonTypeMapper =
+    implicit val argonautJsonTypeMapper: JdbcType[Json] =
       new GenericJdbcType[Json](
         pgjson,
         (s) => s.parse.toOption.getOrElse(jNull),
@@ -21,12 +21,10 @@ trait PgArgonautSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
         hasLiteralForm = false
       )
 
-    implicit def argonautJsonColumnExtensionMethods(c: Rep[Json])(
-      implicit tm: JdbcType[Json]) = {
+    implicit def argonautJsonColumnExtensionMethods(c: Rep[Json]) = {
         new JsonColumnExtensionMethods[Json, Json](c)
       }
-    implicit def argonautJsonOptionColumnExtensionMethods(c: Rep[Option[Json]])(
-      implicit tm: JdbcType[Json]) = {
+    implicit def argonautJsonOptionColumnExtensionMethods(c: Rep[Option[Json]]) = {
         new JsonColumnExtensionMethods[Json, Option[Json]](c)
       }
   }

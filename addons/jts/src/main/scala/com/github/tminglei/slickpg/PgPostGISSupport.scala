@@ -6,7 +6,7 @@ import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.io.{WKBReader, WKBWriter, WKTReader, WKTWriter}
 import slick.ast.FieldSymbol
 import slick.driver.PostgresDriver
-import slick.jdbc.{PositionedParameters, PositionedResult, SetParameter}
+import slick.jdbc.{JdbcType, PositionedParameters, PositionedResult, SetParameter}
 
 import scala.reflect.ClassTag
 
@@ -16,15 +16,15 @@ trait PgPostGISSupport extends geom.PgPostGISExtensions { driver: PostgresDriver
   trait PostGISAssistants extends BasePostGISAssistants[Geometry, Point, LineString, Polygon, GeometryCollection]
 
   trait PostGISImplicits {
-    implicit val geometryTypeMapper = new GeometryJdbcType[Geometry]
-    implicit val pointTypeMapper = new GeometryJdbcType[Point]
-    implicit val polygonTypeMapper = new GeometryJdbcType[Polygon]
-    implicit val lineStringTypeMapper = new GeometryJdbcType[LineString]
-    implicit val linearRingTypeMapper = new GeometryJdbcType[LinearRing]
-    implicit val geometryCollectionTypeMapper = new GeometryJdbcType[GeometryCollection]
-    implicit val multiPointTypeMapper = new GeometryJdbcType[MultiPoint]
-    implicit val multiPolygonTypeMapper = new GeometryJdbcType[MultiPolygon]
-    implicit val multiLineStringTypeMapper = new GeometryJdbcType[MultiLineString]
+    implicit val geometryTypeMapper: JdbcType[Geometry] = new GeometryJdbcType[Geometry]
+    implicit val pointTypeMapper: JdbcType[Point] = new GeometryJdbcType[Point]
+    implicit val polygonTypeMapper: JdbcType[Polygon] = new GeometryJdbcType[Polygon]
+    implicit val lineStringTypeMapper: JdbcType[LineString] = new GeometryJdbcType[LineString]
+    implicit val linearRingTypeMapper: JdbcType[LinearRing] = new GeometryJdbcType[LinearRing]
+    implicit val geometryCollectionTypeMapper: JdbcType[GeometryCollection] = new GeometryJdbcType[GeometryCollection]
+    implicit val multiPointTypeMapper: JdbcType[MultiPoint] = new GeometryJdbcType[MultiPoint]
+    implicit val multiPolygonTypeMapper: JdbcType[MultiPolygon] = new GeometryJdbcType[MultiPolygon]
+    implicit val multiLineStringTypeMapper: JdbcType[MultiLineString] = new GeometryJdbcType[MultiLineString]
 
     ///
     implicit def geometryColumnExtensionMethods[G1 <: Geometry](c: Rep[G1]) =

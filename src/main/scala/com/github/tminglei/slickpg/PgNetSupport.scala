@@ -28,34 +28,30 @@ trait PgNetSupport extends net.PgNetExtensions with utils.PgCommonJdbcTypes { dr
   trait NetImplicits extends SimpleNetImplicits
 
   trait SimpleNetImplicits {
-    implicit val simpleInetTypeMapper =
+    implicit val simpleInetTypeMapper: JdbcType[InetString] =
       new GenericJdbcType[InetString]("inet",
         (v) => InetString(v),
         (v) => v.value,
         hasLiteralForm = false
       )
-    implicit val simpleMacAddrTypeMapper =
+    implicit val simpleMacAddrTypeMapper: JdbcType[MacAddrString] =
       new GenericJdbcType[MacAddrString]("macaddr",
         (v) => MacAddrString(v),
         (v) => v.value,
         hasLiteralForm = false
       )
 
-    implicit def simpleInetColumnExtensionMethods(c: Rep[InetString])(
-      implicit tm: JdbcType[InetString]) = {
+    implicit def simpleInetColumnExtensionMethods(c: Rep[InetString]) = {
         new InetColumnExtensionMethods[InetString, InetString](c)
       }
-    implicit def simpleInetOptionColumnExtensionMethods(c: Rep[Option[InetString]])(
-      implicit tm: JdbcType[InetString]) = {
+    implicit def simpleInetOptionColumnExtensionMethods(c: Rep[Option[InetString]]) = {
         new InetColumnExtensionMethods[InetString, Option[InetString]](c)
       }
 
-    implicit def simpleMacAddrColumnExtensionMethods(c: Rep[MacAddrString])(
-      implicit tm: JdbcType[MacAddrString]) = {
+    implicit def simpleMacAddrColumnExtensionMethods(c: Rep[MacAddrString]) = {
         new MacAddrColumnExtensionMethods[MacAddrString, MacAddrString](c)
       }
-    implicit def simpleMacAddrOptionColumnExtensionMethods(c: Rep[Option[MacAddrString]])(
-      implicit tm: JdbcType[MacAddrString]) = {
+    implicit def simpleMacAddrOptionColumnExtensionMethods(c: Rep[Option[MacAddrString]]) = {
         new MacAddrColumnExtensionMethods[MacAddrString, Option[MacAddrString]](c)
       }
   }

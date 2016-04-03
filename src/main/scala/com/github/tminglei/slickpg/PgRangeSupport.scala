@@ -44,11 +44,11 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
   trait RangeImplicits extends SimpleRangeImplicits
 
   trait SimpleRangeImplicits {
-    implicit val simpleIntRangeTypeMapper = new GenericJdbcType[Range[Int]]("int4range", mkRangeFn(_.toInt))
-    implicit val simpleLongRangeTypeMapper = new GenericJdbcType[Range[Long]]("int8range", mkRangeFn(_.toLong))
-    implicit val simpleFloatRangeTypeMapper = new GenericJdbcType[Range[Float]]("numrange", mkRangeFn(_.toFloat))
-    implicit val simpleTimestampRangeTypeMapper = new GenericJdbcType[Range[Timestamp]]("tsrange", mkRangeFn(toTimestamp))
-    implicit val simpleDateRangeTypeMapper = new GenericJdbcType[Range[Date]]("daterange", mkRangeFn(toSQLDate))
+    implicit val simpleIntRangeTypeMapper: JdbcType[Range[Int]] = new GenericJdbcType[Range[Int]]("int4range", mkRangeFn(_.toInt))
+    implicit val simpleLongRangeTypeMapper: JdbcType[Range[Long]] = new GenericJdbcType[Range[Long]]("int8range", mkRangeFn(_.toLong))
+    implicit val simpleFloatRangeTypeMapper: JdbcType[Range[Float]] = new GenericJdbcType[Range[Float]]("numrange", mkRangeFn(_.toFloat))
+    implicit val simpleTimestampRangeTypeMapper: JdbcType[Range[Timestamp]] = new GenericJdbcType[Range[Timestamp]]("tsrange", mkRangeFn(toTimestamp))
+    implicit val simpleDateRangeTypeMapper: JdbcType[Range[Date]] = new GenericJdbcType[Range[Date]]("daterange", mkRangeFn(toSQLDate))
 
     implicit def simpleRangeColumnExtensionMethods[B0](c: Rep[Range[B0]])(
       implicit tm: JdbcType[B0], tm1: JdbcType[Range[B0]]) = {

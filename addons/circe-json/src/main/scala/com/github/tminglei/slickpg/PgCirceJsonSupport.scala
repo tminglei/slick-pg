@@ -15,7 +15,7 @@ trait PgCirceJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
   trait JsonImplicits extends CirceImplicits
 
   trait CirceImplicits {
-    implicit val circeJsonTypeMapper =
+    implicit val circeJsonTypeMapper: JdbcType[Json] =
       new GenericJdbcType[Json](
         pgjson,
         (v) => parse(v).getOrElse(Json.Empty),
@@ -23,13 +23,11 @@ trait PgCirceJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
         hasLiteralForm = false
       )
 
-    implicit def circeJsonColumnExtensionMethods(c: Rep[Json])(
-      implicit tm: JdbcType[Json]) = {
+    implicit def circeJsonColumnExtensionMethods(c: Rep[Json]) = {
         new JsonColumnExtensionMethods[Json, Json](c)
       }
 
-    implicit def circeJsonOptionColumnExtensionMethods(c: Rep[Option[Json]])(
-      implicit tm: JdbcType[Json]) = {
+    implicit def circeJsonOptionColumnExtensionMethods(c: Rep[Option[Json]]) = {
         new JsonColumnExtensionMethods[Json, Option[Json]](c)
       }
   }

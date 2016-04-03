@@ -1,9 +1,11 @@
 package com.github.tminglei.slickpg
 
 import slick.driver.PostgresDriver
-import java.sql.{Timestamp, Time, Date}
+import java.sql.{Date, Time, Timestamp}
 import javax.xml.bind.DatatypeConverter
 import java.util.Calendar
+
+import slick.jdbc.JdbcType
 
 trait PgDateSupport extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import driver.api._
@@ -12,8 +14,8 @@ trait PgDateSupport extends date.PgDateExtensions with utils.PgCommonJdbcTypes {
   trait DateTimeImplicits extends SimpleDateTimeImplicits
 
   trait SimpleDateTimeImplicits {
-    implicit val simpleIntervalTypeMapper = new GenericJdbcType[Interval]("interval", Interval.apply, hasLiteralForm=false)
-    implicit val simpleTimestampTZTypeMapper = new GenericJdbcType[Calendar]("timestamptz",
+    implicit val simpleIntervalTypeMapper: JdbcType[Interval] = new GenericJdbcType[Interval]("interval", Interval.apply, hasLiteralForm=false)
+    implicit val simpleTimestampTZTypeMapper: JdbcType[Calendar] = new GenericJdbcType[Calendar]("timestamptz",
         PgDateSupportUtils.parseCalendar, DatatypeConverter.printDateTime, hasLiteralForm=false)
 
     ///

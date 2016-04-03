@@ -4,7 +4,7 @@ import org.joda.time._
 import org.joda.time.format.{DateTimeFormat, ISODateTimeFormat}
 import org.postgresql.util.PGInterval
 import slick.driver.PostgresDriver
-import slick.jdbc.PositionedResult
+import slick.jdbc.{JdbcType, PositionedResult}
 
 trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
   import PgJodaSupportUtils._
@@ -26,19 +26,19 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
   }
 
   trait JodaDateTimeImplicits extends JodaDateTimeFormatters {
-    implicit val jodaDateTypeMapper = new GenericJdbcType[LocalDate]("date",
+    implicit val jodaDateTypeMapper: JdbcType[LocalDate] = new GenericJdbcType[LocalDate]("date",
       LocalDate.parse(_, jodaDateFormatter), _.toString(jodaDateFormatter), hasLiteralForm=false)
-    implicit val jodaTimeTypeMapper = new GenericJdbcType[LocalTime]("time",
+    implicit val jodaTimeTypeMapper: JdbcType[LocalTime] = new GenericJdbcType[LocalTime]("time",
       fnFromString = (s) => LocalTime.parse(s, if (s.indexOf(".") > 0) jodaTimeFormatter else jodaTimeFormatter_NoFraction),
       fnToString = (v) => v.toString(jodaTimeFormatter),
       hasLiteralForm = false)
-    implicit val jodaDateTimeTypeMapper = new GenericJdbcType[LocalDateTime]("timestamp",
+    implicit val jodaDateTimeTypeMapper: JdbcType[LocalDateTime] = new GenericJdbcType[LocalDateTime]("timestamp",
       fnFromString = (s) => LocalDateTime.parse(s, if (s.indexOf(".") > 0) jodaDateTimeFormatter else jodaDateTimeFormatter_NoFraction),
       fnToString = (v) => v.toString(jodaDateTimeFormatter),
       hasLiteralForm = false)
-    implicit val jodaPeriodTypeMapper = new GenericJdbcType[Period]("interval",
+    implicit val jodaPeriodTypeMapper: JdbcType[Period] = new GenericJdbcType[Period]("interval",
       pgIntervalStr2jodaPeriod, hasLiteralForm=false)
-    implicit val jodaTimestampTZTypeMapper = new GenericJdbcType[DateTime]("timestamptz",
+    implicit val jodaTimestampTZTypeMapper: JdbcType[DateTime] = new GenericJdbcType[DateTime]("timestamptz",
       fnFromString = (s) => DateTime.parse(s,
         if (s.indexOf(":") > 2) { if (s.indexOf(".") > 0) jodaTzDateTimeFormatter else jodaTzDateTimeFormatter_NoFraction }
         else { if (s.indexOf(".") > 0) jodaTzTimeFormatter else jodaTzTimeFormatter_NoFraction }),

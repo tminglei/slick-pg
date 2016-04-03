@@ -14,7 +14,7 @@ trait PgSprayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
   trait JsonImplicits extends SparyJsonImplicits
 
   trait SparyJsonImplicits {
-    implicit val sparyJsonTypeMapper =
+    implicit val sparyJsonTypeMapper: JdbcType[JsValue] =
       new GenericJdbcType[JsValue](
         pgjson,
         (s) => s.parseJson,
@@ -22,12 +22,10 @@ trait PgSprayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
         hasLiteralForm = false
       )
 
-    implicit def sparyJsonColumnExtensionMethods(c: Rep[JsValue])(
-      implicit tm: JdbcType[JsValue]) = {
+    implicit def sparyJsonColumnExtensionMethods(c: Rep[JsValue]) = {
         new JsonColumnExtensionMethods[JsValue, JsValue](c)
       }
-    implicit def sparyJsonOptionColumnExtensionMethods(c: Rep[Option[JsValue]])(
-      implicit tm: JdbcType[JsValue]) = {
+    implicit def sparyJsonOptionColumnExtensionMethods(c: Rep[Option[JsValue]]) = {
         new JsonColumnExtensionMethods[JsValue, Option[JsValue]](c)
       }
   }

@@ -18,7 +18,7 @@ trait PgJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes {
   trait JsonImplicits extends SimpleJsonImplicits
 
   trait SimpleJsonImplicits {
-    implicit val simpleJsonTypeMapper =
+    implicit val simpleJsonTypeMapper: JdbcType[JsonString] =
       new GenericJdbcType[JsonString](
         pgjson,
         (v) => JsonString(v),
@@ -26,12 +26,10 @@ trait PgJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes {
         hasLiteralForm = false
       )
 
-    implicit def simpleJsonColumnExtensionMethods(c: Rep[JsonString])(
-      implicit tm: JdbcType[JsonString]) = {
+    implicit def simpleJsonColumnExtensionMethods(c: Rep[JsonString]) = {
         new JsonColumnExtensionMethods[JsonString, JsonString](c)
       }
-    implicit def simpleJsonOptionColumnExtensionMethods(c: Rep[Option[JsonString]])(
-      implicit tm: JdbcType[JsonString]) = {
+    implicit def simpleJsonOptionColumnExtensionMethods(c: Rep[Option[JsonString]]) = {
         new JsonColumnExtensionMethods[JsonString, Option[JsonString]](c)
       }
   }

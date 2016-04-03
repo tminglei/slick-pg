@@ -16,7 +16,7 @@ trait PgJson4sSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes
   trait JsonImplicits extends Json4sJsonImplicits
 
   trait Json4sJsonImplicits {
-    implicit val json4sJsonTypeMapper =
+    implicit val json4sJsonTypeMapper: JdbcType[JValue] =
       new GenericJdbcType[JValue](
         pgjson,
         (s) => jsonMethods.parse(s),
@@ -24,12 +24,10 @@ trait PgJson4sSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes
         hasLiteralForm = false
       )
 
-    implicit def json4sJsonColumnExtensionMethods(c: Rep[JValue])(
-      implicit tm: JdbcType[JValue]) = {
+    implicit def json4sJsonColumnExtensionMethods(c: Rep[JValue]) = {
         new JsonColumnExtensionMethods[JValue, JValue](c)
       }
-    implicit def json4sJsonOptionColumnExtensionMethods(c: Rep[Option[JValue]])(
-      implicit tm: JdbcType[JValue]) = {
+    implicit def json4sJsonOptionColumnExtensionMethods(c: Rep[Option[JValue]]) = {
         new JsonColumnExtensionMethods[JValue, Option[JValue]](c)
       }
   }

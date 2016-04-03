@@ -15,23 +15,19 @@ trait PgSearchSupport extends search.PgSearchExtensions with utils.PgCommonJdbcT
   trait SearchImplicits extends SimpleSearchImplicits
 
   trait SimpleSearchImplicits {
-    implicit val simpleTsVectorTypeMapper = new GenericJdbcType[TsVector]("tsvector", TsVector, _.value)
-    implicit val simpleTsQueryTypeMapper = new GenericJdbcType[TsQuery]("tsquery", TsQuery, _.value)
+    implicit val simpleTsVectorTypeMapper: JdbcType[TsVector] = new GenericJdbcType[TsVector]("tsvector", TsVector, _.value)
+    implicit val simpleTsQueryTypeMapper: JdbcType[TsQuery] = new GenericJdbcType[TsQuery]("tsquery", TsQuery, _.value)
 
-    implicit def simpleTsVectorColumnExtensionMethods(c: Rep[TsVector])(
-      implicit tm: JdbcType[TsVector], tm1: JdbcType[TsQuery]) = {
+    implicit def simpleTsVectorColumnExtensionMethods(c: Rep[TsVector]) = {
         new TsVectorColumnExtensionMethods[TsVector, TsQuery, TsVector](c)
       }
-    implicit def simpleTsVectorOptionColumnExtensionMethods(c: Rep[Option[TsVector]])(
-      implicit tm: JdbcType[TsVector], tm1: JdbcType[TsQuery]) = {
+    implicit def simpleTsVectorOptionColumnExtensionMethods(c: Rep[Option[TsVector]]) = {
         new TsVectorColumnExtensionMethods[TsVector, TsQuery, Option[TsVector]](c)
       }
-    implicit def simpleTsQueryColumnExtensionMethods(c: Rep[TsQuery])(
-      implicit tm: JdbcType[TsVector], tm1: JdbcType[TsQuery]) = {
+    implicit def simpleTsQueryColumnExtensionMethods(c: Rep[TsQuery]) = {
         new TsQueryColumnExtensionMethods[TsVector, TsQuery, TsQuery](c)
       }
-    implicit def simpleTsQueryOptionColumnExtensionMethods(c: Rep[Option[TsQuery]])(
-      implicit tm: JdbcType[TsVector], tm1: JdbcType[TsQuery]) = {
+    implicit def simpleTsQueryOptionColumnExtensionMethods(c: Rep[Option[TsQuery]]) = {
         new TsQueryColumnExtensionMethods[TsVector, TsQuery, Option[TsQuery]](c)
       }
   }

@@ -12,7 +12,7 @@ trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcT
   trait HStoreImplicits extends SimpleHStoreImplicits
 
   trait SimpleHStoreImplicits {
-    implicit val simpleHStoreTypeMapper =
+    implicit val simpleHStoreTypeMapper: JdbcType[Map[String, String]] =
       new GenericJdbcType[Map[String, String]](
         "hstore",
         (v) => WrapAsScala.mapAsScalaMap(HStoreConverter.fromString(v).asInstanceOf[java.util.Map[String, String]]).toMap,
@@ -20,12 +20,10 @@ trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcT
         hasLiteralForm = false
       )
 
-    implicit def simpleHStoreColumnExtensionMethods(c: Rep[Map[String, String]])(
-      implicit tm: JdbcType[Map[String, String]], tm1: JdbcType[List[String]]) = {
+    implicit def simpleHStoreColumnExtensionMethods(c: Rep[Map[String, String]])(implicit tm: JdbcType[List[String]]) = {
         new HStoreColumnExtensionMethods[Map[String, String]](c)
       }
-    implicit def simpleHStoreOptionColumnExtensionMethods(c: Rep[Option[Map[String,String]]])(
-      implicit tm: JdbcType[Map[String, String]], tm1: JdbcType[List[String]]) = {
+    implicit def simpleHStoreOptionColumnExtensionMethods(c: Rep[Option[Map[String,String]]])(implicit tm: JdbcType[List[String]]) = {
         new HStoreColumnExtensionMethods[Option[Map[String, String]]](c)
       }
   }

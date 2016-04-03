@@ -13,7 +13,7 @@ trait PgPlayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
   trait JsonImplicits extends PlayJsonImplicits
 
   trait PlayJsonImplicits {
-    implicit val playJsonTypeMapper =
+    implicit val playJsonTypeMapper: JdbcType[JsValue] =
       new GenericJdbcType[JsValue](
         pgjson,
         (v) => Json.parse(v),
@@ -21,12 +21,10 @@ trait PgPlayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
         hasLiteralForm = false
       )
 
-    implicit def playJsonColumnExtensionMethods(c: Rep[JsValue])(
-      implicit tm: JdbcType[JsValue]) = {
+    implicit def playJsonColumnExtensionMethods(c: Rep[JsValue]) = {
         new JsonColumnExtensionMethods[JsValue, JsValue](c)
       }
-    implicit def playJsonOptionColumnExtensionMethods(c: Rep[Option[JsValue]])(
-      implicit tm: JdbcType[JsValue]) = {
+    implicit def playJsonOptionColumnExtensionMethods(c: Rep[Option[JsValue]]) = {
         new JsonColumnExtensionMethods[JsValue, Option[JsValue]](c)
       }
   }
