@@ -35,7 +35,7 @@ object SlickPgBuild extends Build {
     pomIncludeRepository := { _ => false },
     makePomConfiguration ~= { _.copy(configurations = Some(Seq(Compile, Runtime, Optional))) },
 
-    pomExtra := (
+    pomExtra :=
       <url>https://github.com/tminglei/slick-pg</url>
       <licenses>
         <license>
@@ -55,7 +55,7 @@ object SlickPgBuild extends Build {
           <timezone>+8</timezone>
         </developer>
       </developers>
-    )
+
   )
 
   def mainDependencies(scalaVersion: String) = {
