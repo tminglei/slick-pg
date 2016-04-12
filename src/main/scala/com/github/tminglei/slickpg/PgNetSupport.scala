@@ -59,11 +59,13 @@ trait PgNetSupport extends net.PgNetExtensions with utils.PgCommonJdbcTypes { dr
   trait SimpleNetPlainImplicits {
     import scala.reflect.classTag
     import utils.PlainSQLUtils._
+    // to support 'nextArray[T]/nextArrayOption[T]' in PgArraySupport
     {
       addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(InetString.apply)(r.nextString()))
       addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(MacAddrString.apply)(r.nextString()))
     }
 
+    // used to support code gen
     if (driver.isInstanceOf[ExPostgresDriver]) {
       driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("inet", classTag[InetString])
       driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("macaddr", classTag[MacAddrString])

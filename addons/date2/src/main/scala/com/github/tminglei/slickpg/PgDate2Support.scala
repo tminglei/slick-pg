@@ -14,6 +14,7 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
   import PgDate2SupportUtils._
   import driver.api._
 
+  // used to support code gen
   def bindPgDateTypesToScala[DATE, TIME, DATETIME, TIMETZ, DATETIMETZ, INTERVAL](
           implicit ctag1: ClassTag[DATE], ctag2: ClassTag[TIME], ctag3: ClassTag[DATETIME],
                  ctag4: ClassTag[TIMETZ], ctag5: ClassTag[DATETIMETZ], ctag6: ClassTag[INTERVAL]) = {

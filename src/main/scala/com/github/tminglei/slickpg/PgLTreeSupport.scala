@@ -52,10 +52,12 @@ trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcType
   trait SimpleLTreePlainImplicits {
     import scala.reflect.classTag
     import utils.PlainSQLUtils._
+    // to support 'nextArray[T]/nextArrayOption[T]' in PgArraySupport
     {
       addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(LTree.apply)(r.nextString()))
     }
 
+    // used to support code gen
     if (driver.isInstanceOf[ExPostgresDriver]) {
       driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("ltree", classTag[LTree])
     }

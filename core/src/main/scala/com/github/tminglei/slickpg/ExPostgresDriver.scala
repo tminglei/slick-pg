@@ -21,6 +21,7 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
 
   private var pgTypeToScala = Map.empty[String, ClassTag[_]]
 
+  /** NOTE: used to support code gen */
   def bindPgTypeToScala(pgType: String, scalaType: ClassTag[_]) = {
     logger.info(s"\u001B[36m >>> binding $pgType -> $scalaType \u001B[0m")
     val existed = pgTypeToScala.get(pgType)

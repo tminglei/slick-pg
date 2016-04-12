@@ -33,6 +33,7 @@ trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcT
     import utils.PlainSQLUtils._
     import scala.reflect.classTag
 
+    // used to support code gen
     if (driver.isInstanceOf[ExPostgresDriver]) {
       driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("hstore", classTag[Map[String, String]])
     }

@@ -63,6 +63,7 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
   trait SimpleRangePlainImplicits {
     import scala.reflect.classTag
     import utils.PlainSQLUtils._
+    // to support 'nextArray[T]/nextArrayOption[T]' in PgArraySupport
     {
       addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(_.toInt))(r.nextString()))
       addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(_.toLong))(r.nextString()))
@@ -71,6 +72,7 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
       addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(toSQLDate))(r.nextString()))
     }
 
+    // used to support code gen
     if (driver.isInstanceOf[ExPostgresDriver]) {
       driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("int4range", classTag[Range[Int]])
       driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("int8range", classTag[Range[Long]])

@@ -38,6 +38,7 @@ trait PgJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes {
     import utils.PlainSQLUtils._
     import scala.reflect.classTag
 
+    // used to support code gen
     if (driver.isInstanceOf[ExPostgresDriver]) {
       driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("json", classTag[JsonString])
       driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("jsonb", classTag[JsonString])

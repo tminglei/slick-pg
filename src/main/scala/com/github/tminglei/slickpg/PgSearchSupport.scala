@@ -36,6 +36,7 @@ trait PgSearchSupport extends search.PgSearchExtensions with utils.PgCommonJdbcT
     import utils.PlainSQLUtils._
     import scala.reflect.classTag
 
+    // used to support code gen
     if (driver.isInstanceOf[ExPostgresDriver]) {
       driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("tsvector", classTag[TsVector])
       driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("tsquery", classTag[TsQuery])

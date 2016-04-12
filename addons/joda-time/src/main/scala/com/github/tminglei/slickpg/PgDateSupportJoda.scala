@@ -79,6 +79,7 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
 
     import scala.reflect.classTag
 
+    // used to support code gen
     if (driver.isInstanceOf[ExPostgresDriver]) {
       driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("date", classTag[LocalDate])
       driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("time", classTag[LocalTime])

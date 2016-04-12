@@ -67,6 +67,7 @@ object PgCompositeSupportSuite {
 
     trait CompositePlainImplicits extends SimpleArrayPlainImplicits {
       import utils.PlainSQLUtils._
+      // to support 'nextArray[T]/nextArrayOption[T]' in PgArraySupport
       {
         addNextArrayConverter((r) => nextCompositeArray[Composite1](r))
         addNextArrayConverter((r) => nextCompositeArray[Composite2](r))

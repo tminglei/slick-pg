@@ -42,10 +42,12 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
   trait SimpleArrayPlainImplicits {
     import scala.reflect.classTag
     import utils.PlainSQLUtils._
+    // to support 'nextArray[T]/nextArrayOption[T]' in PgArraySupport
     {
       addNextArrayConverter((r) => simpleNextArray[Int](r).map(_.map(_.toShort)))
     }
 
+    // used to support code gen
     if (driver.isInstanceOf[ExPostgresDriver]) {
       driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_uuid", classTag[Seq[UUID]])
       driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_text", classTag[Seq[String]])
