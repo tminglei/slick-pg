@@ -1,13 +1,12 @@
 package com.github.tminglei.slickpg
 
-import java.sql.{Timestamp, Time, Date}
+import java.sql.{Date, Time, Timestamp}
 import java.util.UUID
 
 import org.scalatest.FunSuite
 import slick.jdbc.GetResult
 
 import scala.collection.mutable.Buffer
-
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
@@ -156,11 +155,22 @@ class PgArraySupportSuite extends FunSuite {
     boolArr: Seq[Boolean],
     dateArr: List[Date],
     timeArr: List[Time],
-    tsArr: Seq[Timestamp]
+    tsArr: Seq[Timestamp],
+    institutionArr: List[Institution]
   )
 
   test("Array Plain SQL support") {
     import MyPostgresDriver.plainAPI._
+    import utils.PlainSQLUtils._
+
+    {
+      addNextArrayConverter((r) => r.nextArrayOption[Long]().map(_.map(Institution(_))))
+    }
+
+    implicit val getInstitutionArray = mkGetResult(_.nextArray[Institution]())
+    implicit val getInstitutionArrayOption = mkGetResult(_.nextArrayOption[Institution]())
+    implicit val setInstitutionArray = mkArraySetParameter[Institution]("int8", v => String.valueOf(v.value))
+    implicit val setInstitutionArrayOption = mkArrayOptionSetParameter[Institution]("int8", v => String.valueOf(v.value))
 
     implicit val getArrarBean1Result = GetResult { r =>
       ArrayBean1(r.nextLong(),
@@ -175,12 +185,13 @@ class PgArraySupportSuite extends FunSuite {
         r.<<[Seq[Boolean]],
         r.<<[Seq[Date]].toList,
         r.<<[Seq[Time]].toList,
-        r.<<[Seq[Timestamp]]
+        r.<<[Seq[Timestamp]],
+        r.<<[Seq[Institution]].toList
       )
     }
 
     val b = ArrayBean1(101L, "tt".getBytes, List(UUID.randomUUID()), Some(List("tewe", "ttt")), List(111L), List(1, 2), Vector(3, 5), List(1.2f, 43.32f), List(21.35d), List(true, true),
-      List(new Date(System.currentTimeMillis())), List(new Time(System.currentTimeMillis())), List(new Timestamp(System.currentTimeMillis())))
+      List(new Date(System.currentTimeMillis())), List(new Time(System.currentTimeMillis())), List(new Timestamp(System.currentTimeMillis())), List(Institution(579)))
 
     Await.result(db.run(
       DBIO.seq(
@@ -197,10 +208,11 @@ class PgArraySupportSuite extends FunSuite {
                  bool_arr bool[] not null,
                  date_arr date[] not null,
                  time_arr time[] not null,
-                 ts_arr timestamp[] not null)
+                 ts_arr timestamp[] not null,
+                 ins_arr int8[] not null)
             """,
         ///
-        sqlu"insert into ArrayTest1 values(${b.id}, ${b.bytea}, ${b.uuidArr}, ${b.strArr}, ${b.longArr}, ${b.intArr}, ${b.shortArr}, ${b.floatArr}, ${b.doubleArr}, ${b.boolArr}, ${b.dateArr}, ${b.timeArr}, ${b.tsArr})",
+        sqlu"insert into ArrayTest1 values(${b.id}, ${b.bytea}, ${b.uuidArr}, ${b.strArr}, ${b.longArr}, ${b.intArr}, ${b.shortArr}, ${b.floatArr}, ${b.doubleArr}, ${b.boolArr}, ${b.dateArr}, ${b.timeArr}, ${b.tsArr}, ${b.institutionArr})",
         sql"select * from ArrayTest1 where id = ${b.id}".as[ArrayBean1].head.map(
           f => {
             b.bytea.zip(f.bytea).map(r => assert(r._1 === r._2))
@@ -215,6 +227,7 @@ class PgArraySupportSuite extends FunSuite {
             b.dateArr.zip(f.dateArr).map(r => assert(r._1.toString === r._2.toString))
             b.timeArr.zip(f.timeArr).map(r => assert(r._1.toString === r._2.toString))
             b.tsArr.zip(f.tsArr).map(r => assert(r._1.toString === r._2.toString))
+            b.institutionArr.zip(f.institutionArr).map(r => assert(r._1 === r._2))
           }
         ),
         ///
