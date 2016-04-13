@@ -19,7 +19,7 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
     implicit val simpleStrListTypeMapper: JdbcType[List[String]] = new SimpleArrayJdbcType[String]("text").to(_.toList)
     implicit val simpleLongListTypeMapper: JdbcType[List[Long]] = new SimpleArrayJdbcType[Long]("int8").to(_.toList)
     implicit val simpleIntListTypeMapper: JdbcType[List[Int]] = new SimpleArrayJdbcType[Int]("int4").to(_.toList)
-    implicit val simpleShortListTypeMapper: JdbcType[List[Short]] = new SimpleArrayJdbcType[Short]("int2").to(_.toList)
+    implicit val simpleShortListTypeMapper: JdbcType[List[Short]] = new SimpleArrayJdbcType[Short]("int2", _.asInstanceOf[Int].toShort, identity).to(_.toList)
     implicit val simpleFloatListTypeMapper: JdbcType[List[Float]] = new SimpleArrayJdbcType[Float]("float4").to(_.toList)
     implicit val simpleDoubleListTypeMapper: JdbcType[List[Double]] = new SimpleArrayJdbcType[Double]("float8").to(_.toList)
     implicit val simpleBoolListTypeMapper: JdbcType[List[Boolean]] = new SimpleArrayJdbcType[Boolean]("bool").to(_.toList)

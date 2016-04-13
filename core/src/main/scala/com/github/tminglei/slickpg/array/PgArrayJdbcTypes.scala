@@ -19,7 +19,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
   }
 
   //
-  class SimpleArrayJdbcType[T] private (sqlBaseType: String, tmap: Any => T, tcomap: T => Any)(
+  class SimpleArrayJdbcType[T] private[slickpg] (sqlBaseType: String, tmap: Any => T, tcomap: T => Any)(
               implicit override val classTag: ClassTag[Seq[T]], ctag: ClassTag[T], checked: ArrChecked[T])
                     extends DriverJdbcType[Seq[T]] { self =>
 
