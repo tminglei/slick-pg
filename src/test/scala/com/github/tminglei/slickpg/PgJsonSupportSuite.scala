@@ -107,6 +107,22 @@ class PgJsonSupportSuite extends FunSuite {
           // ?&
           JsonTests.filter(_.json ?& List("a", "c").bind).map(_.json).to[List].result.map(
             r => assert(List(testRec1).map(_.json.value.replace(" ", "")) === r.map(_.value.replace(" ", "")))
+          ),
+          // ||
+          JsonTests.filter(_.id === 33L).map(_.json || JsonString(""" {"d":"test"} """).bind).result.head.map(
+            r => assert(""" {"a": 101, "b": "aaa", "c": [3, 4, 5, 9], "d": "test"} """.replace(" ", "") === r.value.replace(" ", ""))
+          ),
+          // -
+          JsonTests.filter(_.id === 33L).map(_.json - "c".bind).result.head.map(
+            r => assert(""" {"a": 101, "b": "aaa"} """.replace(" ", "") === r.value.replace(" ", ""))
+          ),
+          // #-
+          JsonTests.filter(_.id === 33L).map(_.json #- List("c")).result.head.map(
+            r => assert(""" {"a": 101, "b": "aaa"} """.replace(" ", "") === r.value.replace(" ", ""))
+          ),
+          // #-
+          JsonTests.filter(_.id === 33L).map(_.json.set(List("c"), JsonString(""" [1] """))).result.head.map(
+            r => assert(""" {"a": 101, "b": "aaa", "c": [1]} """.replace(" ", "") === r.value.replace(" ", ""))
           )
         )
       ).andFinally(

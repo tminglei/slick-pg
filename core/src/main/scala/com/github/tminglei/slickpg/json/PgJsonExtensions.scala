@@ -20,11 +20,16 @@ trait PgJsonExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     val Exists = new SqlOperator("??")
     val ExistsAny = new SqlOperator("??|")
     val ExistsAll = new SqlOperator("??&")
+    val Concatenate = new SqlOperator("||")
+    val Delete = new SqlOperator("-")
+    val DeleteDeep = new SqlOperator("#-")
 
     val toJson = new SqlFunction("to_json")
+    val toJsonb = new SqlFunction("to_jsonb")
     val arrayToJson = new SqlFunction("array_to_json")
 //    val rowToJson = new SqlFunction("row_to_json")  //not support, since "row" type not supported by slick/slick-pg yet
-    val jsonObject = new SqlFunction("json_object")
+    val jsonbSet = new SqlFunction("jsonb_set")
+    val jsonObject = new SqlFunction(pgjson + "_object")
 
     val typeof = new SqlFunction(pgjson + "_typeof")
     val objectKeys = new SqlFunction(pgjson + "_object_keys")
@@ -79,11 +84,25 @@ trait PgJsonExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     def ?&[P2, R](c2: Rep[P2])(implicit om: o#arg[List[String], P2]#to[Boolean, R]) = {
         om.column(jsonLib.ExistsAll, n, c2.toNode)
       }
+    def ||[P2, R](c2: Rep[P2])(implicit om: o#arg[JSONType, P2]#to[JSONType, R]) = {
+        om.column(jsonLib.Concatenate, n, c2.toNode)
+      }
+    def - [P2, R](c2: Rep[P2])(implicit om: o#arg[String, P2]#to[JSONType, R]) = {
+        om.column(jsonLib.Delete, n, c2.toNode)
+      }
+    def #-[P2, R](c2: Rep[P2])(implicit om: o#arg[List[String], P2]#to[JSONType, R]) = {
+        om.column(jsonLib.DeleteDeep, n, c2.toNode)
+      }
 
     def jsonType[R](implicit om: o#to[String, R]) = om.column(jsonLib.typeof, n)
     def objectKeys[R](implicit om: o#to[String, R]) = om.column(jsonLib.objectKeys, n)
     def arrayLength[R](implicit om: o#to[Int, R]) = om.column(jsonLib.arrayLength, n)
     def arrayElements[R](implicit om: o#to[JSONType, R]) = om.column(jsonLib.arrayElements, n)
     def arrayElementsText[R](implicit om: o#to[String, R]) = om.column(jsonLib.arrayElementsText, n)
+    def set[R](path: Rep[List[String]], value: Rep[JSONType], createMissing: Option[Boolean] = None)(
+      implicit om: o#to[JSONType, R]) = createMissing match {
+        case Some(b) => om.column(jsonLib.jsonbSet, n, path.toNode, value.toNode, LiteralColumn(b).toNode)
+        case None    => om.column(jsonLib.jsonbSet, n, path.toNode, value.toNode)
+      }
   }
 }
