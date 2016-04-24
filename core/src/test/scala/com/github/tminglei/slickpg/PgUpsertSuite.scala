@@ -104,4 +104,53 @@ class PgUpsertSuite extends FunSuite {
       ).transactionally
     ), Duration.Inf)
   }
+
+  ///---
+
+  case class Bean1(id: Option[Long], code: String, col2: Int)
+
+  class UpsertTestTable1(tag: Tag) extends Table[Bean1](tag, "test_tab_upsert1") {
+    def id = column[Long]("id", O.AutoInc)
+    def code = column[String]("code", O.PrimaryKey)
+    def col2 = column[Int]("col2")
+
+    def * = (id.?, code, col2) <> (Bean1.tupled, Bean1.unapply)
+  }
+  val UpsertTests1 = TableQuery[UpsertTestTable1]
+
+  test("native upsert support - autoInc + independent pk") {
+    import MyPostgresDriver.api._
+
+    val upsertSql = MyPostgresDriver.compileInsert(UpsertTests1.toNode).upsert.sql
+    println(s"upsert sql: $upsertSql")
+
+    assert(upsertSql.contains("on conflict"))
+
+    Await.result(db.run(
+      DBIO.seq(
+        (UpsertTests1.schema) create,
+        ///
+        UpsertTests1 forceInsertAll Seq(
+          Bean1(Some(101L), "aa", 3),
+          Bean1(Some(102L), "bb", 5),
+          Bean1(Some(103L), "cc", 11)
+        ),
+        UpsertTests1.insertOrUpdate(Bean1(None, "aa", 1)),
+        UpsertTests1.insertOrUpdate(Bean1(Some(107L), "dd", 7))
+      ).andThen(
+        DBIO.seq(
+          UpsertTests1.sortBy(_.id).to[List].result.map(
+            r => assert(Seq(
+              Bean1(Some(2), "dd", 7),
+              Bean1(Some(101L), "aa", 1),
+              Bean1(Some(102L), "bb", 5),
+              Bean1(Some(103L), "cc", 11)
+            ) === r)
+          )
+        )
+      ).andFinally(
+        (UpsertTests1.schema) drop
+      ).transactionally
+    ), Duration.Inf)
+  }
 }

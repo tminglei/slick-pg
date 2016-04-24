@@ -51,16 +51,21 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
    ***********************************************************************/
 
   class NativeUpsertBuilder(ins: Insert) extends super.InsertBuilder(ins) {
-    protected lazy val (pkSyms, softSyms) = syms.toSeq.partition(_.options.contains(ColumnOption.PrimaryKey))
-    protected lazy val pkNames = pkSyms.map { fs => quoteIdentifier(fs.name) }
-    protected lazy val softNames = softSyms.map { fs => quoteIdentifier(fs.name) }
+    private val (nonPkAutoIncSyms, insertingSyms) = syms.toSeq.partition { s =>
+      s.options.contains(ColumnOption.AutoInc) && !(s.options contains ColumnOption.PrimaryKey) }
+    private lazy val (pkSyms, softSyms) = insertingSyms.partition(_.options.contains(ColumnOption.PrimaryKey))
+    private lazy val pkNames = pkSyms.map { fs => quoteIdentifier(fs.name) }
+    private lazy val softNames = softSyms.map { fs => quoteIdentifier(fs.name) }
 
     override def buildInsert: InsertBuilderResult = {
-      val forceInsert = s"insert into $tableName (${allNames.mkString(",")}) values (${allNames.map(_ => "?").mkString(",")})"
+      val insert = s"insert into $tableName (${insertingSyms.mkString(",")}) values (${insertingSyms.map(_ => "?").mkString(",")})"
       val onConflict = "on conflict (" + pkNames.mkString(", ") + ")"
       val doSomething = if (softNames.isEmpty) "do nothing" else "do update set " + softNames.map(n => s"$n=EXCLUDED.$n").mkString(",")
-      new InsertBuilderResult(table, s"$forceInsert $onConflict $doSomething", syms)
+      val padding = if (nonPkAutoIncSyms.isEmpty) "" else "where ? is null or ?=?"
+      new InsertBuilderResult(table, s"$insert $onConflict $doSomething $padding", syms)
     }
+
+    override def transformMapping(n: Node) = reorderColumns(n, insertingSyms ++ nonPkAutoIncSyms ++ nonPkAutoIncSyms ++ nonPkAutoIncSyms)
   }
 
   /***********************************************************************
