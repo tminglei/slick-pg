@@ -6,36 +6,26 @@ import slick.ast._
 import slick.jdbc._
 import slick.jdbc.meta.MTable
 import slick.lifted.PrimaryKey
-import slick.driver.{PostgresDriver, JdbcDriver}
+import slick.driver.{InsertBuilderResult, JdbcDriver, JdbcProfile, PostgresDriver}
 import slick.util.Logging
 
 import scala.concurrent.ExecutionContext
-import scala.reflect.{classTag, ClassTag}
+import scala.reflect.{ClassTag, classTag}
 
 trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { driver =>
 
-  override val api = new API {}
+  override def createUpsertBuilder(node: Insert): InsertBuilder =
+    if (useServerSideUpsert) new NativeUpsertBuilder(node) else new super.UpsertBuilder(node)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
     new ExModelBuilder(tables, ignoreInvalidDefaults)
 
-  private var pgTypeToScala = Map.empty[String, ClassTag[_]]
+  override protected lazy val useServerSideUpsert = capabilities contains JdbcProfile.capabilities.insertOrUpdate
+  override protected lazy val useTransactionForUpsert = !useServerSideUpsert
+  override protected lazy val useServerSideUpsertReturning = useServerSideUpsert
+  override protected lazy val useTransactionForUpsertReturning = !useServerSideUpsertReturning
 
-  /** NOTE: used to support code gen */
-  def bindPgTypeToScala(pgType: String, scalaType: ClassTag[_]) = {
-    logger.info(s"\u001B[36m >>> binding $pgType -> $scalaType \u001B[0m")
-    val existed = pgTypeToScala.get(pgType)
-    if (existed.isDefined) logger.warn(
-      s"\u001B[31m >>> DUPLICATED BINDING - existed: ${existed.get}, new: $scalaType !!! \u001B[36m If it's expected, pls ignore it.\u001B[0m"
-    )
-    pgTypeToScala += (pgType -> scalaType)
-  }
-
-  {
-    bindPgTypeToScala("uuid", classTag[UUID])
-    bindPgTypeToScala("text", classTag[String])
-    bindPgTypeToScala("bool", classTag[Boolean])
-  }
+  override val api: API = new API {}
 
   ///--
   trait API extends super.API {
@@ -56,8 +46,43 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
     }
   }
 
-  trait InheritingTable { sub: Table[_] =>
-    val inherited: Table[_]
+  /***********************************************************************
+    *                          for upsert support
+   ***********************************************************************/
+
+  class NativeUpsertBuilder(ins: Insert) extends super.InsertBuilder(ins) {
+    protected lazy val (pkSyms, softSyms) = syms.toSeq.partition(_.options.contains(ColumnOption.PrimaryKey))
+    protected lazy val pkNames = pkSyms.map { fs => quoteIdentifier(fs.name) }
+    protected lazy val softNames = softSyms.map { fs => quoteIdentifier(fs.name) }
+
+    override def buildInsert: InsertBuilderResult = {
+      val forceInsert = s"insert into $tableName (${allNames.mkString(",")}) values (${allNames.map(_ => "?").mkString(",")})"
+      val onConflict = "on conflict (" + pkNames.mkString(", ") + ")"
+      val doSomething = if (softNames.isEmpty) "do nothing" else "do update set " + softNames.map(n => s"$n=EXCLUDED.$n").mkString(",")
+      new InsertBuilderResult(table, s"$forceInsert $onConflict $doSomething", syms)
+    }
+  }
+
+  /***********************************************************************
+    *                          for codegen support
+   ***********************************************************************/
+
+  private var pgTypeToScala = Map.empty[String, ClassTag[_]]
+
+  /** NOTE: used to support code gen */
+  def bindPgTypeToScala(pgType: String, scalaType: ClassTag[_]) = {
+    logger.info(s"\u001B[36m >>> binding $pgType -> $scalaType \u001B[0m")
+    val existed = pgTypeToScala.get(pgType)
+    if (existed.isDefined) logger.warn(
+      s"\u001B[31m >>> DUPLICATED BINDING - existed: ${existed.get}, new: $scalaType !!! \u001B[36m If it's expected, pls ignore it.\u001B[0m"
+    )
+    pgTypeToScala += (pgType -> scalaType)
+  }
+
+  {
+    bindPgTypeToScala("uuid", classTag[UUID])
+    bindPgTypeToScala("text", classTag[String])
+    bindPgTypeToScala("bool", classTag[Boolean])
   }
 
   class ExModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext)
@@ -66,6 +91,14 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
       logger.info(s"[info]\u001B[36m jdbcTypeToScala - jdbcType $jdbcType, typeName: $typeName \u001B[0m")
       pgTypeToScala.get(typeName).getOrElse(super.jdbcTypeToScala(jdbcType, typeName))
     }
+  }
+
+  /***********************************************************************
+    *                          for inherit support
+   ***********************************************************************/
+
+  trait InheritingTable { sub: Table[_] =>
+    val inherited: Table[_]
   }
 
   class TableDDLBuilder(table: Table[_]) extends super.TableDDLBuilder(table) {
