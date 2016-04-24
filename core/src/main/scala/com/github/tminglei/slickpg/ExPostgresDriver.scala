@@ -15,15 +15,14 @@ import scala.reflect.{ClassTag, classTag}
 trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { driver =>
 
   override def createUpsertBuilder(node: Insert): InsertBuilder =
-    if (useServerSideUpsert) new NativeUpsertBuilder(node) else new super.UpsertBuilder(node)
+    if (useNativeUpsert) new NativeUpsertBuilder(node) else new super.UpsertBuilder(node)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
     new ExModelBuilder(tables, ignoreInvalidDefaults)
 
-  override protected lazy val useServerSideUpsert = capabilities contains JdbcProfile.capabilities.insertOrUpdate
-  override protected lazy val useTransactionForUpsert = !useServerSideUpsert
-  override protected lazy val useServerSideUpsertReturning = useServerSideUpsert
-  override protected lazy val useTransactionForUpsertReturning = !useServerSideUpsertReturning
+  protected lazy val useNativeUpsert = capabilities contains JdbcProfile.capabilities.insertOrUpdate
+  override protected lazy val useTransactionForUpsert = !useNativeUpsert
+  override protected lazy val useServerSideUpsertReturning = useNativeUpsert
 
   override val api: API = new API {}
 
