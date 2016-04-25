@@ -23,7 +23,7 @@ Slick-pg
 - composite type (`basic`)
 
 
-** _tested on `PostgreSQL` `v9.4` with `Slick` `v3.1.1`._
+** _tested on `PostgreSQL` `v9.5` with `Slick` `v3.1.1`._
 
 
 
@@ -44,6 +44,10 @@ trait MyPostgresDriver extends ExPostgresDriver
                           with PgNetSupport
                           with PgLTreeSupport {
   def pgjson = "jsonb" // jsonb support is in postgres 9.4.0 onward; for 9.3.x use "json"
+
+  // Add back `capabilities.insertOrUpdate` to enable native `upsert` support; for postgres 9.5+
+  override protected def computeCapabilities: Set[Capability] = 
+    super.computeCapabilities + JdbcProfile.capabilities.insertOrUpdate
 
   override val api = MyAPI
 
