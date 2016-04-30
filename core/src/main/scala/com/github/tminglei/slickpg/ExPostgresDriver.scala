@@ -3,6 +3,7 @@ package com.github.tminglei.slickpg
 import java.util.UUID
 
 import slick.ast._
+import slick.compiler.CompilerState
 import slick.jdbc._
 import slick.jdbc.meta.MTable
 import slick.lifted.PrimaryKey
@@ -14,6 +15,7 @@ import scala.reflect.{ClassTag, classTag}
 
 trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { driver =>
 
+  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new QueryBuilder(n, state)
   override def createUpsertBuilder(node: Insert): InsertBuilder =
     if (useNativeUpsert) new NativeUpsertBuilder(node) else new super.UpsertBuilder(node)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
@@ -42,6 +44,21 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
     }
     implicit val setByteArrayOption = new SetParameter[Option[Array[Byte]]] {
       def apply(v: Option[Array[Byte]], pp: PositionedParameters) = pp.setBytesOption(v)
+    }
+  }
+
+  /*************************************************************************
+    *                      for aggregate function support
+   *************************************************************************/
+
+  class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
+    import slick.util.MacroSupport.macroSupportInterpolation
+    override def expr(n: Node, skipParens: Boolean = false) = n match {
+      case c: agg.PgAggFuncBase#AggFuncInputs =>
+        if (c.modifier.isDefined) b"${c.modifier.get} "
+        b.sep(c.aggParams, ",")(expr(_, true))
+        if (c.orderBy.nonEmpty) buildOrderByClause(c.orderBy)
+      case _ => super.expr(n, skipParens)
     }
   }
 
