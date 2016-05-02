@@ -1,5 +1,4 @@
 package com.github.tminglei.slickpg
-package agg
 
 import org.scalatest.FunSuite
 import slick.ast.Library.SqlFunction
@@ -8,7 +7,7 @@ import slick.ast.LiteralNode
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-class PgAggFuncBaseTest extends FunSuite with PgAggFuncBase {
+class PgAggFuncBaseTest extends FunSuite with agg.PgAggFuncBase {
   import ExPostgresDriver.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
@@ -27,21 +26,20 @@ class PgAggFuncBaseTest extends FunSuite with PgAggFuncBase {
 
   ///
 
-
   object AggLibrary {
     val Avg = new SqlFunction("avg")
     val StringAgg = new SqlFunction("string_agg")
     val Corr = new SqlFunction("corr")
   }
 
-  case class Avg[T]() extends UnaryAggFuncPartsBasic[T, T](AggLibrary.Avg)
-  case class StringAgg(delimiter: String) extends UnaryAggFuncPartsBasic[String, String](AggLibrary.StringAgg, List(LiteralNode(delimiter)))
-  case class Corr() extends BinaryAggFuncPartsBasic[Double, Double](AggLibrary.Corr)
+  case class Avg[T]() extends AggFuncPartsBase[T, T](AggLibrary.Avg)
+  case class StringAgg(delimiter: String) extends AggFuncPartsBase[String, String](AggLibrary.StringAgg, List(LiteralNode(delimiter)))
+  case class Corr() extends AggFuncPartsBase[Double, Double](AggLibrary.Corr)
 
   ///---
 
   test("agg function base") {
-    val sql1 = tabs.map { t => (t.name ^: StringAgg(",").forDistinct().orderBy(t.name), t.count ^: Avg[Int]) }.result.statements.head
+    val sql1 = tabs.map { t => (t.name ^: StringAgg(",").distinct().sortBy(t.name).filter(t.count <= 3), t.count ^: Avg[Int]) }.result.statements.head
     println(s"sql1: $sql1")
 
     val sql2 = tabs.map { t => (t.y, t.x) ^: Corr() }.result.statements.head
@@ -59,7 +57,7 @@ class PgAggFuncBaseTest extends FunSuite with PgAggFuncBase {
       ).andThen(
         DBIO.seq(
           tabs.map {
-            t => (t.name ^: StringAgg(",").forDistinct().orderBy(t.name), t.count ^: Avg[Int])
+            t => (t.name ^: StringAgg(",").distinct().sortBy(t.name).filter(t.count <= 3), t.count ^: Avg[Int])
           }.result.head.map {
             r => assert(("bar,foo,quux", 4) === r)
           },

@@ -54,10 +54,17 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
   class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
     import slick.util.MacroSupport.macroSupportInterpolation
     override def expr(n: Node, skipParens: Boolean = false) = n match {
-      case c: agg.PgAggFuncBase#AggFuncInputs =>
-        if (c.modifier.isDefined) b"${c.modifier.get} "
-        b.sep(c.aggParams, ",")(expr(_, true))
-        if (c.orderBy.nonEmpty) buildOrderByClause(c.orderBy)
+      case agg.AggFuncExpr(func, params, orderBy, filter, distinct, forOrdered) =>
+        b"${func.name}("
+        if (distinct) b"distinct "
+        b.sep(params, ",")(expr(_, true))
+        if (orderBy.nonEmpty) buildOrderByClause(orderBy)
+        b")"
+        if (filter.isDefined) {
+          b" filter ("
+          buildWhereClause(filter)
+          b")"
+        }
       case _ => super.expr(n, skipParens)
     }
   }
