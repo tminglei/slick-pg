@@ -2,7 +2,7 @@ package com.github.tminglei.slickpg
 
 import org.scalatest.FunSuite
 import slick.ast.Library.SqlFunction
-import slick.ast.LiteralNode
+import slick.ast.{LiteralNode, ScalaBaseType}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -30,19 +30,29 @@ class PgAggFuncBaseTest extends FunSuite with agg.PgAggFuncBase {
     val Avg = new SqlFunction("avg")
     val StringAgg = new SqlFunction("string_agg")
     val Corr = new SqlFunction("corr")
+
+    val PercentileDisc = new SqlFunction("percentile_disc")
+    val PercentRank = new SqlFunction("percent_rank")
   }
 
-  case class Avg[T]() extends AggFuncPartsBase[T, T](AggLibrary.Avg)
-  case class StringAgg(delimiter: String) extends AggFuncPartsBase[String, String](AggLibrary.StringAgg, List(LiteralNode(delimiter)))
-  case class Corr() extends AggFuncPartsBase[Double, Double](AggLibrary.Corr)
+  case class avg[T]() extends AggFuncPartsBase[T, T](AggLibrary.Avg)
+  case class stringAgg(delimiter: String) extends AggFuncPartsBase[String, String](AggLibrary.StringAgg, List(LiteralNode(delimiter)))
+  case class corr() extends AggFuncPartsBase[Double, Double](AggLibrary.Corr)
+
+  case class percentileDisc[T](f: Double) extends OrderedAggFuncPartsBase[T,T](AggLibrary.PercentileDisc, List(LiteralNode(f)))
+  case class percentRank[T: ScalaBaseType](v: T) extends OrderedAggFuncPartsBase[T,Double](AggLibrary.PercentRank, List(LiteralNode(v)))
 
   ///---
 
   test("agg function base") {
-    val sql1 = tabs.map { t => (t.name ^: StringAgg(",").distinct().sortBy(t.name).filter(t.count <= 3), t.count ^: Avg[Int]) }.result.statements.head
+    val sql1 = tabs.map { t =>
+      (t.name ^: stringAgg(",").distinct().sortBy(t.name).filter(t.count <= 3), t.count ^: avg[Int])
+    }.result.statements.head
     println(s"sql1: $sql1")
 
-    val sql2 = tabs.map { t => (t.y, t.x) ^: Corr() }.result.statements.head
+    val sql2 = tabs.map { t =>
+      ((t.y, t.x) ^: corr(), percentileDisc[Double](0.5d).filter(t.y < 130d).within(t.x desc), percentRank("bar").within(t.name))
+    }.result.statements.head
     println(s"sql2: $sql2")
 
     Await.result(db.run(
@@ -56,15 +66,17 @@ class PgAggFuncBaseTest extends FunSuite with agg.PgAggFuncBase {
         )
       ).andThen(
         DBIO.seq(
-          tabs.map {
-            t => (t.name ^: StringAgg(",").distinct().sortBy(t.name).filter(t.count <= 3), t.count ^: Avg[Int])
-          }.result.head.map {
-            r => assert(("bar,foo,quux", 4) === r)
+          tabs.map { t =>
+            (t.name ^: stringAgg(",").distinct().sortBy(t.name).filter(t.count <= 3), t.count ^: avg[Int])
+          }.result.head.map { r =>
+            assert(("bar,foo,quux", 4) === r)
           },
-          tabs.map {
-            t => (t.y, t.x) ^: Corr()
-          }.result.head.map {
-            r => assert(Math.abs(0.45 - r) < 0.01d)
+          tabs.map { t =>
+            ((t.y, t.x) ^: corr(), percentileDisc[Double](0.5d).filter(t.y < 130d).within(t.x desc), percentRank("bar").within(t.name))
+          }.result.head.map { case (corr, percentileDisc, percentRank) =>
+            assert(Math.abs(0.447d - corr) < 0.01d)
+            assert(Math.abs(57.39d - percentileDisc) < 0.01d)
+            assert(Math.abs(percentRank) < 0.01d)
           }
         )
       ).andFinally(

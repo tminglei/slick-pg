@@ -4,6 +4,7 @@ import slick.ast._
 import slick.jdbc.JdbcType
 import slick.lifted._
 import slick.util.ConstArray
+import slick.ast.Util.nodeToNodeOps
 
 /** An aggregate function call expression */
 final case class AggFuncExpr(
@@ -49,7 +50,7 @@ trait PgAggFuncBase {
     def distinct_ : Boolean
     def forOrderedSet: Boolean
   }
-  protected sealed class AggFuncPartsImpl(
+  protected class AggFuncPartsImpl(
     val aggFunc: FunctionSymbol,
     val params: Seq[Node] = Nil,
     val ordered: Option[Ordered] = None,
@@ -59,38 +60,32 @@ trait PgAggFuncBase {
   ) extends AggFuncParts
 
   ///--- for normal data set
-  class AggFuncPartsBase[T,R](aggFunc: FunctionSymbol, params: Seq[Node] = Nil)
-          extends AggFuncPartsImpl(aggFunc, params) with ToAggFunction[T,R] {
-    def distinct() = new AggFuncPartsWithModifier[T,R](aggFunc, params, distinct = true)
-    def sortBy(ordered: Ordered) = new AggFuncPartsWithModOrderBy[T,R](aggFunc, params, Some(ordered), distinct = false)
-    def filter[W <: Rep[_]](where: => W)(implicit wt: CanBeQueryCondition[W]) =
-      new AggFuncPartsImpl(aggFunc, params, ordered, Some(wt(where).toNode), distinct_ = false) with ToAggFunction[T,R]
+  class AggFuncPartsBase[P,R](aggFunc: FunctionSymbol, params: Seq[Node] = Nil)
+          extends AggFuncPartsWithDistinct[P,R](aggFunc, params) {
+    def distinct() = new AggFuncPartsWithDistinct[P,R](aggFunc, params, distinct = true)
   }
-  private[agg] class AggFuncPartsWithModifier[T,R](aggFunc: FunctionSymbol, params: Seq[Node], distinct: Boolean)
-          extends AggFuncPartsImpl(aggFunc, params, distinct_ = distinct) with ToAggFunction[T,R] {
-    def sortBy(ordered: Ordered) = new AggFuncPartsWithModOrderBy[T,R](aggFunc, params, Some(ordered), distinct = distinct)
-    def filter[W <: Rep[_]](where: => W)(implicit wt: CanBeQueryCondition[W]) =
-      new AggFuncPartsImpl(aggFunc, params, ordered, Some(wt(where).toNode), distinct_ = distinct) with ToAggFunction[T,R]
+  private[agg] class AggFuncPartsWithDistinct[P,R](aggFunc: FunctionSymbol, params: Seq[Node], distinct: Boolean = false)
+          extends AggFuncPartsWithDistinctOrderBy[P,R](aggFunc, params, distinct = distinct) {
+    def sortBy(ordered: Ordered) = new AggFuncPartsWithDistinctOrderBy[P,R](aggFunc, params, ordered = Some(ordered), distinct = distinct)
   }
-  private[agg] class AggFuncPartsWithModOrderBy[T,R](aggFunc: FunctionSymbol, params: Seq[Node], ordered: Option[Ordered], distinct: Boolean)
-          extends AggFuncPartsImpl(aggFunc, params, distinct_ = distinct) with ToAggFunction[T,R] {
+  private[agg] class AggFuncPartsWithDistinctOrderBy[P,R](aggFunc: FunctionSymbol, params: Seq[Node], distinct: Boolean, ordered: Option[Ordered] = None)
+          extends AggFuncPartsImpl(aggFunc, params, distinct_ = distinct) with ToAggFunction[P,R] {
     def filter[W <: Rep[_]](where: => W)(implicit wt: CanBeQueryCondition[W]) =
-      new AggFuncPartsImpl(aggFunc, params, ordered, Some(wt(where).toNode), distinct_ = distinct) with ToAggFunction[T,R]
+      new AggFuncPartsImpl(aggFunc, params, ordered, Some(wt(where).toNode), distinct_ = distinct) with ToAggFunction[P,R]
   }
 
-  private[agg] trait ToAggFunction[T,R] { parts: AggFuncParts =>
-    def ^:[P1,PR](expr: Rep[P1])(implicit tm: JdbcType[R], om: OptionMapperDSL.arg[T,P1]#to[R,PR]): Rep[PR] = {
+  private[agg] trait ToAggFunction[P,R] { parts: AggFuncParts =>
+    def ^:[P1,PR](expr: Rep[P1])(implicit tm: JdbcType[R], om: OptionMapperDSL.arg[P,P1]#to[R,PR]): Rep[PR] = {
       mkRep(expr.toNode +: params)(om.liftedType)
     }
-    def ^:[P1,P2,PR](expr: (Rep[P1], Rep[P2]))(implicit tm: JdbcType[R], om: OptionMapperDSL.arg[T,P1]#arg[T,P2]#to[R,PR]): Rep[PR] = {
+    def ^:[P1,P2,PR](expr: (Rep[P1], Rep[P2]))(implicit tm: JdbcType[R], om: OptionMapperDSL.arg[P,P1]#arg[P,P2]#to[R,PR]): Rep[PR] = {
       mkRep(expr._1.toNode +: expr._2.toNode +: params)(om.liftedType)
     }
-    def ^:[P1,P2,P3,PR](expr: (Rep[P1], Rep[P2], Rep[P3]))(implicit tm: JdbcType[R], om: OptionMapperDSL.arg[T,P1]#arg[T,P2]#arg[T,P3]#to[R,PR]): Rep[PR] = {
+    def ^:[P1,P2,P3,PR](expr: (Rep[P1], Rep[P2], Rep[P3]))(implicit tm: JdbcType[R], om: OptionMapperDSL.arg[P,P1]#arg[P,P2]#arg[P,P3]#to[R,PR]): Rep[PR] = {
       mkRep(expr._1.toNode +: expr._2.toNode +: expr._3.toNode +: params)(om.liftedType)
     }
 
     private def mkRep[PR](params: Seq[Node])(implicit tt: TypedType[PR]) = {
-      import slick.ast.Util.nodeToNodeOps
       val params1 = ConstArray.from(params)
       val orderBy = ConstArray.from(ordered).flatMap(o => ConstArray.from(o.columns))
       Rep.forNode[PR](AggFuncExpr(aggFunc, params1, orderBy, where, distinct = distinct_)(tt).replace({
@@ -100,4 +95,19 @@ trait PgAggFuncBase {
   }
 
   ///--- for ordered data set
+  class OrderedAggFuncPartsBase[P,R](aggFunc: FunctionSymbol, params: Seq[Node] = Nil) extends OrderedAggFuncPartsWithFilter[P,R](aggFunc, params) {
+    def filter[W <: Rep[_]](where: => W)(implicit wt: CanBeQueryCondition[W]) =
+      new OrderedAggFuncPartsWithFilter[P,R](aggFunc, params, where = Some(wt(where).toNode))
+  }
+  private[agg] class OrderedAggFuncPartsWithFilter[P,R](aggFunc: FunctionSymbol, params: Seq[Node], where: Option[Node] = None)
+          extends AggFuncPartsImpl(aggFunc, params, where = where) {
+    def within[P1,PR](ordered: ColumnOrdered[P1])(implicit tm: JdbcType[R], om: OptionMapperDSL.arg[P,P1]#to[R,PR]): Rep[PR] = {
+      implicit val tt = om.liftedType
+      val params1 = ConstArray.from(params)
+      val orderBy = ConstArray.from(ordered.columns)
+      Rep.forNode[PR](AggFuncExpr(aggFunc, params1, orderBy, where, distinct = distinct_, forOrdered = true)(tt).replace({
+        case n @ LiteralNode(v) => n.infer()
+      }))
+    }
+  }
 }

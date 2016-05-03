@@ -58,13 +58,10 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
         b"${func.name}("
         if (distinct) b"distinct "
         b.sep(params, ",")(expr(_, true))
-        if (orderBy.nonEmpty) buildOrderByClause(orderBy)
+        if (orderBy.nonEmpty && !forOrdered) buildOrderByClause(orderBy)
         b")"
-        if (filter.isDefined) {
-          b" filter ("
-          buildWhereClause(filter)
-          b")"
-        }
+        if (orderBy.nonEmpty && forOrdered) { b" within group ("; buildOrderByClause(orderBy); b")" }
+        if (filter.isDefined) { b" filter ("; buildWhereClause(filter); b")" }
       case _ => super.expr(n, skipParens)
     }
   }
