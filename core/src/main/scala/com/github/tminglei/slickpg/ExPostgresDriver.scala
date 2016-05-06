@@ -32,6 +32,13 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
   trait API extends super.API {
     type InheritingTable = driver.InheritingTable
 
+    val Over = window.Over()
+    val RowCursor = window.RowCursor
+
+    implicit class AggFuncOver[R: TypedType](aggFunc: agg.AggFuncRep[R]) {
+      def over = window.WindowFuncRep[R](aggFunc._parts.toNode(implicitly[TypedType[R]]))
+    }
+
     /** NOTE: Array[Byte] maps to `bytea` instead of `byte ARRAY` */
     implicit val getByteArray = new GetResult[Array[Byte]] {
       def apply(pr: PositionedResult) = pr.nextBytes()
@@ -48,7 +55,7 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
   }
 
   /*************************************************************************
-    *                      for aggregate function support
+    *                 for aggregate and window function support
    *************************************************************************/
 
   class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
@@ -62,6 +69,16 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
         b")"
         if (orderBy.nonEmpty && forOrdered) { b" within group ("; buildOrderByClause(orderBy); b")" }
         if (filter.isDefined) { b" filter ("; buildWhereClause(filter); b")" }
+      case window.WindowFuncExpr(aggFuncExpr, partitionBy, orderBy, frameDef) =>
+        expr(aggFuncExpr)
+        b" over("
+        if(partitionBy.nonEmpty) { b" partition by "; b.sep(partitionBy, ",")(expr(_, true)) }
+        if(orderBy.nonEmpty) buildOrderByClause(orderBy)
+        frameDef.map {
+          case (mode, start, Some(end)) => b" $mode between $start and $end"
+          case (mode, start, None)      => b" $mode $start"
+        }
+        b") "
       case _ => super.expr(n, skipParens)
     }
   }

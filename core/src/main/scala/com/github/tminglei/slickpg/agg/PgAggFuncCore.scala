@@ -17,14 +17,14 @@ final case class AggFuncExpr(
 )(val buildType: Type) extends SimplyTypedNode {
   type Self = AggFuncExpr
   override def children: ConstArray[Node] = params ++ orderBy.map(_._1) ++ ConstArray.from(filter)
-  override protected[this] def rebuild(ch: ConstArray[Node]): AggFuncExpr = {
+  override protected[this] def rebuild(ch: ConstArray[Node]): Self = {
     val newAggParams = ch.slice(0, params.length)
     val orderByOffset = params.length
     val newOrderBy = ch.slice(orderByOffset, orderByOffset + orderBy.length)
     val filterOffset = orderByOffset + orderBy.length
     val filter = if (ch.length > filterOffset) Some(ch.last) else None
     copy(params = newAggParams, filter = filter,
-      orderBy = (orderBy).zip(newOrderBy).map { case ((_, o), n) => (n, o) }
+      orderBy = orderBy.zip(newOrderBy).map { case ((_, o), n) => (n, o) }
     )(buildType)
   }
 }
@@ -49,12 +49,12 @@ case class AggFuncParts(
   distinct: Boolean = false,
   forOrderedSet: Boolean = false
 ) {
-  def toNode(tt: Type) = {
+  def toNode(tpe: Type) = {
     if (forOrderedSet) require(orderBy.isDefined, "WITHIN GROUP (order_by_clause) is REQUIRED for ordered-set aggregate function!!")
     val params1 = ConstArray.from(params)
     val orderBy1 = ConstArray.from(orderBy).flatMap(o => ConstArray.from(o.columns))
     AggFuncExpr(aggFunc, params1, orderBy1, filter, distinct = distinct,
-        forOrderedSet = forOrderedSet)(tt).replace({
+        forOrderedSet = forOrderedSet)(tpe).replace({
       case n @ LiteralNode(v) => n.infer()
     })
   }
@@ -66,12 +66,12 @@ object AggFuncRep {
     AggFuncRep[R](AggFuncParts(aggFunc, params))
 }
 
-case class AggFuncRep[R] private[agg] (parts: AggFuncParts)(implicit tt: TypedType[R]) extends TypedRep[R] {
-  def distinct() = copy(parts.copy(distinct = true))
-  def sortBy(ordered: Ordered) = copy(parts.copy(orderBy = Some(ordered)))
+case class AggFuncRep[R: TypedType](_parts: AggFuncParts) extends TypedRep[R] {
+  def distinct() = copy(_parts.copy(distinct = true))
+  def sortBy(ordered: Ordered) = copy(_parts.copy(orderBy = Some(ordered)))
   def filter[F <: Rep[_]](where: => F)(implicit wt: CanBeQueryCondition[F]) =
-    copy(parts.copy(filter = Some(wt(where).toNode)))
-  def toNode: Node = parts.toNode(tt)
+    copy(_parts.copy(filter = Some(wt(where).toNode)))
+  def toNode: Node = _parts.toNode(implicitly[TypedType[R]])
 }
 
 ///--- for ordered data set
@@ -82,17 +82,17 @@ object OrderedAggFuncRep {
     OrderedAggFuncRepWithRetType[R](AggFuncParts(aggFunc, params, forOrderedSet = true))
 }
 
-case class OrderedAggFuncRep[R] private[agg] (parts: AggFuncParts)(implicit tt: TypedType[R]) extends TypedRep[R] {
+case class OrderedAggFuncRep[R: TypedType](_parts: AggFuncParts) extends TypedRep[R] {
   def within[T: TypedType](ordered: ColumnOrdered[T]) =
-    copy[T](parts.copy(orderBy = Some(ordered)))
+    copy[T](_parts.copy(orderBy = Some(ordered)))
   def filter[F <: Rep[_]](where: => F)(implicit wt: CanBeQueryCondition[F]) =
-    copy(parts.copy(filter = Some(wt(where).toNode)))
-  def toNode: Node = parts.toNode(tt)
+    copy(_parts.copy(filter = Some(wt(where).toNode)))
+  def toNode: Node = _parts.toNode(implicitly[TypedType[R]])
 }
-case class OrderedAggFuncRepWithRetType[R] private[agg] (parts: AggFuncParts)(implicit tt: TypedType[R]) extends TypedRep[R] {
+case class OrderedAggFuncRepWithRetType[R: TypedType](_parts: AggFuncParts) extends TypedRep[R] {
   def within[T: TypedType](ordered: ColumnOrdered[T]) =
-    copy[R](parts.copy(orderBy = Some(ordered)))
+    copy[R](_parts.copy(orderBy = Some(ordered)))
   def filter[F <: Rep[_]](where: => F)(implicit wt: CanBeQueryCondition[F]) =
-    copy(parts.copy(filter = Some(wt(where).toNode)))
-  def toNode: Node = parts.toNode(tt)
+    copy(_parts.copy(filter = Some(wt(where).toNode)))
+  def toNode: Node = _parts.toNode(implicitly[TypedType[R]])
 }

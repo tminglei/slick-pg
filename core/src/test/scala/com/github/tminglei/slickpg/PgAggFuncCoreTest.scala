@@ -48,7 +48,7 @@ class PgAggFuncCoreTest extends FunSuite {
 
   ///---
 
-  test("agg function base") {
+  test("agg function core") {
     val sql1 = tabs.map { t =>
       (stringAgg(t.name.?, ",").sortBy(t.name).distinct().filter(t.count <= 3), avg(t.count).filter(t.count < 10))
     }.result.statements.head
