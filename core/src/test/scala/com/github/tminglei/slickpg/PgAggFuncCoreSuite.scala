@@ -9,7 +9,7 @@ import slick.lifted.OptionMapperDSL
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-class PgAggFuncCoreTest extends FunSuite {
+class PgAggFuncCoreSuite extends FunSuite {
   import ExPostgresDriver.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
@@ -44,7 +44,7 @@ class PgAggFuncCoreTest extends FunSuite {
     agg.AggFuncRep[Double](AggLibrary.Corr, List(c1.toNode, c2.toNode))
 
   def percentileDisc(f: Double) = agg.OrderedAggFuncRep(AggLibrary.PercentileDisc, List(LiteralNode(f)))
-  def percentRank[T: ScalaBaseType](v: T) = agg.OrderedAggFuncRep.withRetType[Double](AggLibrary.PercentRank, List(LiteralNode(v)))
+  def percentRank[T: ScalaBaseType](v: T) = agg.OrderedAggFuncRep.withTypes[Any,Double](AggLibrary.PercentRank, List(LiteralNode(v)))
 
   ///---
 

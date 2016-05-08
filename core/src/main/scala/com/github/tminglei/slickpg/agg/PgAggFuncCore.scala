@@ -1,4 +1,5 @@
-package com.github.tminglei.slickpg.agg
+package com.github.tminglei.slickpg
+package agg
 
 import slick.ast._
 import slick.lifted._
@@ -78,8 +79,8 @@ case class AggFuncRep[R: TypedType](_parts: AggFuncParts) extends TypedRep[R] {
 object OrderedAggFuncRep {
   def apply(aggFunc: FunctionSymbol, params: Seq[Node])(implicit tt: TypedType[Int]): OrderedAggFuncRep[Int] =
     OrderedAggFuncRep[Int](AggFuncParts(aggFunc, params, forOrderedSet = true))
-  def withRetType[R: TypedType](aggFunc: FunctionSymbol, params: Seq[Node]): OrderedAggFuncRepWithRetType[R] =
-    OrderedAggFuncRepWithRetType[R](AggFuncParts(aggFunc, params, forOrderedSet = true))
+  def withTypes[T,R:TypedType](aggFunc: FunctionSymbol, params: Seq[Node]): OrderedAggFuncRepWithTypes[T,R] =
+    OrderedAggFuncRepWithTypes[T,R](AggFuncParts(aggFunc, params, forOrderedSet = true))
 }
 
 case class OrderedAggFuncRep[R: TypedType](_parts: AggFuncParts) extends TypedRep[R] {
@@ -89,9 +90,9 @@ case class OrderedAggFuncRep[R: TypedType](_parts: AggFuncParts) extends TypedRe
     copy(_parts.copy(filter = Some(wt(where).toNode)))
   def toNode: Node = _parts.toNode(implicitly[TypedType[R]])
 }
-case class OrderedAggFuncRepWithRetType[R: TypedType](_parts: AggFuncParts) extends TypedRep[R] {
-  def within[T: TypedType](ordered: ColumnOrdered[T]) =
-    copy[R](_parts.copy(orderBy = Some(ordered)))
+case class OrderedAggFuncRepWithTypes[T,R: TypedType](_parts: AggFuncParts) extends TypedRep[R] {
+  def within[T1 <: T,P,PR](ordered: ColumnOrdered[P])(implicit om: OptionMapperDSL.arg[T1,P]#to[R,PR]) =
+    copy[T,R](_parts.copy(orderBy = Some(ordered)))
   def filter[F <: Rep[_]](where: => F)(implicit wt: CanBeQueryCondition[F]) =
     copy(_parts.copy(filter = Some(wt(where).toNode)))
   def toNode: Node = _parts.toNode(implicitly[TypedType[R]])

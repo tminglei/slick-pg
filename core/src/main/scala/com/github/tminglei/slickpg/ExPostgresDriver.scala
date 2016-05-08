@@ -71,14 +71,14 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
         if (filter.isDefined) { b" filter ("; buildWhereClause(filter); b")" }
       case window.WindowFuncExpr(aggFuncExpr, partitionBy, orderBy, frameDef) =>
         expr(aggFuncExpr)
-        b" over("
+        b" over ("
         if(partitionBy.nonEmpty) { b" partition by "; b.sep(partitionBy, ",")(expr(_, true)) }
         if(orderBy.nonEmpty) buildOrderByClause(orderBy)
         frameDef.map {
           case (mode, start, Some(end)) => b" $mode between $start and $end"
           case (mode, start, None)      => b" $mode $start"
         }
-        b") "
+        b")"
       case _ => super.expr(n, skipParens)
     }
   }
