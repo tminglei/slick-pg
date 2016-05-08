@@ -3,6 +3,7 @@ package com.github.tminglei.slickpg
 import java.util.UUID
 
 import slick.ast._
+import slick.compiler.CompilerState
 import slick.jdbc._
 import slick.jdbc.meta.MTable
 import slick.lifted.PrimaryKey
@@ -14,6 +15,7 @@ import scala.reflect.{ClassTag, classTag}
 
 trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { driver =>
 
+  override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new QueryBuilder(n, state)
   override def createUpsertBuilder(node: Insert): InsertBuilder =
     if (useNativeUpsert) new NativeUpsertBuilder(node) else new super.UpsertBuilder(node)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
@@ -30,6 +32,13 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
   trait API extends super.API {
     type InheritingTable = driver.InheritingTable
 
+    val Over = window.Over()
+    val RowCursor = window.RowCursor
+
+    implicit class AggFuncOver[R: TypedType](aggFunc: agg.AggFuncRep[R]) {
+      def over = window.WindowFuncRep[R](aggFunc._parts.toNode(implicitly[TypedType[R]]))
+    }
+
     /** NOTE: Array[Byte] maps to `bytea` instead of `byte ARRAY` */
     implicit val getByteArray = new GetResult[Array[Byte]] {
       def apply(pr: PositionedResult) = pr.nextBytes()
@@ -42,6 +51,35 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
     }
     implicit val setByteArrayOption = new SetParameter[Option[Array[Byte]]] {
       def apply(v: Option[Array[Byte]], pp: PositionedParameters) = pp.setBytesOption(v)
+    }
+  }
+
+  /*************************************************************************
+    *                 for aggregate and window function support
+   *************************************************************************/
+
+  class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
+    import slick.util.MacroSupport.macroSupportInterpolation
+    override def expr(n: Node, skipParens: Boolean = false) = n match {
+      case agg.AggFuncExpr(func, params, orderBy, filter, distinct, forOrdered) =>
+        b"${func.name}("
+        if (distinct) b"distinct "
+        b.sep(params, ",")(expr(_, true))
+        if (orderBy.nonEmpty && !forOrdered) buildOrderByClause(orderBy)
+        b")"
+        if (orderBy.nonEmpty && forOrdered) { b" within group ("; buildOrderByClause(orderBy); b")" }
+        if (filter.isDefined) { b" filter ("; buildWhereClause(filter); b")" }
+      case window.WindowFuncExpr(aggFuncExpr, partitionBy, orderBy, frameDef) =>
+        expr(aggFuncExpr)
+        b" over ("
+        if(partitionBy.nonEmpty) { b" partition by "; b.sep(partitionBy, ",")(expr(_, true)) }
+        if(orderBy.nonEmpty) buildOrderByClause(orderBy)
+        frameDef.map {
+          case (mode, start, Some(end)) => b" $mode between $start and $end"
+          case (mode, start, None)      => b" $mode $start"
+        }
+        b")"
+      case _ => super.expr(n, skipParens)
     }
   }
 
