@@ -21,6 +21,8 @@ Slick-pg
 #### Currently supported pg features:
 - inherits
 - composite type (`basic`)
+- aggregate functions
+- window functions
 
 
 ** _tested on `PostgreSQL` `v9.5` with `Slick` `v3.1.1`._
@@ -179,6 +181,8 @@ Details
 - Search's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/search "Search's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgSearchSupportSuite.scala "test cases")
 - Geometry's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/geom "Geometry's oper/functions"), usage cases for [postgis](https://github.com/tminglei/slick-pg/blob/master/addons/jts/src/test/scala/com/github/tminglei/slickpg/PgPostGISSupportSuite.scala "test cases")
 - `basic` Composite type [support](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/composite "Composite type Support"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgCompositeSupportSuite.scala "test cases")
+- Aggregate [functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/agg "Aggregate functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/core/src/test/scala/com/github/tminglei/slickpg/PgAggFuncSupportSuite.scala)
+- Window [functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/window), usage [cases](https://github.com/tminglei/slick-pg/blob/master/core/src/test/scala/com/github/tminglei/slickpg/PgWindowFuncSupportSuite.scala)
 
 
 
