@@ -15,25 +15,24 @@ class PgAggFuncSupportSuite extends FunSuite {
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
-  case class Tab(name: String, count: Int, arr: List[Int], bool: Boolean, x: Double, y: Double)
+  case class Tab(name: String, count: Int, bool: Boolean, x: Double, y: Double)
 
   class Tabs(tag: Tag) extends Table[Tab](tag, "test_agg_tab1") {
     def name = column[String]("col2")
     def count = column[Int]("count")
-    def arr = column[List[Int]]("arr")
     def bool = column[Boolean]("bool")
     def x = column[Double]("x")
     def y = column[Double]("y")
 
-    def * = (name, count, arr, bool, x, y) <> (Tab.tupled, Tab.unapply)
+    def * = (name, count, bool, x, y) <> (Tab.tupled, Tab.unapply)
   }
   val tabs = TableQuery(new Tabs(_))
 
   val inserts = tabs ++= Seq(
-    Tab("foo", 1, List(1), true, 103.05, 179.17),
-    Tab("quux", 3, List(5), true, 57.39, 99.07),
-    Tab("bar", 2, List(7), false, 35.89, 101.33),
-    Tab("bar", 11, List(3), true, 73.75, 28.57)
+    Tab("foo", 1, true, 103.05, 179.17),
+    Tab("quux", 3, true, 57.39, 99.07),
+    Tab("bar", 2, false, 35.89, 101.33),
+    Tab("bar", 11, true, 73.75, 28.57)
   )
 
   ///---

@@ -64,8 +64,6 @@ trait PgAggFuncSupport extends JdbcTypesComponent { driver: PostgresDriver =>
 
   trait GeneralAggFunctions {
     def arrayAgg[T](c: Rep[Option[T]])(implicit tm: JdbcType[List[T]]) = AggFuncRep[List[T]](AggLibrary.ArrayAgg, List(c.toNode))
-    /* FIXME can't resolve the returned array of array yet */
-//    def arrayAgg2[T](c: Rep[Option[List[T]]])(implicit tm: JdbcType[List[T]]) = AggFuncRep[List[T]](AggLibrary.ArrayAgg, List(c.toNode))
     def stringAgg[P,R](c: Rep[P], delimiter: String)(implicit om: OptionMapperDSL.arg[String, P]#to[String, R]) =
       AggFuncRep[String](AggLibrary.StringAgg, List(c.toNode, LiteralNode(delimiter)))
     /* do it yourself like this */
