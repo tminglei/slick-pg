@@ -10,6 +10,7 @@ case object `[_,_)` extends EdgeType
 case object `(_,_]` extends EdgeType
 case object `(_,_)` extends EdgeType
 case object `[_,_]` extends EdgeType
+case object `empty` extends EdgeType
 
 import PgRangeSupportUtils._
 
@@ -24,10 +25,14 @@ case class Range[T](start: Option[T], end: Option[T], edge: EdgeType) {
     case `(_,_]` => s"(${oToString(start)},${oToString(end)}]"
     case `(_,_)` => s"(${oToString(start)},${oToString(end)})"
     case `[_,_]` => s"[${oToString(start)},${oToString(end)}]"
+    case `empty` => Range.empty_str
   }
 }
 
 object Range {
+  def emptyRange[T]: Range[T] = Range[T](None, None, `empty`)
+  val empty_str = "empty"
+
   def apply[T](start: T, end: T, edge: EdgeType = `[_,_)`): Range[T] = Range(Some(start), Some(end), edge)
 }
 
@@ -135,6 +140,7 @@ object PgRangeSupportUtils {
       Option(str).filterNot(_.isEmpty).map(convert)
 
     (str: String) => str match {
+      case Range.`empty_str` => Range.emptyRange[T]
       case `[_,_)Range`(start, end) => Range(conv(start, convert), conv(end, convert), `[_,_)`)
       case `(_,_]Range`(start, end) => Range(conv(start, convert), conv(end, convert), `(_,_]`)
       case `(_,_)Range`(start, end) => Range(conv(start, convert), conv(end, convert), `(_,_)`)
@@ -144,6 +150,7 @@ object PgRangeSupportUtils {
 
   def toStringFn[T](toString: (T => String)): (Range[T] => String) =
     (r: Range[T]) => r.edge match {
+      case `empty` => Range.empty_str
       case `[_,_)` => s"[${oToString(r.start, toString)},${oToString(r.end, toString)})"
       case `(_,_]` => s"(${oToString(r.start, toString)},${oToString(r.end, toString)}]"
       case `(_,_)` => s"(${oToString(r.start, toString)},${oToString(r.end, toString)})"
