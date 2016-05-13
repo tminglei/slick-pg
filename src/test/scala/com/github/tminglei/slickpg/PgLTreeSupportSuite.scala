@@ -56,15 +56,15 @@ class PgLTreeSupportSuite extends FunSuite {
             r => assert(rec1 === r)
           ),
           // ~
-          LTreeTests.filter(LTree("Top.Science").bind <@: _.path).result.head.map(
-            r => assert(rec1 === r)
+          LTreeTests.filter(_.path ~ "Top.Science").result.head.map(
+            r => assert(rec2 === r)
           ),
           // ?
           LTreeTests.filter(_.path ~| List("*.Astronomy.Astro*")).to[List].result.map(
             r => assert(List(rec4, rec13) === r)
           ),
-          // @
-          LTreeTests.filter(LTree("Top.Science").bind <@: _.path).result.head.map(
+          // <@
+          LTreeTests.filter(LTree("Top.Science").bind <@ _.path).result.head.map(
             r => assert(rec1 === r)
           ),
           // ||

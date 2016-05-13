@@ -3,8 +3,8 @@ Supported ltree Oper/Functions
 
 | Slick Oper/Function | PG Oper/Function |        Description            |            Example              | Result |
 | ------------------- | ---------------- | ----------------------------- | ------------------------------- | ------ |
-| @&gt;               | @&gt;            | is left argument an ancestor of right (or equal)? | 'Top.Science' @&gt; 'Top.Science.Astronomy'  | f    |
-| &lt;@:              | &lt;@            | is left argument a descendant of right (or equal)? | 'Top.Science' &lt;@ 'Top.Science.Astronomy' | t	|
+| @&gt;               | @&gt;            | is left argument an ancestor of right (or equal)? | 'Top.Science' @&gt; 'Top.Science.Astronomy'  | t    |
+| &lt;@               | &lt;@            | is left argument a descendant of right (or equal)? | 'Top.Science' &lt;@ 'Top.Science.Astronomy' | f	   |
 | ~                   | ~                | does ltree match lquery?      | 'Top.Science.Astronomy' ~ '*.Astronomy.*' | f 		|
 | @@                  | @                | does ltree match ltxtquery?   | 'Top.Science.Astronomy' @ 'Astro* & !pictures@' | f	|
 | &#124;&#124;        | &#124;&#124;     | concatenate ltree paths       | 'Top.Science'::ltree &#124;&#124; 'Astronomy.Stars'::ltree | 'Top.Science.Astronomy.Stars' |

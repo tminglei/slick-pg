@@ -38,8 +38,8 @@ trait PgLTreeExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     def @>[P2, R](e: Rep[P2])(implicit om: o#arg[B0, P2]#to[Boolean, R]) = {
         om.column(LTreeLibrary.@>, n, e.toNode)
       }
-    def <@:[P2, R](e: Rep[P2])(implicit om: o#arg[B0, P2]#to[Boolean, R]) = {
-        om.column(LTreeLibrary.<@, e.toNode, n)
+    def <@[P2, R](e: Rep[P2])(implicit om: o#arg[B0, P2]#to[Boolean, R]) = {
+        om.column(LTreeLibrary.<@, n, e.toNode)
       }
     def ~ [P2, R](e: Rep[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
         val lquery = Library.Cast.column[String](e.toNode, LiteralNode("lquery")).toNode
