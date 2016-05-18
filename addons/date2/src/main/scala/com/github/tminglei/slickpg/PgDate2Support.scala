@@ -226,18 +226,18 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
 
     implicit val getOffsetTime = mkGetResult(_.nextOffsetTime())
     implicit val getOffsetTimeOption = mkGetResult(_.nextOffsetTimeOption())
-    implicit val setOffsetTime = mkSetParameter[OffsetTime]("timetz", _.format(date2TzTimeFormatter), sqlType = Types.TIME_WITH_TIMEZONE)
-    implicit val setOffsetTimeOption = mkOptionSetParameter[OffsetTime]("timetz", _.format(date2TzTimeFormatter), sqlType = Types.TIME_WITH_TIMEZONE)
+    implicit val setOffsetTime = mkSetParameter[OffsetTime]("timetz", _.format(date2TzTimeFormatter), sqlType = Types.TIME /*Types.TIME_WITH_TIMEZONE*/)
+    implicit val setOffsetTimeOption = mkOptionSetParameter[OffsetTime]("timetz", _.format(date2TzTimeFormatter), sqlType = Types.TIME /*Types.TIME_WITH_TIMEZONE*/)
 
     implicit val getOffsetDateTime = mkGetResult(_.nextOffsetDateTime())
     implicit val getOffsetDateTimeOption = mkGetResult(_.nextOffsetDateTimeOption())
-    implicit val setOffsetDateTime = mkSetParameter[OffsetDateTime]("timestamptz", toOffsetDateTimeOrInfinity, sqlType = Types.TIMESTAMP_WITH_TIMEZONE)
-    implicit val setOffsetDateTimeOption = mkOptionSetParameter[OffsetDateTime]("timestamptz", toOffsetDateTimeOrInfinity, sqlType = Types.TIMESTAMP_WITH_TIMEZONE)
+    implicit val setOffsetDateTime = mkSetParameter[OffsetDateTime]("timestamptz", toOffsetDateTimeOrInfinity, sqlType = Types.TIMESTAMP /*Types.TIMESTAMP_WITH_TIMEZONE*/)
+    implicit val setOffsetDateTimeOption = mkOptionSetParameter[OffsetDateTime]("timestamptz", toOffsetDateTimeOrInfinity, sqlType = Types.TIMESTAMP /*Types.TIMESTAMP_WITH_TIMEZONE*/)
 
     implicit val getZonedDateTime = mkGetResult(_.nextZonedDateTime())
     implicit val getZonedDateTimeOption = mkGetResult(_.nextZonedDateTimeOption())
-    implicit val setZonedDateTime = mkSetParameter[ZonedDateTime]("timestamptz", toZonedDateTimeOrInfinity, sqlType = Types.TIMESTAMP_WITH_TIMEZONE)
-    implicit val setZonedDateTimeOption = mkOptionSetParameter[ZonedDateTime]("timestamptz", toZonedDateTimeOrInfinity, sqlType = Types.TIMESTAMP_WITH_TIMEZONE)
+    implicit val setZonedDateTime = mkSetParameter[ZonedDateTime]("timestamptz", toZonedDateTimeOrInfinity, sqlType = Types.TIMESTAMP /*Types.TIMESTAMP_WITH_TIMEZONE*/)
+    implicit val setZonedDateTimeOption = mkOptionSetParameter[ZonedDateTime]("timestamptz", toZonedDateTimeOrInfinity, sqlType = Types.TIMESTAMP /*Types.TIMESTAMP_WITH_TIMEZONE*/)
 
     implicit val getInstant = mkGetResult(_.nextInstant())
     implicit val getInstantOption = mkGetResult(_.nextInstantOption())
