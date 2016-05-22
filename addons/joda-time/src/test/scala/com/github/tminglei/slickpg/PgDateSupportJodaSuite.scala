@@ -87,15 +87,15 @@ class PgDateSupportJodaSuite extends FunSuite {
           Datetimes.filter(_.id === 101L.bind).map(r => r.time + r.date).result.head.map(
             r => assert(LocalDateTime.parse("2010-11-03T12:33:01.101") === r)
           ),
-          Datetimes.filter(_.id === 101L.bind).map(r => r.date +++ r.interval).result.head.map(
-            r => assert(LocalDateTime.parse("2010-11-04T01:01:00.335") === r)
-          ),
-          Datetimes.filter(_.id === 101L.bind).map(r => r.time +++ r.interval).result.head.map(
-            r => assert(LocalTime.parse("13:34:01.436") === r)
-          ),
-          Datetimes.filter(_.id === 101L.bind).map(r => r.datetime +++ r.interval).result.head.map(
-            r => assert(LocalDateTime.parse("2001-01-04T14:22:00.558") === r)
-          ),
+          Datetimes.filter(_.id === 101L.bind).map(r => (r.date +++ r.interval, r.date +++ Period.days(1))).result.head.map {
+            case (r1, r2) => assert(LocalDateTime.parse("2010-11-04T01:01:00.335") === r1); assert(LocalDateTime.parse("2010-11-04T00:00:00.000") === r2)
+          },
+          Datetimes.filter(_.id === 101L.bind).map(r => (r.time +++ r.interval, r.time +++ Period.hours(1))).result.head.map {
+            case (r1, r2) => assert(LocalTime.parse("13:34:01.436") === r1); assert(LocalTime.parse("13:33:01.101") === r2)
+          },
+          Datetimes.filter(_.id === 101L.bind).map(r => (r.datetime +++ r.interval, r.datetime +++ Period.days(1))).result.head.map {
+            case (r1, r2) => assert(LocalDateTime.parse("2001-01-04T14:22:00.558") === r1); assert(LocalDateTime.parse("2001-01-04T13:21:00.223") === r2)
+          },
           Datetimes.filter(_.id === 101L.bind).map(r => r.date ++ 7.bind).result.head.map(
             r => assert(LocalDate.parse("2010-11-10") === r)
           ),
@@ -118,15 +118,15 @@ class PgDateSupportJodaSuite extends FunSuite {
           Datetimes.filter(_.id === 101L.bind).map(r => r.time - LocalTime.parse("02:37:00").bind).result.head.map(
             r => assert(Period.parse("PT9H56M1.100S") === r)
           ),
-          Datetimes.filter(_.id === 101L.bind).map(r => r.datetime --- r.interval).result.head.map(
-            r => assert(LocalDateTime.parse("2001-01-02T12:19:59.888") === r)
-          ),
-          Datetimes.filter(_.id === 101L.bind).map(r => r.time --- r.interval).result.head.map(
-            r => assert(LocalTime.parse("11:32:00.766") === r)
-          ),
-          Datetimes.filter(_.id === 101L.bind).map(r => r.date --- r.interval).result.head.map(
-            r => assert(LocalDateTime.parse("2010-11-01T22:58:59.665") === r)
-          ),
+          Datetimes.filter(_.id === 101L.bind).map(r => (r.datetime --- r.interval, r.datetime --- Period.days(1))).result.head.map {
+            case (r1, r2) => assert(LocalDateTime.parse("2001-01-02T12:19:59.888") === r1); assert(LocalDateTime.parse("2001-01-02T13:21:00.223") === r2)
+          },
+          Datetimes.filter(_.id === 101L.bind).map(r => (r.time --- r.interval, r.time --- Period.hours(1))).result.head.map {
+            case (r1, r2) => assert(LocalTime.parse("11:32:00.766") === r1); assert(LocalTime.parse("11:33:01.101") === r2)
+          },
+          Datetimes.filter(_.id === 101L.bind).map(r => (r.date --- r.interval, r.date --- Period.days(1))).result.head.map {
+            case (r1, r2) => assert(LocalDateTime.parse("2010-11-01T22:58:59.665") === r1); assert(LocalDateTime.parse("2010-11-02T00:00:00.000") === r2)
+          },
           // age
 //          Datetimes.filter(_.id === 101L.bind).map(r => r.datetime.age === r.datetime.age(Functions.currentDate.asColumnOf[LocalDateTime])).result.head.map(
 //            r => assert(true === r)
@@ -164,7 +164,7 @@ class PgDateSupportJodaSuite extends FunSuite {
               r => assert(Period.parse("P-1DT-1H-1M-1S").plus(Period.parse("PT0.665S")) === r)
             ),
             // -
-            Datetimes.filter(_.id === 101L.bind).map(r => r.interval - Period.parse("PT2H").bind).result.head.map(
+            Datetimes.filter(_.id === 101L.bind).map(r => r.interval - Period.hours(2)).result.head.map(
               r => assert(Period.parse("P1DT-58M-60S").plus(Period.parse("PT0.335S")) === r)
             ),
             // *
