@@ -124,8 +124,8 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
 
     implicit val getZonedDateTime = mkGetResult(_.nextZonedDateTime())
     implicit val getZonedDateTimeOption = mkGetResult(_.nextZonedDateTimeOption())
-    implicit val setZonedDateTime = mkSetParameter[DateTime]("timestamptz", _.toString(jodaTzDateTimeFormatter), sqlType = Types.TIMESTAMP_WITH_TIMEZONE)
-    implicit val setZonedDateTimeOption = mkOptionSetParameter[DateTime]("timestamptz", _.toString(jodaTzDateTimeFormatter), sqlType = Types.TIMESTAMP_WITH_TIMEZONE)
+    implicit val setZonedDateTime = mkSetParameter[DateTime]("timestamptz", _.toString(jodaTzDateTimeFormatter), sqlType = Types.TIMESTAMP /*Types.TIMESTAMP_WITH_TIMEZONE*/)
+    implicit val setZonedDateTimeOption = mkOptionSetParameter[DateTime]("timestamptz", _.toString(jodaTzDateTimeFormatter), sqlType = Types.TIMESTAMP /*Types.TIMESTAMP_WITH_TIMEZONE*/)
 
     implicit val getPeriod = mkGetResult(_.nextPeriod())
     implicit val getPeriodOption = mkGetResult(_.nextPeriodOption())
