@@ -2,10 +2,10 @@ package com.github.tminglei.slickpg
 package agg
 
 import slick.ast.Library.SqlFunction
-import slick.ast.LiteralNode
+import slick.ast.{Library, LiteralNode}
 import slick.driver.{JdbcTypesComponent, PostgresDriver}
 import slick.jdbc.JdbcType
-import slick.lifted.{ColumnOrdered, OptionMapperDSL}
+import slick.lifted.OptionMapperDSL
 
 trait PgAggFuncSupport extends JdbcTypesComponent { driver: PostgresDriver =>
   import driver.api._
@@ -75,7 +75,7 @@ trait PgAggFuncSupport extends JdbcTypesComponent { driver: PostgresDriver =>
       AggFuncRep[Boolean](AggLibrary.BoolAnd, List(c.toNode))
     def boolOr[P,R](c: Rep[P])(implicit om: OptionMapperDSL.arg[Boolean, P]#to[Boolean, R]) =
       AggFuncRep[Boolean](AggLibrary.BoolOr, List(c.toNode))
-    def count_*()(implicit tm: JdbcType[Long]) = AggFuncRep[Long](AggLibrary.Count, List(LiteralNode("*")))
+    def count_*()(implicit tm: JdbcType[Long]) = AggFuncRep[Long](Library.CountAll, Nil)
     def count[T](c: Rep[T])(implicit tm: JdbcType[Long]) = AggFuncRep[Long](AggLibrary.Count, List(c.toNode))
     def every[P,R](c: Rep[P])(implicit om: OptionMapperDSL.arg[Boolean, P]#to[Boolean, R]) =
       AggFuncRep[Boolean](AggLibrary.Every, List(c.toNode))

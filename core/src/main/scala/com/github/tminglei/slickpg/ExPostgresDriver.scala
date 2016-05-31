@@ -62,11 +62,14 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
     import slick.util.MacroSupport.macroSupportInterpolation
     override def expr(n: Node, skipParens: Boolean = false) = n match {
       case agg.AggFuncExpr(func, params, orderBy, filter, distinct, forOrdered) =>
-        b"${func.name}("
-        if (distinct) b"distinct "
-        b.sep(params, ",")(expr(_, true))
-        if (orderBy.nonEmpty && !forOrdered) buildOrderByClause(orderBy)
-        b")"
+        if (func == Library.CountAll) b"${func.name}"
+        else {
+          b"${func.name}("
+          if (distinct) b"distinct "
+          b.sep(params, ",")(expr(_, true))
+          if (orderBy.nonEmpty && !forOrdered) buildOrderByClause(orderBy)
+          b")"
+        }
         if (orderBy.nonEmpty && forOrdered) { b" within group ("; buildOrderByClause(orderBy); b")" }
         if (filter.isDefined) { b" filter ("; buildWhereClause(filter); b")" }
       case window.WindowFuncExpr(aggFuncExpr, partitionBy, orderBy, frameDef) =>

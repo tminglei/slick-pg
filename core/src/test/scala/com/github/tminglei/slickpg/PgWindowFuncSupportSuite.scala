@@ -28,7 +28,7 @@ class PgWindowFuncSupportSuite extends FunSuite {
   test("window functions") {
     val sql1 = tabs.map { t =>
       val w = Over.partitionBy(t.col2).sortBy(t.col4 desc)
-      (rowNumber() :: w, rank() :: w, denseRank() :: w, percentRank() :: w, cumeDist() :: w)
+      (rowNumber() :: Over, rank() :: w, denseRank() :: w, percentRank() :: w, cumeDist() :: w)
     }.result.statements.head
     println(s"sql1: $sql1")
 
@@ -52,13 +52,13 @@ class PgWindowFuncSupportSuite extends FunSuite {
         DBIO.seq(
           tabs.map { t =>
             val w = Over.partitionBy(t.col2).sortBy(t.col4 desc)
-            (rowNumber() :: w, rank() :: w, denseRank() :: w, percentRank() :: w, cumeDist() :: w)
+            (rowNumber() :: Over, rank() :: w, denseRank() :: w, percentRank() :: w, cumeDist() :: w)
           }.result.map { r =>
             val expected = List(
-              (1, 1, 1, 0.0, 0.5),
-              (2, 2, 2, 1.0, 1.0),
-              (1, 1, 1, 0.0, 1.0/3),
-              (2, 2, 2, 0.5, 2.0/3),
+              (2, 1, 1, 0.0, 0.5),
+              (1, 2, 2, 1.0, 1.0),
+              (5, 1, 1, 0.0, 1.0/3),
+              (4, 2, 2, 0.5, 2.0/3),
               (3, 3, 3, 1.0, 1.0)
             )
             assert(expected === r)
