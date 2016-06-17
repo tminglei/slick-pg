@@ -72,6 +72,10 @@ class PgSprayJsonSupportSuite extends FunSuite {
           JsonTests.filter(_.id === testRec2.id.bind).map(_.jbean).result.head.map(
             r => assert(JBean("t1", 5) === r)
           ),
+          // null return
+          JsonTests.filter(_.json.+>>("a") === "101").map(_.json.+>("d")).result.head.map(
+            r => assert(JsNull === r)
+          ),
           // ->>/->
           JsonTests.filter(_.json.+>>("a") === "101").map(_.json.+>>("c")).result.head.map(
             r => assert("[3,4,5,9]" === r.replace(" ", ""))

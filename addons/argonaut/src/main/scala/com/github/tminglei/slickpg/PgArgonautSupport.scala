@@ -18,6 +18,7 @@ trait PgArgonautSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
         pgjson,
         (s) => s.parse.toOption.getOrElse(jNull),
         (v) => v.nospaces,
+        zero = jNull,
         hasLiteralForm = false
       )
 

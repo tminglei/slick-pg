@@ -21,6 +21,7 @@ trait PgJson4sSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes
         pgjson,
         (s) => jsonMethods.parse(s),
         (v) => jsonMethods.compact(jsonMethods.render(v)),
+        zero = JNull,
         hasLiteralForm = false
       )
 

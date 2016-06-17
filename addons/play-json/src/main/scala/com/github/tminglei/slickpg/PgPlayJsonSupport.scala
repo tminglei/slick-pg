@@ -18,6 +18,7 @@ trait PgPlayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
         pgjson,
         (v) => Json.parse(v),
         (v) => Json.stringify(v),
+        zero = JsNull,
         hasLiteralForm = false
       )
 

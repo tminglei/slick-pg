@@ -19,7 +19,10 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
   }
 
   //
-  class SimpleArrayJdbcType[T] private[slickpg] (sqlBaseType: String, tmap: Any => T, tcomap: T => Any)(
+  class SimpleArrayJdbcType[T] private[slickpg] (sqlBaseType: String,
+                                                tmap: Any => T,
+                                                tcomap: T => Any,
+                                                zero: Seq[T] = null.asInstanceOf[Seq[T]])(
               implicit override val classTag: ClassTag[Seq[T]], ctag: ClassTag[T], checked: ArrChecked[T])
                     extends DriverJdbcType[Seq[T]] { self =>
 
@@ -31,7 +34,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
     override def getValue(r: ResultSet, idx: Int): Seq[T] = {
       val value = r.getArray(idx)
-      if (r.wasNull) null else value.getArray.asInstanceOf[Array[Any]].map(tmap)
+      if (r.wasNull) zero else value.getArray.asInstanceOf[Array[Any]].map(tmap)
     }
 
     override def setValue(vList: Seq[T], p: PreparedStatement, idx: Int): Unit = p.setArray(idx, mkArray(vList))
@@ -74,7 +77,8 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
   //
   class AdvancedArrayJdbcType[T](sqlBaseType: String,
                                 fromString: (String => Seq[T]),
-                                mkString: (Seq[T] => String))(
+                                mkString: (Seq[T] => String),
+                                zero: Seq[T] = null.asInstanceOf[Seq[T]])(
               implicit override val classTag: ClassTag[Seq[T]], tag: ClassTag[T])
                     extends DriverJdbcType[Seq[T]] {
 
@@ -84,7 +88,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
 
     override def getValue(r: ResultSet, idx: Int): Seq[T] = {
       val value = r.getString(idx)
-      if (r.wasNull) null else fromString(value)
+      if (r.wasNull) zero else fromString(value)
     }
 
     override def setValue(vList: Seq[T], p: PreparedStatement, idx: Int): Unit = p.setArray(idx, mkArray(vList))
