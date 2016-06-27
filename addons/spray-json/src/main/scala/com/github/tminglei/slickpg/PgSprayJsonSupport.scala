@@ -11,10 +11,10 @@ trait PgSprayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
   def pgjson: String
 
   /// alias
-  trait JsonImplicits extends SparyJsonImplicits
+  trait JsonImplicits extends SprayJsonImplicits
 
-  trait SparyJsonImplicits {
-    implicit val sparyJsonTypeMapper: JdbcType[JsValue] =
+  trait SprayJsonImplicits {
+    implicit val sprayJsonTypeMapper: JdbcType[JsValue] =
       new GenericJdbcType[JsValue](
         pgjson,
         (s) => s.parseJson,
@@ -23,10 +23,10 @@ trait PgSprayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
         hasLiteralForm = false
       )
 
-    implicit def sparyJsonColumnExtensionMethods(c: Rep[JsValue]) = {
+    implicit def sprayJsonColumnExtensionMethods(c: Rep[JsValue]) = {
         new JsonColumnExtensionMethods[JsValue, JsValue](c)
       }
-    implicit def sparyJsonOptionColumnExtensionMethods(c: Rep[Option[JsValue]]) = {
+    implicit def sprayJsonOptionColumnExtensionMethods(c: Rep[Option[JsValue]]) = {
         new JsonColumnExtensionMethods[JsValue, Option[JsValue]](c)
       }
   }

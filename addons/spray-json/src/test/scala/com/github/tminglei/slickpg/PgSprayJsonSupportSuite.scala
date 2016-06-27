@@ -171,7 +171,7 @@ class PgSprayJsonSupportSuite extends FunSuite {
   //------------------------------------------------------------------------------
   case class JsonBean1(id: Long, json: JsValue)
 
-  test("Spary json Plain SQL support") {
+  test("Spray json Plain SQL support") {
     import MyPostgresDriver.plainAPI._
 
     implicit val getJsonBeanResult = GetResult(r => JsonBean1(r.nextLong(), r.nextJson()))
