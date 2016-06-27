@@ -1,7 +1,9 @@
 package com.github.tminglei.slickpg
 package utils
 
+import java.sql.ResultSet
 import java.util.{Map => JMap}
+
 import scala.reflect.ClassTag
 
 object SimpleArrayUtils {
@@ -35,27 +37,27 @@ object SimpleArrayUtils {
   /** !!! NOTE: only used to transfer array data into driver/preparedStatement. !!! */
   private class SimpleArray[T : ClassTag](sqlBaseTypeName: String, vList: Seq[T], mkString: (Seq[T] => String)) extends java.sql.Array {
 
-    def getBaseTypeName = sqlBaseTypeName.replaceFirst("^\"", "").replaceFirst("\"$", "")
+    override def getBaseTypeName = sqlBaseTypeName.replaceFirst("^\"", "").replaceFirst("\"$", "")
 
-    def getBaseType = ???
+    override def getBaseType(): Int = ???
 
-    def getArray = vList.toArray
+    override def getArray(): AnyRef = vList.toArray
 
-    def getArray(map: JMap[String, Class[_]]) = ???
+    override def getArray(map: JMap[String, Class[_]]): AnyRef = ???
 
-    def getArray(index: Long, count: Int) = ???
+    override def getArray(index: Long, count: Int): AnyRef = ???
 
-    def getArray(index: Long, count: Int, map: JMap[String, Class[_]]) = ???
+    override def getArray(index: Long, count: Int, map: JMap[String, Class[_]]): AnyRef = ???
 
-    def getResultSet = ???
+    override def getResultSet(): ResultSet = ???
 
-    def getResultSet(map: JMap[String, Class[_]]) = ???
+    override def getResultSet(map: JMap[String, Class[_]]): ResultSet = ???
 
-    def getResultSet(index: Long, count: Int) = ???
+    override def getResultSet(index: Long, count: Int): ResultSet = ???
 
-    def getResultSet(index: Long, count: Int, map: JMap[String, Class[_]]) = ???
+    override def getResultSet(index: Long, count: Int, map: JMap[String, Class[_]]): ResultSet = ???
 
-    def free() = { /* nothing to do */ }
+    override def free() = { /* nothing to do */ }
 
     override def toString = mkString(vList)
   }

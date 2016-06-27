@@ -30,10 +30,12 @@ object TypeConverters extends Logging {
 
   def register[FROM,TO](convert: (FROM => TO))(implicit from: u.TypeTag[FROM], to: u.TypeTag[TO]) = {
     logger.info(s"register converter for ${from.tpe.erasure} => ${to.tpe.erasure}")
-    find(from.tpe, to.tpe).map(_.conv = convert).orElse({
-      convConfigList :+= ConvConfig(from.tpe, to.tpe, convert)
-      None
-    })
+    convConfigList.synchronized {
+      find(from.tpe, to.tpe).map(_.conv = convert).orElse({
+        convConfigList :+= ConvConfig(from.tpe, to.tpe, convert)
+        None
+      })
+    }
   }
 
   def converter[FROM,TO](implicit from: u.TypeTag[FROM], to: u.TypeTag[TO]): (FROM => TO) = {

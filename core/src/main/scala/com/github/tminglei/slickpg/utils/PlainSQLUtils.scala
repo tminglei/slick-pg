@@ -14,12 +14,14 @@ object PlainSQLUtils extends Logging {
   /** used to support 'nextArray[T]/nextArrayOption[T]' in PgArraySupport */
   def addNextArrayConverter[T](conv: PositionedResult => Option[Seq[T]])(implicit ttag: u.TypeTag[T]) = {
     logger.info(s"\u001B[36m >>> adding next array converter for ${u.typeOf[T]} \u001B[0m")
-    val convKey = u.typeOf[T].toString
-    val existed = nextArrayConverters.get(convKey)
-    if (existed.isDefined) logger.warn(
-      s"\u001B[31m >>> DUPLICATED converter for ${u.typeOf[T]}!!! \u001B[36m If it's expected, pls ignore it.\u001B[0m"
-    )
-    nextArrayConverters += (convKey -> conv)
+    nextArrayConverters.synchronized {
+      val convKey = u.typeOf[T].toString
+      val existed = nextArrayConverters.get(convKey)
+      if (existed.isDefined) logger.warn(
+        s"\u001B[31m >>> DUPLICATED converter for ${u.typeOf[T]}!!! \u001B[36m If it's expected, pls ignore it.\u001B[0m"
+      )
+      nextArrayConverters += (convKey -> conv)
+    }
   }
 
   ///

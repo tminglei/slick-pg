@@ -117,11 +117,13 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
   /** NOTE: used to support code gen */
   def bindPgTypeToScala(pgType: String, scalaType: ClassTag[_]) = {
     logger.info(s"\u001B[36m >>> binding $pgType -> $scalaType \u001B[0m")
-    val existed = pgTypeToScala.get(pgType)
-    if (existed.isDefined) logger.warn(
-      s"\u001B[31m >>> DUPLICATED BINDING - existed: ${existed.get}, new: $scalaType !!! \u001B[36m If it's expected, pls ignore it.\u001B[0m"
-    )
-    pgTypeToScala += (pgType -> scalaType)
+    pgTypeToScala.synchronized {
+      val existed = pgTypeToScala.get(pgType)
+      if (existed.isDefined) logger.warn(
+        s"\u001B[31m >>> DUPLICATED BINDING - existed: ${existed.get}, new: $scalaType !!! \u001B[36m If it's expected, pls ignore it.\u001B[0m"
+      )
+      pgTypeToScala += (pgType -> scalaType)
+    }
   }
 
   {
