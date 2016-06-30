@@ -1,6 +1,8 @@
 package com.github.tminglei.slickpg;
 
 /**
+ * Used by [[PgEnumSupportSuite]]
+ *
  * Created by gwilson on 6/24/16.
  */
 public enum Languages {

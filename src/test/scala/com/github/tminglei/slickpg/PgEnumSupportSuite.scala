@@ -16,6 +16,22 @@ class PgEnumSupportSuite extends FunSuite {
     val red, orange, yellow, green, blue, purple = Value
   }
 
+  ///---
+  trait Enum[A] {
+    trait Value { self: A =>
+      _values :+= this
+    }
+    private var _values = List.empty[A]
+    def values = _values map (v => (v.toString, v)) toMap
+  }
+
+  object Currency extends Enum[Currency]
+  sealed trait Currency extends Currency.Value
+  case object EUR extends Currency
+  case object GBP extends Currency
+  case object USD extends Currency
+
+  /////////////////////////////////////////////////////////////////////
   import WeekDays._
   import Rainbows._
 
@@ -32,6 +48,17 @@ class PgEnumSupportSuite extends FunSuite {
       implicit val weekDayOptionColumnExtensionMethodsBuilder = createEnumOptionColumnExtensionMethodsBuilder(WeekDays)
       implicit val rainbowColumnExtensionMethodsBuilder = createEnumColumnExtensionMethodsBuilder(Rainbows)
       implicit val rainbowOptionColumnExtensionMethodsBuilder = createEnumOptionColumnExtensionMethodsBuilder(Rainbows)
+
+      /// custom types of java enums and algebraic data type (ADT)
+      implicit val currencyTypeMapper = createEnumJdbcType[Currency]("Currency", _.toString, Currency.values.get(_).get, quoteName = false)
+      implicit val currencyTypeListMapper = createEnumListJdbcType[Currency]("Currency", _.toString, Currency.values.get(_).get, quoteName = false)
+      implicit val languagesTypeMapper = createEnumJdbcType[Languages]("Languages", _.name(), Languages.valueOf, quoteName = true)
+      implicit val languagesTypeListMapper = createEnumListJdbcType[Languages]("Languages", _.name(), Languages.valueOf, quoteName = true)
+
+      implicit val currencyColumnExtensionMethodsBuilder = createEnumColumnExtensionMethodsBuilder[Currency]
+      implicit val currencyOptionColumnExtensionMethodsBuilder = createEnumOptionColumnExtensionMethodsBuilder[Currency]
+      implicit val languagesColumnExtensionMethodsBuilder = createEnumColumnExtensionMethodsBuilder[Languages]
+      implicit val languagesOptionColumnExtensionMethodsBuilder = createEnumOptionColumnExtensionMethodsBuilder[Languages]
     }
   }
 
@@ -40,7 +67,12 @@ class PgEnumSupportSuite extends FunSuite {
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
-  case class TestEnumBean(id: Long, weekday: WeekDay, rainbow: Option[Rainbow], weekdays: List[WeekDay], rainbows: List[Rainbow])
+  case class TestEnumBean(
+    id: Long,
+    weekday: WeekDay,
+    rainbow: Option[Rainbow],
+    weekdays: List[WeekDay],
+    rainbows: List[Rainbow])
 
   class TestEnumTable(tag: Tag) extends Table[TestEnumBean](tag, "test_enum_table") {
     def id = column[Long]("id")
@@ -53,11 +85,34 @@ class PgEnumSupportSuite extends FunSuite {
   }
   val TestEnums = TableQuery(new TestEnumTable(_))
 
+  ///---
+  case class TestEnumBean1(
+    id: Long,
+    currency: Currency,
+    language: Option[Languages],
+    currencies: List[Currency],
+    languages: List[Languages])
+
+  class TestEnumTable1(tag: Tag) extends Table[TestEnumBean1](tag, "test_enum_table_1") {
+    def id = column[Long]("id")
+    def currency = column[Currency]("currency")
+    def language = column[Option[Languages]]("language")
+    def currencies = column[List[Currency]]("currencies")
+    def languages = column[List[Languages]]("languages")
+
+    def * = (id, currency, language, currencies, languages) <> (TestEnumBean1.tupled, TestEnumBean1.unapply)
+  }
+  val TestEnums1 = TableQuery(new TestEnumTable1(_))
+
   //------------------------------------------------------------------
 
   val testRec1 = TestEnumBean(101L, Mon, Some(red), Nil, List(red, yellow))
   val testRec2 = TestEnumBean(102L, Wed, Some(blue), List(Sat, Sun), List(green))
   val testRec3 = TestEnumBean(103L, Fri, None, List(Thu), Nil)
+
+  val testRec11 = TestEnumBean1(101L, EUR, Some(Languages.SCALA), Nil, List(Languages.SCALA, Languages.CLOJURE))
+  val testRec12 = TestEnumBean1(102L, GBP, None, List(EUR, GBP, USD), List(Languages.JAVA))
+  val testRec13 = TestEnumBean1(103L, USD, Some(Languages.CLOJURE), List(GBP), Nil)
 
   test("Enum Lifted support") {
     Await.result(db.run(
@@ -97,6 +152,49 @@ class PgEnumSupportSuite extends FunSuite {
           (TestEnums.schema) drop,
           PgEnumSupportUtils.buildDropSql("Rainbow", true),
           PgEnumSupportUtils.buildDropSql("weekday")
+        )
+      ) .transactionally
+    ), Duration.Inf)
+  }
+
+  test("Custom enum Lifted support") {
+    Await.result(db.run(
+      DBIO.seq(
+        PgEnumSupportUtils.buildCreateSql("Currency", Currency.values.toStream.map(_._1), quoteName = false),
+        PgEnumSupportUtils.buildCreateSql("Languages", Languages.values.toStream.map(_.name()), quoteName = true),
+        (TestEnums1.schema) create,
+        ///
+        TestEnums1 forceInsertAll List(testRec11, testRec12, testRec13)
+      ).andThen(
+        DBIO.seq(
+          TestEnums1.sortBy(_.id).to[List].result.map(
+            r => assert(List(testRec11, testRec12, testRec13) === r)
+          ),
+          // first
+          TestEnums1.filter(_.id === 101L.bind).map(t => t.currency.first).result.head.map(
+            r => assert(EUR === r)
+          ),
+          // last
+          TestEnums1.filter(_.id === 101L.bind).map(t => t.language.last).result.head.map(
+            r => assert(Some(Languages.CLOJURE) === r)
+          ),
+          // all
+          TestEnums1.filter(_.id === 101L.bind).map(t => t.currency.all).result.head.map(
+            r => assert(Currency.values.toList.map(_._2) === r)
+          ),
+          // range
+          TestEnums1.filter(_.id === 102L.bind).map(t => t.currency range null.asInstanceOf[Currency]).result.head.map(
+            r => assert(List(GBP, USD) === r)
+          ),
+          TestEnums1.filter(_.id === 102L.bind).map(t => null.asInstanceOf[Currency].bind range t.currency).result.head.map(
+            r => assert(List(EUR, GBP) === r)
+          )
+        )
+      ).andFinally(
+        DBIO.seq(
+          (TestEnums1.schema) drop,
+          PgEnumSupportUtils.buildDropSql("Currency"),
+          PgEnumSupportUtils.buildDropSql("Languages", true)
         )
       ) .transactionally
     ), Duration.Inf)
