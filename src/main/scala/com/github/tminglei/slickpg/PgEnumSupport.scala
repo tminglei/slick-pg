@@ -62,6 +62,60 @@ trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes {
   }
 }
 
+trait PgCustomEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes { driver: PostgresDriver =>
+
+  import driver.api._
+  import PgEnumSupportUtils.sqlName
+
+  def createEnumColumnExtensionMethodsBuilder[T](implicit tm: JdbcType[T], tm1: JdbcType[List[T]]) =
+    (c: Rep[T]) => {
+      new EnumColumnExtensionMethods[T, T](c)(tm, tm1)
+    }
+
+  def createEnumOptionColumnExtensionMethodsBuilder[T](implicit tm: JdbcType[T], tm1: JdbcType[List[T]]) =
+    (c: Rep[Option[T]]) => {
+      new EnumColumnExtensionMethods[T, Option[T]](c)(tm, tm1)
+    }
+
+  //-----------------------------------------------------------------------------------
+
+  def createEnumListJdbcType[T](sqlEnumTypeName: String, enumToString: (T => String), stringToEnum: (String => T), quoteName: Boolean = false)
+                               (implicit tag: ClassTag[T]): JdbcType[List[T]] = {
+    new AdvancedArrayJdbcType[T](sqlName(sqlEnumTypeName, quoteName),
+      fromString = s => utils.SimpleArrayUtils.fromString(s1 => stringToEnum(s1))(s).orNull,
+      mkString = v => utils.SimpleArrayUtils.mkString[T](enumToString)(v)
+    ).to(_.toList)
+  }
+
+  def createEnumJdbcType[T](sqlEnumTypeName: String, enumToString: (T => String), stringToEnum: (String => T), quoteName: Boolean = false)
+                           (implicit tag: ClassTag[T]): JdbcType[T] = {
+
+    new DriverJdbcType[T] {
+
+      override val classTag: ClassTag[T] = tag
+
+      override def sqlType: Int = java.sql.Types.OTHER
+
+      override def sqlTypeName(sym: Option[FieldSymbol]): String = sqlName(sqlEnumTypeName, quoteName)
+
+      override def getValue(r: ResultSet, idx: Int): T = {
+        val value = r.getString(idx)
+        if (r.wasNull) null.asInstanceOf[T] else stringToEnum(value)
+      }
+
+      override def setValue(v: T, p: PreparedStatement, idx: Int): Unit = p.setObject(idx, toStr(v), sqlType)
+
+      override def updateValue(v: T, r: ResultSet, idx: Int): Unit = r.updateObject(idx, toStr(v), sqlType)
+
+      override def hasLiteralForm: Boolean = true
+
+      override def valueToSQLLiteral(v: T) = if (v == null) "NULL" else s"'$v'"
+
+      private def toStr(v: T) = if (v == null) null else enumToString(v)
+    }
+  }
+}
+
 object PgEnumSupportUtils {
   import slick.driver.PostgresDriver.api._
 
@@ -72,6 +126,12 @@ object PgEnumSupportUtils {
   def buildCreateSql[T <: Enumeration](sqlTypeName: String, enumObject: T, quoteName: Boolean = false) = {
     // `toStream` to prevent re-ordering after `map(e => s"'${e.toString}'")`
     val enumValuesString = enumObject.values.toStream.map(e => s"'$e'").mkString(",")
+    sqlu"create type #${sqlName(sqlTypeName, quoteName)} as enum (#$enumValuesString)"
+  }
+
+  def buildCreateCustomSql[T](sqlTypeName: String, enumValues: Seq[String], quoteName: Boolean = false) = {
+    // `toStream` to prevent re-ordering after `map(e => s"'${e.toString}'")`
+    val enumValuesString = enumValues.mkString("'", "', '", "'")
     sqlu"create type #${sqlName(sqlTypeName, quoteName)} as enum (#$enumValuesString)"
   }
 
