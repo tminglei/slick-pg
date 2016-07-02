@@ -91,9 +91,15 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
    ***********************************************************************/
 
   class NativeUpsertBuilder(ins: Insert) extends super.InsertBuilder(ins) {
-    private val (nonPkAutoIncSyms, insertingSyms) = syms.toSeq.partition { s =>
+    /* NOTE: pk defined by using method `primaryKey` and pk defined with `PrimaryKey` can only have one,
+             here we let table ddl to help us ensure this. */
+    private lazy val primaryKeys = table.driverTable.asInstanceOf[Table[_]].primaryKeys
+    private lazy val (nonPkAutoIncSyms, insertingSyms) = syms.toSeq.partition { s =>
       s.options.contains(ColumnOption.AutoInc) && !(s.options contains ColumnOption.PrimaryKey) }
-    private lazy val (pkSyms, softSyms) = insertingSyms.partition(_.options.contains(ColumnOption.PrimaryKey))
+    private lazy val (pkSyms, softSyms) = insertingSyms.partition { sym =>
+      sym.options.contains(ColumnOption.PrimaryKey) || primaryKeys.exists(pk => pk.columns.collect {
+        case Select(_, f: FieldSymbol) => f
+      }.exists(_.name == sym.name)) }
     private lazy val pkNames = pkSyms.map { fs => quoteIdentifier(fs.name) }
     private lazy val softNames = softSyms.map { fs => quoteIdentifier(fs.name) }
 
