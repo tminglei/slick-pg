@@ -4,11 +4,10 @@ package geom
 import slick.lifted._
 import slick.ast.{LiteralNode, TypedType}
 import slick.ast.Library.{SqlFunction, SqlOperator}
-import slick.driver.{JdbcTypesComponent, PostgresDriver}
 import slick.lifted.FunctionSymbolExtensionMethods._
-import slick.jdbc.JdbcType
+import slick.jdbc.{JdbcType, JdbcTypesComponent, PostgresProfile}
 
-trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
+trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
   import driver.api._
 
   trait BasePostGISAssistants[GEOMETRY, POINT <: GEOMETRY, LINESTRING <: GEOMETRY, POLYGON <: GEOMETRY, GEOMETRYCOLLECTION <: GEOMETRY] {

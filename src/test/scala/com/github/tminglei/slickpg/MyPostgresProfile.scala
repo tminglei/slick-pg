@@ -1,6 +1,6 @@
 package com.github.tminglei.slickpg
 
-trait MyPostgresDriver extends ExPostgresDriver
+trait MyPostgresProfile extends ExPostgresProfile
                           with PgArraySupport
                           with PgDateSupport
                           with PgJsonSupport
@@ -31,4 +31,4 @@ trait MyPostgresDriver extends ExPostgresDriver
                          with SimpleSearchPlainImplicits {}
 }
 
-object MyPostgresDriver extends MyPostgresDriver
+object MyPostgresProfile extends MyPostgresProfile

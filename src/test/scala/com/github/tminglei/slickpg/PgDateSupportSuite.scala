@@ -10,7 +10,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class PgDateSupportSuite extends FunSuite {
-  import MyPostgresDriver.api._
+  import MyPostgresProfile.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 

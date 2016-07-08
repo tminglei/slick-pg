@@ -12,7 +12,7 @@ import slick.backend.StaticDatabaseConfig
 //class PgTsqlSupportSuite extends FunSuite {
 //
 //  test("tsql support - simple") {
-//    import MyPostgresDriver.plainAPI._
+//    import MyPostgresProfile.plainAPI._
 //
 //    /*
 //     CREATE TABLE tsql_test_simple

@@ -8,7 +8,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class PgRangeSupportSuite extends FunSuite {
-  import MyPostgresDriver.api._
+  import MyPostgresProfile.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
@@ -119,7 +119,7 @@ class PgRangeSupportSuite extends FunSuite {
   //////////////////////////////////////////////////////////////////////
 
   test("Range Plain SQL support") {
-    import MyPostgresDriver.plainAPI._
+    import MyPostgresProfile.plainAPI._
 
     implicit val getRangeBeanResult = GetResult(r =>
       RangeBean(r.nextLong(), r.nextIntRange(), r.nextFloatRange(), r.nextTimestampRangeOption()))

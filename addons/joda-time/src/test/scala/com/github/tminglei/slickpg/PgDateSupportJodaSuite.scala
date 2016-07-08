@@ -4,16 +4,14 @@ import java.util.concurrent.Executors
 
 import org.joda.time._
 import org.scalatest.FunSuite
-import slick.jdbc.GetResult
+import slick.jdbc.{GetResult, PostgresProfile}
 
-import scala.concurrent.{ExecutionContext, Await}
+import scala.concurrent.{Await, ExecutionContext}
 
 class PgDateSupportJodaSuite extends FunSuite {
   implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
-  import slick.driver.PostgresDriver
-
-  object MyPostgresDriver extends PostgresDriver
+  object MyPostgresProfile extends PostgresProfile
                             with PgDateSupportJoda {
 
     override val api = new API with DateTimeImplicits
@@ -23,7 +21,7 @@ class PgDateSupportJodaSuite extends FunSuite {
   }
 
   ///
-  import MyPostgresDriver.api._
+  import MyPostgresProfile.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
@@ -230,7 +228,7 @@ class PgDateSupportJodaSuite extends FunSuite {
   //////////////////////////////////////////////////////////////////////
 
   test("Joda time Plain SQL support") {
-    import MyPostgresDriver.plainAPI._
+    import MyPostgresProfile.plainAPI._
 
     implicit val getDateBean = GetResult(r => DatetimeBean(
       r.nextLong(), r.nextLocalDate(), r.nextLocalTime(), r.nextLocalDateTime(), r.nextZonedDateTime(), r.nextPeriod()))

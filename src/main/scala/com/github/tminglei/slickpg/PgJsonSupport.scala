@@ -1,7 +1,6 @@
 package com.github.tminglei.slickpg
 
-import slick.driver.PostgresDriver
-import slick.jdbc.{PositionedResult, JdbcType}
+import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
 
 /** simple json string wrapper */
 case class JsonString(value: String)
@@ -9,7 +8,7 @@ case class JsonString(value: String)
 /**
  * simple json support; if all you want is just getting from / saving to db, and using pg json operations/methods, it should be enough
  */
-trait PgJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+trait PgJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
   import driver.api._
 
   def pgjson: String
@@ -39,9 +38,9 @@ trait PgJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes {
     import scala.reflect.classTag
 
     // used to support code gen
-    if (driver.isInstanceOf[ExPostgresDriver]) {
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("json", classTag[JsonString])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("jsonb", classTag[JsonString])
+    if (driver.isInstanceOf[ExPostgresProfile]) {
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("json", classTag[JsonString])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("jsonb", classTag[JsonString])
     }
 
     implicit class PgJsonPositionedResult(r: PositionedResult) {

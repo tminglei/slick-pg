@@ -8,7 +8,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class PgJsonSupportSuite extends FunSuite {
-  import MyPostgresDriver.api._
+  import MyPostgresProfile.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
@@ -134,7 +134,7 @@ class PgJsonSupportSuite extends FunSuite {
   //------------------------------------------------------------------------------
 
   test("Json Plain SQL support") {
-    import MyPostgresDriver.plainAPI._
+    import MyPostgresProfile.plainAPI._
 
     implicit val getJsonBeanResult = GetResult(r => JsonBean(r.nextLong(), r.nextJson()))
 
@@ -144,7 +144,7 @@ class PgJsonSupportSuite extends FunSuite {
       DBIO.seq(
         sqlu"""create table JsonTest0(
               id int8 not null primary key,
-              json #${MyPostgresDriver.pgjson} not null)
+              json #${MyPostgresProfile.pgjson} not null)
           """,
         ///
         sqlu""" insert into JsonTest0 values(${b.id}, ${b.json}) """,

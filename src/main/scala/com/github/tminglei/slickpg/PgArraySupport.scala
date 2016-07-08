@@ -1,13 +1,11 @@
 package com.github.tminglei.slickpg
 
 import java.util.UUID
-import slick.driver.PostgresDriver
-import java.sql.{Timestamp, Time, Date}
-import slick.jdbc.{PositionedResult, JdbcType}
-
+import java.sql.{Date, Time, Timestamp}
+import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
 import scala.reflect.runtime.{universe => u}
 
-trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes { driver: PostgresDriver =>
+trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes { driver: PostgresProfile =>
   import driver.api._
 
   /// alias
@@ -48,18 +46,18 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
     }
 
     // used to support code gen
-    if (driver.isInstanceOf[ExPostgresDriver]) {
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_uuid", classTag[Seq[UUID]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_text", classTag[Seq[String]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_int8", classTag[Seq[Long]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_int4", classTag[Seq[Int]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_int2", classTag[Seq[Short]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_float4", classTag[Seq[Float]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_float8", classTag[Seq[Double]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_bool", classTag[Seq[Boolean]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_date", classTag[Seq[Date]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_time", classTag[Seq[Time]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_timestamp", classTag[Seq[Timestamp]])
+    if (driver.isInstanceOf[ExPostgresProfile]) {
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_uuid", classTag[Seq[UUID]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_text", classTag[Seq[String]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_int8", classTag[Seq[Long]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_int4", classTag[Seq[Int]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_int2", classTag[Seq[Short]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_float4", classTag[Seq[Float]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_float8", classTag[Seq[Double]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_bool", classTag[Seq[Boolean]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_date", classTag[Seq[Date]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_time", classTag[Seq[Time]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_timestamp", classTag[Seq[Timestamp]])
     }
 
     implicit class PgArrayPositionedResult(r: PositionedResult) {

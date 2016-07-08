@@ -3,10 +3,9 @@ package com.github.tminglei.slickpg
 import org.joda.time._
 import org.joda.time.format.{DateTimeFormat, ISODateTimeFormat}
 import org.postgresql.util.PGInterval
-import slick.driver.PostgresDriver
-import slick.jdbc.{JdbcType, PositionedResult}
+import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
 
-trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
   import PgJodaSupportUtils._
   import driver.api._
 
@@ -80,11 +79,11 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
     import scala.reflect.classTag
 
     // used to support code gen
-    if (driver.isInstanceOf[ExPostgresDriver]) {
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("date", classTag[LocalDate])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("time", classTag[LocalTime])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("timestamp", classTag[LocalDateTime])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("timestamptz", classTag[DateTime])
+    if (driver.isInstanceOf[ExPostgresProfile]) {
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("date", classTag[LocalDate])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("time", classTag[LocalTime])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("timestamp", classTag[LocalDateTime])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("timestamptz", classTag[DateTime])
       // let users do it by themselves
 //      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("interval", classTag[Duration])
 //      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("interval", classTag[Period])

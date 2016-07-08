@@ -5,12 +5,11 @@ import java.sql.{PreparedStatement, ResultSet}
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.io.{WKBReader, WKBWriter, WKTReader, WKTWriter}
 import slick.ast.FieldSymbol
-import slick.driver.PostgresDriver
-import slick.jdbc.{JdbcType, PositionedParameters, PositionedResult, SetParameter}
+import slick.jdbc._
 
 import scala.reflect.ClassTag
 
-trait PgPostGISSupport extends geom.PgPostGISExtensions { driver: PostgresDriver =>
+trait PgPostGISSupport extends geom.PgPostGISExtensions { driver: PostgresProfile =>
   import driver.api._
 
   trait PostGISAssistants extends BasePostGISAssistants[Geometry, Point, LineString, Polygon, GeometryCollection]

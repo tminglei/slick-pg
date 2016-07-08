@@ -1,7 +1,6 @@
 package com.github.tminglei.slickpg
 
-import slick.driver.PostgresDriver
-import slick.jdbc.{PositionedResult, JdbcType}
+import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
 
 /** simple inet string wrapper */
 case class InetString(value: String) {
@@ -21,7 +20,7 @@ case class MacAddrString(value: String)
 /**
  * simple inet/macaddr support; if all you want is just getting from / saving to db, and using pg json operations/methods, it should be enough
  */
-trait PgNetSupport extends net.PgNetExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+trait PgNetSupport extends net.PgNetExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
   import driver.api._
 
   /// alias
@@ -66,9 +65,9 @@ trait PgNetSupport extends net.PgNetExtensions with utils.PgCommonJdbcTypes { dr
     }
 
     // used to support code gen
-    if (driver.isInstanceOf[ExPostgresDriver]) {
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("inet", classTag[InetString])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("macaddr", classTag[MacAddrString])
+    if (driver.isInstanceOf[ExPostgresProfile]) {
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("inet", classTag[InetString])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("macaddr", classTag[MacAddrString])
     }
 
     implicit class PgNetPositionedResult(r: PositionedResult) {

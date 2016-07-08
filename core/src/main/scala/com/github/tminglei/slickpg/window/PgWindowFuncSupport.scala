@@ -2,12 +2,11 @@ package com.github.tminglei.slickpg
 package window
 
 import slick.ast.Library.SqlFunction
-import slick.ast.{LiteralNode}
-import slick.driver.{JdbcTypesComponent, PostgresDriver}
-import slick.jdbc.JdbcType
+import slick.ast.LiteralNode
+import slick.jdbc.{JdbcType, JdbcTypesComponent, PostgresProfile}
 import slick.lifted.OptionMapperDSL
 
-trait PgWindowFuncSupport extends JdbcTypesComponent { driver: PostgresDriver =>
+trait PgWindowFuncSupport extends JdbcTypesComponent { driver: PostgresProfile =>
   import driver.api._
 
   object WindowLibrary {
@@ -45,6 +44,6 @@ trait PgWindowFuncSupport extends JdbcTypesComponent { driver: PostgresDriver =>
   }
 }
 
-object PgWindowFuncSupport extends PgWindowFuncSupport with PostgresDriver {
+object PgWindowFuncSupport extends PgWindowFuncSupport with PostgresProfile {
   val WindowFunctions = new WindowFunctions {}
 }

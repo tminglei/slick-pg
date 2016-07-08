@@ -4,16 +4,14 @@ import java.util.concurrent.Executors
 
 import org.scalatest.FunSuite
 import org.threeten.bp._
-import slick.jdbc.GetResult
+import slick.jdbc.{GetResult, PostgresProfile}
 
-import scala.concurrent.{ExecutionContext, Await}
+import scala.concurrent.{Await, ExecutionContext}
 
 class PgDate2bpSupportSuite extends FunSuite {
   implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
-  import slick.driver.PostgresDriver
-
-  object MyPostgresDriver extends PostgresDriver
+  object MyPostgresProfile extends PostgresProfile
                             with PgDateSupport2bp {
 
     override val api = new API with DateTimeImplicits
@@ -23,7 +21,7 @@ class PgDate2bpSupportSuite extends FunSuite {
   }
 
   ///
-  import MyPostgresDriver.api._
+  import MyPostgresProfile.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
@@ -214,7 +212,7 @@ class PgDate2bpSupportSuite extends FunSuite {
   //////////////////////////////////////////////////////////////////////
 
   test("Threeten date Plain SQL support") {
-    import MyPostgresDriver.plainAPI._
+    import MyPostgresProfile.plainAPI._
 
     implicit val getDateBean = GetResult(r => DatetimeBean(
       r.nextLong(), r.nextLocalDate(), r.nextLocalTime(), r.nextLocalDateTime(), r.nextZonedDateTime(),

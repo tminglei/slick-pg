@@ -1,8 +1,8 @@
 package com.github.tminglei.slickpg
 
-import slick.driver.PostgresDriver
 import java.sql.{Date, Timestamp}
-import slick.jdbc.{PositionedResult, JdbcType}
+
+import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
 
 // edge type definitions
 sealed trait EdgeType
@@ -39,7 +39,7 @@ object Range {
 /**
  * simple range support; if all you want is just getting from / saving to db, and using pg range operations/methods, it should be enough
  */
-trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
   import driver.api._
 
   private def toTimestamp(str: String) = Timestamp.valueOf(str)
@@ -78,12 +78,12 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
     }
 
     // used to support code gen
-    if (driver.isInstanceOf[ExPostgresDriver]) {
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("int4range", classTag[Range[Int]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("int8range", classTag[Range[Long]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("numrange", classTag[Range[Float]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("tsrange", classTag[Range[Timestamp]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("daterange", classTag[Range[Date]])
+    if (driver.isInstanceOf[ExPostgresProfile]) {
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("int4range", classTag[Range[Int]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("int8range", classTag[Range[Long]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("numrange", classTag[Range[Float]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("tsrange", classTag[Range[Timestamp]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("daterange", classTag[Range[Date]])
     }
 
     implicit class PgRangePositionedResult(r: PositionedResult) {

@@ -5,17 +5,15 @@ import java.util.concurrent.Executors
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import com.vividsolutions.jts.io.{WKBWriter, WKTReader, WKTWriter}
 import org.scalatest.FunSuite
-import slick.jdbc.GetResult
+import slick.jdbc.{GetResult, PostgresProfile}
 
-import scala.concurrent.{ExecutionContext, Await}
+import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 
 class PgPostGISSupportSuite extends FunSuite {
   implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
-  import slick.driver.PostgresDriver
-
-  object MyPostgresDriver extends PostgresDriver with PgPostGISSupport {
+  object MyPostgresProfile extends PostgresProfile with PgPostGISSupport {
 
     override val api = new API with PostGISImplicits with PostGISAssistants
 
@@ -24,7 +22,7 @@ class PgPostGISSupportSuite extends FunSuite {
   }
 
   ///
-  import MyPostgresDriver.api._
+  import MyPostgresProfile.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
@@ -730,7 +728,7 @@ class PgPostGISSupportSuite extends FunSuite {
   }
 
   test("PostGIS Plain SQL support") {
-    import MyPostgresDriver.plainAPI._
+    import MyPostgresProfile.plainAPI._
 
     implicit val GetPointBeanResult = GetResult(r => PointBean(r.nextLong, r.nextGeometry[Point]))
 

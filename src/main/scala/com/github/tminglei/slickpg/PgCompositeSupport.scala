@@ -1,13 +1,11 @@
 package com.github.tminglei.slickpg
 
-import slick.driver.PostgresDriver
 import scala.reflect.runtime.{universe => u}
 import scala.reflect.ClassTag
 import composite.Struct
+import slick.jdbc.{PositionedResult, PostgresProfile}
 
-import slick.jdbc.PositionedResult
-
-trait PgCompositeSupport extends utils.PgCommonJdbcTypes with array.PgArrayJdbcTypes { driver: PostgresDriver =>
+trait PgCompositeSupport extends utils.PgCommonJdbcTypes with array.PgArrayJdbcTypes { driver: PostgresProfile =>
 
   def createCompositeJdbcType[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
     val util = new PgCompositeSupportUtils(cl)

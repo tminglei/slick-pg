@@ -8,7 +8,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class PgLTreeSupportSuite extends FunSuite {
-  import MyPostgresDriver.api._
+  import MyPostgresProfile.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
@@ -164,7 +164,7 @@ class PgLTreeSupportSuite extends FunSuite {
   //------------------------------------------------------------------------------
 
   test("Ltree Plain SQL support") {
-    import MyPostgresDriver.plainAPI._
+    import MyPostgresProfile.plainAPI._
 
     implicit val getLTreeBeanResult = GetResult(r => LTreeBean(r.nextLong(), r.nextLTree(), r.nextArray[LTree]().toList))
 

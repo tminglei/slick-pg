@@ -5,7 +5,7 @@ import java.util.concurrent.Executors
 import io.circe._
 import io.circe.parser._
 import org.scalatest.FunSuite
-import slick.jdbc.GetResult
+import slick.jdbc.{GetResult, PostgresProfile}
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
@@ -13,9 +13,7 @@ import scala.concurrent.duration._
 class PgCirceJsonSupportSuite extends FunSuite {
   implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
-  import slick.driver.PostgresDriver
-
-  object MyPostgresDriver extends PostgresDriver
+  object MyPostgresProfile extends PostgresProfile
                             with PgCirceJsonSupport
                             with array.PgArrayJdbcTypes {
     override val pgjson = "jsonb"
@@ -27,7 +25,7 @@ class PgCirceJsonSupportSuite extends FunSuite {
     val plainAPI = new API with CirceJsonPlainImplicits
   }
 
-  import MyPostgresDriver.api._
+  import MyPostgresProfile.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
@@ -136,7 +134,7 @@ class PgCirceJsonSupportSuite extends FunSuite {
   }
 
   test("Circe json Plain SQL support") {
-    import MyPostgresDriver.plainAPI._
+    import MyPostgresProfile.plainAPI._
 
     implicit val getJsonBeanResult = GetResult(r => JsonBean(r.nextLong(), r.nextJson()))
 
@@ -146,7 +144,7 @@ class PgCirceJsonSupportSuite extends FunSuite {
       DBIO.seq(
         sqlu"""create table JsonTest5(
               id int8 not null primary key,
-              json #${MyPostgresDriver.pgjson} not null)
+              json #${MyPostgresProfile.pgjson} not null)
           """,
         sqlu""" insert into JsonTest5 values(${b.id}, ${b.json}) """,
         sql""" select * from JsonTest5 where id = ${b.id} """.as[JsonBean].head.map(

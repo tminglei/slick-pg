@@ -1,12 +1,12 @@
 package com.github.tminglei.slickpg
 
-import slick.driver.PostgresDriver
-import slick.jdbc.{PositionedResult, JdbcType}
+import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
 
+/** simple tsvector/tsquery string wrapper */
 case class TsVector(value: String)
 case class TsQuery(value: String)
 
-trait PgSearchSupport extends search.PgSearchExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+trait PgSearchSupport extends search.PgSearchExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
   import driver.api._
 
   trait SearchAssistants extends BaseSearchAssistants[TsVector, TsQuery]
@@ -37,9 +37,9 @@ trait PgSearchSupport extends search.PgSearchExtensions with utils.PgCommonJdbcT
     import scala.reflect.classTag
 
     // used to support code gen
-    if (driver.isInstanceOf[ExPostgresDriver]) {
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("tsvector", classTag[TsVector])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("tsquery", classTag[TsQuery])
+    if (driver.isInstanceOf[ExPostgresProfile]) {
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("tsvector", classTag[TsVector])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("tsquery", classTag[TsQuery])
     }
 
     implicit class PgSearchPositionedResult(r: PositionedResult) {

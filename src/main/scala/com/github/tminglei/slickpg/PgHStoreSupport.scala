@@ -1,11 +1,10 @@
 package com.github.tminglei.slickpg
 
 import scala.collection.convert.{WrapAsJava, WrapAsScala}
-import slick.driver.PostgresDriver
 import org.postgresql.util.HStoreConverter
-import slick.jdbc.{PositionedResult, JdbcType}
+import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
 
-trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
   import driver.api._
 
   /// alias
@@ -34,8 +33,8 @@ trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcT
     import scala.reflect.classTag
 
     // used to support code gen
-    if (driver.isInstanceOf[ExPostgresDriver]) {
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("hstore", classTag[Map[String, String]])
+    if (driver.isInstanceOf[ExPostgresProfile]) {
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("hstore", classTag[Map[String, String]])
     }
 
     implicit class PgHStorePositionedResult(r: PositionedResult) {

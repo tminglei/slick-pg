@@ -17,7 +17,7 @@ class PgArraySupportSuite extends FunSuite {
   case class Institution(value: Long)
   case class MarketFinancialProduct(value: String)
 
-  object MyPostgresDriver1 extends ExPostgresDriver with PgArraySupport {
+  object MyPostgresProfile1 extends ExPostgresProfile with PgArraySupport {
     override val api = new API with ArrayImplicits with MyArrayImplicitsPlus {}
 
     ///
@@ -35,7 +35,7 @@ class PgArraySupportSuite extends FunSuite {
   }
 
   //////////////////////////////////////////////////////////////////////////
-  import MyPostgresDriver1.api._
+  import MyPostgresProfile1.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
@@ -160,7 +160,7 @@ class PgArraySupportSuite extends FunSuite {
   )
 
   test("Array Plain SQL support") {
-    import MyPostgresDriver.plainAPI._
+    import MyPostgresProfile.plainAPI._
     import utils.PlainSQLUtils._
 
     {
@@ -217,7 +217,7 @@ class PgArraySupportSuite extends FunSuite {
           f => {
             b.bytea.zip(f.bytea).map(r => assert(r._1 === r._2))
             b.uuidArr.zip(f.uuidArr).map(r => assert(r._1 === r._2))
-            b.strArr.zip(f.strArr).map(r => assert(r._1 === r._2))
+            b.strArr.getOrElse(Nil).zip(f.strArr.getOrElse(Nil)).map(r => assert(r._1 === r._2))
             b.longArr.zip(f.longArr).map(r => assert(r._1 === r._2))
             b.intArr.zip(f.intArr).map(r => assert(r._1 === r._2))
             b.shortArr.zip(f.shortArr).map(r => assert(r._1 === r._2))

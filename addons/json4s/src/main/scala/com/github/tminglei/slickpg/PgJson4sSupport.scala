@@ -1,9 +1,8 @@
 package com.github.tminglei.slickpg
 
-import slick.driver.PostgresDriver
-import slick.jdbc.{JdbcType, PositionedResult}
+import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
 
-trait PgJson4sSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+trait PgJson4sSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
   import driver.api._
   import org.json4s._
 
@@ -39,9 +38,9 @@ trait PgJson4sSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes
     import scala.reflect.classTag
 
     // used to support code gen
-    if (driver.isInstanceOf[ExPostgresDriver]) {
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("json", classTag[JValue])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("jsonb", classTag[JValue])
+    if (driver.isInstanceOf[ExPostgresProfile]) {
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("json", classTag[JValue])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("jsonb", classTag[JValue])
     }
 
     implicit class PgJsonPositionedResult(r: PositionedResult) {

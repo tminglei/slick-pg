@@ -7,7 +7,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class PgHStoreSupportSuite extends FunSuite {
-  import MyPostgresDriver.api._
+  import MyPostgresProfile.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
@@ -105,7 +105,7 @@ class PgHStoreSupportSuite extends FunSuite {
   //------------------------------------------------------------------------------
 
   test("Hstore Plain SQL support") {
-    import MyPostgresDriver.plainAPI._
+    import MyPostgresProfile.plainAPI._
 
     implicit val getMapBeanResult = GetResult(r => MapBean(r.nextLong(), r.nextHStore()))
 

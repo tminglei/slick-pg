@@ -1,23 +1,23 @@
 package com.github.tminglei.slickpg
 
 import org.scalatest.FunSuite
-import slick.driver.JdbcProfile
-import slick.profile.Capability
+import slick.basic.Capability
+import slick.jdbc.JdbcCapabilities
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class PgUpsertSuite extends FunSuite {
 
-  object MyPostgresDriver extends ExPostgresDriver {
+  object MyPostgresProfile extends ExPostgresProfile {
     // Add back `capabilities.insertOrUpdate` to enable native `upsert` support
     override protected def computeCapabilities: Set[Capability] =
-      super.computeCapabilities + JdbcProfile.capabilities.insertOrUpdate
+      super.computeCapabilities + JdbcCapabilities.insertOrUpdate
   }
 
   ///---
 
-  import ExPostgresDriver.api._
+  import ExPostgresProfile.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
@@ -36,10 +36,10 @@ class PgUpsertSuite extends FunSuite {
 
   test("emulate upsert support") {
 
-    val upsertSql = ExPostgresDriver.compileInsert(UpsertTests.toNode).upsert.sql
+    val upsertSql = ExPostgresProfile.compileInsert(UpsertTests.toNode).upsert.sql
     println(s"upsert sql: $upsertSql")
 
-    assert(upsertSql.contains("begin;"))
+    assert(upsertSql.contains("where not exists"))
 
     Await.result(db.run(
       DBIO.seq(
@@ -70,9 +70,9 @@ class PgUpsertSuite extends FunSuite {
   }
 
   test("native upsert support") {
-    import MyPostgresDriver.api._
+    import MyPostgresProfile.api._
 
-    val upsertSql = MyPostgresDriver.compileInsert(UpsertTests.toNode).upsert.sql
+    val upsertSql = MyPostgresProfile.compileInsert(UpsertTests.toNode).upsert.sql
     println(s"upsert sql: $upsertSql")
 
     assert(upsertSql.contains("on conflict"))
@@ -130,9 +130,9 @@ class PgUpsertSuite extends FunSuite {
 
   ///
   test("native upsert support - autoInc + independent pk") {
-    import MyPostgresDriver.api._
+    import MyPostgresProfile.api._
 
-    val upsertSql = MyPostgresDriver.compileInsert(UpsertTests1.toNode).upsert.sql
+    val upsertSql = MyPostgresProfile.compileInsert(UpsertTests1.toNode).upsert.sql
     println(s"upsert sql: $upsertSql")
 
     assert(upsertSql.contains("on conflict"))
@@ -166,9 +166,9 @@ class PgUpsertSuite extends FunSuite {
   }
 
   test("native upsert support - autoInc + pk defined by using `primaryKey`") {
-    import MyPostgresDriver.api._
+    import MyPostgresProfile.api._
 
-    val upsertSql = MyPostgresDriver.compileInsert(UpsertTests11.toNode).upsert.sql
+    val upsertSql = MyPostgresProfile.compileInsert(UpsertTests11.toNode).upsert.sql
     println(s"upsert sql: $upsertSql")
 
     assert(upsertSql.contains("on conflict"))

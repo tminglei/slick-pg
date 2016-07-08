@@ -4,15 +4,13 @@ import java.util.concurrent.Executors
 
 import org.scalatest.FunSuite
 import play.api.libs.json._
-import slick.jdbc.GetResult
+import slick.jdbc.{GetResult, PostgresProfile}
 
-import scala.concurrent.{ExecutionContext, Await}
+import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 
 class PgPlayJsonSupportSuite extends FunSuite {
   implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
-
-  import slick.driver.PostgresDriver
 
   case class JBean(name: String, count: Int)
   object JBean {
@@ -20,7 +18,7 @@ class PgPlayJsonSupportSuite extends FunSuite {
     implicit val jbeanWrt = Json.writes[JBean]
   }
 
-  object MyPostgresDriver extends PostgresDriver
+  object MyPostgresProfile extends PostgresProfile
                             with PgPlayJsonSupport
                             with array.PgArrayJdbcTypes {
     override val pgjson = "jsonb"
@@ -39,7 +37,7 @@ class PgPlayJsonSupportSuite extends FunSuite {
   }
 
   ///
-  import MyPostgresDriver.api._
+  import MyPostgresProfile.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
@@ -182,7 +180,7 @@ class PgPlayJsonSupportSuite extends FunSuite {
   case class JsonBean1(id: Long, json: JsValue)
 
   test("Json Plain SQL support") {
-    import MyPostgresDriver.plainAPI._
+    import MyPostgresProfile.plainAPI._
 
     implicit val getJsonBeanResult = GetResult(r => JsonBean1(r.nextLong(), r.nextJson()))
 
@@ -192,7 +190,7 @@ class PgPlayJsonSupportSuite extends FunSuite {
       DBIO.seq(
         sqlu"""create table JsonTest2(
               id int8 not null primary key,
-              json #${MyPostgresDriver.pgjson} not null)
+              json #${MyPostgresProfile.pgjson} not null)
           """,
         ///
         sqlu""" insert into JsonTest2 values(${b.id}, ${b.json}) """,

@@ -3,10 +3,11 @@ package array
 
 import scala.reflect.ClassTag
 import slick.ast.FieldSymbol
-import slick.driver.{PostgresDriver, JdbcTypesComponent}
-import java.sql.{ResultSet, PreparedStatement}
+import java.sql.{PreparedStatement, ResultSet}
 
-trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
+import slick.jdbc.{JdbcTypesComponent, PostgresProfile}
+
+trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
 
   @deprecated(message = "use 'new SimpleArrayJdbcType[T](..).to[SEQ[T]](..)' instead", since = "0.7.1")
   class SimpleArrayListJdbcType[T](sqlBaseType: String)(

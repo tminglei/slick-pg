@@ -2,11 +2,11 @@ package com.github.tminglei.slickpg
 package utils
 
 import slick.ast.FieldSymbol
-import slick.driver.{PostgresDriver, JdbcTypesComponent}
 import scala.reflect.ClassTag
 import java.sql.{PreparedStatement, ResultSet}
+import slick.jdbc.{JdbcTypesComponent, PostgresProfile}
 
-trait PgCommonJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
+trait PgCommonJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
 
   class GenericJdbcType[T](val sqlTypeName: String,
                            fnFromString: (String => T),

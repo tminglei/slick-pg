@@ -1,7 +1,6 @@
 package com.github.tminglei.slickpg
 
-import slick.driver.PostgresDriver
-import slick.jdbc.{PositionedResult, JdbcType}
+import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
 
 /** simple ltree wrapper */
 case class LTree(value: List[String]) {
@@ -15,7 +14,7 @@ object LTree {
 /**
  * simple ltree support; if all you want is just getting from / saving to db, and using pg json operations/methods, it should be enough
  */
-trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcTypes with array.PgArrayJdbcTypes { driver: PostgresDriver =>
+trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcTypes with array.PgArrayJdbcTypes { driver: PostgresProfile =>
   import driver.api._
 
   /// alias
@@ -58,8 +57,8 @@ trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcType
     }
 
     // used to support code gen
-    if (driver.isInstanceOf[ExPostgresDriver]) {
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("ltree", classTag[LTree])
+    if (driver.isInstanceOf[ExPostgresProfile]) {
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("ltree", classTag[LTree])
     }
 
     implicit class PgLTreePositionedResult(r: PositionedResult) {

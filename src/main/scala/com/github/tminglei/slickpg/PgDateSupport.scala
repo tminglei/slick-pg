@@ -1,13 +1,12 @@
 package com.github.tminglei.slickpg
 
-import slick.driver.PostgresDriver
 import java.sql.{Date, Time, Timestamp}
 import javax.xml.bind.DatatypeConverter
 import java.util.Calendar
 
-import slick.jdbc.JdbcType
+import slick.jdbc.{JdbcType, PostgresProfile}
 
-trait PgDateSupport extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+trait PgDateSupport extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
   import driver.api._
 
   /// alias
