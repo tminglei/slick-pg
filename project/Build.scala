@@ -10,7 +10,7 @@ object SlickPgBuild extends Build {
     version := "0.15.0-M1",
 
     scalaVersion := "2.11.8",
-    crossScalaVersions := Seq("2.11.8", "2.10.6"),
+    crossScalaVersions := Seq("2.11.8"/*, "2.12.0-M5"*/),
     scalacOptions ++= Seq("-deprecation", "-feature",
       "-language:implicitConversions",
       "-language:reflectiveCalls",
