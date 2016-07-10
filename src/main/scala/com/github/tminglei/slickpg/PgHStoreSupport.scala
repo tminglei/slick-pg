@@ -3,14 +3,22 @@ package com.github.tminglei.slickpg
 import scala.collection.convert.{WrapAsJava, WrapAsScala}
 import org.postgresql.util.HStoreConverter
 import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
+import scala.reflect.classTag
 
 trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
   import driver.api._
 
+  trait HStoreCodeGenSupport {
+    // register types to let `ExModelBuilder` find them
+    if (driver.isInstanceOf[ExPostgresProfile]) {
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("hstore", classTag[Map[String, String]])
+    }
+  }
+
   /// alias
   trait HStoreImplicits extends SimpleHStoreImplicits
 
-  trait SimpleHStoreImplicits {
+  trait SimpleHStoreImplicits extends HStoreCodeGenSupport {
     implicit val simpleHStoreTypeMapper: JdbcType[Map[String, String]] =
       new GenericJdbcType[Map[String, String]](
         "hstore",
@@ -28,14 +36,8 @@ trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcT
   }
 
   /// static sql support, NOTE: no extension methods available for static sql usage
-  trait SimpleHStorePlainImplicits {
+  trait SimpleHStorePlainImplicits extends HStoreCodeGenSupport {
     import utils.PlainSQLUtils._
-    import scala.reflect.classTag
-
-    // used to support code gen
-    if (driver.isInstanceOf[ExPostgresProfile]) {
-      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("hstore", classTag[Map[String, String]])
-    }
 
     implicit class PgHStorePositionedResult(r: PositionedResult) {
       def nextHStore() = nextHStoreOption().getOrElse(Map.empty)

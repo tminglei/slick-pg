@@ -1,6 +1,7 @@
 package com.github.tminglei.slickpg
 
 import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
+import scala.reflect.classTag
 
 /** simple ltree wrapper */
 case class LTree(value: List[String]) {
@@ -17,10 +18,18 @@ object LTree {
 trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcTypes with array.PgArrayJdbcTypes { driver: PostgresProfile =>
   import driver.api._
 
+  trait SimpleLTreeCodeGenSupport {
+    // register types to let `ExModelBuilder` find them
+    if (driver.isInstanceOf[ExPostgresProfile]) {
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("ltree", classTag[LTree])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_ltree", classTag[List[LTree]])
+    }
+  }
+
   /// alias
   trait LTreeImplicits extends SimpleLTreeImplicits
 
-  trait SimpleLTreeImplicits {
+  trait SimpleLTreeImplicits extends SimpleLTreeCodeGenSupport {
     implicit val simpleLTreeTypeMapper: JdbcType[LTree] =
       new GenericJdbcType[LTree]("ltree",
         (v) => LTree(v),
@@ -48,17 +57,12 @@ trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcType
       }
   }
 
-  trait SimpleLTreePlainImplicits {
-    import scala.reflect.classTag
+  trait SimpleLTreePlainImplicits extends SimpleLTreeCodeGenSupport {
     import utils.PlainSQLUtils._
+
     // to support 'nextArray[T]/nextArrayOption[T]' in PgArraySupport
     {
       addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(LTree.apply)(r.nextString()))
-    }
-
-    // used to support code gen
-    if (driver.isInstanceOf[ExPostgresProfile]) {
-      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("ltree", classTag[LTree])
     }
 
     implicit class PgLTreePositionedResult(r: PositionedResult) {

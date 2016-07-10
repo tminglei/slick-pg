@@ -125,7 +125,7 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
     pgTypeToScala.synchronized {
       val existed = pgTypeToScala.get(pgType)
       if (existed.isDefined) logger.warn(
-        s"\u001B[31m >>> DUPLICATED BINDING - existed: ${existed.get}, new: $scalaType !!! \u001B[36m If it's expected, pls ignore it.\u001B[0m"
+        s"\u001B[31m >>> DUPLICATED binding for $pgType - existed: ${existed.get}, new: $scalaType !!! \u001B[36m If it's expected, pls ignore it.\u001B[0m"
       )
       pgTypeToScala += (pgType -> scalaType)
     }

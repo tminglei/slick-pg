@@ -7,14 +7,22 @@ import com.vividsolutions.jts.io.{WKBReader, WKBWriter, WKTReader, WKTWriter}
 import slick.ast.FieldSymbol
 import slick.jdbc._
 
-import scala.reflect.ClassTag
+import scala.reflect.{classTag, ClassTag}
 
 trait PgPostGISSupport extends geom.PgPostGISExtensions { driver: PostgresProfile =>
   import driver.api._
 
+  trait PostGISCodeGenSupport {
+    // register types to let `ExModelBuilder` find them
+    if (driver.isInstanceOf[ExPostgresProfile]) {
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("geometry", classTag[Geometry])
+    }
+  }
+
+  ///
   trait PostGISAssistants extends BasePostGISAssistants[Geometry, Point, LineString, Polygon, GeometryCollection]
 
-  trait PostGISImplicits {
+  trait PostGISImplicits extends PostGISCodeGenSupport {
     implicit val geometryTypeMapper: JdbcType[Geometry] = new GeometryJdbcType[Geometry]
     implicit val pointTypeMapper: JdbcType[Point] = new GeometryJdbcType[Point]
     implicit val polygonTypeMapper: JdbcType[Polygon] = new GeometryJdbcType[Polygon]
@@ -32,7 +40,7 @@ trait PgPostGISSupport extends geom.PgPostGISExtensions { driver: PostgresProfil
       new GeometryColumnExtensionMethods[Geometry, Point, LineString, Polygon, GeometryCollection, G1, Option[G1]](c)
   }
 
-  trait PostGISPlainImplicits {
+  trait PostGISPlainImplicits extends PostGISCodeGenSupport {
     import PgPostGISSupportUtils._
     import utils.PlainSQLUtils._
 

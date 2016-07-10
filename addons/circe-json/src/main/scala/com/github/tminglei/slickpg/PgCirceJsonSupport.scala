@@ -1,25 +1,35 @@
 package com.github.tminglei.slickpg
 
 import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
+import scala.reflect.classTag
 
 trait PgCirceJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
   import driver.api._
   import io.circe._
-  import io.circe.generic.auto._
   import io.circe.parser._
   import io.circe.syntax._
 
+  ///---
   def pgjson: String
+  ///---
+
+  trait CirceCodeGenSupport {
+    // register types to let `ExModelBuilder` find them
+    if (driver.isInstanceOf[ExPostgresProfile]) {
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("json", classTag[Json])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("jsonb", classTag[Json])
+    }
+  }
 
   trait JsonImplicits extends CirceImplicits
 
-  trait CirceImplicits {
+  trait CirceImplicits extends CirceCodeGenSupport {
     implicit val circeJsonTypeMapper: JdbcType[Json] =
       new GenericJdbcType[Json](
         pgjson,
-        (v) => parse(v).getOrElse(Json.Empty),
+        (v) => parse(v).getOrElse(Json.Null),
         (v) => v.asJson.spaces2,
-        zero = Json.Empty,
+        zero = Json.Null,
         hasLiteralForm = false
       )
 
@@ -32,20 +42,12 @@ trait PgCirceJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
       }
   }
 
-  trait CirceJsonPlainImplicits {
+  trait CirceJsonPlainImplicits extends CirceCodeGenSupport {
     import utils.PlainSQLUtils._
 
-    import scala.reflect.classTag
-
-    // used to support code gen
-    if (driver.isInstanceOf[ExPostgresProfile]) {
-      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("json", classTag[Json])
-      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("jsonb", classTag[Json])
-    }
-
     implicit class PgJsonPositionResult(r: PositionedResult) {
-      def nextJson() = nextJsonOption().getOrElse(Json.Empty)
-      def nextJsonOption() = r.nextStringOption().map(parse(_).getOrElse(Json.Empty))
+      def nextJson() = nextJsonOption().getOrElse(Json.Null)
+      def nextJsonOption() = r.nextStringOption().map(parse(_).getOrElse(Json.Null))
     }
 
     implicit val getJson = mkGetResult(_.nextJson())

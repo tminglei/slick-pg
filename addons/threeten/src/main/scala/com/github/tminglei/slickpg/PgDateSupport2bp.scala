@@ -12,10 +12,11 @@ trait PgDateSupport2bp extends date.PgDateExtensions with utils.PgCommonJdbcType
   import PgThreetenSupportUtils._
   import driver.api._
 
-  // used to support code gen
+  // let user to call this, since we have more than one `TIMETZ, DATETIMETZ, INTERVAL` binding candidates here
   def bindPgDateTypesToScala[DATE, TIME, DATETIME, TIMETZ, DATETIMETZ, INTERVAL](
           implicit ctag1: ClassTag[DATE], ctag2: ClassTag[TIME], ctag3: ClassTag[DATETIME],
-                 ctag4: ClassTag[TIMETZ], ctag5: ClassTag[DATETIMETZ], ctag6: ClassTag[INTERVAL]) = {
+                   ctag4: ClassTag[TIMETZ], ctag5: ClassTag[DATETIMETZ], ctag6: ClassTag[INTERVAL]) = {
+    // register types to let `ExModelBuilder` find them
     if (driver.isInstanceOf[ExPostgresProfile]) {
       driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("date", classTag[DATE])
       driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("time", classTag[TIME])
@@ -24,7 +25,7 @@ trait PgDateSupport2bp extends date.PgDateExtensions with utils.PgCommonJdbcType
       driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("timestamptz", classTag[DATETIMETZ])
       driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("interval", classTag[INTERVAL])
     }
-    else throw new IllegalArgumentException("The driver MUST BE a `ExPostgresDriver`!")
+    else throw new IllegalArgumentException("The driver MUST BE a `ExPostgresProfile`!")
   }
 
   /// alias

@@ -1,8 +1,8 @@
 package com.github.tminglei.slickpg
 
 import java.sql.{Date, Timestamp}
-
 import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
+import scala.reflect.classTag
 
 // edge type definitions
 sealed trait EdgeType
@@ -45,10 +45,21 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
   private def toTimestamp(str: String) = Timestamp.valueOf(str)
   private def toSQLDate(str: String) = Date.valueOf(str)
 
+  trait SimpleRangeCodeGenSupport {
+    // register types to let `ExModelBuilder` find them
+    if (driver.isInstanceOf[ExPostgresProfile]) {
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("int4range", classTag[Range[Int]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("int8range", classTag[Range[Long]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("numrange", classTag[Range[Float]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("tsrange", classTag[Range[Timestamp]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("daterange", classTag[Range[Date]])
+    }
+  }
+
   /// alias
   trait RangeImplicits extends SimpleRangeImplicits
 
-  trait SimpleRangeImplicits {
+  trait SimpleRangeImplicits extends SimpleRangeCodeGenSupport {
     implicit val simpleIntRangeTypeMapper: JdbcType[Range[Int]] = new GenericJdbcType[Range[Int]]("int4range", mkRangeFn(_.toInt))
     implicit val simpleLongRangeTypeMapper: JdbcType[Range[Long]] = new GenericJdbcType[Range[Long]]("int8range", mkRangeFn(_.toLong))
     implicit val simpleFloatRangeTypeMapper: JdbcType[Range[Float]] = new GenericJdbcType[Range[Float]]("numrange", mkRangeFn(_.toFloat))
@@ -65,9 +76,9 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
       }
   }
 
-  trait SimpleRangePlainImplicits {
-    import scala.reflect.classTag
+  trait SimpleRangePlainImplicits extends SimpleRangeCodeGenSupport {
     import utils.PlainSQLUtils._
+
     // to support 'nextArray[T]/nextArrayOption[T]' in PgArraySupport
     {
       addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(_.toInt))(r.nextString()))
@@ -75,15 +86,6 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
       addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(_.toFloat))(r.nextString()))
       addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(toTimestamp))(r.nextString()))
       addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(toSQLDate))(r.nextString()))
-    }
-
-    // used to support code gen
-    if (driver.isInstanceOf[ExPostgresProfile]) {
-      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("int4range", classTag[Range[Int]])
-      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("int8range", classTag[Range[Long]])
-      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("numrange", classTag[Range[Float]])
-      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("tsrange", classTag[Range[Timestamp]])
-      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("daterange", classTag[Range[Date]])
     }
 
     implicit class PgRangePositionedResult(r: PositionedResult) {

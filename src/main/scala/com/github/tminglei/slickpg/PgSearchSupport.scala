@@ -1,6 +1,7 @@
 package com.github.tminglei.slickpg
 
 import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
+import scala.reflect.classTag
 
 /** simple tsvector/tsquery string wrapper */
 case class TsVector(value: String)
@@ -11,10 +12,18 @@ trait PgSearchSupport extends search.PgSearchExtensions with utils.PgCommonJdbcT
 
   trait SearchAssistants extends BaseSearchAssistants[TsVector, TsQuery]
 
+  trait SearchCodeGenSupport {
+    // register types to let `ExModelBuilder` find them
+    if (driver.isInstanceOf[ExPostgresProfile]) {
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("tsvector", classTag[TsVector])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("tsquery", classTag[TsQuery])
+    }
+  }
+
   /// alias
   trait SearchImplicits extends SimpleSearchImplicits
 
-  trait SimpleSearchImplicits {
+  trait SimpleSearchImplicits extends SearchCodeGenSupport {
     implicit val simpleTsVectorTypeMapper: JdbcType[TsVector] = new GenericJdbcType[TsVector]("tsvector", TsVector, _.value)
     implicit val simpleTsQueryTypeMapper: JdbcType[TsQuery] = new GenericJdbcType[TsQuery]("tsquery", TsQuery, _.value)
 
@@ -32,15 +41,8 @@ trait PgSearchSupport extends search.PgSearchExtensions with utils.PgCommonJdbcT
       }
   }
 
-  trait SimpleSearchPlainImplicits {
+  trait SimpleSearchPlainImplicits extends SearchCodeGenSupport {
     import utils.PlainSQLUtils._
-    import scala.reflect.classTag
-
-    // used to support code gen
-    if (driver.isInstanceOf[ExPostgresProfile]) {
-      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("tsvector", classTag[TsVector])
-      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("tsquery", classTag[TsQuery])
-    }
 
     implicit class PgSearchPositionedResult(r: PositionedResult) {
       def nextTsVector() = nextTsVectorOption().orNull

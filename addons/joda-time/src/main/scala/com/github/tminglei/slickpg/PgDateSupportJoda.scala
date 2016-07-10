@@ -4,10 +4,22 @@ import org.joda.time._
 import org.joda.time.format.{DateTimeFormat, ISODateTimeFormat}
 import org.postgresql.util.PGInterval
 import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
+import scala.reflect.classTag
 
 trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
-  import PgJodaSupportUtils._
   import driver.api._
+  import PgJodaSupportUtils._
+
+  trait JodaTimeCodeGenSupport {
+    // register types to let `ExModelBuilder` find them
+    if (driver.isInstanceOf[ExPostgresProfile]) {
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("date", classTag[LocalDate])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("time", classTag[LocalTime])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("timestamp", classTag[LocalDateTime])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("timestamptz", classTag[DateTime])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("interval", classTag[Period])
+    }
+  }
 
   /// alias
   trait DateTimeImplicits extends JodaDateTimeImplicits
@@ -24,7 +36,7 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
     val jodaTzDateTimeFormatter_NoFraction = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ssZ")
   }
 
-  trait JodaDateTimeImplicits extends JodaDateTimeFormatters {
+  trait JodaDateTimeImplicits extends JodaDateTimeFormatters with JodaTimeCodeGenSupport {
     implicit val jodaDateTypeMapper: JdbcType[LocalDate] = new GenericJdbcType[LocalDate]("date",
       LocalDate.parse(_, jodaDateFormatter), _.toString(jodaDateFormatter), hasLiteralForm=false)
     implicit val jodaTimeTypeMapper: JdbcType[LocalTime] = new GenericJdbcType[LocalTime]("time",
@@ -71,23 +83,9 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
       new TimestampColumnExtensionMethods[LocalDate, LocalTime, DateTime, LocalDateTime, Period, Option[DateTime]](c)
   }
 
-  trait JodaDateTimePlainImplicits extends JodaDateTimeFormatters {
+  trait JodaDateTimePlainImplicits extends JodaDateTimeFormatters with JodaTimeCodeGenSupport {
     import java.sql.Types
-
     import utils.PlainSQLUtils._
-
-    import scala.reflect.classTag
-
-    // used to support code gen
-    if (driver.isInstanceOf[ExPostgresProfile]) {
-      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("date", classTag[LocalDate])
-      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("time", classTag[LocalTime])
-      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("timestamp", classTag[LocalDateTime])
-      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("timestamptz", classTag[DateTime])
-      // let users do it by themselves
-//      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("interval", classTag[Duration])
-//      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("interval", classTag[Period])
-    }
 
     implicit class PgDate2TimePositionedResult(r: PositionedResult) {
       def nextLocalDate() = nextLocalDateOption().orNull
@@ -137,7 +135,7 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
 }
 
 object PgJodaSupportUtils {
-  /// pg interval string --> joda Duration
+  /// pg interval string --> joda Period
   def pgIntervalStr2jodaPeriod(intervalStr: String): Period = {
     val pgInterval = new PGInterval(intervalStr)
     val seconds = Math.floor(pgInterval.getSeconds) .asInstanceOf[Int]

@@ -1,6 +1,7 @@
 package com.github.tminglei.slickpg
 
 import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
+import scala.reflect.classTag
 
 /** simple inet string wrapper */
 case class InetString(value: String) {
@@ -23,10 +24,18 @@ case class MacAddrString(value: String)
 trait PgNetSupport extends net.PgNetExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
   import driver.api._
 
+  trait SimpleNetCodeGenSupport {
+    // register types to let `ExModelBuilder` find them
+    if (driver.isInstanceOf[ExPostgresProfile]) {
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("inet", classTag[InetString])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("macaddr", classTag[MacAddrString])
+    }
+  }
+
   /// alias
   trait NetImplicits extends SimpleNetImplicits
 
-  trait SimpleNetImplicits {
+  trait SimpleNetImplicits extends SimpleNetCodeGenSupport {
     implicit val simpleInetTypeMapper: JdbcType[InetString] =
       new GenericJdbcType[InetString]("inet",
         (v) => InetString(v),
@@ -55,19 +64,13 @@ trait PgNetSupport extends net.PgNetExtensions with utils.PgCommonJdbcTypes { dr
       }
   }
 
-  trait SimpleNetPlainImplicits {
-    import scala.reflect.classTag
+  trait SimpleNetPlainImplicits extends SimpleNetCodeGenSupport {
     import utils.PlainSQLUtils._
+
     // to support 'nextArray[T]/nextArrayOption[T]' in PgArraySupport
     {
       addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(InetString.apply)(r.nextString()))
       addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(MacAddrString.apply)(r.nextString()))
-    }
-
-    // used to support code gen
-    if (driver.isInstanceOf[ExPostgresProfile]) {
-      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("inet", classTag[InetString])
-      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("macaddr", classTag[MacAddrString])
     }
 
     implicit class PgNetPositionedResult(r: PositionedResult) {
