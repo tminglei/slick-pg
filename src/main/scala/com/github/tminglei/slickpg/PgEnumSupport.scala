@@ -76,7 +76,7 @@ trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes {
 
       override def hasLiteralForm: Boolean = true
 
-      override def valueToSQLLiteral(v: T) = if (v == null) "NULL" else s"'$v'"
+      override def valueToSQLLiteral(v: T) = if (v == null) "NULL" else s"'${enumToString(v)}'"
 
       private def toStr(v: T) = if (v == null) null else enumToString(v)
     }
