@@ -31,6 +31,17 @@ class PgEnumSupportSuite extends FunSuite {
   case object GBP extends Currency
   case object USD extends Currency
 
+  sealed abstract class Gender(val repr: String)
+  case object Female extends Gender("f")
+  case object Male extends Gender("m")
+  object Gender {
+    def fromString(s: String): Gender = s match {
+      case "f" => Female
+      case "m" => Male
+    }
+    def values = Seq(Female, Male)
+  }
+
   /////////////////////////////////////////////////////////////////////
   import WeekDays._
   import Rainbows._
@@ -54,11 +65,15 @@ class PgEnumSupportSuite extends FunSuite {
       implicit val currencyTypeListMapper = createEnumListJdbcType[Currency]("Currency", _.toString, Currency.values.get(_).get, quoteName = false)
       implicit val languagesTypeMapper = createEnumJdbcType[Languages]("Languages", _.name(), Languages.valueOf, quoteName = true)
       implicit val languagesTypeListMapper = createEnumListJdbcType[Languages]("Languages", _.name(), Languages.valueOf, quoteName = true)
+      implicit val genderTypeMapper = createEnumJdbcType[Gender]("Gender", _.repr, Gender.fromString, quoteName = false)
+      implicit val genderTypeListMapper = createEnumListJdbcType[Gender]("Gender", _.repr, Gender.fromString, quoteName = false)
 
       implicit val currencyColumnExtensionMethodsBuilder = createEnumColumnExtensionMethodsBuilder[Currency]
       implicit val currencyOptionColumnExtensionMethodsBuilder = createEnumOptionColumnExtensionMethodsBuilder[Currency]
       implicit val languagesColumnExtensionMethodsBuilder = createEnumColumnExtensionMethodsBuilder[Languages]
       implicit val languagesOptionColumnExtensionMethodsBuilder = createEnumOptionColumnExtensionMethodsBuilder[Languages]
+      implicit val genderColumnExtensionMethodsBuilder = createEnumColumnExtensionMethodsBuilder[Gender]
+      implicit val genderOptionColumnExtensionMethodsBuilder = createEnumOptionColumnExtensionMethodsBuilder[Gender]
     }
   }
 
@@ -90,6 +105,7 @@ class PgEnumSupportSuite extends FunSuite {
     id: Long,
     currency: Currency,
     language: Option[Languages],
+    gender: Gender,
     currencies: List[Currency],
     languages: List[Languages])
 
@@ -97,10 +113,11 @@ class PgEnumSupportSuite extends FunSuite {
     def id = column[Long]("id")
     def currency = column[Currency]("currency")
     def language = column[Option[Languages]]("language")
+    def gender = column[Gender]("gender")
     def currencies = column[List[Currency]]("currencies")
     def languages = column[List[Languages]]("languages")
 
-    def * = (id, currency, language, currencies, languages) <> (TestEnumBean1.tupled, TestEnumBean1.unapply)
+    def * = (id, currency, language, gender, currencies, languages) <> (TestEnumBean1.tupled, TestEnumBean1.unapply)
   }
   val TestEnums1 = TableQuery(new TestEnumTable1(_))
 
@@ -110,9 +127,9 @@ class PgEnumSupportSuite extends FunSuite {
   val testRec2 = TestEnumBean(102L, Wed, Some(blue), List(Sat, Sun), List(green))
   val testRec3 = TestEnumBean(103L, Fri, None, List(Thu), Nil)
 
-  val testRec11 = TestEnumBean1(101L, EUR, Some(Languages.SCALA), Nil, List(Languages.SCALA, Languages.CLOJURE))
-  val testRec12 = TestEnumBean1(102L, GBP, None, List(EUR, GBP, USD), List(Languages.JAVA))
-  val testRec13 = TestEnumBean1(103L, USD, Some(Languages.CLOJURE), List(GBP), Nil)
+  val testRec11 = TestEnumBean1(101L, EUR, Some(Languages.SCALA), Male, Nil, List(Languages.SCALA, Languages.CLOJURE))
+  val testRec12 = TestEnumBean1(102L, GBP, None, Female, List(EUR, GBP, USD), List(Languages.JAVA))
+  val testRec13 = TestEnumBean1(103L, USD, Some(Languages.CLOJURE), Male, List(GBP), Nil)
 
   test("Enum Lifted support") {
     Await.result(db.run(
@@ -162,6 +179,7 @@ class PgEnumSupportSuite extends FunSuite {
       DBIO.seq(
         PgEnumSupportUtils.buildCreateSql("Currency", Currency.values.toStream.map(_._1), quoteName = false),
         PgEnumSupportUtils.buildCreateSql("Languages", Languages.values.toStream.map(_.name()), quoteName = true),
+        PgEnumSupportUtils.buildCreateSql("Gender", Gender.values.map(_.repr), quoteName = false),
         (TestEnums1.schema) create,
         ///
         TestEnums1 forceInsertAll List(testRec11, testRec12, testRec13)
@@ -188,13 +206,17 @@ class PgEnumSupportSuite extends FunSuite {
           ),
           TestEnums1.filter(_.id === 102L.bind).map(t => null.asInstanceOf[Currency].bind range t.currency).result.head.map(
             r => assert(List(EUR, GBP) === r)
+          ),
+          TestEnums1.filter(_.gender === (Female: Gender)).result.map(
+            r => assert(List(testRec12) === r)
           )
         )
       ).andFinally(
         DBIO.seq(
           (TestEnums1.schema) drop,
           PgEnumSupportUtils.buildDropSql("Currency"),
-          PgEnumSupportUtils.buildDropSql("Languages", true)
+          PgEnumSupportUtils.buildDropSql("Languages", true),
+          PgEnumSupportUtils.buildDropSql("Gender")
         )
       ) .transactionally
     ), Duration.Inf)
