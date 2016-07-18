@@ -37,7 +37,7 @@ object SimpleArrayUtils {
   /** !!! NOTE: only used to transfer array data into driver/preparedStatement. !!! */
   private class SimpleArray[T : ClassTag](sqlBaseTypeName: String, vList: Seq[T], mkString: (Seq[T] => String)) extends java.sql.Array {
 
-    override def getBaseTypeName = sqlBaseTypeName.replaceFirst("^\"", "").replaceFirst("\"$", "")
+    override def getBaseTypeName = sqlBaseTypeName
 
     override def getBaseType(): Int = ???
 

@@ -68,7 +68,7 @@ object SlickPgBuild extends Build {
     Seq (
       "org.scala-lang" % "scala-reflect" % scalaVersion,
       "com.typesafe.slick" %% "slick" % "3.2.0-M1",
-      "org.postgresql" % "postgresql" % "9.4-1201-jdbc41",
+      "org.postgresql" % "postgresql" % "9.4.1209",
       "org.slf4j" % "slf4j-simple" % "1.7.12" % "provided",
       "org.scalatest" %% "scalatest" % "2.2.4" % "test"
     ) ++ extractedLibs
@@ -129,7 +129,7 @@ object SlickPgBuild extends Build {
       name := "slick-pg_play-json",
       description := "Slick extensions for PostgreSQL - play-json module",
       libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-        "com.typesafe.play" %% "play-json" % "2.4.3"
+        "com.typesafe.play" %% "play-json" % "2.5.4"
       )
     )
   ) dependsOn (slickPgCore)
