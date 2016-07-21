@@ -30,7 +30,7 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
   trait ArrayImplicits extends SimpleArrayImplicits
 
   trait SimpleArrayImplicits extends SimpleArrayCodeGenSupport {
-    /** for type/name, @see [[org.postgresql.core.Oid]] and [[org.postgresql.jdbc2.TypeInfoCache]]*/
+    /** for type/name, @see [[org.postgresql.core.Oid]] and [[org.postgresql.jdbc.TypeInfoCache]]*/
     implicit val simpleUUIDListTypeMapper: JdbcType[List[UUID]] = new SimpleArrayJdbcType[UUID]("uuid").to(_.toList)
     implicit val simpleStrListTypeMapper: JdbcType[List[String]] = new SimpleArrayJdbcType[String]("text").to(_.toList)
     implicit val simpleLongListTypeMapper: JdbcType[List[Long]] = new SimpleArrayJdbcType[Long]("int8").to(_.toList)
@@ -65,22 +65,10 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
     implicit class PgArrayPositionedResult(r: PositionedResult) {
       def nextArray[T]()(implicit tpe: u.TypeTag[T]): Seq[T] = nextArrayOption[T]().getOrElse(Nil)
       def nextArrayOption[T]()(implicit ttag: u.TypeTag[T]): Option[Seq[T]] = {
-        val (matched, result) = extNextArray(u.typeOf[T], r)
-        (if (matched) result else nextArrayConverters.get(u.typeOf[T].toString).map(_.apply(r))
-          .getOrElse(simpleNextArray[T](r))).asInstanceOf[Option[Seq[T]]]
+        nextArrayConverters.get(u.typeOf[T].toString).map(_.apply(r))
+          .getOrElse(simpleNextArray[T](r)).asInstanceOf[Option[Seq[T]]]
       }
     }
-
-    /**
-     * pls override this when you need additional array support
-      *
-      * @return (matched, result)
-     **/
-    @deprecated(message = "pls use `PlainSQLUtils.addNextArrayConverter` instead", since = "0.10")
-    protected def extNextArray(tpe: u.Type, r: PositionedResult): (Boolean, Option[Seq[_]]) =
-      tpe match {
-        case _ => (false, None)
-      }
 
     private def simpleNextArray[T](r: PositionedResult): Option[Seq[T]] = {
       val value = r.rs.getArray(r.skip.currentPos)

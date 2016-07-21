@@ -9,17 +9,6 @@ import slick.jdbc.{JdbcTypesComponent, PostgresProfile}
 
 trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
 
-  @deprecated(message = "use 'new SimpleArrayJdbcType[T](..).to[SEQ[T]](..)' instead", since = "0.7.1")
-  class SimpleArrayListJdbcType[T](sqlBaseType: String)(
-              implicit override val classTag: ClassTag[List[T]], tag: ClassTag[T], witness: ElemWitness[T])
-                    extends WrappedConvArrayJdbcType[T, List](
-                        new SimpleArrayJdbcType[T](sqlBaseType), _.toList) {
-
-    def basedOn[U](tmap: T => U, tcomap: U => T): DriverJdbcType[List[T]] =
-      delegate.asInstanceOf[SimpleArrayJdbcType[T]].basedOn(tmap, tcomap).to(_.toList)
-  }
-
-  //
   class SimpleArrayJdbcType[T] private[slickpg] (sqlBaseType: String,
                                                 tmap: Any => T,
                                                 tcomap: T => Any,
@@ -52,9 +41,6 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
     protected def buildArrayStr(vList: Seq[Any]): String = utils.SimpleArrayUtils.mkString[Any](_.toString)(vList)
 
     ///
-    @deprecated(message = "please define a base type array first, then `mapTo` target type array", since = "0.11.0")
-    def basedOn[U](tmap: T => U, tcomap: U => T): SimpleArrayJdbcType[T] = ???
-
     def mapTo[U](tmap: T => U, tcomap: U => T)(implicit ctags: ClassTag[Seq[U]], ctag: ClassTag[U]): SimpleArrayJdbcType[U] =
       new SimpleArrayJdbcType[U](sqlBaseType, v => tmap(self.tmap(v)), r => self.tcomap(tcomap(r)))(ctags, ctag, ElemWitness.AnyWitness.asInstanceOf[ElemWitness[U]])
 
@@ -62,20 +48,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
       new WrappedConvArrayJdbcType[T, SEQ](this, conv)
   }
 
-  /* alias, added for back compatible */
-  @deprecated(message = "use AdvancedArrayListJdbcType instead", since = "0.6.5")
-  type NestedArrayListJdbcType[T] = AdvancedArrayListJdbcType[T]
-
-  ///-- can be used to map complex composite/nested array
-  @deprecated(message = "use 'new AdvancedArrayJdbcType[T](..).to[SEQ[T]](..)' instead", since = "0.7.1")
-  class AdvancedArrayListJdbcType[T](sqlBaseType: String,
-                                  fromString: (String => List[T]),
-                                  mkString: (List[T] => String))(
-              implicit override val classTag: ClassTag[List[T]], tag: ClassTag[T])
-                    extends WrappedConvArrayJdbcType[T, List](
-                        new AdvancedArrayJdbcType(sqlBaseType, fromString, v => mkString(v.toList)), _.toList)
-
-  //
+  ///
   class AdvancedArrayJdbcType[T](sqlBaseType: String,
                                 fromString: (String => Seq[T]),
                                 mkString: (Seq[T] => String),

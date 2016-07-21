@@ -12,9 +12,6 @@ trait PgCompositeSupport extends utils.PgCommonJdbcTypes with array.PgArrayJdbcT
     new GenericJdbcType[T](sqlTypeName, util.mkCompositeFromString[T], util.mkStringFromComposite[T])
   }
 
-  @deprecated(message = "pls use `createCompositeArrayJdbcType` instead", since = "0.8.2")
-  def createCompositeListJdbcType[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) =
-    createCompositeArrayJdbcType(sqlTypeName, cl).to(_.toList)
   def createCompositeArrayJdbcType[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
     val util = new PgCompositeSupportUtils(cl)
     new AdvancedArrayJdbcType[T](sqlTypeName, util.mkCompositeSeqFromString[T], util.mkStringFromCompositeSeq[T])
