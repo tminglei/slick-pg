@@ -227,16 +227,16 @@ class PgUpsertSuite extends FunSuite {
       DBIO.seq(
         (UpsertTests2.schema) create,
         ///
-        UpsertTests forceInsertAll Seq(
+        UpsertTests2 forceInsertAll Seq(
           Bean2(101, 1, 2),
           Bean2(102, 3, 4),
           Bean2(103, 5, 6)
         ),
-        UpsertTests.insertOrUpdate(Bean(101, 1, 7)),
-        UpsertTests.insertOrUpdate(Bean(107, 8, 9))
+        UpsertTests2.insertOrUpdate(Bean(101, 1, 7)),
+        UpsertTests2.insertOrUpdate(Bean(107, 8, 9))
       ).andThen(
         DBIO.seq(
-          UpsertTests.sortBy(_.id).to[List].result.map(
+          UpsertTests2.sortBy(_.id).to[List].result.map(
             r => assert(Seq(
               Bean2(101, 1, 7),
               Bean2(102, 3, 4),
