@@ -200,4 +200,54 @@ class PgUpsertSuite extends FunSuite {
       ).transactionally
     ), Duration.Inf)
   }
+
+  ///---
+  case class Bean2(id: Long, start: Int, end: Int)
+
+  class UpsertTestTable2(tag: Tag) extends Table[Bean2](tag, "test_tab_upsert2") {
+    def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
+    def start = column[Int]("start")
+    def end = column[Int]("end")
+
+    def * = (id, start, end) <> (Bean2.tupled, Bean2.unapply)
+  }
+  val UpsertTests2 = TableQuery[UpsertTestTable2]
+
+  //------------------------------------------------------------------------------
+
+  test("native upsert support with keyword columns") {
+    import MyPostgresDriver.api._
+
+    val upsertSql = MyPostgresDriver.compileInsert(UpsertTests2.toNode).upsert.sql
+    println(s"upsert sql: $upsertSql")
+
+    assert(upsertSql.contains("on conflict"))
+
+    Await.result(db.run(
+      DBIO.seq(
+        (UpsertTests2.schema) create,
+        ///
+        UpsertTests2 forceInsertAll Seq(
+          Bean2(101, 1, 2),
+          Bean2(102, 3, 4),
+          Bean2(103, 5, 6)
+        ),
+        UpsertTests2.insertOrUpdate(Bean2(101, 1, 7)),
+        UpsertTests2.insertOrUpdate(Bean2(107, 8, 9))
+      ).andThen(
+        DBIO.seq(
+          UpsertTests2.sortBy(_.id).to[List].result.map(
+            r => assert(Seq(
+              Bean2(101, 1, 7),
+              Bean2(102, 3, 4),
+              Bean2(103, 5, 6),
+              Bean2(107, 8, 9)
+            ) === r)
+          )
+        )
+      ).andFinally(
+        (UpsertTests2.schema) drop
+      ).transactionally
+    ), Duration.Inf)
+  }
 }
