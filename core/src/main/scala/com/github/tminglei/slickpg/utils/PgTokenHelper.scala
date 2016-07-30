@@ -94,7 +94,7 @@ object PgTokenHelper {
     ///
     def isMarkRequired(token: Token): Boolean = token match {
       case g: GroupToken => true
-      case Chunk(v) => v.isEmpty || v.find(MARK_REQUIRED_CHAR_LIST.contains).isDefined
+      case Chunk(v) => v.trim.isEmpty || v.find(MARK_REQUIRED_CHAR_LIST.contains).isDefined
       case _ => false
     }
 

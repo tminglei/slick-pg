@@ -73,7 +73,7 @@ class PgArraySupportSuite extends FunSuite {
   val uuid3 = UUID.randomUUID()
 
   val testRec1 = ArrayBean(33L, List(101, 102, 103), Buffer(1L, 3L, 5L, 7L), List(1,7), List("robert}; drop table students--"),
-    Some(Vector("str1", "str3")), List(uuid1, uuid2), List(Institution(113)), None)
+    Some(Vector("str1", "str3", "", " ")), List(uuid1, uuid2), List(Institution(113)), None)
   val testRec2 = ArrayBean(37L, List(101, 103), Buffer(11L, 31L, 5L), Nil, List(""),
     Some(Vector("str11", "str3")), List(uuid1, uuid2, uuid3), List(Institution(579)), Some(List(MarketFinancialProduct("product1"))))
   val testRec3 = ArrayBean(41L, List(103, 101), Buffer(11L, 5L, 31L), List(35,77), Nil,
