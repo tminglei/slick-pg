@@ -74,7 +74,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
     override def valueToSQLLiteral(vList: Seq[T]) = if(vList eq null) "NULL" else s"'${mkString(vList)}'"
 
     //--
-    private def mkArray(v: Seq[T]): java.sql.Array = utils.SimpleArrayUtils.mkArray(mkString)(sqlBaseType, v)
+    private def mkArray(vList: Seq[T]): java.sql.Array = utils.SimpleArrayUtils.mkArray(mkString)(sqlBaseType, vList)
 
     def to[SEQ[T] <: Seq[T]](conv: Seq[T] => SEQ[T])(implicit classTag: ClassTag[SEQ[T]]): DriverJdbcType[SEQ[T]] =
       new WrappedConvArrayJdbcType[T, SEQ](this, conv)
