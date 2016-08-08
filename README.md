@@ -17,13 +17,13 @@ Slick-pg
 - Inet/MacAddr
 - `text` Search
 - `postgis` Geometry
-- Large Object
 
 #### Currently supported pg features:
 - inherits
 - composite type (`basic`)
 - aggregate functions
 - window functions
+- Large Object
 
 
 ** _tested on `PostgreSQL` `v9.5` with `Slick` `v3.1.1`._
