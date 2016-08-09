@@ -23,7 +23,7 @@ class LargeObjectSupportSuite extends FunSuite {
     val largeObjectUploadStream = new ByteArrayInputStream(testString.getBytes)
     val uploadAction = driver.buildLargeObjectUploadAction(largeObjectUploadStream)
     val composedAction = uploadAction.flatMap(oid => LargeObjectStreamingDBIOAction(oid))
-    val dbPublisher = db.stream(composedAction)
+    val dbPublisher = db.stream(composedAction.transactionally)
 
     val messageBuffer: StringBuffer = new StringBuffer()
     val f = dbPublisher.foreach(bytes => messageBuffer.append(new String(bytes))).andThen {
