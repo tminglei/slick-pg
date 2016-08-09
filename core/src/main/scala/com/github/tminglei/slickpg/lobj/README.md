@@ -21,3 +21,13 @@ Ok.chunked(src).
     "Content-Disposition" -> "attachment; filename=somefilename.txt"
   )
 ```
+
+You can upload LargeObjects by wrapping them with an InputStream and then
+running the appropriate DB action like so:
+```scala
+
+val inputStream: InputStream = _
+val driver = new LargeObjectSupport with ExPostgresDriver {}
+val action = driver.buildLargeObjectUploadAction(inputStream)
+val largeObjectIdFuture: Future[Long] = db.run(action.transactionally)
+```
