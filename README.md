@@ -23,6 +23,7 @@ Slick-pg
 - composite type (`basic`)
 - aggregate functions
 - window functions
+- Large Object
 
 
 ** _tested on `PostgreSQL` `v9.5` with `Slick` `v3.1.1`._
@@ -129,8 +130,7 @@ object tests extends TableQuery(new TestTable(_)) {
 ...
 ```
 
-_p.s. above codes are for `Slick` Lifted Embedding SQL. Except that, `slick-pg` also support for `Slick` Plain SQL, for details and usages pls refer to source codes and tests._
-
+_p.s. The code samples above are for `Slick` Lifted Embedding SQL. Aside from that, `slick-pg` also supports `Slick` Plain SQL--for details and usages please refer to source code and tests._
 
 
 Configurable type/mappers
