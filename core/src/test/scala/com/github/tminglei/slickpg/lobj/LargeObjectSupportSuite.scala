@@ -7,7 +7,7 @@ import com.github.tminglei.slickpg.{ExPostgresDriver, utils}
 import org.scalatest.FunSuite
 
 import scala.concurrent.{Await, ExecutionContext}
-import scala.util.Success
+import scala.util.{Failure, Success}
 import scala.concurrent.duration._
 
 class LargeObjectSupportSuite extends FunSuite {
@@ -27,7 +27,8 @@ class LargeObjectSupportSuite extends FunSuite {
 
     val messageBuffer: StringBuffer = new StringBuffer()
     val f = dbPublisher.foreach(bytes => messageBuffer.append(new String(bytes))).andThen {
-      case t: Success => assert(messageBuffer.toString == testString)
+      case t: Success[Unit] => assert(messageBuffer.toString == testString)
+      case Failure(error) => throw error
     }
 
     Await.result(f, 60.seconds)
