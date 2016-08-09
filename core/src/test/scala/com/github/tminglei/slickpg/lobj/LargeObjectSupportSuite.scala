@@ -1,15 +1,17 @@
 package com.github.tminglei.slickpg.lobj
 
 import java.io.ByteArrayInputStream
+import java.util.concurrent.Executors
 
 import com.github.tminglei.slickpg.{ExPostgresDriver, utils}
 import org.scalatest.FunSuite
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, ExecutionContext}
 import scala.util.Success
 import scala.concurrent.duration._
 
 class LargeObjectSupportSuite extends FunSuite {
+  implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
   import ExPostgresDriver.api._
 
   val driver = new LargeObjectSupport with ExPostgresDriver {}
