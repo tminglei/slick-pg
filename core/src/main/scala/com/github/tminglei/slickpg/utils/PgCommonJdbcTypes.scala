@@ -12,7 +12,6 @@ trait PgCommonJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
                            fnFromString: (String => T),
                            fnToString: (T => String) = ((r: T) => r.toString),
                            val sqlType: Int = java.sql.Types.OTHER,
-                           zero: T = null.asInstanceOf[T],
                            override val hasLiteralForm: Boolean = false)(
                   implicit override val classTag: ClassTag[T]) extends DriverJdbcType[T] {
 
@@ -20,7 +19,7 @@ trait PgCommonJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
 
     override def getValue(r: ResultSet, idx: Int): T = {
       val value = r.getString(idx)
-      if (r.wasNull) zero else fnFromString(value)
+      if (r.wasNull) null.asInstanceOf[T] else fnFromString(value)
     }
 
     override def setValue(v: T, p: PreparedStatement, idx: Int): Unit = p.setObject(idx, toStr(v), java.sql.Types.OTHER)

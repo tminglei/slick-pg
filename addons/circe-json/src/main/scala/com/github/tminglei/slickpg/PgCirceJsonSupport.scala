@@ -29,7 +29,6 @@ trait PgCirceJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
         pgjson,
         (v) => parse(v).getOrElse(Json.Null),
         (v) => v.asJson.spaces2,
-        zero = Json.Null,
         hasLiteralForm = false
       )
 

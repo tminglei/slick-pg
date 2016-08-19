@@ -79,10 +79,6 @@ class PgPlayJsonSupportSuite extends FunSuite {
           JsonTests.to[List].result.map(
             r => assert(List(testRec1, testRec2, testRec3) === r)
           ),
-          // null return
-          JsonTests.filter(_.json.+>>("a") === "101").map(_.json.+>("d")).result.head.map(
-            r => assert(JsNull === r)
-          ),
           // ->>/->
           JsonTests.filter(_.json.+>>("a") === "101").map(_.json.+>>("c")).result.head.map(
             r => assert("[3,4,5,9]" === r.replace(" ", ""))

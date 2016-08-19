@@ -29,7 +29,6 @@ trait PgSprayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
         pgjson,
         (s) => s.parseJson,
         (v) => v.toJson.compactPrint,
-        zero = JsNull,
         hasLiteralForm = false
       )
 
