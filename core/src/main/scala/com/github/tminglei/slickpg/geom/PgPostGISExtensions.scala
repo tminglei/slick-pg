@@ -184,7 +184,8 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     val Length3D = new SqlFunction("ST_3DLength")
     val Perimeter = new SqlFunction("ST_Perimeter")
     val Distance = new SqlFunction("ST_Distance")
-    val DistanceSphere = new SqlFunction("ST_Distance_Sphere")
+    val DistanceSphere = new SqlFunction("ST_DistanceSphere")
+    val DistanceSpheroid = new SqlFunction("ST_DistanceSpheroid")
     val MaxDistance = new SqlFunction("ST_MaxDistance")
     val HausdorffDistance = new SqlFunction("ST_HausdorffDistance")
     val LongestLine = new SqlFunction("ST_LongestLine")
@@ -487,6 +488,9 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
       }
     def distanceSphere[P2, R](geom: Rep[P2])(implicit om: o#to[Float, R]) = {
         om.column(GeomLibrary.DistanceSphere, n, geom.toNode)
+      }
+    def distanceSpheroid[P2, R](geom: Rep[P2])(implicit om: o#to[Float, R]) = {
+        om.column(GeomLibrary.DistanceSpheroid, n, geom.toNode)
       }
     def maxDistance[P2, R](geom: Rep[P2])(implicit om: o#to[Float, R]) = {
         om.column(GeomLibrary.MaxDistance, n, geom.toNode)
