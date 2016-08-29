@@ -185,7 +185,9 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     val Perimeter = new SqlFunction("ST_Perimeter")
     val Distance = new SqlFunction("ST_Distance")
     val DistanceSphere = new SqlFunction("ST_DistanceSphere")
+    val DistanceSphere0 = new SqlFunction("ST_Distance_Sphere")
     val DistanceSpheroid = new SqlFunction("ST_DistanceSpheroid")
+    val DistanceSpheroid0 = new SqlFunction("ST_Distance_Spheroid")
     val MaxDistance = new SqlFunction("ST_MaxDistance")
     val HausdorffDistance = new SqlFunction("ST_HausdorffDistance")
     val LongestLine = new SqlFunction("ST_LongestLine")
@@ -489,8 +491,16 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
     def distanceSphere[P2, R](geom: Rep[P2])(implicit om: o#to[Float, R]) = {
         om.column(GeomLibrary.DistanceSphere, n, geom.toNode)
       }
+    @deprecated(message = "Use to access old `ST_Distance_Sphere` function", since = "0.15")
+    def distanceSphere0[P2, R](geom: Rep[P2])(implicit om: o#to[Float, R]) = {
+        om.column(GeomLibrary.DistanceSphere0, n, geom.toNode)
+      }
     def distanceSpheroid[P2, R](geom: Rep[P2])(implicit om: o#to[Float, R]) = {
         om.column(GeomLibrary.DistanceSpheroid, n, geom.toNode)
+      }
+    @deprecated(message = "Use to access old `ST_Distance_Spheroid` function", since = "0.15")
+    def distanceSpheroid0[P2, R](geom: Rep[P2])(implicit om: o#to[Float, R]) = {
+        om.column(GeomLibrary.DistanceSpheroid0, n, geom.toNode)
       }
     def maxDistance[P2, R](geom: Rep[P2])(implicit om: o#to[Float, R]) = {
         om.column(GeomLibrary.MaxDistance, n, geom.toNode)
