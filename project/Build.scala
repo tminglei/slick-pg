@@ -7,7 +7,7 @@ object SlickPgBuild extends Build {
     organizationName := "slick-pg",
     organization := "com.github.tminglei",
     name := "slick-pg",
-    version := "0.15.0-M1",
+    version := "0.15.0-M2",
 
     scalaVersion := "2.11.8",
     crossScalaVersions := Seq("2.11.8"/*, "2.12.0-M5"*/),
@@ -149,9 +149,9 @@ object SlickPgBuild extends Build {
       name := "slick-pg_circe-json",
       description := "Slick extensions for PostgreSQL - circe module",
       libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-        "io.circe" %% "circe-core" % "0.4.1",
-        "io.circe" %% "circe-generic" % "0.4.1",
-        "io.circe" %% "circe-parser" % "0.4.1"
+        "io.circe" %% "circe-core" % "0.5.0",
+        "io.circe" %% "circe-generic" % "0.5.0",
+        "io.circe" %% "circe-parser" % "0.5.0"
       )
     )
   ) dependsOn (slickPgCore)
