@@ -99,11 +99,12 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
       sym.options.contains(ColumnOption.PrimaryKey) || funcDefinedPKs.exists(pk => pk.columns.collect {
         case Select(_, f: FieldSymbol) => f
       }.exists(_.name == sym.name)) }
+    private lazy val insertNames = insertingSyms.map { fs => quoteIdentifier(fs.name) }
     private lazy val pkNames = pkSyms.map { fs => quoteIdentifier(fs.name) }
     private lazy val softNames = softSyms.map { fs => quoteIdentifier(fs.name) }
 
     override def buildInsert: InsertBuilderResult = {
-      val insert = s"insert into $tableName (${insertingSyms.mkString(",")}) values (${insertingSyms.map(_ => "?").mkString(",")})"
+      val insert = s"insert into $tableName (${insertNames.mkString(",")}) values (${insertNames.map(_ => "?").mkString(",")})"
       val onConflict = "on conflict (" + pkNames.mkString(", ") + ")"
       val doSomething = if (softNames.isEmpty) "do nothing" else "do update set " + softNames.map(n => s"$n=EXCLUDED.$n").mkString(",")
       val padding = if (nonPkAutoIncSyms.isEmpty) "" else "where ? is null or ?=?"
