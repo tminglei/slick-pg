@@ -216,9 +216,9 @@ class PgUpsertSuite extends FunSuite {
   //------------------------------------------------------------------------------
 
   test("native upsert support with keyword columns") {
-    import MyPostgresDriver.api._
+    import MyPostgresProfile.api._
 
-    val upsertSql = MyPostgresDriver.compileInsert(UpsertTests2.toNode).upsert.sql
+    val upsertSql = MyPostgresProfile.compileInsert(UpsertTests2.toNode).upsert.sql
     println(s"upsert sql: $upsertSql")
 
     assert(upsertSql.contains("on conflict"))
