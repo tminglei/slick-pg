@@ -38,7 +38,7 @@ import com.github.tminglei.slickpg._
 
 trait MyPostgresDriver extends ExPostgresDriver
                           with PgArraySupport
-                          with PgDateSupport
+                          with PgDate2Support
                           with PgRangeSupport
                           with PgHStoreSupport
                           with PgPlayJsonSupport
