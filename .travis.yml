@@ -10,13 +10,14 @@ before_install:
   - sudo apt-get -y remove --purge postgresql-9.2
   - sudo apt-get -y remove --purge postgresql-9.3
   - sudo apt-get -y remove --purge postgresql-9.4
+  - sudo apt-get -y remove --purge postgresql-9.5
   - sudo apt-get -y autoremove
   - sudo apt-key adv --keyserver keys.gnupg.net --recv-keys 7FCC7D46ACCC4CF8
-  - sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main 9.5" >> /etc/apt/sources.list.d/postgresql.list'
+  - sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main 9.6" >> /etc/apt/sources.list.d/postgresql.list'
   - sudo apt-get update
-  - sudo apt-get -y install postgresql-9.5 postgresql-contrib-9.5 postgresql-9.5-postgis-2.2
-  - sudo sh -c 'echo "local all postgres trust" > /etc/postgresql/9.5/main/pg_hba.conf'
-  - sudo sh -c 'echo -n "host all all 127.0.0.1/32 trust" >> /etc/postgresql/9.5/main/pg_hba.conf'
+  - sudo apt-get -y install postgresql-9.6 postgresql-contrib-9.6 postgresql-9.6-postgis-2.3
+  - sudo sh -c 'echo "local all postgres trust" > /etc/postgresql/9.6/main/pg_hba.conf'
+  - sudo sh -c 'echo -n "host all all 127.0.0.1/32 trust" >> /etc/postgresql/9.6/main/pg_hba.conf'
   - sudo /etc/init.d/postgresql restart
 before_script:
   - psql -c 'create database test;' -U postgres
