@@ -28,10 +28,15 @@ class PgPlayJsonSupportSuite extends FunSuite {
     override val api = new API with JsonImplicits {
       implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
       implicit val beanJsonTypeMapper = MappedJdbcType.base[JBean, JsValue](Json.toJson(_), _.as[JBean])
-      implicit val json4sJsonArrayTypeMapper =
+      implicit val jsonArrayTypeMapper =
         new AdvancedArrayJdbcType[JsValue](pgjson,
           (s) => utils.SimpleArrayUtils.fromString[JsValue](Json.parse(_))(s).orNull,
           (v) => utils.SimpleArrayUtils.mkString[JsValue](_.toString())(v)
+        ).to(_.toList)
+      implicit val beanArrayTypeMapper =
+        new AdvancedArrayJdbcType[JBean](pgjson,
+          (s) => utils.SimpleArrayUtils.fromString[JBean](Json.parse(_).as[JBean])(s).orNull,
+          (v) => utils.SimpleArrayUtils.mkString[JBean](b => Json.stringify(Json.toJson(b)))(v)
         ).to(_.toList)
     }
 
@@ -43,23 +48,26 @@ class PgPlayJsonSupportSuite extends FunSuite {
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
-  case class JsonBean(id: Long, json: JsValue, jsons: List[JsValue], jbean: JBean)
+  case class JsonBean(id: Long, json: JsValue, jsons: List[JsValue], jbean: JBean, jbeans: List[JBean])
 
   class JsonTestTable(tag: Tag) extends Table[JsonBean](tag, "JsonTest2") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def json = column[JsValue]("json", O.Default(Json.parse(""" {"a":"v1","b":2} """)))
     def jsons = column[List[JsValue]]("jsons")
     def jbean = column[JBean]("jbean")
+    def jbeans = column[List[JBean]]("jbeans")
 
-    def * = (id, json, jsons, jbean) <> (JsonBean.tupled, JsonBean.unapply)
+    def * = (id, json, jsons, jbean, jbeans) <> (JsonBean.tupled, JsonBean.unapply)
   }
   val JsonTests = TableQuery[JsonTestTable]
 
   //------------------------------------------------------------------------------
 
-  val testRec1 = JsonBean(33L, Json.parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """), List(Json.parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """)), JBean("tt", 3))
-  val testRec2 = JsonBean(35L, Json.parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """), List(Json.parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """)), JBean("t1", 5))
-  val testRec3 = JsonBean(37L, Json.parse(""" ["a", "b"] """), Nil, JBean("tx", 7))
+  val testRec1 = JsonBean(33L, Json.parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """), List(Json.parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """)),
+    JBean("tt", 3), List(JBean("tt", 3)))
+  val testRec2 = JsonBean(35L, Json.parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """), List(Json.parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """)),
+    JBean("t1", 5), List(JBean("t1", 5)))
+  val testRec3 = JsonBean(37L, Json.parse(""" ["a", "b"] """), Nil, JBean("tx", 7), Nil)
 
   test("Play json Lifted support") {
     val json1 = Json.parse(""" {"a":"v1","b":2} """)
