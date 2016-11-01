@@ -38,7 +38,7 @@ import com.github.tminglei.slickpg._
 
 trait MyPostgresDriver extends ExPostgresDriver
                           with PgArraySupport
-                          with PgDateSupport
+                          with PgDate2Support
                           with PgRangeSupport
                           with PgHStoreSupport
                           with PgPlayJsonSupport
@@ -149,7 +149,7 @@ Here's the related technical details:
 | List[T]                             | ARRAY                 |        no 3rd party dependencies       |
 | `sql` Date<br> Time<br> Timestamp<br> slickpg Interval<br> Calendar | date<br> time<br> timestamp<br> interval<br> timestamptz |    no 3rd party dependencies     |
 | `joda` LocalDate<br> LocalTime<br> LocalDateTime<br> Period<br> DateTime  | date<br> time<br> timestamp<br> interval<br> timestamptz |    `joda-time` v2.8 / `joda-convert` v1.7     |
-| `java.time` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz |    no 3rd party dependencies <br> but require java 8    |
+| `java.time` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime <br> OffsetDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz <br> timestamptz |    no 3rd party dependencies <br> but require java 8    |
 | `threeten.bp` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz |    `threetenbp` v1.0      |
 | `scala` Enumeration                 | enum                  |        no 3rd party dependencies       |
 | `slickpg` Range[T]                  | range                 |        no 3rd party dependencies       |
@@ -166,7 +166,7 @@ Here's the related technical details:
 | (TsQuery+TsVector)                  | `text` search         |        no 3rd party dependencies       |
 | `jts` Geometry                      | `postgis` geometry    |        `jts` v1.13                     |
 
-
+_**Warning:** When your work with time data that contain Timezone, be wary of your postgres configuration. By default `ZonedDateTime` in Java 8 contains more information than `timestamptz` in Postgres. As a consequence, when you store a `ZonedDateTime` you are not guaranteed to get the same timezone as the original class instance. Prefer `OffsetDateTime` instead. cf [Issue #248](https://github.com/tminglei/slick-pg/issues/248)_
 
 Details
 ------------------------------
