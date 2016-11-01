@@ -213,9 +213,9 @@ class PgUpsertSuite extends FunSuite {
   val UpsertTests12 = TableQuery[UpsertTestTable12]
 
   test("native upsert support - autoInc + pk defined by using `primaryKey` w/o other columns") {
-    import MyPostgresDriver.api._
+    import MyPostgresProfile.api._
 
-    val upsertSql = MyPostgresDriver.compileInsert(UpsertTests12.toNode).upsert.sql
+    val upsertSql = MyPostgresProfile.compileInsert(UpsertTests12.toNode).upsert.sql
     println(s"upsert sql: $upsertSql")
 
     assert(upsertSql.contains("on conflict"))
