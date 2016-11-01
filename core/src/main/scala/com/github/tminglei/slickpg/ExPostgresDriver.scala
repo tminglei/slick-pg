@@ -106,10 +106,9 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
 
     override def buildInsert: InsertBuilderResult = {
       val insert = s"insert into $tableName (${insertNames.mkString(",")}) values (${insertNames.map(_ => "?").mkString(",")})"
-      val onConflict = "on conflict (" + pkNames.mkString(", ") + ")"
-      val doSomething = if (softNames.isEmpty) "do nothing" else "do update set " + softNames.map(n => s"$n=EXCLUDED.$n").mkString(",")
-      val padding = if (nonPkAutoIncSyms.isEmpty) "" else "where ? is null or ?=?"
-      new InsertBuilderResult(table, s"$insert $onConflict $doSomething $padding", syms)
+      val conflictWithPadding = "conflict (" + pkNames.mkString(", ") + ")" + (/* padding */ if (nonPkAutoIncSyms.isEmpty) "" else "where ? is null or ?=?")
+      val updateOrNothing = if (softNames.isEmpty) "nothing" else "update set " + softNames.map(n => s"$n=EXCLUDED.$n").mkString(",")
+      new InsertBuilderResult(table, s"$insert on $conflictWithPadding do $updateOrNothing", syms)
     }
 
     override def transformMapping(n: Node) = reorderColumns(n, insertingSyms ++ nonPkAutoIncSyms ++ nonPkAutoIncSyms ++ nonPkAutoIncSyms)
