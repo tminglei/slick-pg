@@ -2,6 +2,7 @@ package com.github.tminglei.slickpg
 
 import java.util.concurrent.Executors
 
+import cats.syntax.either._
 import io.circe._
 import io.circe.parser._
 import org.scalatest.FunSuite

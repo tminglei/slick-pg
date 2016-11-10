@@ -18,7 +18,7 @@ class PgJson4sSupportSuite extends FunSuite {
     /// for json support
     override val pgjson = "jsonb"
     type DOCType = text.Document
-    override val jsonMethods = org.json4s.native.JsonMethods
+    override val jsonMethods = org.json4s.native.JsonMethods.asInstanceOf[JsonMethods[DOCType]]
 
     override val api = new API with JsonImplicits {
       implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
