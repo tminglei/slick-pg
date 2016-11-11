@@ -2,10 +2,10 @@ lazy val commonSettings = Seq(
   organizationName := "slick-pg",
   organization := "com.github.tminglei",
   name := "slick-pg",
-  version := "0.15.0-M2",
+  version := "0.15.0-M3",
 
   scalaVersion := "2.11.8",
-  crossScalaVersions := Seq("2.11.8"/*, "2.12.0-M5"*/),
+  crossScalaVersions := Seq("2.11.8"/*, "2.12.0"*/),
   scalacOptions ++= Seq("-deprecation", "-feature",
     "-language:implicitConversions",
     "-language:reflectiveCalls",
@@ -18,9 +18,9 @@ lazy val commonSettings = Seq(
   resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
   resolvers += "spray" at "http://repo.spray.io/",
   //    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))),
-  publishTo <<= version { (v: String) =>
+  publishTo := {
     val nexus = "https://oss.sonatype.org/"
-    if (v.trim.endsWith("SNAPSHOT"))
+    if (version.value.trim.endsWith("SNAPSHOT"))
       Some("snapshots" at nexus + "content/repositories/snapshots")
     else
       Some("releases" at nexus + "service/local/staging/deploy/maven2")
@@ -56,16 +56,16 @@ lazy val commonSettings = Seq(
 def mainDependencies(scalaVersion: String) = {
   val extractedLibs = CrossVersion.partialVersion(scalaVersion) match {
     case Some((2, scalaMajor)) if scalaMajor >= 11 =>
-      Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.1" % "provided")
+      Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4" % "provided")
     case _ =>
       Seq()
   }
   Seq (
     "org.scala-lang" % "scala-reflect" % scalaVersion,
     "com.typesafe.slick" %% "slick" % "3.2.0-M1",
-    "org.postgresql" % "postgresql" % "9.4.1209",
-    "org.slf4j" % "slf4j-simple" % "1.7.12" % "provided",
-    "org.scalatest" %% "scalatest" % "2.2.4" % "test"
+    "org.postgresql" % "postgresql" % "9.4.1212",
+    "org.slf4j" % "slf4j-simple" % "1.7.21" % "provided",
+    "org.scalatest" %% "scalatest" % "3.0.1" % "test"
   ) ++ extractedLibs
 }
 
@@ -91,8 +91,8 @@ lazy val slickPgJoda = Project(id = "slick-pg_joda-time", base = file("./addons/
     name := "slick-pg_joda-time",
     description := "Slick extensions for PostgreSQL - joda time module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "joda-time" % "joda-time" % "2.8.2",
-      "org.joda" % "joda-convert" % "1.7"
+      "joda-time" % "joda-time" % "2.9.5",
+      "org.joda" % "joda-convert" % "1.8.1"
     )
   )
 ) dependsOn (slickPgCore)
@@ -102,9 +102,9 @@ lazy val slickPgJson4s = Project(id = "slick-pg_json4s", base = file("./addons/j
     name := "slick-pg_json4s",
     description := "Slick extensions for PostgreSQL - json4s module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "org.json4s" %% "json4s-ast" % "3.3.0",
-      "org.json4s" %% "json4s-core" % "3.3.0",
-      "org.json4s" %% "json4s-native" % "3.3.0" % "test"
+      "org.json4s" %% "json4s-ast" % "3.5.0",
+      "org.json4s" %% "json4s-core" % "3.5.0",
+      "org.json4s" %% "json4s-native" % "3.5.0" % "test"
     )
   )
 ) dependsOn (slickPgCore)
@@ -124,7 +124,7 @@ lazy val slickPgPlayJson = Project(id = "slick-pg_play-json", base = file("./add
     name := "slick-pg_play-json",
     description := "Slick extensions for PostgreSQL - play-json module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "com.typesafe.play" %% "play-json" % "2.5.4"
+      "com.typesafe.play" %% "play-json" % "2.5.9"
     )
   )
 ) dependsOn (slickPgCore)
@@ -144,9 +144,9 @@ lazy val slickPgCirceJson = Project(id = "slick-pg_circe-json", base = file("./a
     name := "slick-pg_circe-json",
     description := "Slick extensions for PostgreSQL - circe module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "io.circe" %% "circe-core" % "0.5.0",
-      "io.circe" %% "circe-generic" % "0.5.0",
-      "io.circe" %% "circe-parser" % "0.5.0"
+      "io.circe" %% "circe-core" % "0.6.0",
+      "io.circe" %% "circe-generic" % "0.6.0",
+      "io.circe" %% "circe-parser" % "0.6.0"
     )
   )
 ) dependsOn (slickPgCore)
@@ -166,7 +166,7 @@ lazy val slickPgThreeten = Project(id = "slick-pg_threeten", base = file("./addo
     name := "slick-pg_threeten",
     description := "Slick extensions for PostgreSQL - threeten module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "org.threeten" % "threetenbp" % "1.0"
+      "org.threeten" % "threetenbp" % "1.3.2"
     )
   )
 ) dependsOn (slickPgCore)

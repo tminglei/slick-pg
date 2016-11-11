@@ -1,5 +1,6 @@
 package com.github.tminglei.slickpg
 
+import cats.syntax.either._
 import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
 import scala.reflect.classTag
 
