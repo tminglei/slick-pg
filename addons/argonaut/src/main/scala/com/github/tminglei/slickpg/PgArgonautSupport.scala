@@ -26,7 +26,7 @@ trait PgArgonautSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
     implicit val argonautJsonTypeMapper: JdbcType[Json] =
       new GenericJdbcType[Json](
         pgjson,
-        (s) => s.parse.toOption.getOrElse(jNull),
+        (s) => s.parseOption.getOrElse(jNull),
         (v) => v.nospaces,
         hasLiteralForm = false
       )
@@ -44,7 +44,7 @@ trait PgArgonautSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
 
     implicit class PgJsonPositionedResult(r: PositionedResult) {
       def nextJson() = nextJsonOption().getOrElse(jNull)
-      def nextJsonOption() = r.nextStringOption().flatMap(_.parse.toOption)
+      def nextJsonOption() = r.nextStringOption().flatMap(_.parseOption)
     }
 
     ///////////////////////////////////////////////////////////

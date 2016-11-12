@@ -156,7 +156,7 @@ lazy val slickPgArgonaut = Project(id = "slick-pg_argonaut", base = file("./addo
     name := "slick-pg_argonaut",
     description := "Slick extensions for PostgreSQL - argonaut module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "io.argonaut" %% "argonaut" % "6.1"
+      "io.argonaut" %% "argonaut" % "6.2-RC1"
     )
   )
 ) dependsOn (slickPgCore)
