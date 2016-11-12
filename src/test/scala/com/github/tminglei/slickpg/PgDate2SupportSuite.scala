@@ -9,18 +9,6 @@ import slick.jdbc.{GetResult, PostgresProfile}
 import scala.concurrent.{Await, ExecutionContext}
 
 class PgDate2SupportSuite extends FunSuite {
-  implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
-
-  object MyPostgresProfile extends PostgresProfile
-                            with PgDate2Support {
-
-    override val api = new API with DateTimeImplicits
-
-    ///
-    val plainAPI = new API with Date2DateTimePlainImplicits
-  }
-
-  ///
   import MyPostgresProfile.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")

@@ -84,7 +84,7 @@ lazy val slickPgProject = Project(id = "slick-pg", base = file("."),
     libraryDependencies := mainDependencies(scalaVersion.value)
   )
 ).dependsOn (slickPgCore)
-  .aggregate (slickPgCore, slickPgJoda, slickPgJson4s, slickPgJts, slickPgPlayJson, slickPgSprayJson, slickPgCirceJson, slickPgArgonaut, slickPgThreeten, slickPgDate2)
+  .aggregate (slickPgCore, slickPgJoda, slickPgJson4s, slickPgJts, slickPgPlayJson, slickPgSprayJson, slickPgCirceJson, slickPgArgonaut)
 
 lazy val slickPgJoda = Project(id = "slick-pg_joda-time", base = file("./addons/joda-time"),
   settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
@@ -158,23 +158,5 @@ lazy val slickPgArgonaut = Project(id = "slick-pg_argonaut", base = file("./addo
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
       "io.argonaut" %% "argonaut" % "6.2-RC1"
     )
-  )
-) dependsOn (slickPgCore)
-
-lazy val slickPgThreeten = Project(id = "slick-pg_threeten", base = file("./addons/threeten"),
-  settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
-    name := "slick-pg_threeten",
-    description := "Slick extensions for PostgreSQL - threeten module",
-    libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "org.threeten" % "threetenbp" % "1.3.2"
-    )
-  )
-) dependsOn (slickPgCore)
-
-lazy val slickPgDate2 = Project(id = "slick-pg_date2", base = file("./addons/date2"),
-  settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
-    name := "slick-pg_date2",
-    description := "Slick extensions for PostgreSQL - date2 module (jdk8 time)",
-    libraryDependencies := mainDependencies(scalaVersion.value)
   )
 ) dependsOn (slickPgCore)

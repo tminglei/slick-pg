@@ -3,6 +3,7 @@ package com.github.tminglei.slickpg
 trait MyPostgresProfile extends ExPostgresProfile
                           with PgArraySupport
                           with PgDateSupport
+                          with PgDate2Support
                           with PgJsonSupport
                           with PgNetSupport
                           with PgLTreeSupport
@@ -13,6 +14,7 @@ trait MyPostgresProfile extends ExPostgresProfile
   override val pgjson = "jsonb"
   ///
   override val api = new API with ArrayImplicits
+                             with SimpleDateTimeImplicits
                              with DateTimeImplicits
                              with SimpleJsonImplicits
                              with NetImplicits
@@ -23,6 +25,7 @@ trait MyPostgresProfile extends ExPostgresProfile
                              with SearchAssistants {}
   ///
   val plainAPI = new API with SimpleArrayPlainImplicits
+                         with Date2DateTimePlainImplicits
                          with SimpleJsonPlainImplicits
                          with SimpleNetPlainImplicits
                          with SimpleLTreePlainImplicits
