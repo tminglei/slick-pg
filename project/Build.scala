@@ -161,7 +161,7 @@ object SlickPgBuild extends Build {
       name := "slick-pg_argonaut",
       description := "Slick extensions for PostgreSQL - argonaut module",
       libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-        "io.argonaut" %% "argonaut" % "6.1"
+        "io.argonaut" %% "argonaut" % "6.2-RC2"
       )
     )
   ) dependsOn (slickPgCore)
