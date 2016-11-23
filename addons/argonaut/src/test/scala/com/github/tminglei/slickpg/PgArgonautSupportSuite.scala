@@ -44,13 +44,13 @@ class PgArgonautSupportSuite extends FunSuite {
 
   //------------------------------------------------------------------------------
 
-  val testRec1 = JsonBean(33L, """ { "a":101, "b":"aaa", "c":[3,4,5,9] } """.parse.toOption.getOrElse(jNull))
-  val testRec2 = JsonBean(35L, """ [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """.parse.toOption.getOrElse(jNull))
-  val testRec3 = JsonBean(37L, """ ["a", "b"] """.parse.toOption.getOrElse(jNull))
+  val testRec1 = JsonBean(33L, """ { "a":101, "b":"aaa", "c":[3,4,5,9] } """.parseOption.getOrElse(jNull))
+  val testRec2 = JsonBean(35L, """ [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """.parseOption.getOrElse(jNull))
+  val testRec3 = JsonBean(37L, """ ["a", "b"] """.parseOption.getOrElse(jNull))
 
   test("Argonaut json Lifted support") {
-    val json1 = """ {"a":"v1","b":2} """.parse.toOption.getOrElse(jNull)
-    val json2 = """ {"a":"v5","b":3} """.parse.toOption.getOrElse(jNull)
+    val json1 = """ {"a":"v1","b":2} """.parseOption.getOrElse(jNull)
+    val json2 = """ {"a":"v5","b":3} """.parseOption.getOrElse(jNull)
 
     Await.result(db.run(
       DBIO.seq(
@@ -109,11 +109,11 @@ class PgArgonautSupportSuite extends FunSuite {
             r => assert("a" === r)
           ),
           // @>
-          JsonTests.filter(_.json @> """ {"b":"aaa"} """.parse.toOption.getOrElse(jNull)).map(_.id).result.head.map(
+          JsonTests.filter(_.json @> """ {"b":"aaa"} """.parseOption.getOrElse(jNull)).map(_.id).result.head.map(
             r => assert(33L === r)
           ),
           // <@
-          JsonTests.filter(""" {"b":"aaa"} """.parse.toOption.getOrElse(jNull) <@: _.json).map(_.id).result.head.map(
+          JsonTests.filter(""" {"b":"aaa"} """.parseOption.getOrElse(jNull) <@: _.json).map(_.id).result.head.map(
             r => assert(33L === r)
           ),
           // {}_typeof
@@ -133,7 +133,7 @@ class PgArgonautSupportSuite extends FunSuite {
             r => assert(List(testRec1) === r)
           ),
           // ||
-          JsonTests.filter(_.id === 33L).map(_.json || """ {"d":"test"} """.parse.toOption.getOrElse(jNull)).result.head.map(
+          JsonTests.filter(_.id === 33L).map(_.json || """ {"d":"test"} """.parseOption.getOrElse(jNull)).result.head.map(
             r => assert(""" {"a": 101, "b": "aaa", "c": [3, 4, 5, 9], "d": "test"} """.replace(" ", "") === r.toString().replace(" ", ""))
           ),
           // -
@@ -145,7 +145,7 @@ class PgArgonautSupportSuite extends FunSuite {
             r => assert(""" {"a": 101, "b": "aaa"} """.replace(" ", "") === r.toString().replace(" ", ""))
           ),
           // #-
-          JsonTests.filter(_.id === 33L).map(_.json.set(List("c"), """ [1] """.parse.toOption.getOrElse(jNull).bind)).result.head.map(
+          JsonTests.filter(_.id === 33L).map(_.json.set(List("c"), """ [1] """.parseOption.getOrElse(jNull).bind)).result.head.map(
             r => assert(""" {"a": 101, "b": "aaa", "c": [1]} """.replace(" ", "") === r.toString().replace(" ", ""))
           )
         )
@@ -162,7 +162,7 @@ class PgArgonautSupportSuite extends FunSuite {
 
     implicit val getJsonBeanResult = GetResult(r => JsonBean(r.nextLong(), r.nextJson()))
 
-    val b = JsonBean(34L, """ { "a":101, "b":"aaa", "c":[3,4,5,9] } """.parse.toOption.getOrElse(jNull))
+    val b = JsonBean(34L, """ { "a":101, "b":"aaa", "c":[3,4,5,9] } """.parseOption.getOrElse(jNull))
 
     Await.result(db.run(
       DBIO.seq(
