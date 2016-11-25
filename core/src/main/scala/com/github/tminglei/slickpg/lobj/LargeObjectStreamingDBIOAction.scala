@@ -81,8 +81,11 @@ case class LargeObjectStreamingDBIOAction(largeObjectId: Long, bufferSize: Int =
       val thing = readNextResult(stream)
       val bytes = thing._1
       bytesRead = thing._2
-      context.emit(bytes)
-      count += 1
+      //only emit these bytes if the chunk is nonempty to avoid issues with stream cancellation
+      if (bytes.length > 0) {
+        context.emit(bytes)
+        count += 1
+      }
     }
 
     //if the final bytesRead value was non-positive, close the stream and return a null StreamState
