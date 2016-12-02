@@ -18,9 +18,9 @@ trait PgCirceJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
     implicit val circeJsonTypeMapper: JdbcType[Json] =
       new GenericJdbcType[Json](
         pgjson,
-        (v) => parse(v).getOrElse(Json.Empty),
+        (v) => parse(v).right.getOrElse(Json.Null),
         (v) => v.asJson.spaces2,
-        zero = Json.Empty,
+        zero = Json.Null,
         hasLiteralForm = false
       )
 
@@ -45,8 +45,8 @@ trait PgCirceJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
     }
 
     implicit class PgJsonPositionResult(r: PositionedResult) {
-      def nextJson() = nextJsonOption().getOrElse(Json.Empty)
-      def nextJsonOption() = r.nextStringOption().map(parse(_).getOrElse(Json.Empty))
+      def nextJson() = nextJsonOption().getOrElse(Json.Null)
+      def nextJsonOption() = r.nextStringOption().map(parse(_).right.getOrElse(Json.Null))
     }
 
     implicit val getJson = mkGetResult(_.nextJson())
