@@ -41,13 +41,13 @@ class PgCirceJsonSupportSuite extends FunSuite {
   }
   val JsonTests = TableQuery[JsonTestTable]
 
-  val testRec1 = JsonBean(33L, parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """).getOrElse(Json.Empty))
-  val testRec2 = JsonBean(35L, parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """).getOrElse(Json.Empty))
-  val testRec3 = JsonBean(37L, parse(""" ["a", "b"] """).getOrElse(Json.Empty))
+  val testRec1 = JsonBean(33L, parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """).right.getOrElse(Json.Null))
+  val testRec2 = JsonBean(35L, parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """).right.getOrElse(Json.Null))
+  val testRec3 = JsonBean(37L, parse(""" ["a", "b"] """).right.getOrElse(Json.Null))
 
   test("Circe json Lifted support") {
-    val json1 = parse(""" {"a":"v1","b":2} """).getOrElse(Json.Empty)
-    val json2 = parse(""" {"a":"v5","b":3} """).getOrElse(Json.Empty)
+    val json1 = parse(""" {"a":"v1","b":2} """).right.getOrElse(Json.Null)
+    val json2 = parse(""" {"a":"v5","b":3} """).right.getOrElse(Json.Null)
 
     Await.result(db.run(
       DBIO.seq(
@@ -56,18 +56,18 @@ class PgCirceJsonSupportSuite extends FunSuite {
       ).andThen(
         DBIO.seq(
           JsonTests.filter(_.id === testRec2.id.bind).map(_.json).result.head.map(
-            r => assert(Json.array(json1, json2) === r)
+            r => assert(Json.arr(json1, json2) === r)
           ),
           // null return
           JsonTests.filter(_.json.+>>("a") === "101").map(_.json.+>("d")).result.head.map(
-            r => assert(Json.Empty === r)
+            r => assert(Json.Null === r)
           ),
           // ->>/->
           JsonTests.filter(_.json.+>>("a") === "101".bind).map(_.json.+>>("c")).result.head.map(
             r => assert("[3,4,5,9]" === r.replace(" ", ""))
           ),
           JsonTests.filter(_.json.+>>("a") === "101".bind).map(_.json.+>("c")).result.head.map(
-            r => assert(Json.array(Json.long(3), Json.long(4), Json.long(5), Json.long(9)) === r)
+            r => assert(Json.arr(Json.fromLong(3), Json.fromLong(4), Json.fromLong(5), Json.fromLong(9)) === r)
           ),
           JsonTests.filter(_.id === testRec2.id).map(_.json.~>(1)).result.head.map(
             r => assert(json2 === r)
@@ -77,7 +77,7 @@ class PgCirceJsonSupportSuite extends FunSuite {
           ),
           // #>>/#>
           JsonTests.filter(_.id === testRec1.id).map(_.json.#>(List("c"))).result.head.map(
-            r => assert(Json.array(Json.long(3), Json.long(4), Json.long(5), Json.long(9)) === r)
+            r => assert(Json.arr(Json.fromLong(3), Json.fromLong(4), Json.fromLong(5), Json.fromLong(9)) === r)
           ),
           JsonTests.filter(_.json.#>>(List("a")) === "101").result.head.map(
             r => assert(testRec1 === r)
@@ -105,11 +105,11 @@ class PgCirceJsonSupportSuite extends FunSuite {
             r => assert("a" === r)
           ),
           // @>
-          JsonTests.filter(_.json @> parse(""" {"b":"aaa"} """).getOrElse(Json.Empty)).map(_.id).result.head.map(
+          JsonTests.filter(_.json @> parse(""" {"b":"aaa"} """).right.getOrElse(Json.Null)).map(_.id).result.head.map(
             r => assert(33L === r)
           ),
           // <@
-          JsonTests.filter(parse(""" {"b":"aaa"} """).getOrElse(Json.Empty) <@: _.json).map(_.id).result.head.map(
+          JsonTests.filter(parse(""" {"b":"aaa"} """).right.getOrElse(Json.Null) <@: _.json).map(_.id).result.head.map(
             r => assert(33L === r)
           ),
           // {}_typeof
@@ -140,7 +140,7 @@ class PgCirceJsonSupportSuite extends FunSuite {
 
     implicit val getJsonBeanResult = GetResult(r => JsonBean(r.nextLong(), r.nextJson()))
 
-    val b = JsonBean(34L, parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """).getOrElse(Json.Empty))
+    val b = JsonBean(34L, parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """).right.getOrElse(Json.Null))
 
     Await.result(db.run(
       DBIO.seq(
