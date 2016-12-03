@@ -18,7 +18,7 @@ before_install:
   - sudo apt-get -y install postgresql-9.5 postgresql-contrib-9.5 postgresql-9.5-postgis-2.2
   - sudo sh -c 'echo "local all postgres trust" > /etc/postgresql/9.5/main/pg_hba.conf'
   - sudo sh -c 'echo -n "host all all 127.0.0.1/32 trust" >> /etc/postgresql/9.5/main/pg_hba.conf'
-  - sudo /etc/init.d/postgresql restart
+  - sudo service postgresql restart 9.5
 before_script:
   - psql -c 'create database test;' -U postgres
   - psql test -c 'CREATE EXTENSION IF NOT EXISTS hstore;' -U postgres
