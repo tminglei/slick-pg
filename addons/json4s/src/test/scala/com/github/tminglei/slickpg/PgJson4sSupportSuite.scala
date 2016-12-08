@@ -69,7 +69,7 @@ class PgJson4sSupportSuite extends FunSuite {
           JsonTests.filter(_.id === testRec2.id.bind).map(_.json).result.head.map(
             r => assert(JArray(List(json1,json2)) === r)
           ),
-          JsonTests.to[List].result.map(
+          JsonTests.sortBy(_.json.+>>("a")).to[List].result.map(
             r => assert(List(testRec1, testRec2, testRec3) === r)
           ),
           // ->>/->
