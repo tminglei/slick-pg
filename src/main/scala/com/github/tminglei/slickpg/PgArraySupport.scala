@@ -1,9 +1,12 @@
 package com.github.tminglei.slickpg
 
 import java.util.UUID
+
 import slick.driver.PostgresDriver
-import java.sql.{Timestamp, Time, Date}
-import slick.jdbc.{PositionedResult, JdbcType}
+import java.sql.{Date, Time, Timestamp}
+
+import com.github.tminglei.slickpg.utils.PlainSQLUtils
+import slick.jdbc.{JdbcType, PositionedResult}
 
 import scala.reflect.runtime.{universe => u}
 

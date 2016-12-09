@@ -12,7 +12,7 @@ object PlainSQLUtils extends Logging {
   private[slickpg] var nextArrayConverters = Map.empty[String, PositionedResult => Option[Seq[_]]]
 
   /** used to support 'nextArray[T]/nextArrayOption[T]' in PgArraySupport */
-  def addNextArrayConverter[T](conv: PositionedResult => Option[Seq[T]])(implicit ttag: u.TypeTag[T]) = {
+  def addNextArrayConverter[T](conv: PositionedResult => Option[Seq[T]])(implicit ttag: u.TypeTag[T]):Unit = {
     logger.info(s"\u001B[36m >>> adding next array converter for ${u.typeOf[T]} \u001B[0m")
     nextArrayConverters.synchronized {
       val convKey = u.typeOf[T].toString
