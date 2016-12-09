@@ -44,6 +44,7 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
         .append(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         .optionalStart()
         .appendFraction(ChronoField.NANO_OF_SECOND,0,6,true)
+        .appendOffset("+HH:mm","+00")
         .optionalEnd()
         .toFormatter()
     val date2TzTimeFormatter =
