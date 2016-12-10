@@ -57,10 +57,6 @@ class PgCirceJsonSupportSuite extends FunSuite {
           JsonTests.filter(_.id === testRec2.id.bind).map(_.json).result.head.map(
             r => assert(Json.arr(json1, json2) === r)
           ),
-          // null return
-          JsonTests.filter(_.json.+>>("a") === "101").map(_.json.+>("d")).result.head.map(
-            r => assert(Json.Null === r)
-          ),
           // ->>/->
           JsonTests.filter(_.json.+>>("a") === "101".bind).map(_.json.+>>("c")).result.head.map(
             r => assert("[3,4,5,9]" === r.replace(" ", ""))
