@@ -3,30 +3,20 @@ package array
 
 import scala.reflect.ClassTag
 import slick.ast.FieldSymbol
-import slick.driver.{PostgresDriver, JdbcTypesComponent}
-import java.sql.{ResultSet, PreparedStatement}
+import java.sql.{PreparedStatement, ResultSet}
 
-trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
+import slick.jdbc.{JdbcTypesComponent, PostgresProfile}
 
-  @deprecated(message = "use 'new SimpleArrayJdbcType[T](..).to[SEQ[T]](..)' instead", since = "0.7.1")
-  class SimpleArrayListJdbcType[T](sqlBaseType: String)(
-              implicit override val classTag: ClassTag[List[T]], tag: ClassTag[T], checked: ArrChecked[T])
-                    extends WrappedConvArrayJdbcType[T, List](
-                        new SimpleArrayJdbcType[T](sqlBaseType), _.toList) {
+trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
 
-    def basedOn[U](tmap: T => U, tcomap: U => T): DriverJdbcType[List[T]] =
-      delegate.asInstanceOf[SimpleArrayJdbcType[T]].basedOn(tmap, tcomap).to(_.toList)
-  }
-
-  //
   class SimpleArrayJdbcType[T] private[slickpg] (sqlBaseType: String,
                                                 tmap: Any => T,
                                                 tcomap: T => Any,
                                                 zero: Seq[T] = null.asInstanceOf[Seq[T]])(
-              implicit override val classTag: ClassTag[Seq[T]], ctag: ClassTag[T], checked: ArrChecked[T])
+              implicit override val classTag: ClassTag[Seq[T]], ctag: ClassTag[T], checked: ElemWitness[T])
                     extends DriverJdbcType[Seq[T]] { self =>
 
-    def this(sqlBaseType: String)(implicit ctag: ClassTag[T], checked: ArrChecked[T]) = this(sqlBaseType, _.asInstanceOf[T], identity)
+    def this(sqlBaseType: String)(implicit ctag: ClassTag[T], checked: ElemWitness[T]) = this(sqlBaseType, _.asInstanceOf[T], identity)
 
     override def sqlType: Int = java.sql.Types.ARRAY
 
@@ -51,30 +41,14 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
     protected def buildArrayStr(vList: Seq[Any]): String = utils.SimpleArrayUtils.mkString[Any](_.toString)(vList)
 
     ///
-    @deprecated(message = "please define a base type array first, then `mapTo` target type array", since = "0.11.0")
-    def basedOn[U](tmap: T => U, tcomap: U => T): SimpleArrayJdbcType[T] = ???
-
     def mapTo[U](tmap: T => U, tcomap: U => T)(implicit ctags: ClassTag[Seq[U]], ctag: ClassTag[U]): SimpleArrayJdbcType[U] =
-      new SimpleArrayJdbcType[U](sqlBaseType, v => tmap(self.tmap(v)), r => self.tcomap(tcomap(r)))(ctags, ctag, ArrChecked.AnyChecked.asInstanceOf[ArrChecked[U]])
+      new SimpleArrayJdbcType[U](sqlBaseType, v => tmap(self.tmap(v)), r => self.tcomap(tcomap(r)))(ctags, ctag, ElemWitness.AnyWitness.asInstanceOf[ElemWitness[U]])
 
     def to[SEQ[T] <: Seq[T]](conv: Seq[T] => SEQ[T])(implicit classTag: ClassTag[SEQ[T]]): DriverJdbcType[SEQ[T]] =
       new WrappedConvArrayJdbcType[T, SEQ](this, conv)
   }
 
-  /* alias, added for back compatible */
-  @deprecated(message = "use AdvancedArrayListJdbcType instead", since = "0.6.5")
-  type NestedArrayListJdbcType[T] = AdvancedArrayListJdbcType[T]
-
-  ///-- can be used to map complex composite/nested array
-  @deprecated(message = "use 'new AdvancedArrayJdbcType[T](..).to[SEQ[T]](..)' instead", since = "0.7.1")
-  class AdvancedArrayListJdbcType[T](sqlBaseType: String,
-                                  fromString: (String => List[T]),
-                                  mkString: (List[T] => String))(
-              implicit override val classTag: ClassTag[List[T]], tag: ClassTag[T])
-                    extends WrappedConvArrayJdbcType[T, List](
-                        new AdvancedArrayJdbcType(sqlBaseType, fromString, v => mkString(v.toList)), _.toList)
-
-  //
+  ///
   class AdvancedArrayJdbcType[T](sqlBaseType: String,
                                 fromString: (String => Seq[T]),
                                 mkString: (Seq[T] => String),
@@ -100,7 +74,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
     override def valueToSQLLiteral(vList: Seq[T]) = if(vList eq null) "NULL" else s"'${mkString(vList)}'"
 
     //--
-    private def mkArray(v: Seq[T]): java.sql.Array = utils.SimpleArrayUtils.mkArray(mkString)(sqlBaseType, v)
+    private def mkArray(vList: Seq[T]): java.sql.Array = utils.SimpleArrayUtils.mkArray(mkString)(sqlBaseType, vList)
 
     def to[SEQ[T] <: Seq[T]](conv: Seq[T] => SEQ[T])(implicit classTag: ClassTag[SEQ[T]]): DriverJdbcType[SEQ[T]] =
       new WrappedConvArrayJdbcType[T, SEQ](this, conv)
@@ -126,22 +100,22 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresDriver =>
   }
 
   /// added to help check built-in support array types statically
-  sealed trait ArrChecked[T]
+  sealed trait ElemWitness[T]
 
-  object ArrChecked {
-    implicit object LongChecked extends ArrChecked[Long]
-    implicit object IntChecked extends ArrChecked[Int]
-    implicit object ShortChecked extends ArrChecked[Short]
-    implicit object FloatChecked extends ArrChecked[Float]
-    implicit object DoubleChecked extends ArrChecked[Double]
-    implicit object BooleanChecked extends ArrChecked[Boolean]
-    implicit object StringChecked extends ArrChecked[String]
-    implicit object UUIDChecked extends ArrChecked[java.util.UUID]
-    implicit object DateChecked extends ArrChecked[java.sql.Date]
-    implicit object TimeChecked extends ArrChecked[java.sql.Time]
-    implicit object TimestampChecked extends ArrChecked[java.sql.Timestamp]
-    implicit object JBigDecimalChecked extends ArrChecked[java.math.BigDecimal]
+  object ElemWitness {
+    implicit object LongWitness extends ElemWitness[Long]
+    implicit object IntWitness extends ElemWitness[Int]
+    implicit object ShortWitness extends ElemWitness[Short]
+    implicit object FloatWitness extends ElemWitness[Float]
+    implicit object DoubleWitness extends ElemWitness[Double]
+    implicit object BooleanWitness extends ElemWitness[Boolean]
+    implicit object StringWitness extends ElemWitness[String]
+    implicit object UUIDWitness extends ElemWitness[java.util.UUID]
+    implicit object DateWitness extends ElemWitness[java.sql.Date]
+    implicit object TimeWitness extends ElemWitness[java.sql.Time]
+    implicit object TimestampWitness extends ElemWitness[java.sql.Timestamp]
+    implicit object BigDecimalWitness extends ElemWitness[java.math.BigDecimal]
 
-    object AnyChecked extends ArrChecked[Nothing]
+    object AnyWitness extends ElemWitness[Nothing]
   }
 }

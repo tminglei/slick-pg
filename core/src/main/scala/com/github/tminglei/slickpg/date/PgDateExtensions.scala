@@ -4,10 +4,9 @@ package date
 import slick.ast.{Library, LiteralNode, TypedType}
 import slick.ast.Library.{SqlFunction, SqlOperator}
 import slick.lifted.ExtensionMethods
-import slick.driver.{JdbcTypesComponent, PostgresDriver}
-import slick.jdbc.JdbcType
+import slick.jdbc.{JdbcType, JdbcTypesComponent, PostgresProfile}
 
-trait PgDateExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
+trait PgDateExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
   import driver.api._
 
   object DateLibrary {

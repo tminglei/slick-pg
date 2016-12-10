@@ -1,4 +1,5 @@
-package com.github.tminglei.slickpg.lobj
+package com.github.tminglei.slickpg
+package lobj
 
 import java.io.InputStream
 

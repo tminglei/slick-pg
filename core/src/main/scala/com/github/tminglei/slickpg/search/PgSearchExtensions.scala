@@ -5,10 +5,9 @@ import slick.ast.TypedType
 import slick.lifted.{ExtensionMethods, FunctionSymbolExtensionMethods, OptionMapperDSL}
 import slick.ast.{Library, LiteralNode}
 import slick.ast.Library.{SqlFunction, SqlOperator}
-import slick.driver.{JdbcTypesComponent, PostgresDriver}
-import slick.jdbc.JdbcType
+import slick.jdbc.{JdbcType, JdbcTypesComponent, PostgresProfile}
 
-trait PgSearchExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
+trait PgSearchExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
   import driver.api._
   import FunctionSymbolExtensionMethods._
 

@@ -5,28 +5,28 @@ import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
 import java.time.temporal.ChronoField
 
 import org.postgresql.util.PGInterval
-import slick.driver.PostgresDriver
-import slick.jdbc.{JdbcType, PositionedResult}
+import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
 
 import scala.reflect.{ClassTag, classTag}
 
-trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
   import PgDate2SupportUtils._
   import driver.api._
 
-  // used to support code gen
+  // let user to call this, since we have more than one `TIMETZ, DATETIMETZ, INTERVAL` binding candidates here
   def bindPgDateTypesToScala[DATE, TIME, DATETIME, TIMETZ, DATETIMETZ, INTERVAL](
           implicit ctag1: ClassTag[DATE], ctag2: ClassTag[TIME], ctag3: ClassTag[DATETIME],
-                 ctag4: ClassTag[TIMETZ], ctag5: ClassTag[DATETIMETZ], ctag6: ClassTag[INTERVAL]) = {
-    if (driver.isInstanceOf[ExPostgresDriver]) {
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("date", classTag[DATE])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("time", classTag[TIME])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("timestamp", classTag[DATETIME])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("timetz", classTag[TIMETZ])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("timestamptz", classTag[DATETIMETZ])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("interval", classTag[INTERVAL])
+                   ctag4: ClassTag[TIMETZ], ctag5: ClassTag[DATETIMETZ], ctag6: ClassTag[INTERVAL]) = {
+    // register types to let `ExModelBuilder` find them
+    if (driver.isInstanceOf[ExPostgresProfile]) {
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("date", classTag[DATE])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("time", classTag[TIME])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("timestamp", classTag[DATETIME])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("timetz", classTag[TIMETZ])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("timestamptz", classTag[DATETIMETZ])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("interval", classTag[INTERVAL])
     }
-    else throw new IllegalArgumentException("The driver MUST BE a `ExPostgresDriver`!")
+    else throw new IllegalArgumentException("The driver MUST BE a `ExPostgresProfile`!")
   }
 
   /// alias

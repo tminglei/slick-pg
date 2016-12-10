@@ -6,9 +6,9 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 class PgAggFuncSupportSuite extends FunSuite {
-  import ExPostgresDriver.api._
+  import ExPostgresProfile.api._
 
-  val PgArrayJdbcTypes = new array.PgArrayJdbcTypes with ExPostgresDriver {}
+  val PgArrayJdbcTypes = new array.PgArrayJdbcTypes with ExPostgresProfile {}
   implicit val simpleIntListTypeMapper = new PgArrayJdbcTypes.SimpleArrayJdbcType[Int]("int4").to(_.toList)
   implicit val simpleStrListTypeMapper = new PgArrayJdbcTypes.SimpleArrayJdbcType[String]("text").to(_.toList)
   implicit val simpleDoubleListTypeMapper = new PgArrayJdbcTypes.SimpleArrayJdbcType[Double]("float8").to(_.toList)
@@ -185,9 +185,24 @@ class PgAggFuncSupportSuite extends FunSuite {
       ).andThen(
         DBIO.seq(
           tabs.map { t =>
-            (rank("bar").within(t.name), denseRank("bar").within(t.name), percentRank("bar").within(t.name), cumeDist("bar").within(t.name))
+            rank("bar").within(t.name)
           }.result.map { r =>
-            assert(List((1, 1, 0.0, 0.6)) === r)
+            assert(List((1)) === r)
+          },
+          tabs.map { t =>
+            denseRank("bar").within(t.name)
+          }.result.map { r =>
+            assert(List((1)) === r)
+          },
+          tabs.map { t =>
+            percentRank("bar").within(t.name)
+          }.result.map { r =>
+            assert(List((0.0)) === r)
+          },
+          tabs.map { t =>
+            cumeDist("bar").within(t.name)
+          }.result.map { r =>
+            assert(List((0.6)) === r)
           }
         )
       ).andFinally(

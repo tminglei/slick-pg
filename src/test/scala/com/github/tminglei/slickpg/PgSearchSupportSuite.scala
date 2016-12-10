@@ -7,7 +7,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class PgSearchSupportSuite extends FunSuite {
-  import MyPostgresDriver.api._
+  import MyPostgresProfile.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
@@ -140,7 +140,7 @@ class PgSearchSupportSuite extends FunSuite {
   //--------------------------------------------------------------------------------
 
   test("Text search Plain SQL support") {
-    import MyPostgresDriver.plainAPI._
+    import MyPostgresProfile.plainAPI._
 
     case class SearchBean(id: Long, tVec: TsVector, tQ: TsQuery)
 

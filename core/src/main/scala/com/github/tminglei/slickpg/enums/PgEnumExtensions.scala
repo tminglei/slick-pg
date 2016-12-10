@@ -3,11 +3,10 @@ package enums
 
 import slick.ast.TypedType
 import slick.ast.Library.SqlFunction
-import slick.driver.{PostgresDriver, JdbcTypesComponent}
-import slick.lifted.{ExtensionMethods}
-import slick.jdbc.JdbcType
+import slick.lifted.ExtensionMethods
+import slick.jdbc.{JdbcType, JdbcTypesComponent, PostgresProfile}
 
-trait PgEnumExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
+trait PgEnumExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
   import driver.api._
 
   object EnumLibrary {

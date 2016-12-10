@@ -2,12 +2,11 @@ package com.github.tminglei.slickpg
 package array
 
 import slick.ast.TypedType
-import slick.ast.Library.{SqlOperator, SqlFunction}
-import slick.lifted.{ExtensionMethods}
-import slick.driver.{JdbcTypesComponent, PostgresDriver}
-import slick.jdbc.JdbcType
+import slick.ast.Library.{SqlFunction, SqlOperator}
+import slick.lifted.ExtensionMethods
+import slick.jdbc.{JdbcType, JdbcTypesComponent, PostgresProfile}
 
-trait PgArrayExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
+trait PgArrayExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
   import driver.api._
 
   object ArrayLibrary {

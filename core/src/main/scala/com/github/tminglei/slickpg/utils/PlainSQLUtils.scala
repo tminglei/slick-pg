@@ -18,7 +18,7 @@ object PlainSQLUtils extends Logging {
       val convKey = u.typeOf[T].toString
       val existed = nextArrayConverters.get(convKey)
       if (existed.isDefined) logger.warn(
-        s"\u001B[31m >>> DUPLICATED converter for ${u.typeOf[T]}!!! \u001B[36m If it's expected, pls ignore it.\u001B[0m"
+        s"\u001B[31m >>> DUPLICATED next array converter for ${u.typeOf[T]}!!! \u001B[36m If it's expected, pls ignore it.\u001B[0m"
       )
       nextArrayConverters += (convKey -> conv)
     }

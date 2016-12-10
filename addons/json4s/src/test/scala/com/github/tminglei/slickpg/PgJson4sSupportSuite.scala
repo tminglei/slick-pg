@@ -4,23 +4,21 @@ import java.util.concurrent.Executors
 
 import org.json4s._
 import org.scalatest.FunSuite
-import slick.jdbc.GetResult
+import slick.jdbc.{GetResult, PostgresProfile}
 
-import scala.concurrent.{ExecutionContext, Await}
+import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 
 class PgJson4sSupportSuite extends FunSuite {
   implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
-  import slick.driver.PostgresDriver
-
-  object MyPostgresDriver extends PostgresDriver
+  object MyPostgresProfile extends PostgresProfile
                             with PgJson4sSupport
                             with array.PgArrayJdbcTypes {
     /// for json support
     override val pgjson = "jsonb"
     type DOCType = text.Document
-    override val jsonMethods = org.json4s.native.JsonMethods
+    override val jsonMethods = org.json4s.native.JsonMethods.asInstanceOf[JsonMethods[DOCType]]
 
     override val api = new API with JsonImplicits {
       implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
@@ -35,8 +33,8 @@ class PgJson4sSupportSuite extends FunSuite {
   }
 
   ///
-  import MyPostgresDriver.api._
-  import MyPostgresDriver.jsonMethods._
+  import MyPostgresProfile.api._
+  import MyPostgresProfile.jsonMethods._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
@@ -71,12 +69,8 @@ class PgJson4sSupportSuite extends FunSuite {
           JsonTests.filter(_.id === testRec2.id.bind).map(_.json).result.head.map(
             r => assert(JArray(List(json1,json2)) === r)
           ),
-          JsonTests.to[List].result.map(
+          JsonTests.sortBy(_.json.+>>("a")).to[List].result.map(
             r => assert(List(testRec1, testRec2, testRec3) === r)
-          ),
-          // null return
-          JsonTests.filter(_.json.+>>("a") === "101").map(_.json.+>("d")).result.head.map(
-            r => assert(JNull === r)
           ),
           // ->>/->
           JsonTests.filter(_.json.+>>("a") === "101").map(_.json.+>>("c")).result.head.map(
@@ -175,7 +169,7 @@ class PgJson4sSupportSuite extends FunSuite {
   case class JsonBean1(id: Long, json: JValue)
 
   test("Json4s Plain SQL support") {
-    import MyPostgresDriver.plainAPI._
+    import MyPostgresProfile.plainAPI._
 
     implicit val getJsonBeanResult = GetResult(r => JsonBean1(r.nextLong(), r.nextJson()))
 
@@ -185,7 +179,7 @@ class PgJson4sSupportSuite extends FunSuite {
       DBIO.seq(
         sqlu"""create table JsonTest1(
               id int8 not null primary key,
-              json #${MyPostgresDriver.pgjson} not null)
+              json #${MyPostgresProfile.pgjson} not null)
           """,
         ///
         sqlu""" insert into JsonTest1 values(${b.id}, ${b.json}) """,

@@ -1,13 +1,11 @@
 package com.github.tminglei.slickpg.ltree
 
-import slick.ast.TypedType
 import slick.ast.Library.{SqlFunction, SqlOperator}
-import slick.ast.{TypedType, LiteralNode, Library}
-import slick.driver.{PostgresDriver, JdbcTypesComponent}
-import slick.jdbc.JdbcType
-import slick.lifted.{FunctionSymbolExtensionMethods, ExtensionMethods}
+import slick.ast.{Library, LiteralNode, TypedType}
+import slick.jdbc.{JdbcType, JdbcTypesComponent, PostgresProfile}
+import slick.lifted.{ExtensionMethods, FunctionSymbolExtensionMethods}
 
-trait PgLTreeExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
+trait PgLTreeExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
   import driver.api._
   import FunctionSymbolExtensionMethods._
 

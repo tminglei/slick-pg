@@ -1,8 +1,9 @@
 package com.github.tminglei.slickpg
 
-trait MyPostgresDriver extends ExPostgresDriver
+trait MyPostgresProfile extends ExPostgresProfile
                           with PgArraySupport
                           with PgDateSupport
+                          with PgDate2Support
                           with PgJsonSupport
                           with PgNetSupport
                           with PgLTreeSupport
@@ -13,6 +14,7 @@ trait MyPostgresDriver extends ExPostgresDriver
   override val pgjson = "jsonb"
   ///
   override val api = new API with ArrayImplicits
+                             with SimpleDateTimeImplicits
                              with DateTimeImplicits
                              with SimpleJsonImplicits
                              with NetImplicits
@@ -23,6 +25,7 @@ trait MyPostgresDriver extends ExPostgresDriver
                              with SearchAssistants {}
   ///
   val plainAPI = new API with SimpleArrayPlainImplicits
+                         with Date2DateTimePlainImplicits
                          with SimpleJsonPlainImplicits
                          with SimpleNetPlainImplicits
                          with SimpleLTreePlainImplicits
@@ -31,4 +34,4 @@ trait MyPostgresDriver extends ExPostgresDriver
                          with SimpleSearchPlainImplicits {}
 }
 
-object MyPostgresDriver extends MyPostgresDriver
+object MyPostgresProfile extends MyPostgresProfile

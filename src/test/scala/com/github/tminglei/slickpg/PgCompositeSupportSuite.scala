@@ -2,14 +2,14 @@ package com.github.tminglei.slickpg
 
 import org.postgresql.util.HStoreConverter
 import org.scalatest.FunSuite
-
-import slick.driver.PostgresDriver
-import slick.jdbc.{GetResult, PositionedResult}
+import slick.jdbc.{GetResult, PositionedResult, PostgresProfile}
 import slick.lifted.RepShapeImplicits
-import scala.collection.convert.{WrapAsScala, WrapAsJava}
+
+import scala.collection.convert.{WrapAsJava, WrapAsScala}
 import scala.reflect.runtime.{universe => u}
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
+
 import composite.Struct
 
 import scala.concurrent.Await
@@ -41,7 +41,7 @@ object PgCompositeSupportSuite {
     ) extends Struct
 
   //-------------------------------------------------------------
-  object MyPostgresDriver1 extends PostgresDriver with PgCompositeSupport with PgArraySupport with utils.PgCommonJdbcTypes {
+  object MyPostgresProfile1 extends PostgresProfile with PgCompositeSupport with PgArraySupport with utils.PgCommonJdbcTypes {
     override val api = new API with ArrayImplicits with CompositeImplicits {}
 
     val plainImplicits = new API with CompositePlainImplicits {}
@@ -101,7 +101,7 @@ object PgCompositeSupportSuite {
 ///
 class PgCompositeSupportSuite extends FunSuite {
   import PgCompositeSupportSuite._
-  import MyPostgresDriver1.api._
+  import MyPostgresProfile1.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
@@ -210,7 +210,7 @@ class PgCompositeSupportSuite extends FunSuite {
   }
 
   test("Composite type Plain SQL support") {
-    import MyPostgresDriver1.plainImplicits._
+    import MyPostgresProfile1.plainImplicits._
 
     implicit val getTestBeanResult = GetResult(r => TestBean(r.nextLong(), r.nextArray[Composite2]().toList))
     implicit val getTestBean1Result = GetResult(r => TestBean1(r.nextLong(), r.nextArray[Composite3]().toList))

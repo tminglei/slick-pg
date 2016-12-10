@@ -1,13 +1,13 @@
 package com.github.tminglei.slickpg
 
-import slick.driver.PostgresDriver
 import java.sql.{Date, Time, Timestamp}
 import javax.xml.bind.DatatypeConverter
-import java.util.Calendar
+import java.util.{Calendar, TimeZone}
 
-import slick.jdbc.JdbcType
+import org.postgresql.core.Provider
+import slick.jdbc.{JdbcType, PostgresProfile}
 
-trait PgDateSupport extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresDriver =>
+trait PgDateSupport extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
   import driver.api._
 
   /// alias
@@ -47,15 +47,13 @@ trait PgDateSupport extends date.PgDateExtensions with utils.PgCommonJdbcTypes {
 }
 
 object PgDateSupportUtils {
-  import org.postgresql.jdbc2.TimestampUtils
+  import org.postgresql.jdbc.TimestampUtils
   import java.lang.reflect.{Field, Method}
 
-  /** related codes hacked from [[org.postgresql.jdbc2.TimestampUtils]] */
+  /** related codes hacked from [[org.postgresql.jdbc.TimestampUtils]] */
   def parseCalendar(tsStr: String): Calendar = {
 
-    val parsedts =
-      if (tsUtilLoadCalendar.getName == "loadCalendar") tsUtilLoadCalendar.invoke(tsUtilInstance, null, tsStr, "timestamp")
-      else /* parseBackendTimestamp(str) */ tsUtilLoadCalendar.invoke(tsUtilInstance, tsStr)
+    val parsedts = tsUtilLoadCalendar.invoke(tsUtilInstance, tsStr)
 
     val (tz, era, year, month, day, hour, minute, second, nanos) = tsUtilGetters(parsedts)
     val useCal: Calendar = if (tz.get(parsedts) == null) Calendar.getInstance() else tz.get(parsedts).asInstanceOf[Calendar]
@@ -80,16 +78,16 @@ object PgDateSupportUtils {
   private def tsUtilInstance = {
     import java.lang.Boolean.TRUE
     if (tsUtilInstanceHolder.get() == null) {
-      val tsUtilConstructor = classOf[TimestampUtils].getDeclaredConstructor(classOf[Boolean], classOf[Boolean], classOf[Boolean])
+      val tsUtilConstructor = classOf[TimestampUtils].getDeclaredConstructor(classOf[Boolean], classOf[Boolean], classOf[Boolean], classOf[Provider[TimeZone]])
       tsUtilConstructor.setAccessible(true)
-      tsUtilInstanceHolder.set(tsUtilConstructor.newInstance(TRUE, TRUE, TRUE))
+      tsUtilInstanceHolder.set(tsUtilConstructor.newInstance(TRUE, TRUE, TRUE, null))
     }
     tsUtilInstanceHolder.get()
   }
 
   private def tsUtilLoadCalendar = {
     if (tsUtilLoadCalendarHolder.get() == null) {
-      val loadCalendar = classOf[TimestampUtils].getDeclaredMethods.find(m => m.getName == "loadCalendar" || m.getName == "parseBackendTimestamp").get
+      val loadCalendar = classOf[TimestampUtils].getDeclaredMethods.find(_.getName == "parseBackendTimestamp").get
       loadCalendar.setAccessible(true)
       tsUtilLoadCalendarHolder.set(loadCalendar)
     }

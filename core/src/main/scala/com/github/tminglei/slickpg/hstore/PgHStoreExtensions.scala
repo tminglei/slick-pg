@@ -3,12 +3,11 @@ package hstore
 
 import slick.ast.TypedType
 import slick.ast.Library.{SqlFunction, SqlOperator}
-import slick.lifted.{FunctionSymbolExtensionMethods, ExtensionMethods}
-import slick.driver.{JdbcTypesComponent, PostgresDriver}
+import slick.lifted.{ExtensionMethods, FunctionSymbolExtensionMethods}
 import slick.ast.Library
-import slick.jdbc.JdbcType
+import slick.jdbc.{JdbcType, JdbcTypesComponent, PostgresProfile}
 
-trait PgHStoreExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
+trait PgHStoreExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
   import driver.api._
   import FunctionSymbolExtensionMethods._
 

@@ -26,7 +26,7 @@ Slick-pg
 - Large Object
 
 
-** _tested on `PostgreSQL` `v9.5` with `Slick` `v3.1.1`._
+** _tested on `PostgreSQL` `v9.5` with `Slick` `v3.2.0`._
 
 
 

@@ -1,22 +1,17 @@
 package com.github.tminglei.slickpg
 
-import slick.driver.PostgresDriver
 import scala.reflect.runtime.{universe => u}
 import scala.reflect.ClassTag
 import composite.Struct
+import slick.jdbc.{PositionedResult, PostgresProfile}
 
-import slick.jdbc.PositionedResult
-
-trait PgCompositeSupport extends utils.PgCommonJdbcTypes with array.PgArrayJdbcTypes { driver: PostgresDriver =>
+trait PgCompositeSupport extends utils.PgCommonJdbcTypes with array.PgArrayJdbcTypes { driver: PostgresProfile =>
 
   def createCompositeJdbcType[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
     val util = new PgCompositeSupportUtils(cl)
     new GenericJdbcType[T](sqlTypeName, util.mkCompositeFromString[T], util.mkStringFromComposite[T])
   }
 
-  @deprecated(message = "pls use `createCompositeArrayJdbcType` instead", since = "0.8.2")
-  def createCompositeListJdbcType[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) =
-    createCompositeArrayJdbcType(sqlTypeName, cl).to(_.toList)
   def createCompositeArrayJdbcType[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
     val util = new PgCompositeSupportUtils(cl)
     new AdvancedArrayJdbcType[T](sqlTypeName, util.mkCompositeSeqFromString[T], util.mkStringFromCompositeSeq[T])
@@ -88,8 +83,8 @@ class PgCompositeSupportUtils(cl: ClassLoader) {
   def mkTokenConverter(theType: u.Type, level: Int = -1)(implicit ev: u.TypeTag[String]): TokenConverter = {
     theType match {
       case tpe if tpe <:< u.typeOf[Struct] => {
-        val constructor = tpe.declaration(u.nme.CONSTRUCTOR).asMethod
-        val convList = constructor.paramss.head.map(_.typeSignature).map(mkTokenConverter(_, level +1))
+        val constructor = tpe.decl(u.termNames.CONSTRUCTOR).asMethod
+        val convList = constructor.paramLists.head.map(_.typeSignature).map(mkTokenConverter(_, level +1))
         CompositeConverter(tpe, convList)
       }
       case tpe if tpe.typeConstructor =:= u.typeOf[Option[_]].typeConstructor => {
@@ -124,8 +119,8 @@ class PgCompositeSupportUtils(cl: ClassLoader) {
   }
 
   case class CompositeConverter(theType: u.Type, convList: List[TokenConverter]) extends TokenConverter {
-    private val constructor = theType.declaration(u.nme.CONSTRUCTOR).asMethod
-    private val fieldList = constructor.paramss.head.map(t => theType.declaration(t.name).asTerm)
+    private val constructor = theType.decl(u.termNames.CONSTRUCTOR).asMethod
+    private val fieldList = constructor.paramLists.head.map(t => theType.decl(t.name).asTerm)
 
     def fromToken(token: Token): Any =
       if (token == Null) null

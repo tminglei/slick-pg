@@ -7,13 +7,12 @@ import slick.compiler.CompilerState
 import slick.jdbc._
 import slick.jdbc.meta.MTable
 import slick.lifted.PrimaryKey
-import slick.driver.{InsertBuilderResult, JdbcDriver, JdbcProfile, PostgresDriver}
 import slick.util.Logging
 
 import scala.concurrent.ExecutionContext
 import scala.reflect.{ClassTag, classTag}
 
-trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { driver =>
+trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { driver =>
 
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new QueryBuilder(n, state)
   override def createUpsertBuilder(node: Insert): InsertBuilder =
@@ -22,7 +21,7 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
   override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
     new ExModelBuilder(tables, ignoreInvalidDefaults)
 
-  protected lazy val useNativeUpsert = capabilities contains JdbcProfile.capabilities.insertOrUpdate
+  protected lazy val useNativeUpsert = capabilities contains JdbcCapabilities.insertOrUpdate
   override protected lazy val useTransactionForUpsert = !useNativeUpsert
   override protected lazy val useServerSideUpsertReturning = useNativeUpsert
 
@@ -93,7 +92,7 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
   class NativeUpsertBuilder(ins: Insert) extends super.InsertBuilder(ins) {
     /* NOTE: pk defined by using method `primaryKey` and pk defined with `PrimaryKey` can only have one,
              here we let table ddl to help us ensure this. */
-    private lazy val funcDefinedPKs = table.driverTable.asInstanceOf[Table[_]].primaryKeys
+    private lazy val funcDefinedPKs = table.profileTable.asInstanceOf[Table[_]].primaryKeys
     private lazy val (nonPkAutoIncSyms, insertingSyms) = syms.toSeq.partition { s =>
       s.options.contains(ColumnOption.AutoInc) && !(s.options contains ColumnOption.PrimaryKey) }
     private lazy val (pkSyms, softSyms) = insertingSyms.partition { sym =>
@@ -126,7 +125,7 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
     pgTypeToScala.synchronized {
       val existed = pgTypeToScala.get(pgType)
       if (existed.isDefined) logger.warn(
-        s"\u001B[31m >>> DUPLICATED BINDING - existed: ${existed.get}, new: $scalaType !!! \u001B[36m If it's expected, pls ignore it.\u001B[0m"
+        s"\u001B[31m >>> DUPLICATED binding for $pgType - existed: ${existed.get}, new: $scalaType !!! \u001B[36m If it's expected, pls ignore it.\u001B[0m"
       )
       pgTypeToScala += (pgType -> scalaType)
     }
@@ -183,4 +182,4 @@ trait ExPostgresDriver extends JdbcDriver with PostgresDriver with Logging { dri
   }
 }
 
-object ExPostgresDriver extends ExPostgresDriver
+object ExPostgresProfile extends ExPostgresProfile

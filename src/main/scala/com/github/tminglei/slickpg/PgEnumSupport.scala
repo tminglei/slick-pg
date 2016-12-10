@@ -1,17 +1,13 @@
 package com.github.tminglei.slickpg
 
 import slick.ast.FieldSymbol
-import slick.jdbc.JdbcType
-import slick.driver.PostgresDriver
-import slick.profile.RelationalProfile.ColumnOption.Length
+import slick.jdbc.{JdbcType, PostgresProfile}
+import slick.sql.SqlAction
 
 import scala.reflect.ClassTag
 import java.sql.{PreparedStatement, ResultSet}
 
-import slick.dbio.{Effect, NoStream}
-import slick.profile.SqlAction
-
-trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes { driver: PostgresDriver =>
+trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes { driver: PostgresProfile =>
   import driver.api._
   import PgEnumSupportUtils.sqlName
 
@@ -84,7 +80,7 @@ trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes {
 }
 
 object PgEnumSupportUtils {
-  import slick.driver.PostgresDriver.api._
+  import PostgresProfile.api._
 
   def sqlName(sqlTypeName: String, quoteName: Boolean) = {
     if (quoteName) '"' + sqlTypeName + '"' else sqlTypeName.toLowerCase

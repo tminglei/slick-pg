@@ -2,10 +2,11 @@ package com.github.tminglei.slickpg
 
 import java.util.concurrent.Executors
 
+import cats.syntax.either._
 import io.circe._
 import io.circe.parser._
 import org.scalatest.FunSuite
-import slick.jdbc.GetResult
+import slick.jdbc.{GetResult, PostgresProfile}
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
@@ -13,9 +14,7 @@ import scala.concurrent.duration._
 class PgCirceJsonSupportSuite extends FunSuite {
   implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
-  import slick.driver.PostgresDriver
-
-  object MyPostgresDriver extends PostgresDriver
+  object MyPostgresProfile extends PostgresProfile
                             with PgCirceJsonSupport
                             with array.PgArrayJdbcTypes {
     override val pgjson = "jsonb"
@@ -27,7 +26,7 @@ class PgCirceJsonSupportSuite extends FunSuite {
     val plainAPI = new API with CirceJsonPlainImplicits
   }
 
-  import MyPostgresDriver.api._
+  import MyPostgresProfile.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
@@ -41,13 +40,13 @@ class PgCirceJsonSupportSuite extends FunSuite {
   }
   val JsonTests = TableQuery[JsonTestTable]
 
-  val testRec1 = JsonBean(33L, parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """).right.getOrElse(Json.Null))
-  val testRec2 = JsonBean(35L, parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """).right.getOrElse(Json.Null))
-  val testRec3 = JsonBean(37L, parse(""" ["a", "b"] """).right.getOrElse(Json.Null))
+  val testRec1 = JsonBean(33L, parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """).getOrElse(Json.Null))
+  val testRec2 = JsonBean(35L, parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """).getOrElse(Json.Null))
+  val testRec3 = JsonBean(37L, parse(""" ["a", "b"] """).getOrElse(Json.Null))
 
   test("Circe json Lifted support") {
-    val json1 = parse(""" {"a":"v1","b":2} """).right.getOrElse(Json.Null)
-    val json2 = parse(""" {"a":"v5","b":3} """).right.getOrElse(Json.Null)
+    val json1 = parse(""" {"a":"v1","b":2} """).getOrElse(Json.Null)
+    val json2 = parse(""" {"a":"v5","b":3} """).getOrElse(Json.Null)
 
     Await.result(db.run(
       DBIO.seq(
@@ -105,11 +104,11 @@ class PgCirceJsonSupportSuite extends FunSuite {
             r => assert("a" === r)
           ),
           // @>
-          JsonTests.filter(_.json @> parse(""" {"b":"aaa"} """).right.getOrElse(Json.Null)).map(_.id).result.head.map(
+          JsonTests.filter(_.json @> parse(""" {"b":"aaa"} """).getOrElse(Json.Null)).map(_.id).result.head.map(
             r => assert(33L === r)
           ),
           // <@
-          JsonTests.filter(parse(""" {"b":"aaa"} """).right.getOrElse(Json.Null) <@: _.json).map(_.id).result.head.map(
+          JsonTests.filter(parse(""" {"b":"aaa"} """).getOrElse(Json.Null) <@: _.json).map(_.id).result.head.map(
             r => assert(33L === r)
           ),
           // {}_typeof
@@ -136,17 +135,17 @@ class PgCirceJsonSupportSuite extends FunSuite {
   }
 
   test("Circe json Plain SQL support") {
-    import MyPostgresDriver.plainAPI._
+    import MyPostgresProfile.plainAPI._
 
     implicit val getJsonBeanResult = GetResult(r => JsonBean(r.nextLong(), r.nextJson()))
 
-    val b = JsonBean(34L, parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """).right.getOrElse(Json.Null))
+    val b = JsonBean(34L, parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """).getOrElse(Json.Null))
 
     Await.result(db.run(
       DBIO.seq(
         sqlu"""create table JsonTest5(
               id int8 not null primary key,
-              json #${MyPostgresDriver.pgjson} not null)
+              json #${MyPostgresProfile.pgjson} not null)
           """,
         sqlu""" insert into JsonTest5 values(${b.id}, ${b.json}) """,
         sql""" select * from JsonTest5 where id = ${b.id} """.as[JsonBean].head.map(

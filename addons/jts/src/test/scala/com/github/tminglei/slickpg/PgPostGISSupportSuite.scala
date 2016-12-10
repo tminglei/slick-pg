@@ -5,17 +5,15 @@ import java.util.concurrent.Executors
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import com.vividsolutions.jts.io.{WKBWriter, WKTReader, WKTWriter}
 import org.scalatest.FunSuite
-import slick.jdbc.GetResult
+import slick.jdbc.{GetResult, PostgresProfile}
 
-import scala.concurrent.{ExecutionContext, Await}
+import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 
 class PgPostGISSupportSuite extends FunSuite {
   implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
-  import slick.driver.PostgresDriver
-
-  object MyPostgresDriver extends PostgresDriver with PgPostGISSupport {
+  object MyPostgresProfile extends PostgresProfile with PgPostGISSupport {
 
     override val api = new API with PostGISImplicits with PostGISAssistants
 
@@ -24,7 +22,7 @@ class PgPostGISSupportSuite extends FunSuite {
   }
 
   ///
-  import MyPostgresDriver.api._
+  import MyPostgresProfile.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
@@ -676,11 +674,11 @@ class PgPostGISSupportSuite extends FunSuite {
           ),
           // min_bounding_circle
           GeomTests.filter(_.id === linebean.id.bind).map(_.geom.minBoundingCircle(8.bind).asText).result.head.map(
-            r => () //assert("POLYGON((2 2,2 1,2 1,2 1,2 1,2 1,2 1,1 0,1 0,1 0,0 1,0 1,0 1,0 1,0 1,0 1,0 2,0 2,0 2,0 2,0 3,0 3,0 3,1 3,1 3,1 3,2 3,2 3,2 3,2 2,2 2,2 2,2 2.25))" === r.replaceAll("\\.[0-9]+,", ",").replaceAll("\\.[0-9]+ ", " "))
+            r => assert("POLYGON((1 3,1 3,2 3,2 3,2 3,2 3,2 2,2 2,2 2,2 1,2 1,2 1,2 1,2 1,2 1,1 0,1 0,1 0,0 1,0 1,0 1,0 1,0 1,0 1,0 2,0 2,0 2,0 3,0 3,0 3,0 3,1 3,1 3))" === r.replaceAll("\\.[0-9]+,", ",").replaceAll("\\.[0-9]+ ", " ").replaceAll("\\.[0-9]+\\)", ")"))
           ),
           // buffer
           GeomTests.filter(_.id === linebean.id.bind).map(_.geom.buffer(10f.bind).asText).result.head.map(
-            r => () //assert("POLYGON((-8 1,-9 2,-9 3,-8 4,-8 6,-7 8,-6 9,-5 10,-3 11,-2 12,-0 13,1 13,3 13,5 12,7 12,8 10,10 9,11 7,11 5,12 3,12 2,11 1,12 0,11 -0,11 -2,10 -4,9 -6,7 -7,5 -8,3 -8,2 -9,1 -8,0 -9,-0 -8,-2 -8,-4 -7,-6 -6,-7 -4,-8 -2,-8 -0,-9 0,-8 1.5))" === r.replaceAll("\\.[0-9]+,", ",").replaceAll("\\.[0-9]+ ", " "))
+            r => assert("POLYGON((-8 1,-9 2,-9 3,-8 4,-8 6,-7 8,-6 9,-5 10,-3 11,-2 12,-0 13,1 13,3 13,5 12,7 12,8 10,10 9,11 7,11 5,12 3,12 2,11 1,12 0,11 -0,11 -2,10 -4,9 -6,7 -7,5 -8,3 -8,2 -9,1 -8,0 -9,-0 -8,-2 -8,-4 -7,-6 -6,-7 -4,-8 -2,-8 -0,-9 0,-8 1.5))" === r.replaceAll("\\.[0-9]+,", ",").replaceAll("\\.[0-9]+ ", " "))
           ),
           // multi
           GeomTests.filter(_.id === linebean.id.bind).map(_.geom.multi.asText).result.head.map(
@@ -696,7 +694,7 @@ class PgPostGISSupportSuite extends FunSuite {
           ),
           // collection_homogenize
           GeomTests.filter(_.id === collectionbean.id.bind).map(_.geom.collectionHomogenize).result.head.map(
-            r => () //assert("MULTILINESTRING ((0 0, 0 1), (2 2, 3 3))" === wktWriter.write(r))
+            r => assert("MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))" === wktWriter.write(r))
           ),
           // add_point
           GeomTests.filter(_.id === linebean.id.bind).map(_.geom.addPoint(point1.bind).asText).result.head.map(
@@ -730,7 +728,7 @@ class PgPostGISSupportSuite extends FunSuite {
   }
 
   test("PostGIS Plain SQL support") {
-    import MyPostgresDriver.plainAPI._
+    import MyPostgresProfile.plainAPI._
 
     implicit val GetPointBeanResult = GetResult(r => PointBean(r.nextLong, r.nextGeometry[Point]))
 

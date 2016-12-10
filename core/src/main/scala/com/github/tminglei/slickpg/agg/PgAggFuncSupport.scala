@@ -3,11 +3,10 @@ package agg
 
 import slick.ast.Library.SqlFunction
 import slick.ast.{Library, LiteralNode}
-import slick.driver.{JdbcTypesComponent, PostgresDriver}
-import slick.jdbc.JdbcType
+import slick.jdbc.{JdbcType, JdbcTypesComponent, PostgresProfile}
 import slick.lifted.OptionMapperDSL
 
-trait PgAggFuncSupport extends JdbcTypesComponent { driver: PostgresDriver =>
+trait PgAggFuncSupport extends JdbcTypesComponent { driver: PostgresProfile =>
   import driver.api._
 
   object AggLibrary {
@@ -140,7 +139,7 @@ trait PgAggFuncSupport extends JdbcTypesComponent { driver: PostgresDriver =>
   }
 }
 
-object PgAggFuncSupport extends PgAggFuncSupport with PostgresDriver {
+object PgAggFuncSupport extends PgAggFuncSupport with PostgresProfile {
   val GeneralAggFunctions = new GeneralAggFunctions {}
   val StatisticsAggFunctions = new StatisticsAggFunctions {}
   val OrderedSetAggFunctions = new OrderedSetAggFunctions {}

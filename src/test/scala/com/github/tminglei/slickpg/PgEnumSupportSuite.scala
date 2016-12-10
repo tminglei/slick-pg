@@ -1,7 +1,7 @@
 package com.github.tminglei.slickpg
 
 import org.scalatest.FunSuite
-import slick.driver.PostgresDriver
+import slick.jdbc.PostgresProfile
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -46,7 +46,7 @@ class PgEnumSupportSuite extends FunSuite {
   import WeekDays._
   import Rainbows._
 
-  object MyPostgresDriver1 extends PostgresDriver with PgEnumSupport {
+  object MyPostgresProfile1 extends PostgresProfile with PgEnumSupport {
     override val api = new API with MyEnumImplicits {}
 
     trait MyEnumImplicits {
@@ -78,7 +78,7 @@ class PgEnumSupportSuite extends FunSuite {
   }
 
   ////////////////////////////////////////////////////////////////////
-  import MyPostgresDriver1.api._
+  import MyPostgresProfile1.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 

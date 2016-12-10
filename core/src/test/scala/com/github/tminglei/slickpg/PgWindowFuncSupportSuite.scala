@@ -6,7 +6,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 class PgWindowFuncSupportSuite extends FunSuite {
-  import ExPostgresDriver.api._
+  import ExPostgresProfile.api._
   import window.PgWindowFuncSupport.WindowFunctions._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")

@@ -3,11 +3,10 @@ package json
 
 import slick.ast.TypedType
 import slick.ast.Library.{SqlFunction, SqlOperator}
-import slick.lifted.{ExtensionMethods}
-import slick.driver.{JdbcTypesComponent, PostgresDriver}
-import slick.jdbc.JdbcType
+import slick.lifted.ExtensionMethods
+import slick.jdbc.{JdbcType, JdbcTypesComponent, PostgresProfile}
 
-trait PgJsonExtensions extends JdbcTypesComponent { driver: PostgresDriver =>
+trait PgJsonExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
   import driver.api._
 
   class JsonLibrary(pgjson: String) {

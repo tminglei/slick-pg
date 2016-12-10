@@ -1,15 +1,15 @@
-package com.github.tminglei.slickpg.lobj
+package com.github.tminglei.slickpg
+package lobj
 
 import java.io.InputStream
 
-import com.github.tminglei.slickpg.ExPostgresDriver
 import org.postgresql.PGConnection
 import org.postgresql.largeobject.LargeObjectManager
 
 /**
   * Adds functionality for creating LargeObject upload actions
   */
-trait LargeObjectSupport { driver: ExPostgresDriver =>
+trait LargeObjectSupport { driver: ExPostgresProfile =>
 
   import driver.api._
 

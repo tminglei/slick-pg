@@ -5,17 +5,15 @@ import java.util.concurrent.Executors
 import argonaut.Argonaut._
 import argonaut._
 import org.scalatest.FunSuite
-import slick.jdbc.GetResult
+import slick.jdbc.{GetResult, PostgresProfile}
 
-import scala.concurrent.{ExecutionContext, Await}
+import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 
 class PgArgonautSupportSuite extends FunSuite {
   implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
-  import slick.driver.PostgresDriver
-
-  object MyPostgresDriver extends PostgresDriver
+  object MyPostgresProfile extends PostgresProfile
                             with PgArgonautSupport
                             with array.PgArrayJdbcTypes {
     override val pgjson = "jsonb"
@@ -28,7 +26,7 @@ class PgArgonautSupportSuite extends FunSuite {
   }
 
   ///
-  import MyPostgresDriver.api._
+  import MyPostgresProfile.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
@@ -61,10 +59,6 @@ class PgArgonautSupportSuite extends FunSuite {
         DBIO.seq(
           JsonTests.filter(_.id === testRec2.id.bind).map(_.json).result.head.map(
             r => assert(jArray(List(json1,json2)) === r)
-          ),
-          // null return
-          JsonTests.filter(_.json.+>>("a") === "101").map(_.json.+>("d")).result.head.map(
-            r => assert(jNull === r)
           ),
           // ->>/->
           JsonTests.filter(_.json.+>>("a") === "101".bind).map(_.json.+>>("c")).result.head.map(
@@ -158,7 +152,7 @@ class PgArgonautSupportSuite extends FunSuite {
   //------------------------------------------------------------------------------
 
   test("Argonaut json Plain SQL support") {
-    import MyPostgresDriver.plainAPI._
+    import MyPostgresProfile.plainAPI._
 
     implicit val getJsonBeanResult = GetResult(r => JsonBean(r.nextLong(), r.nextJson()))
 
@@ -168,7 +162,7 @@ class PgArgonautSupportSuite extends FunSuite {
       DBIO.seq(
         sqlu"""create table JsonTest4(
               id int8 not null primary key,
-              json #${MyPostgresDriver.pgjson} not null)
+              json #${MyPostgresProfile.pgjson} not null)
           """,
         ///
         sqlu""" insert into JsonTest4 values(${b.id}, ${b.json}) """,

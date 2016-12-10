@@ -13,7 +13,7 @@ import scala.concurrent.duration.Duration
   * Created by tminglei on 5/5/16.
   */
 class PgWindowFuncCoreSuite extends FunSuite {
-  import ExPostgresDriver.api._
+  import ExPostgresProfile.api._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 

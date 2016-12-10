@@ -1,20 +1,36 @@
 package com.github.tminglei.slickpg
 
 import java.util.UUID
-import slick.driver.PostgresDriver
-import java.sql.{Timestamp, Time, Date}
-import slick.jdbc.{PositionedResult, JdbcType}
-
+import java.sql.{Date, Time, Timestamp}
+import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
 import scala.reflect.runtime.{universe => u}
+import scala.reflect.classTag
 
-trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes { driver: PostgresDriver =>
+trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes { driver: PostgresProfile =>
   import driver.api._
+
+  trait SimpleArrayCodeGenSupport {
+    // register types to let `ExModelBuilder` find them
+    if (driver.isInstanceOf[ExPostgresProfile]) {
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_uuid", classTag[Seq[UUID]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_text", classTag[Seq[String]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_int8", classTag[Seq[Long]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_int4", classTag[Seq[Int]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_int2", classTag[Seq[Short]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_float4", classTag[Seq[Float]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_float8", classTag[Seq[Double]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_bool", classTag[Seq[Boolean]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_date", classTag[Seq[Date]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_time", classTag[Seq[Time]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("_timestamp", classTag[Seq[Timestamp]])
+    }
+  }
 
   /// alias
   trait ArrayImplicits extends SimpleArrayImplicits
 
-  trait SimpleArrayImplicits {
-    /** for type/name, @see [[org.postgresql.core.Oid]] and [[org.postgresql.jdbc2.TypeInfoCache]]*/
+  trait SimpleArrayImplicits extends SimpleArrayCodeGenSupport {
+    /** for type/name, @see [[org.postgresql.core.Oid]] and [[org.postgresql.jdbc.TypeInfoCache]]*/
     implicit val simpleUUIDListTypeMapper: JdbcType[List[UUID]] = new SimpleArrayJdbcType[UUID]("uuid").to(_.toList)
     implicit val simpleStrListTypeMapper: JdbcType[List[String]] = new SimpleArrayJdbcType[String]("text").to(_.toList)
     implicit val simpleLongListTypeMapper: JdbcType[List[Long]] = new SimpleArrayJdbcType[Long]("int8").to(_.toList)
@@ -39,48 +55,20 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
   }
 
   /// static sql support, NOTE: no extension methods available for static sql usage
-  trait SimpleArrayPlainImplicits {
-    import scala.reflect.classTag
+  trait SimpleArrayPlainImplicits extends SimpleArrayCodeGenSupport {
     import utils.PlainSQLUtils._
     // to support 'nextArray[T]/nextArrayOption[T]' in PgArraySupport
     {
       addNextArrayConverter((r) => simpleNextArray[Int](r).map(_.map(_.toShort)))
     }
 
-    // used to support code gen
-    if (driver.isInstanceOf[ExPostgresDriver]) {
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_uuid", classTag[Seq[UUID]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_text", classTag[Seq[String]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_int8", classTag[Seq[Long]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_int4", classTag[Seq[Int]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_int2", classTag[Seq[Short]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_float4", classTag[Seq[Float]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_float8", classTag[Seq[Double]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_bool", classTag[Seq[Boolean]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_date", classTag[Seq[Date]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_time", classTag[Seq[Time]])
-      driver.asInstanceOf[ExPostgresDriver].bindPgTypeToScala("_timestamp", classTag[Seq[Timestamp]])
-    }
-
     implicit class PgArrayPositionedResult(r: PositionedResult) {
       def nextArray[T]()(implicit tpe: u.TypeTag[T]): Seq[T] = nextArrayOption[T]().getOrElse(Nil)
       def nextArrayOption[T]()(implicit ttag: u.TypeTag[T]): Option[Seq[T]] = {
-        val (matched, result) = extNextArray(u.typeOf[T], r)
-        (if (matched) result else nextArrayConverters.get(u.typeOf[T].toString).map(_.apply(r))
-          .getOrElse(simpleNextArray[T](r))).asInstanceOf[Option[Seq[T]]]
+        nextArrayConverters.get(u.typeOf[T].toString).map(_.apply(r))
+          .getOrElse(simpleNextArray[T](r)).asInstanceOf[Option[Seq[T]]]
       }
     }
-
-    /**
-     * pls override this when you need additional array support
-      *
-      * @return (matched, result)
-     **/
-    @deprecated(message = "pls use `PlainSQLUtils.addNextArrayConverter` instead", since = "0.10")
-    protected def extNextArray(tpe: u.Type, r: PositionedResult): (Boolean, Option[Seq[_]]) =
-      tpe match {
-        case _ => (false, None)
-      }
 
     private def simpleNextArray[T](r: PositionedResult): Option[Seq[T]] = {
       val value = r.rs.getArray(r.skip.currentPos)
