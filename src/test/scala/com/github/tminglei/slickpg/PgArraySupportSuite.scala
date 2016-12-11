@@ -17,11 +17,11 @@ class PgArraySupportSuite extends FunSuite {
   case class Institution(value: Long)
   case class MarketFinancialProduct(value: String)
 
-  object MyPostgresProfile1 extends ExPostgresProfile with PgArraySupport {
-    override val api = new API with ArrayImplicits with MyArrayImplicitsPlus {}
+  trait MyPostgresProfile1 extends ExPostgresProfile with PgArraySupport {
+    override val api: API = new API {}
 
     ///
-    trait MyArrayImplicitsPlus {
+    trait API extends super.API with ArrayImplicits {
       implicit val simpleLongBufferTypeMapper = new SimpleArrayJdbcType[Long]("int8").to(_.toBuffer)
       implicit val simpleStrVectorTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toVector)
       implicit val institutionListTypeWrapper =  new SimpleArrayJdbcType[Long]("int8")
@@ -33,6 +33,7 @@ class PgArraySupportSuite extends FunSuite {
         fromString(identity)(_).orNull, mkString(identity))
     }
   }
+  object MyPostgresProfile1 extends MyPostgresProfile1
 
   //////////////////////////////////////////////////////////////////////////
   import MyPostgresProfile1.api._

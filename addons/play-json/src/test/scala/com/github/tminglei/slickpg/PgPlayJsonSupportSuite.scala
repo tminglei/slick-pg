@@ -18,12 +18,17 @@ class PgPlayJsonSupportSuite extends FunSuite {
     implicit val jbeanWrt = Json.writes[JBean]
   }
 
-  object MyPostgresProfile extends PostgresProfile
+  trait MyPostgresProfile extends PostgresProfile
                             with PgPlayJsonSupport
                             with array.PgArrayJdbcTypes {
     override val pgjson = "jsonb"
 
-    override val api = new API with JsonImplicits {
+    override val api: API = new API {}
+
+    val plainAPI = new API with PlayJsonPlainImplicits
+
+    ///
+    trait API extends super.API with JsonImplicits {
       implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
       implicit val beanJsonTypeMapper = MappedJdbcType.base[JBean, JsValue](Json.toJson(_), _.as[JBean])
       implicit val jsonArrayTypeMapper =
@@ -37,9 +42,8 @@ class PgPlayJsonSupportSuite extends FunSuite {
           (v) => utils.SimpleArrayUtils.mkString[JBean](b => Json.stringify(Json.toJson(b)))(v)
         ).to(_.toList)
     }
-
-    val plainAPI = new API with PlayJsonPlainImplicits
   }
+  object MyPostgresProfile extends MyPostgresProfile
 
   ///
   import MyPostgresProfile.api._

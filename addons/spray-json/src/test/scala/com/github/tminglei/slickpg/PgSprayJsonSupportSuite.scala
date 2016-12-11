@@ -17,19 +17,23 @@ class PgSprayJsonSupportSuite extends FunSuite {
     implicit val jbeanFormat = jsonFormat2(JBean)
   }
 
-  object MyPostgresProfile extends PostgresProfile
+  trait MyPostgresProfile extends PostgresProfile
                             with PgSprayJsonSupport
                             with array.PgArrayJdbcTypes {
     override val pgjson = "jsonb"
 
-    override val api = new API with JsonImplicits {
+    override val api: API = new API {}
+
+    val plainAPI = new API with SprayJsonPlainImplicits
+
+    ///
+    trait API extends super.API with JsonImplicits {
       import MyJsonProtocol._
       implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
       implicit val beanJsonTypeMapper = MappedJdbcType.base[JBean, JsValue](_.toJson, _.convertTo[JBean])
     }
-
-    val plainAPI = new API with SprayJsonPlainImplicits
   }
+  object MyPostgresProfile extends MyPostgresProfile
 
   ///
   import MyPostgresProfile.api._

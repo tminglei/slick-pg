@@ -13,17 +13,21 @@ import scala.concurrent.duration._
 class PgArgonautSupportSuite extends FunSuite {
   implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
-  object MyPostgresProfile extends PostgresProfile
+  trait MyPostgresProfile extends PostgresProfile
                             with PgArgonautSupport
                             with array.PgArrayJdbcTypes {
     override val pgjson = "jsonb"
 
-    override val api = new API with JsonImplicits {
-      implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
-    }
+    override val api: API = new API {}
 
     val plainAPI = new API with ArgonautJsonPlainImplicits
+
+    ///
+    trait API extends super.API with JsonImplicits {
+      implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
+    }
   }
+  object MyPostgresProfile extends MyPostgresProfile
 
   ///
   import MyPostgresProfile.api._

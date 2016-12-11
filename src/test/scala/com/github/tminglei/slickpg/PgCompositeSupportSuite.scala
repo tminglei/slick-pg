@@ -3,10 +3,8 @@ package com.github.tminglei.slickpg
 import org.postgresql.util.HStoreConverter
 import org.scalatest.FunSuite
 import slick.jdbc.{GetResult, PositionedResult, PostgresProfile}
-import slick.lifted.RepShapeImplicits
 
 import scala.collection.convert.{WrapAsJava, WrapAsScala}
-import scala.reflect.runtime.{universe => u}
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
 
@@ -41,17 +39,13 @@ object PgCompositeSupportSuite {
     ) extends Struct
 
   //-------------------------------------------------------------
-  object MyPostgresProfile1 extends PostgresProfile with PgCompositeSupport with PgArraySupport with utils.PgCommonJdbcTypes {
-    override val api = new API with ArrayImplicits with CompositeImplicits {}
-
-    val plainImplicits = new API with CompositePlainImplicits {}
-
+  trait MyPostgresProfile1 extends PostgresProfile with PgCompositeSupport with PgArraySupport with utils.PgCommonJdbcTypes {
     def mapToString(m: Map[String, String]): String = HStoreConverter.toString(WrapAsJava.mapAsJavaMap(m))
     def stringToMap(s: String): Map[String, String] = WrapAsScala.mapAsScalaMap(HStoreConverter.fromString(s)
       .asInstanceOf[java.util.Map[String, String]]).toMap
 
     ///
-    trait CompositeImplicits {
+    trait API extends super.API with ArrayImplicits {
       utils.TypeConverters.register(PgRangeSupportUtils.mkRangeFn(ts))
       utils.TypeConverters.register(PgRangeSupportUtils.toStringFn[Timestamp](tsFormat.format))
       utils.TypeConverters.register(mapToString)
@@ -64,8 +58,9 @@ object PgCompositeSupportSuite {
       implicit val composite2ArrayTypeMapper = createCompositeArrayJdbcType[Composite2]("composite2").to(_.toList)
       implicit val composite3ArrayTypeMapper = createCompositeArrayJdbcType[Composite3]("composite3").to(_.toList)
     }
+    override val api: API = new API {}
 
-    trait CompositePlainImplicits extends SimpleArrayPlainImplicits {
+    val plainImplicits = new API with SimpleArrayPlainImplicits {
       import utils.PlainSQLUtils._
       // to support 'nextArray[T]/nextArrayOption[T]' in PgArraySupport
       {
@@ -96,6 +91,7 @@ object PgCompositeSupportSuite {
       implicit val composite3ArrayOptSetParameter = createCompositeOptionArraySetParameter[Composite3]("composite3")
     }
   }
+  object MyPostgresProfile1 extends MyPostgresProfile1
 }
 
 ///

@@ -11,14 +11,17 @@ import scala.concurrent.{Await, ExecutionContext}
 class PgDateSupportJodaSuite extends FunSuite {
   implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
-  object MyPostgresProfile extends PostgresProfile
+  trait MyPostgresProfile extends PostgresProfile
                             with PgDateSupportJoda {
 
-    override val api = new API with DateTimeImplicits
+    override val api: API = new API {}
+
+    val plainAPI = new API with JodaDateTimePlainImplicits
 
     ///
-    val plainAPI = new API with JodaDateTimePlainImplicits
+    trait API extends super.API with DateTimeImplicits
   }
+  object MyPostgresProfile extends MyPostgresProfile
 
   ///
   import MyPostgresProfile.api._

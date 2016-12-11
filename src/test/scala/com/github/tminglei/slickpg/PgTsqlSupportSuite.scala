@@ -3,7 +3,7 @@ package com.github.tminglei.slickpg
 import java.util.UUID
 
 import org.scalatest.FunSuite
-import slick.backend.StaticDatabaseConfig
+import slick.basic.StaticDatabaseConfig
 
 /*
  * NOTE: to check it, we need move `MyPostgresDriver.scala` from test folder to main folder

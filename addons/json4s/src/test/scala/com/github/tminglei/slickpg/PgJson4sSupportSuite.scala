@@ -12,15 +12,20 @@ import scala.concurrent.duration._
 class PgJson4sSupportSuite extends FunSuite {
   implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
-  object MyPostgresProfile extends PostgresProfile
+  trait MyPostgresProfile extends PostgresProfile
                             with PgJson4sSupport
                             with array.PgArrayJdbcTypes {
     /// for json support
     override val pgjson = "jsonb"
-    type DOCType = text.Document
+    type DOCType = org.json4s.native.Document
     override val jsonMethods = org.json4s.native.JsonMethods.asInstanceOf[JsonMethods[DOCType]]
 
-    override val api = new API with JsonImplicits {
+    override val api: API = new API {}
+
+    val plainAPI = new API with Json4sJsonPlainImplicits
+
+    ///
+    trait API extends super.API with JsonImplicits {
       implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
       implicit val json4sJsonArrayTypeMapper =
         new AdvancedArrayJdbcType[JValue](pgjson,
@@ -28,9 +33,8 @@ class PgJson4sSupportSuite extends FunSuite {
           (v) => utils.SimpleArrayUtils.mkString[JValue](j=>jsonMethods.compact(jsonMethods.render(j)))(v)
         ).to(_.toList)
     }
-
-    val plainAPI = new API with Json4sJsonPlainImplicits
   }
+  object MyPostgresProfile extends MyPostgresProfile
 
   ///
   import MyPostgresProfile.api._

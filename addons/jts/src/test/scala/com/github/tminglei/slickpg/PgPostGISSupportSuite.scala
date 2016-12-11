@@ -13,13 +13,15 @@ import scala.concurrent.duration._
 class PgPostGISSupportSuite extends FunSuite {
   implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
-  object MyPostgresProfile extends PostgresProfile with PgPostGISSupport {
+  trait MyPostgresProfile extends PostgresProfile with PgPostGISSupport {
 
-    override val api = new API with PostGISImplicits with PostGISAssistants
+    override val api: API = new API {}
+    val plainAPI = new API with PostGISPlainImplicits
 
     ///
-    val plainAPI = new API with PostGISPlainImplicits
+    trait API extends super.API with PostGISImplicits with PostGISAssistants
   }
+  object MyPostgresProfile extends MyPostgresProfile
 
   ///
   import MyPostgresProfile.api._

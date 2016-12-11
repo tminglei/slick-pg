@@ -46,10 +46,12 @@ class PgEnumSupportSuite extends FunSuite {
   import WeekDays._
   import Rainbows._
 
-  object MyPostgresProfile1 extends PostgresProfile with PgEnumSupport {
-    override val api = new API with MyEnumImplicits {}
+  trait MyPostgresProfile1 extends PostgresProfile with PgEnumSupport {
 
-    trait MyEnumImplicits {
+    override val api: API = new API {}
+
+    ///
+    trait API extends super.API {
       implicit val weekDayTypeMapper = createEnumJdbcType("WeekDay", WeekDays)
       implicit val weekDayListTypeMapper = createEnumListJdbcType("weekDay", WeekDays)
       implicit val rainbowTypeMapper = createEnumJdbcType("Rainbow", Rainbows, true)
@@ -76,6 +78,7 @@ class PgEnumSupportSuite extends FunSuite {
       implicit val genderOptionColumnExtensionMethodsBuilder = createEnumOptionColumnExtensionMethodsBuilder[Gender]
     }
   }
+  object MyPostgresProfile1 extends MyPostgresProfile1
 
   ////////////////////////////////////////////////////////////////////
   import MyPostgresProfile1.api._
