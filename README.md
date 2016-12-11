@@ -26,7 +26,8 @@ Slick-pg
 - Large Object
 
 
-** _tested on `PostgreSQL` `v9.5` with `Slick` `v3.2.0`._
+* _tested on `PostgreSQL` `v9.6` with `Slick` `v3.2.0`._
+** _Java 8 is required._
 
 
 
@@ -148,9 +149,8 @@ Here's the related technical details:
 | ----------------------------------- | --------------------- | -------------------------------------- |
 | List[T]                             | ARRAY                 |        no 3rd party dependencies       |
 | `sql` Date<br> Time<br> Timestamp<br> slickpg Interval<br> Calendar | date<br> time<br> timestamp<br> interval<br> timestamptz |    no 3rd party dependencies     |
-| `joda` LocalDate<br> LocalTime<br> LocalDateTime<br> Period<br> DateTime  | date<br> time<br> timestamp<br> interval<br> timestamptz |    `joda-time` v2.8 / `joda-convert` v1.7     |
-| `java.time` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime <br> OffsetDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz <br> timestamptz |    no 3rd party dependencies <br> but require java 8    |
-| `threeten.bp` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz |    `threetenbp` v1.0      |
+| `java.time` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime <br> OffsetDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz <br> timestamptz |    (built-in) no 3rd party dependencies    |
+| `joda` LocalDate<br> LocalTime<br> LocalDateTime<br> Period<br> DateTime  | date<br> time<br> timestamp<br> interval<br> timestamptz |    `joda-time` v2.9.2 / `joda-convert` v1.8.1     |
 | `scala` Enumeration                 | enum                  |        no 3rd party dependencies       |
 | `slickpg` Range[T]                  | range                 |        no 3rd party dependencies       |
 | `slickpg` LTree                     | ltree                 |        no 3rd party dependencies       |
@@ -158,11 +158,11 @@ Here's the related technical details:
 | `slickpg` InetString                | inet                  |        no 3rd party dependencies       |
 | `slickpg` MacAddrString             | macaddr               |        no 3rd party dependencies       |
 | `slickpg` JsonString                | json                  |        no 3rd party dependencies       |
-| `json4s` JValue                     | json                  |        `json4s` v3.3.0                 |
-| `play-json` JsValue                 | json                  |        `play-json` v2.4.3              |
+| `json4s` JValue                     | json                  |        `json4s` v3.5.0                 |
+| `play-json` JsValue                 | json                  |        `play-json` v2.6.0              |
 | `spray-json` JsValue                | json                  |        `spray-json` v1.3.2             |
-| `argonaut json` Json                | json                  |        `argonaut` v6.1                 |
-| `circe json` Json                   | json                  |        `circe` v0.3.0                  |
+| `argonaut json` Json                | json                  |        `argonaut` v6.2                 |
+| `circe json` Json                   | json                  |        `circe` v0.6.1                  |
 | (TsQuery+TsVector)                  | `text` search         |        no 3rd party dependencies       |
 | `jts` Geometry                      | `postgis` geometry    |        `jts` v1.13                     |
 
@@ -172,7 +172,7 @@ Details
 ------------------------------
 - Array's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/array "Array's oper/functions"), usage  [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgArraySupportSuite.scala "test cases")
 - JSON's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/json "JSON's oper/functions"), usage cases for [json4s](https://github.com/tminglei/slick-pg/blob/master/addons/json4s/src/test/scala/com/github/tminglei/slickpg/PgJson4sSupportSuite.scala "test cases"), [play-json](https://github.com/tminglei/slick-pg/blob/master/addons/play-json/src/test/scala/com/github/tminglei/slickpg/PgPlayJsonSupportSuite.scala "test cases"), [spray-json](https://github.com/tminglei/slick-pg/blob/master/addons/spray-json/src/test/scala/com/github/tminglei/slickpg/PgSprayJsonSupportSuite.scala "test cases") and [argonaut json](https://github.com/tminglei/slick-pg/blob/master/addons/argonaut/src/test/scala/com/github/tminglei/slickpg/PgArgonautSupportSuite.scala "test cases")
-- Date/Time's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/date "Date/Time's oper/functions"), usage cases for [java date](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgDateSupportSuite.scala "test cases"), [joda time](https://github.com/tminglei/slick-pg/blob/master/addons/joda-time/src/test/scala/com/github/tminglei/slickpg/PgDateSupportJodaSuite.scala "test cases"), and [java 8 date](https://github.com/tminglei/slick-pg/blob/master/addons/date2/src/test/scala/com/github/tminglei/slickpg/PgDate2SupportSuite.scala "test cases") and [threeten bp](https://github.com/tminglei/slick-pg/blob/master/addons/threeten/src/test/scala/com/github/tminglei/slickpg/PgDate2bpSupportSuite.scala "test cases")
+- Date/Time's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/date "Date/Time's oper/functions"), usage cases for [java date](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgDateSupportSuite.scala "test cases"), [java 8 date](https://github.com/tminglei/slick-pg/blob/master/addons/date2/src/test/scala/com/github/tminglei/slickpg/PgDate2SupportSuite.scala "test cases") and [joda time](https://github.com/tminglei/slick-pg/blob/master/addons/joda-time/src/test/scala/com/github/tminglei/slickpg/PgDateSupportJodaSuite.scala "test cases")
 - Enum's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/enums "Enum's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgEnumSupportSuite.scala "test cases")
 - Range's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/range "Range's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgRangeSupportSuite.scala "test cases")
 - HStore's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/hstore "HStore's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgHStoreSupportSuite.scala "test cases")
@@ -190,52 +190,42 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.14.4"
+libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.15.0-M3"
 ```
 
 > If you need `joda-time` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.14.4"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.15.0-M3"
 ```
 
 > If you need `jts` geom support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.14.4"
-```
-
-> If you need `jdk8 date` support, pls append dependency:
-```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_date2" % "0.14.4"
-```
-
-> If you need `threeten-bp` support, pls append dependency:
-```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_threeten" % "0.14.4"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.15.0-M3"
 ```
 
 > If you need `json4s` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.14.4"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.15.0-M3"
 ```
 
 > If you need `play-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.14.4"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.15.0-M3"
 ```
 
 > If you need `spray-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.14.4"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.15.0-M3"
 ```
 
 > If you need `argonaut json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.14.4"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.15.0-M3"
 ```
 
 > If you need `circe json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_circe-json" % "0.14.4"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_circe-json" % "0.15.0-M3"
 ```
 
 
@@ -243,8 +233,8 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 ```xml
 <dependency>
     <groupId>com.github.tminglei</groupId>
-    <artifactId>slick-pg_2.11</artifactId>
-    <version>0.14.4</version>
+    <artifactId>slick-pg_2.12</artifactId>
+    <version>0.15.0-M3</version>
 </dependency>
 <!-- other addons if necessary -->
 ...
