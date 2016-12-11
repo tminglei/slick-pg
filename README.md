@@ -26,8 +26,8 @@ Slick-pg
 - Large Object
 
 
-* _tested on `PostgreSQL` `v9.6` with `Slick` `v3.2.0`._
-** _Java 8 is required._
+** _Tested on `PostgreSQL` `v9.6` with `Slick` `v3.2.0`._  
+** _`Java 8` is required._
 
 
 
