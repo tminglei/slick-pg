@@ -34,7 +34,7 @@ class PgStringSupportSuite extends FunSuite {
     val str = column[String]("str")
     val strArr = column[Array[Byte]]("str_arr")
 
-    val * = (id, str, strArr) <> (StrBean.tupled, StrBean.unapply)
+    def * = (id, str, strArr) <> (StrBean.tupled, StrBean.unapply)
   }
   val stringTestTable = TableQuery[StringTestTable]
 
