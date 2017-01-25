@@ -14,6 +14,8 @@ object Example extends App {
   val q = Supplier.join(Coffee).on(_.id === _.supId)
     .map{ case (s,c) => (s.name, c.name) }
 
+  println(">>> running Example ...")
+
   Await.ready(
     db.run {
       q.result.map(

@@ -14,6 +14,7 @@ create table COFFEE
   PRICE numeric(10,2) NOT NULL,
   SALES integer NOT NULL,
   TOTAL integer NOT NULL,
+  arrofbyteproblem bytea not null,
   PRIMARY KEY (NAME),
   FOREIGN KEY (SUP_ID) REFERENCES SUPPLIER (ID));
   
