@@ -26,7 +26,8 @@ trait MyPostgresProfile extends ExPostgresProfile
                               with SearchImplicits
                               with SearchAssistants
   ///
-  val plainAPI = new API with SimpleArrayPlainImplicits
+  val plainAPI = new API with ByteaPlainImplicits
+                         with SimpleArrayPlainImplicits
                          with Date2DateTimePlainImplicits
                          with SimpleJsonPlainImplicits
                          with SimpleNetPlainImplicits

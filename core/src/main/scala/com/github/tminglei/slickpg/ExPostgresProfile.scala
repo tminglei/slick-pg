@@ -37,7 +37,9 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
     implicit class AggFuncOver[R: TypedType](aggFunc: agg.AggFuncRep[R]) {
       def over = window.WindowFuncRep[R](aggFunc._parts.toNode(implicitly[TypedType[R]]))
     }
+  }
 
+  trait ByteaPlainImplicits {
     /** NOTE: Array[Byte] maps to `bytea` instead of `byte ARRAY` */
     implicit val getByteArray = new GetResult[Array[Byte]] {
       def apply(pr: PositionedResult) = pr.nextBytes()
