@@ -22,7 +22,8 @@ trait MyPostgresDriver extends ExPostgresDriver
                              with SearchImplicits
                              with SearchAssistants {}
   ///
-  val plainAPI = new API with SimpleArrayPlainImplicits
+  val plainAPI = new API with ByteaPlainImplicits
+                         with SimpleArrayPlainImplicits
                          with SimpleJsonPlainImplicits
                          with SimpleNetPlainImplicits
                          with SimpleLTreePlainImplicits
