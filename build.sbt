@@ -160,3 +160,16 @@ lazy val slickPgArgonaut = Project(id = "slick-pg_argonaut", base = file("./addo
     )
   )
 ) dependsOn (slickPgCore)
+
+lazy val slickPgJawn = Project(id = "slick-pg_jawn", base = file("./addons/jawn"),
+  settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
+    name := "slick-pg_jawn",
+    description := "Slick extensions for PostgreSQL - jawn module",
+    libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
+      "org.spire-math" %% "jawn-ast" % "0.10.4"
+    )
+  )
+) dependsOn (slickPgCore)
+
+
+
