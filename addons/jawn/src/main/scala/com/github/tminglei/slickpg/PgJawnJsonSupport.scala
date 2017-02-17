@@ -28,7 +28,7 @@ trait PgJawnJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
       new GenericJdbcType[JValue](
         pgjson,
         (v) => JParser.parseUnsafe(v),
-        (v) => CanonicalRenderer.render(v),
+        (v) => v.render,
         hasLiteralForm = false
       )
 
@@ -45,7 +45,7 @@ trait PgJawnJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
 
     implicit class PgJsonPositionedResult(r: PositionedResult) {
       def nextJson(): JValue = nextJsonOption().getOrElse(JNull)
-      def nextJsonOption(): Option[JValue] = r.nextStringOption().flatMap(s => JParser.parseFromString(s).toOption)
+      def nextJsonOption(): Option[JValue] = r.nextStringOption().map(JParser.parseUnsafe)
     }
 
     ////////////////////////////////////////////////////////////
