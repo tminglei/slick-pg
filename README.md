@@ -163,6 +163,7 @@ Here's the related technical details:
 | `spray-json` JsValue                | json                  |        `spray-json` v1.3.2             |
 | `argonaut json` Json                | json                  |        `argonaut` v6.2                 |
 | `circe json` Json                   | json                  |        `circe` v0.6.1                  |
+| `jawn json` Json                    | json                  |        `jawn` v0.10.4                  |
 | (TsQuery+TsVector)                  | `text` search         |        no 3rd party dependencies       |
 | `jts` Geometry                      | `postgis` geometry    |        `jts` v1.13                     |
 
