@@ -62,7 +62,7 @@ def mainDependencies(scalaVersion: String) = {
   }
   Seq (
     "org.scala-lang" % "scala-reflect" % scalaVersion,
-    "com.typesafe.slick" %% "slick" % "3.2.0-M2",
+    "com.typesafe.slick" %% "slick" % "3.2.0-RC1",
     "org.postgresql" % "postgresql" % "9.4.1212",
     "org.slf4j" % "slf4j-simple" % "1.7.21" % "provided",
     "org.scalatest" %% "scalatest" % "3.0.1" % "test"
@@ -84,7 +84,7 @@ lazy val slickPgProject = Project(id = "slick-pg", base = file("."),
     libraryDependencies := mainDependencies(scalaVersion.value)
   )
 ).dependsOn (slickPgCore)
-  .aggregate (slickPgCore, slickPgJoda, slickPgJson4s, slickPgJts, slickPgPlayJson, slickPgSprayJson, slickPgCirceJson, slickPgArgonaut)
+  .aggregate (slickPgCore, slickPgJoda, slickPgJson4s, slickPgJts, slickPgPlayJson, slickPgSprayJson, slickPgCirceJson, slickPgArgonaut, slickPgJawn)
 
 lazy val slickPgJoda = Project(id = "slick-pg_joda-time", base = file("./addons/joda-time"),
   settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
@@ -124,7 +124,7 @@ lazy val slickPgPlayJson = Project(id = "slick-pg_play-json", base = file("./add
     name := "slick-pg_play-json",
     description := "Slick extensions for PostgreSQL - play-json module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "com.typesafe.play" %% "play-json" % "2.6.0-M1"
+      "com.typesafe.play" %% "play-json" % "2.6.0-M3"
     )
   )
 ) dependsOn (slickPgCore)
@@ -134,7 +134,7 @@ lazy val slickPgSprayJson = Project(id = "slick-pg_spray-json", base = file("./a
     name := "slick-pg_spray-json",
     description := "Slick extensions for PostgreSQL - spray-json module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "io.spray" %%  "spray-json" % "1.3.2"
+      "io.spray" %%  "spray-json" % "1.3.3"
     )
   )
 ) dependsOn (slickPgCore)
@@ -144,9 +144,9 @@ lazy val slickPgCirceJson = Project(id = "slick-pg_circe-json", base = file("./a
     name := "slick-pg_circe-json",
     description := "Slick extensions for PostgreSQL - circe module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "io.circe" %% "circe-core" % "0.6.1",
-      "io.circe" %% "circe-generic" % "0.6.1",
-      "io.circe" %% "circe-parser" % "0.6.1"
+      "io.circe" %% "circe-core" % "0.7.0",
+      "io.circe" %% "circe-generic" % "0.7.0",
+      "io.circe" %% "circe-parser" % "0.7.0"
     )
   )
 ) dependsOn (slickPgCore)
