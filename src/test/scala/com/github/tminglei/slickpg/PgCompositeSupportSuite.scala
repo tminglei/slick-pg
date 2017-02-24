@@ -186,6 +186,9 @@ class PgCompositeSupportSuite extends FunSuite {
           ),
           CompositeTests1.filter(_.id === 113L.bind).result.head.map(
             r => assert(rec13 === r)
+          ),
+          CompositeTests2.filter(_.comps === rec21.comps.asColumnOf[Composite1]).result.head.map(
+            r => assert(rec21 === r)
           )
         )
       ).andThen(
