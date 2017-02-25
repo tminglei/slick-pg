@@ -6,7 +6,7 @@ import slick.ast._
 import slick.compiler.CompilerState
 import slick.jdbc._
 import slick.jdbc.meta.MTable
-import slick.lifted.PrimaryKey
+import slick.lifted.{PrimaryKey, Query, WrappingQuery}
 import slick.util.Logging
 
 import scala.concurrent.ExecutionContext
@@ -37,6 +37,9 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
     implicit class AggFuncOver[R: TypedType](aggFunc: agg.AggFuncRep[R]) {
       def over = window.WindowFuncRep[R](aggFunc._parts.toNode(implicitly[TypedType[R]]))
     }
+
+    implicit def queryLateralExtensionMethods[E, U, C[_]](q: Query[E, U, C]) =
+      new QueryLateralExtensionMethods(q)
   }
 
   trait ByteaPlainImplicits {
@@ -56,11 +59,31 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
   }
 
   /*************************************************************************
-    *                 for aggregate and window function support
+    *          for lateral and aggregate/window function support
    *************************************************************************/
+  val USE_LATERAL_JOIN = LiteralNode("__use_lateral_join")
+
+  class QueryLateralExtensionMethods[E1, U1, C[_]](q1: Query[E1, U1, C]) {
+    def lateral[E2, U2, D[_]](qt: E1 => Query[E2, U2, D], jt: JoinType = JoinType.Inner): Query[(E1, E2), (U1, U2), C] = {
+      val leftGen, rightGen = new AnonSymbol
+      val aliased1 = q1.shaped.encodeRef(Ref(leftGen))
+      val q2 = qt(aliased1.value)
+      val aliased2 = q2.shaped.encodeRef(Ref(rightGen))
+      new WrappingQuery[(E1, E2), (U1, U2), C](Join(leftGen, rightGen, q1.toNode, q2.toNode, jt, USE_LATERAL_JOIN), aliased1.zip(aliased2))
+    }
+  }
 
   class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
     import slick.util.MacroSupport.macroSupportInterpolation
+    override protected def buildJoin(j: Join): Unit = j.on match {
+      case USE_LATERAL_JOIN => {
+        buildFrom(j.left, Some(j.leftGen))
+        b"\n${j.jt.sqlName} join lateral "
+        buildFrom(j.right, Some(j.rightGen))
+        b"\non true"
+      }
+      case _ => super.buildJoin(j)
+    }
     override def expr(n: Node, skipParens: Boolean = false) = n match {
       case agg.AggFuncExpr(func, params, orderBy, filter, distinct, forOrdered) =>
         if (func == Library.CountAll) b"${func.name}"
