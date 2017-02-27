@@ -2,7 +2,7 @@ lazy val commonSettings = Seq(
   organizationName := "slick-pg",
   organization := "com.github.tminglei",
   name := "slick-pg",
-  version := "0.15.0-M4",
+  version := "0.15.0-M5",
 
   scalaVersion := "2.12.1",
   crossScalaVersions := Seq("2.11.8", "2.12.1"),
@@ -56,15 +56,15 @@ lazy val commonSettings = Seq(
 def mainDependencies(scalaVersion: String) = {
   val extractedLibs = CrossVersion.partialVersion(scalaVersion) match {
     case Some((2, scalaMajor)) if scalaMajor >= 11 =>
-      Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4" % "provided")
+      Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.5" % "provided")
     case _ =>
       Seq()
   }
   Seq (
     "org.scala-lang" % "scala-reflect" % scalaVersion,
-    "com.typesafe.slick" %% "slick" % "3.2.0-RC1",
-    "org.postgresql" % "postgresql" % "9.4.1212",
-    "org.slf4j" % "slf4j-simple" % "1.7.21" % "provided",
+    "com.typesafe.slick" %% "slick" % "3.2.0",
+    "org.postgresql" % "postgresql" % "42.0.0",
+    "org.slf4j" % "slf4j-simple" % "1.7.24" % "provided",
     "org.scalatest" %% "scalatest" % "3.0.1" % "test"
   ) ++ extractedLibs
 }
@@ -91,7 +91,7 @@ lazy val slickPgJoda = Project(id = "slick-pg_joda-time", base = file("./addons/
     name := "slick-pg_joda-time",
     description := "Slick extensions for PostgreSQL - joda time module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "joda-time" % "joda-time" % "2.9.6",
+      "joda-time" % "joda-time" % "2.9.7",
       "org.joda" % "joda-convert" % "1.8.1"
     )
   )
