@@ -150,7 +150,7 @@ Here's the related technical details:
 | List[T]                             | ARRAY                 |        no 3rd party dependencies       |
 | `sql` Date<br> Time<br> Timestamp<br> slickpg Interval<br> Calendar | date<br> time<br> timestamp<br> interval<br> timestamptz |    no 3rd party dependencies     |
 | `java.time` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime <br> OffsetDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz <br> timestamptz |    (built-in) no 3rd party dependencies    |
-| `joda` LocalDate<br> LocalTime<br> LocalDateTime<br> Period<br> DateTime  | date<br> time<br> timestamp<br> interval<br> timestamptz |    `joda-time` v2.9.2 / `joda-convert` v1.8.1     |
+| `joda` LocalDate<br> LocalTime<br> LocalDateTime<br> Period<br> DateTime  | date<br> time<br> timestamp<br> interval<br> timestamptz |    `joda-time` v2.9.7 / `joda-convert` v1.8.1     |
 | `scala` Enumeration                 | enum                  |        no 3rd party dependencies       |
 | `slickpg` Range[T]                  | range                 |        no 3rd party dependencies       |
 | `slickpg` LTree                     | ltree                 |        no 3rd party dependencies       |
@@ -160,9 +160,9 @@ Here's the related technical details:
 | `slickpg` JsonString                | json                  |        no 3rd party dependencies       |
 | `json4s` JValue                     | json                  |        `json4s` v3.5.0                 |
 | `play-json` JsValue                 | json                  |        `play-json` v2.6.0              |
-| `spray-json` JsValue                | json                  |        `spray-json` v1.3.2             |
+| `spray-json` JsValue                | json                  |        `spray-json` v1.3.3             |
 | `argonaut json` Json                | json                  |        `argonaut` v6.2                 |
-| `circe json` Json                   | json                  |        `circe` v0.6.1                  |
+| `circe json` Json                   | json                  |        `circe` v0.7.0                  |
 | `jawn json` Json                    | json                  |        `jawn` v0.10.4                  |
 | (TsQuery+TsVector)                  | `text` search         |        no 3rd party dependencies       |
 | `jts` Geometry                      | `postgis` geometry    |        `jts` v1.13                     |
