@@ -46,6 +46,12 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
       implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) = {
         om.column(GeomLibrary.GeomFromGeoJSON, json.toNode)
       }
+    def lineFromEncodedPolyline[P, R](encodedPolyline: Rep[P], precision: Option[Int] = None)(
+      implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) =
+      precision match {
+        case Some(p) => om.column(GeomLibrary.LineFromEncodedPolyline, encodedPolyline.toNode, LiteralNode(p))
+        case None   => om.column(GeomLibrary.LineFromEncodedPolyline, encodedPolyline.toNode)
+      }
     def makeBox[G1 <: GEOMETRY, P1, G2 <: GEOMETRY, P2, R](lowLeftPoint: Rep[P1], upRightPoint: Rep[P2])(
       implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[G1, P1]#arg[G2, P2]#to[GEOMETRY, R]) = {
         om.column(GeomLibrary.MakeBox, lowLeftPoint.toNode, upRightPoint.toNode)
@@ -107,6 +113,7 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
     val GeomFromGML = new SqlFunction("ST_GeomFromGML")
     val GeomFromKML = new SqlFunction("ST_GeomFromKML")
     val GeomFromGeoJSON = new SqlFunction("ST_GeomFromGeoJSON")
+    val LineFromEncodedPolyline = new SqlFunction("ST_LineFromEncodedPolyline")
     val MakeBox = new SqlFunction("ST_MakeBox2D")
     val MakeBox3D = new SqlFunction("ST_3DMakeBox")
     val MakeEnvelope = new SqlFunction("ST_MakeEnvelope")
@@ -145,6 +152,7 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
 
     /** Geometry Outputs */
     val AsBinary = new SqlFunction("ST_AsBinary")
+    val AsEncodedPolyline = new SqlFunction("ST_AsEncodedPolyline")
     val AsText = new SqlFunction("ST_AsText")
     val AsLatLonText = new SqlFunction("ST_AsLatLonText")
     val AsEWKB = new SqlFunction("ST_AsEWKB")
@@ -357,6 +365,11 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
       NDRorXDR match {
         case Some(endian) => om.column(GeomLibrary.AsBinary, n, LiteralNode(endian))
         case None   => om.column(GeomLibrary.AsBinary, n)
+      }
+    def asEncodedPolyline[R](precision: Option[Int] = None)(implicit om: o#to[String, R]) =
+      precision match {
+        case Some(p) => om.column(GeomLibrary.AsEncodedPolyline, n, LiteralNode(p))
+        case None   => om.column(GeomLibrary.AsEncodedPolyline, n)
       }
     def asText[R](implicit om: o#to[String, R]) = {
         om.column(GeomLibrary.AsText, n)

@@ -11,6 +11,7 @@ Supported Geometry Oper/Functions
 | geomFromGML         | ST_GeomFromGML        | create a geometry from input GML                       | ST_GeomFromGML(gml[, srid])   |
 | geomFromKML         | ST_GeomFromKML        | create a geometry from input KML                       | ST_GeomFromKML(kml)           |
 | geomFromGeoJSON     | ST_GeomFromGeoJSON    | create a geometry from input geojson                   | ST_GeomFromGeoJSON( json)     |
+| lineFromEncodedPolyline | ST_LineFromEncodedPolyline | create a LineString from an encoded polyline  | ST_LineFromEncodedPolyline(text polyline, integer precision=5)  |
 | makeBox             | ST_MakeBox2D          | Creates a BOX2D defined by the given point geometries  | ST_MakeBox2D( pointLowLeft, pointUpRight)  |
 | makeBox3d           | ST_3DMakeBox          | Creates a BOX3D defined by the given 3d point geometries | ST_3DMakeBox( point3dLowLeft, point3dUpRight)  |
 | makeEnvelope        | ST_MakeEnvelope       | Creates a rectangular Polygon formed from the given minimums and maximums  | ST_MakeEnvelope(xmin, ymin, xmax, ymax, srid=unknown) | 
@@ -69,7 +70,8 @@ Supported Geometry Oper/Functions
 #### Geometry Outputs
 | Slick Oper/Function | PostGIS Oper/Function |           Description                                  |            Example            |
 | ------------------- | --------------------- | ------------------------------------------------------ | ----------------------------- |
-| asBinary            | ST_AsBinary           | Well-Known Binary of the geometry without SRID         | ST_AsBinary(geom[, NDRorXDR]  |
+| asBinary            | ST_AsBinary           | Well-Known Binary of the geometry without SRID         | ST_AsBinary(geom[, NDRorXDR]) |
+| asEncodedPolyline   | ST_AsEncodedPolyline  | Encoded Polyline from a LineString geometry            | ST_AsEncodedPolyline(geom, integer precision=5)  |
 | asText              | ST_AsText             | Well-Known Text of the geometry without SRID           | ST_AsText(geom)               |
 | asLatLonText        | ST_AsLatLonText       | Degrees, Minutes, Seconds representation of the point  | ST_AsLatLonText(geom[, format]) |
 | asEWKB              | ST_AsEWKB             | Well-Known Binary of the geometry with SRID            | ST_AsEWKB(geom[, NDRorXDR])   |

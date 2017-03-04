@@ -63,6 +63,8 @@ class PgPostGISSupportSuite extends FunSuite {
     val line = wktReader.read("LINESTRING(-10 0, 50 50, -100 -100, 10 -70, -10 0)")
 
     val bean = GeometryBean(101L, point)
+    val line1 = wktReader.read("LINESTRING(-120.2 38.5,-120.95 40.7,-126.453 43.252)")
+    line1.setSRID(4326)
 
     Await.result(db.run(
       DBIO.seq(
@@ -105,6 +107,10 @@ class PgPostGISSupportSuite extends FunSuite {
   //          r => assert(bean === r)
   //        )
   //      )), Duration.Inf)
+          // line_from_encoded_polyline
+          GeomTests.filter(_.id === bean.id.bind).map(r => lineFromEncodedPolyline("_p~iF~ps|U_ulLnnqC_mqNvxq`@".bind)).result.head.map(
+            r => assert(line1 === r)
+          ),
           // make_box
           GeomTests.filter(_.geom @&& makeBox(point1.bind, point2.bind)).result.head.map(
             r => assert(bean === r)
@@ -382,15 +388,24 @@ class PgPostGISSupportSuite extends FunSuite {
     val point = wktReader.read(POINT)
     val POINT_LatLon = """2°19'29.928"S 3°14'3.243"W"""
 
+    val LINE_STRING = "LINESTRING(-120.2 38.5,-120.95 40.7,-126.453 43.252)"
+    val lineString = wktReader.read(LINE_STRING)
+    lineString.setSRID(4326)
+
     val bean = GeometryBean(141L, polygon)
     val bean1 = GeometryBean(142L, point)
+    val bean2 = GeometryBean(143L, lineString)
 
     Await.result(db.run(
       DBIO.seq(
         (GeomTests.schema ++ PointTests.schema) create,
-        GeomTests forceInsertAll List(bean, bean1)
+        GeomTests forceInsertAll List(bean, bean1, bean2)
       ).andThen(
         DBIO.seq(
+          // as_encoded_polyline
+          GeomTests.filter(_.id === bean2.id.bind).map(_.geom.asEncodedPolyline()).result.head.map(
+            r => assert("_p~iF~ps|U_ulLnnqC_mqNvxq`@" === r)
+          ),
           // as_text
           GeomTests.filter(_.id === bean.id.bind).map(_.geom.asText).result.head.map(
             r => assert(POLYGON === r)
