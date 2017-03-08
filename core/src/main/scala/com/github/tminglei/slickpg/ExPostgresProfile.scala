@@ -101,7 +101,8 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
       sym.options.contains(ColumnOption.PrimaryKey) || funcDefinedPKs.exists(pk => pk.columns.collect {
         case Select(_, f: FieldSymbol) => f
       }.exists(_.name == sym.name)) }
-    private lazy val insertNames = insertingSyms.map { fs => quoteIdentifier(fs.name) }
+    private lazy val insertNames = insertingSyms.filter(!_.options.contains(ColumnOption.AutoInc)).
+                                                 map { fs => quoteIdentifier(fs.name) }
     private lazy val pkNames = pkSyms.map { fs => quoteIdentifier(fs.name) }
     private lazy val softNames = softSyms.map { fs => quoteIdentifier(fs.name) }
 
