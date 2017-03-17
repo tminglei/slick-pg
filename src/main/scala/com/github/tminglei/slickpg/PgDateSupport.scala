@@ -4,7 +4,6 @@ import java.sql.{Date, Time, Timestamp}
 import javax.xml.bind.DatatypeConverter
 import java.util.{Calendar, TimeZone}
 
-import org.postgresql.core.Provider
 import slick.jdbc.{JdbcType, PostgresProfile}
 
 trait PgDateSupport extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
@@ -47,61 +46,54 @@ trait PgDateSupport extends date.PgDateExtensions with utils.PgCommonJdbcTypes {
 }
 
 object PgDateSupportUtils {
+  import org.postgresql.core.Provider
   import org.postgresql.jdbc.TimestampUtils
-  import java.lang.reflect.{Field, Method}
+  import java.lang.reflect.Field
 
   /** related codes hacked from [[org.postgresql.jdbc.TimestampUtils]] */
   def parseCalendar(tsStr: String): Calendar = {
 
-    val parsedts = tsUtilLoadCalendar.invoke(tsUtilInstance, tsStr)
+    val parsedts = tsUtil_loadCalendar.invoke(tsUtil_instance, tsStr)
 
-    val (tz, era, year, month, day, hour, minute, second, nanos) = tsUtilGetters(parsedts)
-    val useCal: Calendar = if (tz.get(parsedts) == null) Calendar.getInstance() else tz.get(parsedts).asInstanceOf[Calendar]
+    val (tz, era, year, month, day, hour, minute, second, nanos) = tsUtil_Getters(parsedts)
+    val usedCal: Calendar = if (tz.get(parsedts) == null) Calendar.getInstance() else tz.get(parsedts).asInstanceOf[Calendar]
 
-    useCal.set(Calendar.ERA, era.get(parsedts).asInstanceOf[Int])
-    useCal.set(Calendar.YEAR, year.get(parsedts).asInstanceOf[Int])
-    useCal.set(Calendar.MONTH, month.get(parsedts).asInstanceOf[Int] - 1)
-    useCal.set(Calendar.DAY_OF_MONTH, day.get(parsedts).asInstanceOf[Int])
-    useCal.set(Calendar.HOUR_OF_DAY, hour.get(parsedts).asInstanceOf[Int])
-    useCal.set(Calendar.MINUTE, minute.get(parsedts).asInstanceOf[Int])
-    useCal.set(Calendar.SECOND, second.get(parsedts).asInstanceOf[Int])
-    useCal.set(Calendar.MILLISECOND, nanos.get(parsedts).asInstanceOf[Int] / 1000000)
+    usedCal.set(Calendar.ERA, era.get(parsedts).asInstanceOf[Int])
+    usedCal.set(Calendar.YEAR, year.get(parsedts).asInstanceOf[Int])
+    usedCal.set(Calendar.MONTH, month.get(parsedts).asInstanceOf[Int] - 1)
+    usedCal.set(Calendar.DAY_OF_MONTH, day.get(parsedts).asInstanceOf[Int])
+    usedCal.set(Calendar.HOUR_OF_DAY, hour.get(parsedts).asInstanceOf[Int])
+    usedCal.set(Calendar.MINUTE, minute.get(parsedts).asInstanceOf[Int])
+    usedCal.set(Calendar.SECOND, second.get(parsedts).asInstanceOf[Int])
+    usedCal.set(Calendar.MILLISECOND, nanos.get(parsedts).asInstanceOf[Int] / 1000000)
 
-    useCal
+    usedCal
   }
 
   //////////////////////////////////////////////////////////////////////
-  private val tsUtilInstanceHolder = new ThreadLocal[TimestampUtils]
-  private val tsUtilLoadCalendarHolder = new ThreadLocal[Method]
-  private val tsUtilParsedGettersHolder = new ThreadLocal[(Field, Field, Field, Field, Field, Field, Field, Field, Field)]
 
-  private def tsUtilInstance = {
+  private def tsUtil_instance = {
     import java.lang.Boolean.TRUE
-    if (tsUtilInstanceHolder.get() == null) {
-      val tsUtilConstructor = classOf[TimestampUtils].getDeclaredConstructor(classOf[Boolean], classOf[Provider[TimeZone]])
-      tsUtilConstructor.setAccessible(true)
-      tsUtilInstanceHolder.set(tsUtilConstructor.newInstance(TRUE, null))
-    }
-    tsUtilInstanceHolder.get()
+    val tsUtilConstructor = classOf[TimestampUtils].getDeclaredConstructor(classOf[Boolean], classOf[Provider[TimeZone]])
+    tsUtilConstructor.setAccessible(true)
+    tsUtilConstructor.newInstance(TRUE, null)
   }
 
-  private def tsUtilLoadCalendar = {
-    if (tsUtilLoadCalendarHolder.get() == null) {
-      val loadCalendar = classOf[TimestampUtils].getDeclaredMethods.find(_.getName == "parseBackendTimestamp").get
-      loadCalendar.setAccessible(true)
-      tsUtilLoadCalendarHolder.set(loadCalendar)
-    }
-    tsUtilLoadCalendarHolder.get()
+  private val tsUtil_loadCalendar = {
+    val loadCalendar = classOf[TimestampUtils].getDeclaredMethods.find(_.getName == "parseBackendTimestamp").get
+    loadCalendar.setAccessible(true)
+    loadCalendar
   }
 
-  private def tsUtilGetters(parsed: AnyRef) = {
+  var tsUtilParsedGetters_holder: (Field, Field, Field, Field, Field, Field, Field, Field, Field) = null
+  private def tsUtil_Getters(parsed: AnyRef) = {
     def getField(clazz: Class[_], name: String) = {
       val field = clazz.getDeclaredField(name)
       field.setAccessible(true)
       field
     }
 
-    if (tsUtilParsedGettersHolder.get() == null) {
+    if (tsUtilParsedGetters_holder == null) {
       val clazz = parsed.getClass
       val tz = getField(clazz, "tz")
       val era = getField(clazz, "era")
@@ -113,9 +105,9 @@ object PgDateSupportUtils {
       val second = getField(clazz, "second")
       val nanos = getField(clazz, "nanos")
 
-      tsUtilParsedGettersHolder.set((tz, era, year, month, day, hour, minute, second, nanos))
+      tsUtilParsedGetters_holder = (tz, era, year, month, day, hour, minute, second, nanos)
     }
-    tsUtilParsedGettersHolder.get()
+    tsUtilParsedGetters_holder
   }
 }
 
