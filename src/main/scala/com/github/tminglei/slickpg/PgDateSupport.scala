@@ -64,7 +64,7 @@ object PgDateSupportUtils {
     useCal.set(Calendar.HOUR_OF_DAY, hour.get(ts).asInstanceOf[Int])
     useCal.set(Calendar.MINUTE, minute.get(ts).asInstanceOf[Int])
     useCal.set(Calendar.SECOND, second.get(ts).asInstanceOf[Int])
-    useCal.set(Calendar.MILLISECOND, nanos.get(ts).asInstanceOf[Int] / 1000)
+    useCal.set(Calendar.MILLISECOND, nanos.get(ts).asInstanceOf[Int] / 1000000)
 
     useCal
   }
