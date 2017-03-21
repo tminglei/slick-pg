@@ -74,7 +74,7 @@ object PgDateSupportUtils {
 
   //////////////////////////////////////////////////////////////////////
 
-  private val tsUtil_instance = {
+  private def tsUtil_instance = {
     import java.lang.Boolean.TRUE
     val tsUtilConstructor = classOf[TimestampUtils].getDeclaredConstructor(classOf[Boolean], classOf[Boolean], classOf[Boolean])
     tsUtilConstructor.setAccessible(true)
