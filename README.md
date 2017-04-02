@@ -144,11 +144,12 @@ Here's the related technical details:
 **So, if you need bind different scala type/mappers to a pg type oper/functions, you can do it as "slick-pg" currently did.**
 
 
-####Built in supported type/mappers:
-|          scala Type                 |        pg Type        |    dev 3rd-party library dependency    |
+#### Built in supported type/mappers
+
+| scala Type                          | pg Type               | dev 3rd-party library dependency       |
 | ----------------------------------- | --------------------- | -------------------------------------- |
 | List[T]                             | ARRAY                 |        no 3rd party dependencies       |
-| `sql` Date<br> Time<br> Timestamp<br> slickpg Interval<br> Calendar | date<br> time<br> timestamp<br> interval<br> timestamptz |    no 3rd party dependencies     |
+| `java.sql` Date <br> Time<br> Timestamp<br> slickpg Interval<br> Calendar | date<br> time<br> timestamp<br> interval<br> timestamptz |    no 3rd party dependencies     |
 | `java.time` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime <br> OffsetDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz <br> timestamptz |    (built-in) no 3rd party dependencies    |
 | `joda` LocalDate<br> LocalTime<br> LocalDateTime<br> Period<br> DateTime  | date<br> time<br> timestamp<br> interval<br> timestamptz |    `joda-time` v2.9.7 / `joda-convert` v1.8.1     |
 | `scala` Enumeration                 | enum                  |        no 3rd party dependencies       |
