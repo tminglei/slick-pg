@@ -242,7 +242,9 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 ...
 ```
 
-**Note: the plugins' code were ever merged to the main project and published in an all-in-one jar from `slick-pg` v0.7.0, to easy usage, but I restored to publish them as independent jars from `slick-pg` v0.10.0, because of the issue pointed out by @timcharper in #183.**
+**Notes:**
+- the plugins' code were ever merged to the main project and published in an all-in-one jar from `slick-pg` v0.7.0, to easy usage, but I restored to publish them as independent jars from `slick-pg` v0.10.0, because of the issue pointed out by @timcharper in #183.
+- plugin `slick-pg_date2` was merged into major jar from `slick-pg` v0.15.0, so you needn't add it as a depencensy any more.
 
 
 
