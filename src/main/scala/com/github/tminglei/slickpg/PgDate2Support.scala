@@ -9,7 +9,7 @@ import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
 
 import scala.reflect.{ClassTag, classTag}
 
-trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
+trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes with date.PgDateJdbcTypes { driver: PostgresProfile =>
   import PgDate2SupportUtils._
   import driver.api._
 
@@ -101,20 +101,17 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
   }
 
   trait Date2DateTimeImplicits[INTERVAL] extends Date2DateTimeFormatters {
-    implicit val date2DateTypeMapper: JdbcType[LocalDate] = new GenericJdbcType[LocalDate]("date",
-      fromDateOrInfinity, toDateOrInfinity, hasLiteralForm=false)
-    implicit val date2TimeTypeMapper: JdbcType[LocalTime] = new GenericJdbcType[LocalTime]("time",
-      LocalTime.parse(_, date2TimeFormatter), _.format(date2TimeFormatter), hasLiteralForm=false)
-    implicit val date2DateTimeTypeMapper: JdbcType[LocalDateTime] = new GenericJdbcType[LocalDateTime]("timestamp",
-      fromDateTimeOrInfinity, toDateTimeOrInfinity, hasLiteralForm=false)
+    implicit val date2DateTypeMapper: JdbcType[LocalDate] = new GenericDateJdbcType[LocalDate]("date", java.sql.Types.DATE)
+    implicit val date2TimeTypeMapper: JdbcType[LocalTime] = new GenericDateJdbcType[LocalTime]("time", java.sql.Types.TIME)
+    implicit val date2DateTimeTypeMapper: JdbcType[LocalDateTime] = new GenericDateJdbcType[LocalDateTime]("timestamp", java.sql.Types.TIMESTAMP)
     implicit val date2InstantTypeMapper: JdbcType[Instant] = new GenericJdbcType[Instant]("timestamp",
       fromInstantOrInfinity, toInstantOrInfinity, hasLiteralForm=false)
     implicit val date2PeriodTypeMapper: JdbcType[Period] = new GenericJdbcType[Period]("interval", pgIntervalStr2Period, hasLiteralForm=false)
     implicit val durationTypeMapper: JdbcType[Duration] = new GenericJdbcType[Duration]("interval", pgIntervalStr2Duration, hasLiteralForm=false)
     implicit val date2TzTimeTypeMapper: JdbcType[OffsetTime] = new GenericJdbcType[OffsetTime]("timetz",
       OffsetTime.parse(_, date2TzTimeFormatter), _.format(date2TzTimeFormatter), hasLiteralForm=false)
-    implicit val date2TzTimestampTypeMapper: JdbcType[OffsetDateTime] = new GenericJdbcType[OffsetDateTime]("timestamptz",
-      fromOffsetDateTimeOrInfinity, toOffsetDateTimeOrInfinity, hasLiteralForm=false)
+    implicit val date2TzTimestampTypeMapper: JdbcType[OffsetDateTime] = new GenericDateJdbcType[OffsetDateTime]("timestamptz",
+      java.sql.Types.TIMESTAMP_WITH_TIMEZONE)
     implicit val date2TzTimestamp1TypeMapper: JdbcType[ZonedDateTime] = new GenericJdbcType[ZonedDateTime]("timestamptz",
       fromZonedDateTimeOrInfinity, toZonedDateTimeOrInfinity, hasLiteralForm=false)
     implicit val date2ZoneIdMapper: JdbcType[ZoneId] = new GenericJdbcType[ZoneId]("text", ZoneId.of(_), _.getId, hasLiteralForm=false)

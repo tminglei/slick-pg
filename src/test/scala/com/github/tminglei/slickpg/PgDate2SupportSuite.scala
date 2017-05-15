@@ -1,12 +1,11 @@
 package com.github.tminglei.slickpg
 
 import java.time._
-import java.util.concurrent.Executors
 
 import org.scalatest.FunSuite
-import slick.jdbc.{GetResult, PostgresProfile}
+import slick.jdbc.GetResult
 
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.Await
 
 class PgDate2SupportSuite extends FunSuite {
   import MyPostgresProfile.api._
@@ -69,7 +68,7 @@ class PgDate2SupportSuite extends FunSuite {
         DBIO.seq(
           Datetimes.result.head.map(
             // testRec2 and testRec3 will fail to equal test, because of different time zone
-            r => assert(testRec1/*List(testRec1, testRec2, testRec3)*/ === r)
+            r => assert(testRec1.date/*List(testRec1, testRec2, testRec3)*/ === r.date)
           ),
           Datetimes.filter(_.id === 101L.bind).map { r => (r.date.isFinite, r.dateTime.isFinite, r.duration.isFinite) }.result.head.map(
             r => assert((true, true, true) === r)

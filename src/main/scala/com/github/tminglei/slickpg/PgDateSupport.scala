@@ -1,12 +1,11 @@
 package com.github.tminglei.slickpg
 
 import java.sql.{Date, Time, Timestamp}
-import javax.xml.bind.DatatypeConverter
-import java.util.{Calendar, TimeZone}
+import java.util.Calendar
 
 import slick.jdbc.{JdbcType, PostgresProfile}
 
-trait PgDateSupport extends date.PgDateExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
+trait PgDateSupport extends date.PgDateExtensions with utils.PgCommonJdbcTypes with date.PgDateJdbcTypes { driver: PostgresProfile =>
   import driver.api._
 
   /// alias
@@ -14,8 +13,7 @@ trait PgDateSupport extends date.PgDateExtensions with utils.PgCommonJdbcTypes {
 
   trait SimpleDateTimeImplicits {
     implicit val simpleIntervalTypeMapper: JdbcType[Interval] = new GenericJdbcType[Interval]("interval", Interval.apply, hasLiteralForm=false)
-    implicit val simpleTimestampTZTypeMapper: JdbcType[Calendar] = new GenericJdbcType[Calendar]("timestamptz",
-        PgDateSupportUtils.parseCalendar, DatatypeConverter.printDateTime, hasLiteralForm=false)
+    implicit val simpleTimestampTZTypeMapper: JdbcType[Calendar] = new GenericDateJdbcType[Calendar]("timestamptz", java.sql.Types.TIMESTAMP_WITH_TIMEZONE)
 
     ///
     implicit def simpleDateColumnExtensionMethods(c: Rep[Date]) =
@@ -24,9 +22,9 @@ trait PgDateSupport extends date.PgDateExtensions with utils.PgCommonJdbcTypes {
       new DateColumnExtensionMethods[Date, Time, Timestamp, Interval, Option[Date]](c)
 
     implicit def simpleTimeColumnExtensionMethods(c: Rep[Time]) =
-      new TimeColumnExtensionMethods[Date, Time, Timestamp, Calendar, Interval, Time](c)
+      new TimeColumnExtensionMethods[Date, Time, Timestamp, Time, Interval, Time](c)
     implicit def simpleTimeOptColumnExtensionMethods(c: Rep[Option[Time]]) =
-      new TimeColumnExtensionMethods[Date, Time, Timestamp, Calendar, Interval, Option[Time]](c)
+      new TimeColumnExtensionMethods[Date, Time, Timestamp, Time, Interval, Option[Time]](c)
 
     implicit def simpleTimestampColumnExtensionMethods(c: Rep[Timestamp]) =
       new TimestampColumnExtensionMethods[Date, Time, Timestamp, Calendar, Interval, Timestamp](c)
@@ -39,75 +37,9 @@ trait PgDateSupport extends date.PgDateExtensions with utils.PgCommonJdbcTypes {
       new IntervalColumnExtensionMethods[Date, Time, Timestamp, Interval, Option[Interval]](c)
 
     implicit def simpleTimestampTZColumnExtensionMethods(c: Rep[Calendar]) =
-      new TimestampColumnExtensionMethods[Date, Time, Calendar, Timestamp, Interval, Calendar](c)
+      new TimestampColumnExtensionMethods[Date, Time, Calendar, Calendar, Interval, Calendar](c)
     implicit def simpleTimestampTZOptColumnExtensionMethods(c: Rep[Option[Calendar]]) =
-      new TimestampColumnExtensionMethods[Date, Time, Calendar, Timestamp, Interval, Option[Calendar]](c)
-  }
-}
-
-object PgDateSupportUtils {
-  import org.postgresql.core.Provider
-  import org.postgresql.jdbc.TimestampUtils
-  import java.lang.reflect.Field
-
-  /** related codes hacked from [[org.postgresql.jdbc.TimestampUtils]] */
-  def parseCalendar(tsStr: String): Calendar = {
-
-    val parsedts = tsUtil_loadCalendar.invoke(tsUtil_instance, tsStr)
-
-    val (tz, era, year, month, day, hour, minute, second, nanos) = tsUtil_Getters(parsedts)
-    val usedCal: Calendar = if (tz.get(parsedts) == null) Calendar.getInstance() else tz.get(parsedts).asInstanceOf[Calendar]
-
-    usedCal.set(Calendar.ERA, era.get(parsedts).asInstanceOf[Int])
-    usedCal.set(Calendar.YEAR, year.get(parsedts).asInstanceOf[Int])
-    usedCal.set(Calendar.MONTH, month.get(parsedts).asInstanceOf[Int] - 1)
-    usedCal.set(Calendar.DAY_OF_MONTH, day.get(parsedts).asInstanceOf[Int])
-    usedCal.set(Calendar.HOUR_OF_DAY, hour.get(parsedts).asInstanceOf[Int])
-    usedCal.set(Calendar.MINUTE, minute.get(parsedts).asInstanceOf[Int])
-    usedCal.set(Calendar.SECOND, second.get(parsedts).asInstanceOf[Int])
-    usedCal.set(Calendar.MILLISECOND, nanos.get(parsedts).asInstanceOf[Int] / 1000000)
-
-    usedCal
-  }
-
-  //////////////////////////////////////////////////////////////////////
-
-  private def tsUtil_instance = {
-    import java.lang.Boolean.TRUE
-    val tsUtilConstructor = classOf[TimestampUtils].getDeclaredConstructor(classOf[Boolean], classOf[Provider[TimeZone]])
-    tsUtilConstructor.setAccessible(true)
-    tsUtilConstructor.newInstance(TRUE, null)
-  }
-
-  private val tsUtil_loadCalendar = {
-    val loadCalendar = classOf[TimestampUtils].getDeclaredMethods.find(_.getName == "parseBackendTimestamp").get
-    loadCalendar.setAccessible(true)
-    loadCalendar
-  }
-
-  var tsUtilParsedGetters_holder: (Field, Field, Field, Field, Field, Field, Field, Field, Field) = null
-  private def tsUtil_Getters(parsed: AnyRef) = {
-    def getField(clazz: Class[_], name: String) = {
-      val field = clazz.getDeclaredField(name)
-      field.setAccessible(true)
-      field
-    }
-
-    if (tsUtilParsedGetters_holder == null) {
-      val clazz = parsed.getClass
-      val tz = getField(clazz, "tz")
-      val era = getField(clazz, "era")
-      val year = getField(clazz, "year")
-      val month = getField(clazz, "month")
-      val day = getField(clazz, "day")
-      val hour = getField(clazz, "hour")
-      val minute = getField(clazz, "minute")
-      val second = getField(clazz, "second")
-      val nanos = getField(clazz, "nanos")
-
-      tsUtilParsedGetters_holder = (tz, era, year, month, day, hour, minute, second, nanos)
-    }
-    tsUtilParsedGetters_holder
+      new TimestampColumnExtensionMethods[Date, Time, Calendar, Calendar, Interval, Option[Calendar]](c)
   }
 }
 

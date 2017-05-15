@@ -1,8 +1,10 @@
 package com.github.tminglei.slickpg
 
-import java.sql.{Timestamp, Time, Date}
-import java.util.Calendar
+import java.sql.{Date, Time, Timestamp}
+import java.util.{Calendar, TimeZone}
 import java.text.SimpleDateFormat
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
 
 import org.scalatest.FunSuite
 
@@ -22,7 +24,14 @@ class PgDateSupportSuite extends FunSuite {
   def date(str: String) = new Date(dateFormat.parse(str).getTime)
   def time(str: String) = new Time(timeFormat.parse(str).getTime)
   def ts(str: String) = new Timestamp( (if (str.contains(".")) tsFormat1 else tsFormat) .parse(str).getTime )
-  def tstz(str: String) = PgDateSupportUtils.parseCalendar(str)
+  def tstz(s: String): Calendar = {
+    val dt = OffsetDateTime.parse(s, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+    new Calendar.Builder()
+      .setDate(dt.getYear, dt.getMonthValue -1, dt.getDayOfMonth)
+      .setTimeOfDay(dt.getHour, dt.getMinute, dt.getSecond, dt.getNano / 1000000)
+      .setTimeZone(TimeZone.getTimeZone(dt.getOffset))
+      .build()
+  }
 
   case class DatetimeBean(
     id: Long,
@@ -48,11 +57,11 @@ class PgDateSupportSuite extends FunSuite {
   //------------------------------------------------------------------------------
 
   val testRec1 = new DatetimeBean(101L, date("2010-11-3"), time("12:33:01"),
-    ts("2001-1-3 13:21:00.103"), tstz("2001-01-03 13:21:00+08:00"), Interval("1 days 1 hours"))
+    ts("2001-1-3 13:21:00.103"), tstz("2001-01-03T13:21:00+08:00"), Interval("1 days 1 hours"))
   val testRec2 = new DatetimeBean(102L, date("2011-3-2"), time("3:14:7"),
-    ts("2012-5-8 11:31:06"), tstz("2012-05-08 11:31:06-05:00"), Interval("1 years 36 mons 127 days"))
+    ts("2012-5-8 11:31:06"), tstz("2012-05-08T11:31:06-05:00"), Interval("1 years 36 mons 127 days"))
   val testRec3 = new DatetimeBean(103L, date("2000-5-19"), time("11:13:34"),
-    ts("2019-11-3 13:19:03"), tstz("2019-11-03 13:19:03+03:00"), Interval("63 hours 16 mins 2 secs"))
+    ts("2019-11-3 13:19:03"), tstz("2019-11-03T13:19:03+03:00"), Interval("63 hours 16 mins 2 secs"))
 
   test("Date Lifted support") {
     Await.result(db.run(
@@ -140,10 +149,10 @@ class PgDateSupportSuite extends FunSuite {
           ),
           // at time zone
           Datetimes.filter(_.id === 101L.bind).map(r => r.timestamptz.atTimeZone("MST")).result.head.map(
-            r => assert(r.isInstanceOf[Timestamp])
+            r => assert(r.isInstanceOf[Calendar])
           ),
           Datetimes.filter(_.id === 101L.bind).map(r => r.time.atTimeZone("MST")).result.head.map(
-            r => assert(r.isInstanceOf[Calendar])
+            r => assert(r.isInstanceOf[Time])
           ),
           // interval
           DBIO.seq(
@@ -192,7 +201,7 @@ class PgDateSupportSuite extends FunSuite {
             ),
             // trunc
             Datetimes.filter(_.id === 101L.bind).map(r => r.timestamptz.trunc("day")).result.head.map(
-              r => assert(tstz("2001-1-3 00:00:00+8:00") === r)
+              r => assert(tstz("2001-01-03T00:00:00+08:00").getTimeInMillis === r.getTimeInMillis)
             )
           )
         )
