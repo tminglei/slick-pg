@@ -1,11 +1,11 @@
 package com.github.tminglei.slickpg.date
 
-import java.sql.{PreparedStatement, ResultSet}
+import java.sql.{PreparedStatement, ResultSet, Timestamp}
 import java.time.format.DateTimeFormatter
 import java.time._
-import java.util.{Calendar, TimeZone}
+import java.util.Calendar
 
-import org.postgresql.util.PGInterval
+import org.postgresql.util.{PGInterval}
 import slick.ast.FieldSymbol
 import slick.jdbc.{JdbcType, JdbcTypesComponent, PostgresProfile}
 
@@ -33,15 +33,11 @@ trait PgDateJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
 
     ///---
 
-    private val sharedCal = Calendar.getInstance(TimeZone.getTimeZone(ZoneId.of("UTC"))) // should ensure it not to be modified
-
-    ///---
-
     override def sqlTypeName(sym: Option[FieldSymbol]): String = sqlTypeName
 
     override def getValue(r: ResultSet, idx: Int): T = {
       val value = classTag.runtimeClass match {
-        case clazz if clazz == classOf[Instant]  => Option(r.getTimestamp(idx, sharedCal)).map(_.toInstant).orNull
+        case clazz if clazz == classOf[Instant]  => Option(r.getTimestamp(idx)).map(_.toInstant).orNull
         case clazz if clazz == classOf[Duration] => Option(r.getObject(idx, classOf[PGInterval])).map(pgInterval2Duration).orNull
         case clazz                               => r.getObject(idx, clazz)
       }
@@ -51,14 +47,14 @@ trait PgDateJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
     override def setValue(v: T, p: PreparedStatement, idx: Int): Unit =
       if (v == null) p.setNull(idx, sqlType) else classTag.runtimeClass match {
         case clazz if clazz == classOf[Calendar] => p.setObject(idx, v.asInstanceOf[Calendar].toInstant.atOffset(ZoneOffset.UTC), sqlType)
-        case clazz if clazz == classOf[Instant]  => p.setObject(idx, toInfinitable(v, Instant.MAX, Instant.MIN), sqlType)
+        case clazz if clazz == classOf[Instant]  => p.setObject(idx, instantToTimestamp(v.asInstanceOf[Instant]), sqlType)
         case clazz                               => p.setObject(idx, v, sqlType)
       }
 
     override def updateValue(v: T, r: ResultSet, idx: Int): Unit =
       if (v == null) r.updateNull(idx) else classTag.runtimeClass match {
         case clazz if clazz == classOf[Calendar] => r.updateObject(idx, v.asInstanceOf[Calendar].toInstant.atOffset(ZoneOffset.UTC))
-        case clazz if clazz == classOf[Instant]  => r.updateObject(idx, toInfinitable(v, Instant.MAX, Instant.MIN))
+        case clazz if clazz == classOf[Instant]  => r.updateObject(idx, instantToTimestamp(v.asInstanceOf[Instant]))
         case clazz                               => r.updateObject(idx, v)
       }
 
@@ -81,10 +77,10 @@ trait PgDateJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
         .plusNanos(Math.round(pgInterval.getSeconds * 1000 * 1000000))
     }
 
-    private def toInfinitable[T](v: T, max: T, min: T) = v match {
-      case `max` =>  "infinity"
-      case `min` =>  "-infinity"
-      case finite => finite
+    private def instantToTimestamp(v: Instant) = v match {
+      case Instant.MAX  => "infinity"
+      case Instant.MIN  => "-infinity"
+      case finite   => Timestamp.from(finite)
     }
   }
 }
