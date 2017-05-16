@@ -16,7 +16,9 @@ import scala.reflect.ClassTag
   */
 trait PgDateJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
 
-  class GenericDateJdbcType[T: ClassTag](val sqlTypeName: String, val sqlType: Int) extends DriverJdbcType[T] {
+  class GenericDateJdbcType[T: ClassTag](val sqlTypeName: String, val sqlType: Int,
+                                         override val hasLiteralForm: Boolean = false
+                                        ) extends DriverJdbcType[T] {
 
     classTag.runtimeClass match {
       case clazz if clazz == classOf[LocalDate] =>
