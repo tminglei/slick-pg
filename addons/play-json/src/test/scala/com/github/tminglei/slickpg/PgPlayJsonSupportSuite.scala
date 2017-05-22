@@ -71,15 +71,24 @@ class PgPlayJsonSupportSuite extends FunSuite {
     JBean("t1", 5), List(JBean("t1", 5)))
   val testRec3 = JsonBean(37L, Json.parse(""" ["a", "b"] """), Nil, JBean("tx", 7), Nil)
 
+
   test("Play json Lifted support") {
     val json1 = Json.parse(""" {"a":"v1","b":2} """)
     val json2 = Json.parse(""" {"a":"v5","b":3} """)
+
+    // Unicode testing
+    // This byte string equal to {"d":"123\u000045\u00006"}
+    val unicodeJsonBytes: List[Byte] = List(123, 34, 100, 34, 58, 34, 49, 50, 51, 92, 117, 48, 48, 48, 48, 52, 53, 92, 117, 48, 48, 48, 48, 54, 34, 125)
+    val unicodeJsonString = (new String(unicodeJsonBytes.map(_.toChar).toArray))
+    val unicodedJson = Json.parse(unicodeJsonString)
+    val unicodelessJson = Json.parse(""" { "d":"123456" } """)
+    val testRec4 = JsonBean(39L, unicodedJson, Nil, JBean("t2", 9), Nil)
 
     Await.result(db.run(
       DBIO.seq(
         JsonTests.schema create,
         ///
-        JsonTests forceInsertAll List(testRec1, testRec2, testRec3)
+        JsonTests forceInsertAll List(testRec1, testRec2, testRec3, testRec4)
       ).andThen(
         DBIO.seq(
           JsonTests.filter(_.id === testRec2.id.bind).map(_.json).result.head.map(
@@ -89,7 +98,8 @@ class PgPlayJsonSupportSuite extends FunSuite {
             r => assert(JBean("t1", 5) === r)
           ),
           JsonTests.to[List].result.map(
-            r => assert(List(testRec1, testRec2, testRec3) === r)
+            // testRec4 has its \u0000 character stripped
+            r => assert(List(testRec1, testRec2, testRec3, testRec4.copy(json = unicodelessJson)) === r)
           ),
           // ->>/->
           JsonTests.filter(_.json.+>>("a") === "101").map(_.json.+>>("c")).result.head.map(
@@ -132,6 +142,10 @@ class PgPlayJsonSupportSuite extends FunSuite {
           ),
           JsonTests.filter(_.id === testRec1.id).map(_.json.objectKeys).result.head.map(
             r => assert("a" === r)
+          ),
+          // \u0000 test
+          JsonTests.filter(_.id === testRec4.id).map(_.json).result.head.map(
+            r => assert(unicodelessJson === r)
           ),
           // @>
           JsonTests.filter(_.json @> Json.parse(""" {"b":"aaa"} """)).result.head.map(
