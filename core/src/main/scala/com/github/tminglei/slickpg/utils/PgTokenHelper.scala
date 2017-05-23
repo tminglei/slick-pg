@@ -94,7 +94,7 @@ object PgTokenHelper {
     ///
     def isMarkRequired(token: Token): Boolean = token match {
       case g: GroupToken => true
-      case Chunk(v) => v.trim.isEmpty || "NULL".equalsIgnoreCase(v) || v.find(MARK_REQUIRED_CHAR_LIST.contains).isDefined
+      case Chunk(v) => v.isEmpty || v.trim.length < v.length || "NULL".equalsIgnoreCase(v) || v.find(MARK_REQUIRED_CHAR_LIST.contains).isDefined
       case _ => false
     }
 
@@ -121,7 +121,8 @@ object PgTokenHelper {
       }
 
     def mergeString(buf: mutable.StringBuilder, token: Token, level: Int): Unit = {
-      if (isMarkRequired(token)) appendMark(buf, level)
+      val markRequired = isMarkRequired(token)
+      if (markRequired) appendMark(buf, level)
       token match {
         case GroupToken(mList) => {
           buf append mList(0).value
@@ -135,7 +136,7 @@ object PgTokenHelper {
         case Chunk(v) => v.map(appendEscaped(buf, _, level))
         case _  =>  //nothing to do
       }
-      if (isMarkRequired(token)) appendMark(buf, level)
+      if (markRequired) appendMark(buf, level)
     }
 
     ///
