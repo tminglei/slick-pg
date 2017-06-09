@@ -82,7 +82,7 @@ trait PgNetSupport extends net.PgNetExtensions with utils.PgCommonJdbcTypes { dr
 
     /////////////////////////////////////////////////////////////////
     implicit val getIPAddr = mkGetResult(_.nextIPAddr())
-    implicit val getIPAddrOption = mkGetResult(_.nextIntOption())
+    implicit val getIPAddrOption = mkGetResult(_.nextIPAddrOption())
     implicit val setIPAddr = mkSetParameter[InetString]("inet", _.value)
     implicit val setIPAddrOption = mkOptionSetParameter[InetString]("inet", _.value)
 
