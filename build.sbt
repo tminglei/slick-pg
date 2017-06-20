@@ -144,9 +144,9 @@ lazy val slickPgCirceJson = Project(id = "slick-pg_circe-json", base = file("./a
     name := "slick-pg_circe-json",
     description := "Slick extensions for PostgreSQL - circe module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "io.circe" %% "circe-core" % "0.7.0",
-      "io.circe" %% "circe-generic" % "0.7.0",
-      "io.circe" %% "circe-parser" % "0.7.0"
+      "io.circe" %% "circe-core" % "0.8.0",
+      "io.circe" %% "circe-generic" % "0.8.0",
+      "io.circe" %% "circe-parser" % "0.8.0"
     )
   )
 ) dependsOn (slickPgCore)
