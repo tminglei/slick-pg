@@ -26,3 +26,4 @@ before_script:
   - psql test -c 'CREATE EXTENSION IF NOT EXISTS hstore;' -U postgres
   - psql test -c 'CREATE EXTENSION IF NOT EXISTS ltree;' -U postgres
   - psql test -c 'CREATE EXTENSION IF NOT EXISTS postgis;' -U postgres
+  - psql test -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm;' -U postgres

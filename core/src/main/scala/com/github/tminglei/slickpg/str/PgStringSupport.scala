@@ -1,4 +1,5 @@
-package com.github.tminglei.slickpg.str
+package com.github.tminglei.slickpg
+package str
 
 import slick.jdbc.PostgresProfile
 
