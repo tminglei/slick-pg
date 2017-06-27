@@ -24,6 +24,7 @@ Slick-pg
 - aggregate functions
 - window functions
 - Large Object
+- Pg_trgm
 
 
 ** _Tested on `PostgreSQL` `v9.6` with `Slick` `v3.2.0`._  
@@ -179,6 +180,7 @@ Details
 - Range's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/range "Range's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgRangeSupportSuite.scala "test cases")
 - HStore's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/hstore "HStore's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgHStoreSupportSuite.scala "test cases")
 - LTree's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/ltree "LTree's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgLTreeSupportSuite.scala "test cases")
+- PgTrgm's [oper/functions](https://github.com/tminglei/slick-pg/blob/master/core/src/main/scala/com/github/tminglei/slickpg/trgm "PgTrgm's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/core/src/test/scala/com/github/tminglei/slickpg/trgm/PgTrgmSupportSuite.scala "test cases")
 - Inet/MacAddr's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/net "net's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgNetSupportSuite.scala "test cases")
 - Search's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/search "Search's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgSearchSupportSuite.scala "test cases")
 - Geometry's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/geom "Geometry's oper/functions"), usage cases for [postgis](https://github.com/tminglei/slick-pg/blob/master/addons/jts/src/test/scala/com/github/tminglei/slickpg/PgPostGISSupportSuite.scala "test cases")
@@ -192,42 +194,42 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.15.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.15.1"
 ```
 
 > If you need `joda-time` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.15.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.15.1"
 ```
 
 > If you need `jts` geom support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.15.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.15.1"
 ```
 
 > If you need `json4s` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.15.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.15.1"
 ```
 
 > If you need `play-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.15.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.15.1"
 ```
 
 > If you need `spray-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.15.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.15.1"
 ```
 
 > If you need `argonaut json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.15.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.15.1"
 ```
 
 > If you need `circe json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_circe-json" % "0.15.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_circe-json" % "0.15.1"
 ```
 
 
@@ -236,7 +238,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.12</artifactId>
-    <version>0.15.0</version>
+    <version>0.15.1</version>
 </dependency>
 <!-- other addons if necessary -->
 ...
