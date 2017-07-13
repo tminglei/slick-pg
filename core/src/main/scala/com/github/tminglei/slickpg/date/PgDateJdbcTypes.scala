@@ -79,7 +79,7 @@ trait PgDateJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
         .plusNanos(Math.round(pgInterval.getSeconds * 1000 * 1000000))
     }
 
-    private def instantToTimestamp(v: Instant): io.Serializable with Comparable[_ >: String with Date <: io.Serializable with Comparable[_ >: String with Date]] = v match {
+    private def instantToTimestamp(v: Instant) = v match {
       case Instant.MAX  => "infinity"
       case Instant.MIN  => "-infinity"
       case finite   => Timestamp.from(finite)
