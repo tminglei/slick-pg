@@ -1,11 +1,12 @@
 package com.github.tminglei.slickpg.date
 
+import java.io
 import java.sql.{PreparedStatement, ResultSet, Timestamp}
 import java.time.format.DateTimeFormatter
 import java.time._
-import java.util.Calendar
+import java.util.{Calendar, Date, TimeZone}
 
-import org.postgresql.util.{PGInterval}
+import org.postgresql.util.PGInterval
 import slick.ast.FieldSymbol
 import slick.jdbc.{JdbcType, JdbcTypesComponent, PostgresProfile}
 
@@ -37,9 +38,10 @@ trait PgDateJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
 
     override def getValue(r: ResultSet, idx: Int): T = {
       val value = classTag.runtimeClass match {
-        case clazz if clazz == classOf[Instant]  => Option(r.getTimestamp(idx)).map(_.toInstant).orNull
-        case clazz if clazz == classOf[Duration] => Option(r.getObject(idx, classOf[PGInterval])).map(pgInterval2Duration).orNull
-        case clazz                               => r.getObject(idx, clazz)
+        case clazz if clazz == classOf[OffsetDateTime]  => Option(r.getObject(idx, classOf[OffsetDateTime])).map(t => if (t != OffsetDateTime.MAX && t != OffsetDateTime.MIN) t.atZoneSameInstant(TimeZone.getDefault.toZoneId).toOffsetDateTime else t).orNull
+        case clazz if clazz == classOf[Instant]         => Option(r.getTimestamp(idx)).map(_.toInstant).orNull
+        case clazz if clazz == classOf[Duration]        => Option(r.getObject(idx, classOf[PGInterval])).map(pgInterval2Duration).orNull
+        case clazz                                      => r.getObject(idx, clazz)
       }
       if (r.wasNull) null.asInstanceOf[T] else value.asInstanceOf[T]
     }
@@ -77,7 +79,7 @@ trait PgDateJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
         .plusNanos(Math.round(pgInterval.getSeconds * 1000 * 1000000))
     }
 
-    private def instantToTimestamp(v: Instant) = v match {
+    private def instantToTimestamp(v: Instant): io.Serializable with Comparable[_ >: String with Date <: io.Serializable with Comparable[_ >: String with Date]] = v match {
       case Instant.MAX  => "infinity"
       case Instant.MIN  => "-infinity"
       case finite   => Timestamp.from(finite)
