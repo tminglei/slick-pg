@@ -38,7 +38,7 @@ Before using it, you need integrate it with PostgresDriver maybe like this:
 ```scala
 import com.github.tminglei.slickpg._
 
-trait MyPostgresDriver extends ExPostgresDriver
+trait MyPostgresProfile extends ExPostgresProfile
                           with PgArraySupport
                           with PgDate2Support
                           with PgRangeSupport
@@ -74,13 +74,13 @@ trait MyPostgresDriver extends ExPostgresDriver
   }
 }
 
-object MyPostgresDriver extends MyPostgresDriver
+object MyPostgresProfile extends MyPostgresProfile
 
 ```
 
 then in your codes you can use it like this:
 ```scala
-import MyPostgresDriver.api._
+import MyPostgresProfile.api._
 
 class TestTable(tag: Tag) extends Table[Test](tag, Some("xxx"), "Test") {
   def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
