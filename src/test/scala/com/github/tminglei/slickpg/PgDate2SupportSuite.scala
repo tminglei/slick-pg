@@ -1,6 +1,7 @@
 package com.github.tminglei.slickpg
 
 import java.time._
+import java.util.TimeZone
 
 import org.scalatest.FunSuite
 import slick.jdbc.GetResult
@@ -57,6 +58,8 @@ class PgDate2SupportSuite extends FunSuite {
     LocalDateTime.MIN, OffsetDateTime.MIN, LocalDateTime.MIN.atZone(ZoneId.of("UTC")), Instant.MIN,
     Duration.parse("PT63H16M2S"), Period.parse("P3M5D"), ZoneId.of("Asia/Shanghai"))
 
+  TimeZone.setDefault(TimeZone.getTimeZone("Asia/Shanghai"))
+
   test("Java8 date Lifted support") {
     Await.result(db.run(
       DBIO.seq(
@@ -68,7 +71,17 @@ class PgDate2SupportSuite extends FunSuite {
         DBIO.seq(
           Datetimes.result.head.map(
             // testRec2 and testRec3 will fail to equal test, because of different time zone
-            r => assert(testRec1.date/*List(testRec1, testRec2, testRec3)*/ === r.date)
+            r => {
+              assert(r.date === testRec1.date)
+              assert(r.time === testRec1.time)
+              assert(r.dateTime === testRec1.dateTime)
+              assert(r.dateTimeOffset === testRec1.dateTimeOffset)
+              assert(r.dateTimeTz === testRec1.dateTimeTz)
+              assert(r.instant === testRec1.instant)
+              assert(r.duration === testRec1.duration)
+              assert(r.period === testRec1.period)
+              assert(r.zone === testRec1.zone)
+            }
           ),
           Datetimes.filter(_.id === 101L.bind).map { r => (r.date.isFinite, r.dateTime.isFinite, r.duration.isFinite) }.result.head.map(
             r => assert((true, true, true) === r)
