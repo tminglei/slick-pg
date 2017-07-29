@@ -240,6 +240,103 @@ class PgDate2SupportSuite extends FunSuite {
       ).transactionally
     ), concurrent.duration.Duration.Inf)
   }
+  //////////////////////////////////////////////////////////////////////
+
+  test("Java8 date Lifted support, asserting Option Mappings") {
+
+
+    case class DatetimeOptionBean(
+                             id: Long,
+                             date: Option[LocalDate],
+                             time: Option[LocalTime],
+                             dateTime: Option[LocalDateTime],
+                             dateTimeOffset: Option[OffsetDateTime],
+                             dateTimeTz: Option[ZonedDateTime],
+                             instant: Option[Instant],
+                             duration: Option[Duration],
+                             period: Option[Period],
+                             zone: Option[ZoneId]
+                           )
+
+    class DatetimeOptionTable(tag: Tag) extends Table[DatetimeOptionBean](tag,"Datetime2Test") {
+      def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
+      def date = column[Option[LocalDate]]("date")
+      def time = column[Option[LocalTime]]("time")
+      def dateTime = column[Option[LocalDateTime]]("dateTime")
+      def dateTimeOffset = column[Option[OffsetDateTime]]("dateTimeOffset")
+      def dateTimeTz = column[Option[ZonedDateTime]]("dateTimeTz")
+      def instant = column[Option[Instant]]("instant")
+      def duration = column[Option[Duration]]("duration")
+      def period = column[Option[Period]]("period")
+      def zone = column[Option[ZoneId]]("zone")
+
+      def * = (id, date, time, dateTime, dateTimeOffset,
+               dateTimeTz, instant, duration, period, zone) <>
+        (DatetimeOptionBean.tupled, DatetimeOptionBean.unapply)
+    }
+    val DatetimesOption = TableQuery[DatetimeOptionTable]
+
+    implicit def date2Option(bean:DatetimeBean):DatetimeOptionBean = {
+       DatetimeOptionBean(bean.id, Some(bean.date), Some(bean.time),
+                Some(bean.dateTime), Some(bean.dateTimeOffset),
+                Some(bean.dateTimeTz), Some(bean.instant),
+                Some(bean.duration), Some(bean.period), Some(bean.zone))
+    }
+
+    val testOptionRec2 = new DatetimeOptionBean(102L,date = Option.empty[LocalDate],
+      time = Option.empty[LocalTime],
+      dateTime = Option.empty[LocalDateTime],
+      dateTimeOffset = Option.empty[OffsetDateTime],
+      dateTimeTz = Option.empty[ZonedDateTime],
+      instant = Option.empty[Instant],
+      duration = Option.empty[Duration],
+      period = Option.empty[Period],
+      zone = Option.empty[ZoneId])
+
+
+
+    Await.result(db.run(
+      DBIO.seq(
+        sqlu"SET TIMEZONE TO '+8';",
+        (DatetimesOption.schema) create,
+        ///
+        DatetimesOption forceInsertAll List[DatetimeOptionBean](testRec1, testOptionRec2)
+      ).andThen(
+        DBIO.seq(
+          DatetimesOption.result.head.map(
+            // testRec2 and testRec3 will fail to equal test, because of different time zone
+            r => {
+              assert(r.date === Some(testRec1.date))
+              assert(r.time === Some(testRec1.time))
+              assert(r.dateTime === Some(testRec1.dateTime))
+              assert(r.dateTimeOffset === Some(testRec1.dateTimeOffset))
+              assert(r.dateTimeTz === Some(testRec1.dateTimeTz))
+              assert(r.instant === Some(testRec1.instant))
+              assert(r.duration === Some(testRec1.duration))
+              assert(r.period === Some(testRec1.period))
+              assert(r.zone === Some(testRec1.zone))
+            }
+          ),
+            DatetimesOption.drop(1).result.head.map(
+              // testRec2 and testRec3 will fail to equal test, because of different time zone
+              r => {
+                assert(r.date === None)
+                assert(r.time === None)
+                assert(r.dateTime === None)
+                assert(r.dateTimeOffset === None)
+                assert(r.dateTimeTz === None)
+                assert(r.instant === None)
+                assert(r.duration === None)
+                assert(r.period === None)
+                assert(r.zone === None)
+              }
+        )
+      ).andFinally(
+        (DatetimesOption.schema) drop
+      ).transactionally
+    )), concurrent.duration.Duration.Inf)
+  }
+
 
   //////////////////////////////////////////////////////////////////////
 
