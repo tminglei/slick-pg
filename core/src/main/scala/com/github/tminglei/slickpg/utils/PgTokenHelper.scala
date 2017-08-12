@@ -271,7 +271,13 @@ object PgTokenHelper {
             val toBeMerged = GroupToken(stack.pop.tokens.toList)
             stack.top.tokens += toBeMerged
           } // case: ',"}ttt...'
-          else stack.top.tokens += Chunk(v) += Escape(m)
+          else {
+            if (stack.top.border.isInstanceOf[Marker] && stack.top.border.marker == m) {
+              stack.top.tokens += Chunk(v)
+              val toBeMerged = GroupToken(stack.pop.tokens.toList.tail)
+              stack.top.tokens += toBeMerged
+            } else stack.top.tokens += Chunk(v) += Escape(m)
+          }
         }
         //-- process other tokens
         case t => stack.top.tokens += t

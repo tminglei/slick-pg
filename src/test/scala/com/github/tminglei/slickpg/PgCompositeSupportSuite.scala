@@ -22,21 +22,21 @@ object PgCompositeSupportSuite {
     txt: String,
     date: Timestamp,
     tsRange: Option[Range[Timestamp]]
-    ) extends Struct
+  ) extends Struct
 
   case class Composite2(
     id: Long,
     comp1: Composite1,
     confirm: Boolean,
     map: Map[String, String]
-    ) extends Struct
+  ) extends Struct
 
   case class Composite3(
     name: Option[String] = None,
     code: Option[Int] = None,
     num: Option[Int] = None,
     bool: Option[Boolean] = None
-    ) extends Struct
+  ) extends Struct
 
   //-------------------------------------------------------------
   trait MyPostgresProfile1 extends PostgresProfile with PgCompositeSupport with PgArraySupport with utils.PgCommonJdbcTypes {
@@ -104,17 +104,17 @@ class PgCompositeSupportSuite extends FunSuite {
   case class TestBean(
     id: Long,
     comps: List[Composite2]
-    )
+  )
 
   case class TestBean1(
     id: Long,
     comps: List[Composite3]
-    )
+  )
 
   case class TestBean2(
     id: Long,
     comps: Composite1
-    )
+  )
 
   class TestTable(tag: Tag) extends Table[TestBean](tag, "CompositeTest") {
     def id = column[Long]("id")
@@ -143,14 +143,15 @@ class PgCompositeSupportSuite extends FunSuite {
   //-------------------------------------------------------------------
 
   val rec1 = TestBean(333, List(Composite2(201, Composite1(101, "(test1'", ts("2001-1-3 13:21:00"),
-		  							Some(Range(ts("2010-01-01 14:30:00"), ts("2010-01-03 15:30:00")))), true, Map("t" -> "haha", "t2" -> "133"))))
+    Some(Range(ts("2010-01-01 14:30:00"), ts("2010-01-03 15:30:00")))), true, Map("t" -> "haha", "t2" -> "133"))))
   val rec2 = TestBean(335, List(Composite2(202, Composite1(102, "test2\\", ts("2012-5-8 11:31:06"),
-		  							Some(Range(ts("2011-01-01 14:30:00"), ts("2011-11-01 15:30:00")))), false, Map("t't" -> "1,363"))))
+    Some(Range(ts("2011-01-01 14:30:00"), ts("2011-11-01 15:30:00")))), false, Map("t't" -> "1,363"))))
   val rec3 = TestBean(337, List(Composite2(203, Composite1(103, "ABC ABC", ts("2015-3-8 17:17:03"), None), false, Map("t,t" -> "ewtew"))))
 
   val rec11 = TestBean1(111, List(Composite3(Some("(test1'"))))
   val rec12 = TestBean1(112, List(Composite3(code = Some(102))))
   val rec13 = TestBean1(113, List(Composite3()))
+  val rec14 = TestBean1(114, List(Composite3(Some("Word1 (Word2)"))))
 
   val rec21 = TestBean2(211, Composite1(201, "test3", ts("2015-1-3 13:21:00"), Some(Range(ts("2015-01-01 14:30:00"), ts("2016-01-03 15:30:00")))))
 
@@ -162,7 +163,7 @@ class PgCompositeSupportSuite extends FunSuite {
         sqlu"create type composite3 as (txt text, id int4, code int4, bool boolean)",
         (CompositeTests.schema ++ CompositeTests1.schema ++ CompositeTests2.schema) create,
         CompositeTests forceInsertAll List(rec1, rec2, rec3),
-        CompositeTests1 forceInsertAll List(rec11, rec12, rec13),
+        CompositeTests1 forceInsertAll List(rec11, rec12, rec13, rec14),
         CompositeTests2 forceInsertAll List(rec21)
       ).andThen(
         DBIO.seq(
@@ -186,6 +187,9 @@ class PgCompositeSupportSuite extends FunSuite {
           ),
           CompositeTests1.filter(_.id === 113L.bind).result.head.map(
             r => assert(rec13 === r)
+          ),
+          CompositeTests1.filter(_.id === 114L.bind).result.head.map(
+            r => assert(rec14 === r)
           ),
           CompositeTests2.filter(_.comps === rec21.comps.asColumnOf[Composite1]).result.head.map(
             r => assert(rec21 === r)
