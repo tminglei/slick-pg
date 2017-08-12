@@ -201,6 +201,9 @@ object PgTokenHelper {
           else stack.top.tokens += Escape(m) += Chunk(v)
         }
         //-- process marker tokens
+        // mark + mark (empty string)
+        case Marker(m) if (m != "" && level(m) == stack.top.level + 2) =>
+          stack.top.tokens += Chunk("")
         // mark + escape
         case Marker(m) if (m != "" && level(m) != math.round(level(m))
                        && (tokens(i-1) == Comma || tokens(i-1).isInstanceOf[Open])) => {
@@ -266,17 +269,21 @@ object PgTokenHelper {
           }
         }
         case t @ Close(v, m) => {
+          // case: '(...),' or '...}}'
           if ((tokens(i+1) == Comma || tokens(i+1).isInstanceOf[Close]) && isCompatible(stack.top.border, t)) {
             stack.top.tokens += t
             val toBeMerged = GroupToken(stack.pop.tokens.toList)
             stack.top.tokens += toBeMerged
-          } // case: ',"}ttt...'
+          }
           else {
+            // case: '"Word1 (Word2)", ...'
             if (stack.top.border.isInstanceOf[Marker] && stack.top.border.marker == m) {
               stack.top.tokens += Chunk(v)
               val toBeMerged = GroupToken(stack.pop.tokens.toList.tail)
               stack.top.tokens += toBeMerged
-            } else stack.top.tokens += Chunk(v) += Escape(m)
+            }
+            // case: ',"}ttt...'
+            else stack.top.tokens += Chunk(v) += Escape(m)
           }
         }
         //-- process other tokens

@@ -152,8 +152,10 @@ class PgCompositeSupportSuite extends FunSuite {
   val rec12 = TestBean1(112, List(Composite3(code = Some(102))))
   val rec13 = TestBean1(113, List(Composite3()))
   val rec14 = TestBean1(114, List(Composite3(Some("Word1 (Word2)"))))
+  val rec15 = TestBean1(115, List(Composite3(Some(""))))
 
   val rec21 = TestBean2(211, Composite1(201, "test3", ts("2015-1-3 13:21:00"), Some(Range(ts("2015-01-01 14:30:00"), ts("2016-01-03 15:30:00")))))
+  val rec22 = TestBean2(212, Composite1(202, "", ts("2015-1-3 13:21:00"), Some(Range(ts("2015-01-01 14:30:00"), ts("2016-01-03 15:30:00")))))
 
   test("Composite type Lifted support") {
     Await.result(db.run(
@@ -163,8 +165,8 @@ class PgCompositeSupportSuite extends FunSuite {
         sqlu"create type composite3 as (txt text, id int4, code int4, bool boolean)",
         (CompositeTests.schema ++ CompositeTests1.schema ++ CompositeTests2.schema) create,
         CompositeTests forceInsertAll List(rec1, rec2, rec3),
-        CompositeTests1 forceInsertAll List(rec11, rec12, rec13, rec14),
-        CompositeTests2 forceInsertAll List(rec21)
+        CompositeTests1 forceInsertAll List(rec11, rec12, rec13, rec14, rec15),
+        CompositeTests2 forceInsertAll List(rec21, rec22)
       ).andThen(
         DBIO.seq(
           CompositeTests.filter(_.id === 333L.bind).result.head.map(
@@ -191,6 +193,9 @@ class PgCompositeSupportSuite extends FunSuite {
           CompositeTests1.filter(_.id === 114L.bind).result.head.map(
             r => assert(rec14 === r)
           ),
+          CompositeTests1.filter(_.id === 115L.bind).result.head.map(
+            r => assert(rec15 === r)
+          ),
           CompositeTests2.filter(_.comps === rec21.comps.asColumnOf[Composite1]).result.head.map(
             r => assert(rec21 === r)
           )
@@ -199,6 +204,9 @@ class PgCompositeSupportSuite extends FunSuite {
         DBIO.seq(
           CompositeTests2.filter(_.id === 211L.bind).result.head.map(
             r => assert(rec21 === r)
+          ),
+          CompositeTests2.filter(_.id === 212L.bind).result.head.map(
+            r => assert(rec22 === r)
           )
         )
       ).andFinally(
