@@ -4,8 +4,8 @@ lazy val commonSettings = Seq(
   name := "slick-pg",
   version := "0.15.3",
 
-  scalaVersion := "2.12.2",
-  crossScalaVersions := Seq("2.12.2", "2.11.11"),
+  scalaVersion := "2.12.3",
+  crossScalaVersions := Seq("2.12.3", "2.11.11"),
   scalacOptions ++= Seq("-deprecation", "-feature",
     "-language:implicitConversions",
     "-language:reflectiveCalls",
