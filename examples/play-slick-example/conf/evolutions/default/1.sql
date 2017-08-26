@@ -1,5 +1,4 @@
 # --- !Ups
-
 CREATE TABLE "COMPANY" (
     "ID" bigserial NOT NULL,
     "NAME" text,

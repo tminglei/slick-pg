@@ -7,14 +7,12 @@ import javax.inject.{Inject,Singleton}
 import util.MyPostgresDriver
 
 import scala.concurrent.{ExecutionContext, Future}
-import models.Company
-import models.Computer
-import models.Page
+import models.{ Company, Computer, Page }
 import play.api.db.slick.{HasDatabaseConfigProvider, DatabaseConfigProvider}
 
 @Singleton
-class ComputersDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext) extends CompaniesComponent with HasDatabaseConfigProvider[MyPostgresDriver] {
-
+class ComputersDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext) extends CompaniesComponent
+    with HasDatabaseConfigProvider[MyPostgresDriver] {
   import driver.api._
 
   class Computers(tag: Tag) extends Table[Computer](tag, "COMPUTER") {

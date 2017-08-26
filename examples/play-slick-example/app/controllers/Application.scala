@@ -62,11 +62,12 @@ class Application @Inject() (companiesDao:CompaniesDAO, computersDao:ComputersDA
       options <- companiesDao.options()
     } yield (computer, options)
 
-    computerAndOptions.map { case (computer, options) =>
-      computer match {
-        case Some(c) => Ok(html.editForm(id, computerForm.fill(c), options))
-        case None => NotFound
-      }
+    computerAndOptions.map {
+      case (computer, options) =>
+        computer match {
+          case Some(c) => Ok(html.editForm(id, computerForm.fill(c), options))
+          case None => NotFound
+        }
     }
   }
 
@@ -81,7 +82,8 @@ class Application @Inject() (companiesDao:CompaniesDAO, computersDao:ComputersDA
         for {
           _ <- computersDao.update(id, computer)
         } yield Home.flashing("success" -> "Computer %s has been updated".format(computer.name))
-      })
+      }
+    )
   }
 
   /** Display the 'new computer form'. */
@@ -97,7 +99,8 @@ class Application @Inject() (companiesDao:CompaniesDAO, computersDao:ComputersDA
         for {
           _ <- computersDao.insert(computer)
         } yield Home.flashing("success" -> "Computer %s has been created".format(computer.name))
-      })
+      }
+    )
   }
 
   /** Handle computer deletion. */
