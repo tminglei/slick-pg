@@ -33,7 +33,8 @@ class PgDateSupportJodaSuite extends FunSuite {
     time: LocalTime,
     dateTime: LocalDateTime,
     dateTimeTz: DateTime,
-    interval: Period
+    interval: Period,
+    instant: Instant
     )
 
   class DatetimeTable(tag: Tag) extends Table[DatetimeBean](tag, "DatetimeJodaTest") {
@@ -43,8 +44,9 @@ class PgDateSupportJodaSuite extends FunSuite {
     def datetime = column[LocalDateTime]("datetime")
     def datetimetz = column[DateTime]("datetimetz")
     def interval = column[Period]("interval")
+    def instant = column[Instant]("instant")
 
-    def * = (id, date, time, datetime, datetimetz, interval) <> (DatetimeBean.tupled, DatetimeBean.unapply)
+    def * = (id, date, time, datetime, datetimetz, interval, instant) <> (DatetimeBean.tupled, DatetimeBean.unapply)
   }
   val Datetimes = TableQuery[DatetimeTable]
 
@@ -52,13 +54,13 @@ class PgDateSupportJodaSuite extends FunSuite {
 
   val testRec1 = new DatetimeBean(101L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01.101357"),
     LocalDateTime.parse("2001-01-03T13:21:00.223571"), DateTime.parse("2001-01-03 13:21:00.102203+08", jodaTzDateTimeFormatter),
-    Period.parse("P1DT1H1M0.335701S"))
+    Period.parse("P1DT1H1M0.335701S"), Instant.parse("2001-01-03 13:21:00.102203+08", jodaTzDateTimeFormatter))
   val testRec2 = new DatetimeBean(102L, LocalDate.parse("2011-03-02"), LocalTime.parse("03:14:07"),
     LocalDateTime.parse("2012-05-08T11:31:06"), DateTime.parse("2012-05-08 11:31:06.113-05", jodaTzDateTimeFormatter),
-    Period.parse("P1587D"))
+    Period.parse("P1587D"), Instant.parse("2012-05-08 11:31:06.113-05", jodaTzDateTimeFormatter))
   val testRec3 = new DatetimeBean(103L, LocalDate.parse("2000-05-19"), LocalTime.parse("11:13:34"),
     LocalDateTime.parse("2019-11-03T13:19:03"), DateTime.parse("2019-11-03 13:19:03.000+03", jodaTzDateTimeFormatter),
-    Period.parse("PT63H16M2S"))
+    Period.parse("PT63H16M2S"), Instant.parse("2019-11-03 13:19:03.000+03", jodaTzDateTimeFormatter))
 
   test("Joda time Lifted support") {
     val now = LocalDateTime.now
@@ -233,14 +235,14 @@ class PgDateSupportJodaSuite extends FunSuite {
     import MyPostgresDriver.plainAPI._
 
     implicit val getDateBean = GetResult(r => DatetimeBean(
-      r.nextLong(), r.nextLocalDate(), r.nextLocalTime(), r.nextLocalDateTime(), r.nextZonedDateTime(), r.nextPeriod()))
+      r.nextLong(), r.nextLocalDate(), r.nextLocalTime(), r.nextLocalDateTime(), r.nextZonedDateTime(), r.nextPeriod(), r.nextInstant()))
 
     val b1 = new DatetimeBean(107L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01.101357"),
       LocalDateTime.parse("2001-01-03T13:21:00.223571"), DateTime.parse("2001-01-03 13:21:00.102203+08", jodaTzDateTimeFormatter),
-      Period.parse("P1DT1H1M0.335701S"))
+      Period.parse("P1DT1H1M0.335701S"), Instant.parse("2001-01-03 13:21:00.102203+08", jodaTzDateTimeFormatter))
     val b2 = new DatetimeBean(108L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01"),
       LocalDateTime.parse("2001-01-03T13:21:00"), DateTime.parse("2001-01-03 13:21:00+08", jodaTzDateTimeFormatter_NoFraction),
-      Period.parse("P1DT1H1M0.335701S"))
+      Period.parse("P1DT1H1M0.335701S"), Instant.parse("2001-01-03 13:21:00+08", jodaTzDateTimeFormatter_NoFraction))
 
     Await.result(db.run(
       DBIO.seq(
@@ -251,14 +253,15 @@ class PgDateSupportJodaSuite extends FunSuite {
               time time not null,
               ts timestamp not null,
               tstz timestamptz not null,
-              period interval not null)
+              period interval not null,
+              instant timestamptz not null)
           """,
         ///
-        sqlu""" insert into DatetimeJodaTest values(${b1.id}, ${b1.date}, ${b1.time}, ${b1.dateTime}, ${b1.dateTimeTz}, ${b1.interval}) """,
+        sqlu""" insert into DatetimeJodaTest values(${b1.id}, ${b1.date}, ${b1.time}, ${b1.dateTime}, ${b1.dateTimeTz}, ${b1.interval}, ${b1.instant}) """,
         sql""" select * from DatetimeJodaTest where id = ${b1.id} """.as[DatetimeBean].head.map(
           r => assert(b1 === r)
         ),
-        sqlu""" insert into DatetimeJodaTest values(${b2.id}, ${b2.date}, ${b2.time}, ${b2.dateTime}, ${b2.dateTimeTz}, ${b2.interval}) """,
+        sqlu""" insert into DatetimeJodaTest values(${b2.id}, ${b2.date}, ${b2.time}, ${b2.dateTime}, ${b2.dateTimeTz}, ${b2.interval}, ${b2.instant}) """,
         sql""" select * from DatetimeJodaTest where id = ${b2.id} """.as[DatetimeBean].head.map(
           r => assert(b2 === r)
         ),
