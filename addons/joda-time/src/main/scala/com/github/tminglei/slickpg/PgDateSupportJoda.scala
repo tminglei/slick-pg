@@ -63,7 +63,7 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
       fnFromString = (s) => DateTime.parse(s, tzDateTimeFormatter(s)),
       fnToString = (v) => v.toString(jodaTzDateTimeFormatter),
       hasLiteralForm = false)
-    implicit val date2InstantTypeMapper: JdbcType[Instant] = new GenericJdbcType[Instant]("timestamptz",
+    implicit val jodaInstantTypeMapper: JdbcType[Instant] = new GenericJdbcType[Instant]("timestamptz",
       fnFromString = (s) => Instant.parse(s, tzDateTimeFormatter(s)),
       fnToString = (v) => v.toString(jodaTzDateTimeFormatter),
       hasLiteralForm = false)
@@ -94,9 +94,9 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
     implicit def jodaTzTimestampOptColumnExtensionMethods(c: Rep[Option[DateTime]]) =
       new TimestampColumnExtensionMethods[LocalDate, LocalTime, DateTime, LocalDateTime, Period, Option[DateTime]](c)
 
-    implicit def date2Timestamp1ColumnExtensionMethods(c: Rep[Instant]) =
+    implicit def jodaTimestamp1ColumnExtensionMethods(c: Rep[Instant]) =
       new TimestampColumnExtensionMethods[LocalDate, LocalTime, Instant, LocalDateTime, Period, Instant](c)
-    implicit def date2Timestamp1OptColumnExtensionMethods(c: Rep[Option[Instant]]) =
+    implicit def jodaTimestamp1OptColumnExtensionMethods(c: Rep[Option[Instant]]) =
       new TimestampColumnExtensionMethods[LocalDate, LocalTime, Instant, LocalDateTime, Period, Option[Instant]](c)
   }
 
@@ -104,7 +104,7 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
     import java.sql.Types
     import utils.PlainSQLUtils._
 
-    implicit class PgDate2TimePositionedResult(r: PositionedResult) {
+    implicit class PgJodaTimePositionedResult(r: PositionedResult) {
       def nextLocalDate() = nextLocalDateOption().orNull
       def nextLocalDateOption() = r.nextStringOption().map(LocalDate.parse(_, jodaDateFormatter))
       def nextLocalTime() = nextLocalTimeOption().orNull
