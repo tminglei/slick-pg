@@ -540,7 +540,7 @@ class PgPostGISSupportSuite extends FunSuite {
     val polygon = wktReader.read("POLYGON((175 150, 20 40, 50 60, 125 100, 175 150))")
     val centroid = wktReader.read("POINT(113.07692307692308 101.28205128205128)")
     val closetPoint = wktReader.read("POINT(84.89619377162629 86.0553633217993)")
-    val projectedPoint = wktReader.read("POINT(25.008969098766023 45.006362421852465)")
+    val projectedPoint = wktReader.read("POINT(25.008969098766034 45.006362421852465)")
     val longestLine = wktReader.read("LINESTRING(175 150, 75 100)")
     val shortestLine = wktReader.read("LINESTRING(84.89619377162629 86.0553633217993, 75 100)")
 
@@ -655,7 +655,7 @@ class PgPostGISSupportSuite extends FunSuite {
           ),
           // transform
           GeomTests.filter(_.id === pointbean.id.bind).map(_.geom.transform(26986.bind).asEWKT).result.head.map(
-            r => assert("SRID=26986;POINT(-3428094.64636768 2715245.01412978)" === r)
+            r => assert("SRID=26986;POINT(-3428094.64636769 2715245.01412979)" === r)
           ),
           // simplify
           GeomTests.filter(_.id === linebean.id.bind).map(_.geom.simplify(0.5f.bind).asText).result.head.map(
