@@ -27,7 +27,7 @@ Slick-pg
 - Pg_trgm
 
 
-** _Tested on `PostgreSQL` `v9.6` with `Slick` `v3.2.1`._
+** _Tested on `PostgreSQL` `v10` with `Slick` `v3.2.1`._
 ** _`Java 8` is required._
 
 
@@ -152,7 +152,7 @@ Here's the related technical details:
 | List[T]                             | ARRAY                 |        no 3rd party dependencies       |
 | `java.sql` Date <br> Time<br> Timestamp<br> slickpg Interval<br> Calendar | date<br> time<br> timestamp<br> interval<br> timestamptz |    no 3rd party dependencies     |
 | `java.time` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime <br> OffsetDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz <br> timestamptz |    (built-in) no 3rd party dependencies    |
-| `joda` LocalDate<br> LocalTime<br> LocalDateTime<br> Period<br> DateTime  | date<br> time<br> timestamp<br> interval<br> timestamptz |    `joda-time` v2.9.7 / `joda-convert` v1.8.1     |
+| `joda` LocalDate<br> LocalTime<br> LocalDateTime<br> Period<br> DateTime  | date<br> time<br> timestamp<br> interval<br> timestamptz |    `joda-time` v2.9.9 / `joda-convert` v1.9.2     |
 | `scala` Enumeration                 | enum                  |        no 3rd party dependencies       |
 | `slickpg` Range[T]                  | range                 |        no 3rd party dependencies       |
 | `slickpg` LTree                     | ltree                 |        no 3rd party dependencies       |
@@ -160,14 +160,14 @@ Here's the related technical details:
 | `slickpg` InetString                | inet                  |        no 3rd party dependencies       |
 | `slickpg` MacAddrString             | macaddr               |        no 3rd party dependencies       |
 | `slickpg` JsonString                | json                  |        no 3rd party dependencies       |
-| `json4s` JValue                     | json                  |        `json4s` v3.5.0                 |
-| `play-json` JsValue                 | json                  |        `play-json` v2.6.0              |
-| `spray-json` JsValue                | json                  |        `spray-json` v1.3.3             |
-| `argonaut json` Json                | json                  |        `argonaut` v6.2                 |
+| `json4s` JValue                     | json                  |        `json4s` v3.5.3                 |
+| `play-json` JsValue                 | json                  |        `play-json` v2.6.8              |
+| `spray-json` JsValue                | json                  |        `spray-json` v1.3.4             |
+| `argonaut json` Json                | json                  |        `argonaut` v6.2.1               |
 | `circe json` Json                   | json                  |        `circe` v0.9.0                  |
-| `jawn json` Json                    | json                  |        `jawn` v0.10.4                  |
+| `jawn json` Json                    | json                  |        `jawn` v0.11.0                  |
 | (TsQuery+TsVector)                  | `text` search         |        no 3rd party dependencies       |
-| `jts` Geometry                      | `postgis` geometry    |        `jts` v1.13                     |
+| `jts` Geometry                      | `postgis` geometry    |        `jts` v1.14.0                   |
 
 _**Warning:** When your work with time data that contain Timezone, be wary of your postgres configuration. By default `ZonedDateTime` in Java 8 contains more information than `timestamptz` in Postgres. As a consequence, when you store a `ZonedDateTime` you are not guaranteed to get the same timezone as the original class instance. Prefer `OffsetDateTime` instead. cf [Issue #248](https://github.com/tminglei/slick-pg/issues/248)_
 

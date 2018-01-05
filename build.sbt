@@ -2,10 +2,10 @@ lazy val commonSettings = Seq(
   organizationName := "slick-pg",
   organization := "com.github.tminglei",
   name := "slick-pg",
-  version := "0.15.4",
+  version := "0.15.5",
 
   scalaVersion := "2.12.4",
-  crossScalaVersions := Seq("2.12.4", "2.11.11"),
+  crossScalaVersions := Seq("2.12.4", "2.11.12"),
   scalacOptions ++= Seq("-deprecation", "-feature",
     "-language:implicitConversions",
     "-language:reflectiveCalls",
@@ -91,8 +91,8 @@ lazy val slickPgJoda = Project(id = "slick-pg_joda-time", base = file("./addons/
     name := "slick-pg_joda-time",
     description := "Slick extensions for PostgreSQL - joda time module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "joda-time" % "joda-time" % "2.9.7",
-      "org.joda" % "joda-convert" % "1.8.1"
+      "joda-time" % "joda-time" % "2.9.9",
+      "org.joda" % "joda-convert" % "1.9.2"
     )
   )
 ) dependsOn (slickPgCore)
@@ -102,9 +102,9 @@ lazy val slickPgJson4s = Project(id = "slick-pg_json4s", base = file("./addons/j
     name := "slick-pg_json4s",
     description := "Slick extensions for PostgreSQL - json4s module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "org.json4s" %% "json4s-ast" % "3.5.0",
-      "org.json4s" %% "json4s-core" % "3.5.0",
-      "org.json4s" %% "json4s-native" % "3.5.0" % "test"
+      "org.json4s" %% "json4s-ast" % "3.5.3",
+      "org.json4s" %% "json4s-core" % "3.5.3",
+      "org.json4s" %% "json4s-native" % "3.5.3" % "test"
     )
   )
 ) dependsOn (slickPgCore)
@@ -114,7 +114,7 @@ lazy val slickPgJts = Project(id = "slick-pg_jts", base = file("./addons/jts"),
     name := "slick-pg_jts",
     description := "Slick extensions for PostgreSQL - jts module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "com.vividsolutions" % "jts" % "1.13"
+      "com.vividsolutions" % "jts-core" % "1.14.0"
     )
   )
 ) dependsOn (slickPgCore)
@@ -124,7 +124,7 @@ lazy val slickPgPlayJson = Project(id = "slick-pg_play-json", base = file("./add
     name := "slick-pg_play-json",
     description := "Slick extensions for PostgreSQL - play-json module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "com.typesafe.play" %% "play-json" % "2.6.0"
+      "com.typesafe.play" %% "play-json" % "2.6.8"
     )
   )
 ) dependsOn (slickPgCore)
@@ -134,7 +134,7 @@ lazy val slickPgSprayJson = Project(id = "slick-pg_spray-json", base = file("./a
     name := "slick-pg_spray-json",
     description := "Slick extensions for PostgreSQL - spray-json module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "io.spray" %%  "spray-json" % "1.3.3"
+      "io.spray" %%  "spray-json" % "1.3.4"
     )
   )
 ) dependsOn (slickPgCore)
@@ -156,7 +156,7 @@ lazy val slickPgArgonaut = Project(id = "slick-pg_argonaut", base = file("./addo
     name := "slick-pg_argonaut",
     description := "Slick extensions for PostgreSQL - argonaut module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "io.argonaut" %% "argonaut" % "6.2"
+      "io.argonaut" %% "argonaut" % "6.2.1"
     )
   )
 ) dependsOn (slickPgCore)
@@ -166,7 +166,7 @@ lazy val slickPgJawn = Project(id = "slick-pg_jawn", base = file("./addons/jawn"
     name := "slick-pg_jawn",
     description := "Slick extensions for PostgreSQL - jawn module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "org.spire-math" %% "jawn-ast" % "0.10.4"
+      "org.spire-math" %% "jawn-ast" % "0.11.0"
     )
   )
 ) dependsOn (slickPgCore)
