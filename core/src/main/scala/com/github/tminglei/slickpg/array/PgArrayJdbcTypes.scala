@@ -3,8 +3,9 @@ package array
 
 import scala.reflect.ClassTag
 import slick.ast.FieldSymbol
-import java.sql.{PreparedStatement, ResultSet}
+import java.sql.{Connection, PreparedStatement, ResultSet}
 
+import org.postgresql.jdbc.PgConnection
 import slick.jdbc.{JdbcTypesComponent, PostgresProfile}
 
 trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
@@ -27,7 +28,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
       if (r.wasNull) zero else value.getArray.asInstanceOf[Array[Any]].map(tmap)
     }
 
-    override def setValue(vList: Seq[T], p: PreparedStatement, idx: Int): Unit = p.setArray(idx, mkArray(vList))
+    override def setValue(vList: Seq[T], p: PreparedStatement, idx: Int): Unit = p.setArray(idx, mkArray(vList, Some(p.getConnection)))
 
     override def updateValue(vList: Seq[T], r: ResultSet, idx: Int): Unit = r.updateArray(idx, mkArray(vList))
 
@@ -36,7 +37,19 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
     override def valueToSQLLiteral(vList: Seq[T]) = if(vList eq null) "NULL" else s"'${buildArrayStr(vList)}'"
 
     //--
-    private def mkArray(v: Seq[T]): java.sql.Array = utils.SimpleArrayUtils.mkArray(buildArrayStr)(sqlBaseType, v.map(tcomap))
+    private def mkArray(v: Seq[T], conn: Option[Connection] = None): java.sql.Array = (v, conn) match {
+      case (v, Some(c)) if isPrimitive(v) => c.asInstanceOf[PgConnection].createArrayOf(sqlBaseType, v.toArray)
+      case (v, _) => utils.SimpleArrayUtils.mkArray(buildArrayStr)(sqlBaseType, v.map(tcomap))
+    }
+
+    private def isPrimitive(v: Seq[T]): Boolean = v.size > 0 && (
+      v.head.isInstanceOf[Short] ||
+      v.head.isInstanceOf[Int] ||
+      v.head.isInstanceOf[Long] ||
+      v.head.isInstanceOf[Float] ||
+      v.head.isInstanceOf[Double] ||
+      v.head.isInstanceOf[Boolean] ||
+      v.head.isInstanceOf[String])
 
     protected def buildArrayStr(vList: Seq[Any]): String = utils.SimpleArrayUtils.mkString[Any](_.toString)(vList)
 
