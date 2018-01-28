@@ -37,12 +37,13 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
     override def valueToSQLLiteral(vList: Seq[T]) = if(vList eq null) "NULL" else s"'${buildArrayStr(vList)}'"
 
     //--
-    private def mkArray(v: Seq[T], conn: Option[Connection] = None): java.sql.Array = (v, conn) match {
-      case (v, Some(c)) if isPrimitive(v) => c.asInstanceOf[PgConnection].createArrayOf(sqlBaseType, v.toArray)
+    protected def mkArray(v: Seq[T], conn: Option[Connection] = None): java.sql.Array = (v, conn) match {
+      case (v, Some(c)) if isPrimitive(v) && c.isInstanceOf[PgConnection] =>
+        c.asInstanceOf[PgConnection].createArrayOf(sqlBaseType, v.toArray)
       case (v, _) => utils.SimpleArrayUtils.mkArray(buildArrayStr)(sqlBaseType, v.map(tcomap))
     }
 
-    private def isPrimitive(v: Seq[T]): Boolean = v.size > 0 && (
+    protected def isPrimitive(v: Seq[T]): Boolean = v.size > 0 && (
       v.head.isInstanceOf[Short] ||
       v.head.isInstanceOf[Int] ||
       v.head.isInstanceOf[Long] ||
