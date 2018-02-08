@@ -18,16 +18,18 @@ object SimpleArrayUtils {
       })
     }
 
-  def mkString[T](ToString: T => String)(value: Seq[T]): String =
+  def mkString[T](toString: T => String)(value: Seq[Any]): String = {
+    def toGroupToken(vList: Seq[Any]): Token = GroupToken(Open("{") +: vList.map {
+      case null => Null
+      case v if v.isInstanceOf[Seq[_]] => toGroupToken(v.asInstanceOf[Seq[_]])
+      case v    => Chunk(toString(v.asInstanceOf[T]))
+    } :+ Close("}"))
+
     createString (value match {
       case null  => Null
-      case vList => {
-        val members = Open("{") +: vList.map {
-            case v => if (v == null) Null else Chunk(ToString(v))
-          } :+ Close("}")
-        GroupToken(members)
-      }
+      case vList => toGroupToken(vList)
     })
+  }
 
   def mkArray[T : ClassTag](mkString: (Seq[T] => String))(sqlBaseType: String, vList: Seq[T]): java.sql.Array =
     new SimpleArray(sqlBaseType, vList, mkString)
@@ -37,7 +39,7 @@ object SimpleArrayUtils {
   /** !!! NOTE: only used to transfer array data into driver/preparedStatement. !!! */
   private class SimpleArray[T : ClassTag](sqlBaseTypeName: String, vList: Seq[T], mkString: (Seq[T] => String)) extends java.sql.Array {
 
-    override def getBaseTypeName = sqlBaseTypeName
+    override def getBaseTypeName = sqlBaseTypeName.replace("[]", "").trim
 
     override def getBaseType(): Int = ???
 

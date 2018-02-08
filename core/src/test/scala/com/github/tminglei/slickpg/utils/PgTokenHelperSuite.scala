@@ -238,7 +238,7 @@ class PgTokenHelperSuite extends FunSuite {
 
     val expected = """{"(201,\"(101,\"\"(test1'\"\",\"\"2001-01-03 13:21:00\"\",\"\"[\\\\\"\"2010-01-01 14:30:00\\\\\"\",\\\\\"\"2010-01-03 15:30:00\\\\\"\")\"\")\",t)"}"""
 
-    assert(expected === pgStr)
+    assert(pgStr === expected)
 
     ///
     val input1 =
@@ -280,6 +280,25 @@ class PgTokenHelperSuite extends FunSuite {
     val pgStr1 = createString(input1)
 
     val expected1 = """(201,"(101,""(test1'"",""2001-01-03 13:21:00"",""[\\""2010-01-01 14:30:00\\"",\\""2010-01-03 15:30:00\\"")"")",t)"""
-    assert(expected1 === pgStr1)
+    assert(pgStr1 === expected1)
+
+    ///
+    val input2 =
+      GroupToken(Open("{") +: List(
+        GroupToken(Open("{") +: List(
+          Chunk("11"),
+          Chunk("12"),
+          Chunk("13")
+        ) :+ Close("}")),
+        GroupToken(Open("{") +: List(
+          Chunk("21"),
+          Chunk("22"),
+          Chunk("23")
+        ) :+ Close("}"))
+      ) :+ Close("}"))
+    val pgStr2 = createString(input2)
+
+    val expected2 = """{{11,12,13},{21,22,23}}"""
+    assert(pgStr2 === expected2)
   }
 }

@@ -82,23 +82,25 @@ object PgTokenHelper {
 
   def createString(root: Token): String = {
     val MARK_REQUIRED_CHAR_LIST = List('\\', '"', ',', '(', ')', '{', '}')
-    val rootIsArray = root match {
+
+    ///
+    def isArray(token: Token): Boolean = token match {
       case GroupToken(mList) =>
         mList match {
-          case Open("{", _) :: tail => true
+          case Open("{", _) :: _ => true
           case _ => false
         }
       case _ => false
     }
 
-    ///
-    def isMarkRequired(token: Token): Boolean = token match {
-      case g: GroupToken => true
+    def isMarkRequired(token: Token, parentIsArray: Boolean): Boolean = token match {
+      case _: GroupToken => !parentIsArray || !isArray(token)
       case Chunk(v) => v.isEmpty || v.trim.length < v.length || "NULL".equalsIgnoreCase(v) || v.find(MARK_REQUIRED_CHAR_LIST.contains).isDefined
       case _ => false
     }
 
-    def appendMark(buf: mutable.StringBuilder, level: Int) = 
+    val rootIsArray = isArray(root)
+    def appendMark(buf: mutable.StringBuilder, level: Int) =
       if (level >= 0) {
         val markLen = math.pow(2, level).toInt
         level match {
@@ -120,8 +122,8 @@ object PgTokenHelper {
         }
       }
 
-    def mergeString(buf: mutable.StringBuilder, token: Token, level: Int): Unit = {
-      val markRequired = isMarkRequired(token)
+    def mergeString(buf: mutable.StringBuilder, token: Token, level: Int, parentIsArray: Boolean): Unit = {
+      val markRequired = isMarkRequired(token, parentIsArray)
       if (markRequired) appendMark(buf, level)
       token match {
         case GroupToken(mList) => {
@@ -129,7 +131,7 @@ object PgTokenHelper {
           var isFirst = true
           for(i <- 1 to (mList.length -2)) {
             if (isFirst) isFirst = false else buf append ","
-            mergeString(buf, mList(i), level +1)
+            mergeString(buf, mList(i), level +1, isArray(token))
           }
           buf append mList.last.value
         }
@@ -141,7 +143,7 @@ object PgTokenHelper {
 
     ///
     val buf = StringBuilder.newBuilder
-    mergeString(buf, root, -1)
+    mergeString(buf, root, -1, isArray(root))
     buf.toString
   }
 

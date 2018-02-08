@@ -31,6 +31,10 @@ class PgArraySupportSuite extends FunSuite {
       ///
       implicit val advancedStringListTypeMapper = new AdvancedArrayJdbcType[String]("text",
         fromString(identity)(_).orNull, mkString(identity))
+      ///
+      implicit val longlongWitness = ElemWitness.AnyWitness.asInstanceOf[ElemWitness[List[Long]]]
+      implicit val simpleLongLongListTypeMapper = new SimpleArrayJdbcType[List[Long]]("int8[]")
+        .to(_.asInstanceOf[Seq[Array[Any]]].toList.map(_.toList.asInstanceOf[List[Long]]))
     }
   }
   object MyPostgresProfile1 extends MyPostgresProfile1
@@ -44,6 +48,7 @@ class PgArraySupportSuite extends FunSuite {
     id: Long,
     intArr: List[Int],
     longArr: Buffer[Long],
+    longlongArr: List[List[Long]],
     shortArr: List[Short],
     strList: List[String],
     strArr: Option[Vector[String]],
@@ -56,6 +61,7 @@ class PgArraySupportSuite extends FunSuite {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def intArr = column[List[Int]]("intArray", O.Default(Nil))
     def longArr = column[Buffer[Long]]("longArray")
+    def longlongArr = column[List[List[Long]]]("longlongArray")
     def shortArr = column[List[Short]]("shortArray")
     def strList = column[List[String]]("stringList")
     def strArr = column[Option[Vector[String]]]("stringArray")
@@ -63,7 +69,7 @@ class PgArraySupportSuite extends FunSuite {
     def institutions = column[List[Institution]]("institutions")
     def mktFinancialProducts = column[Option[List[MarketFinancialProduct]]]("mktFinancialProducts")
 
-    def * = (id, intArr, longArr, shortArr, strList, strArr, uuidArr, institutions, mktFinancialProducts) <> (ArrayBean.tupled, ArrayBean.unapply)
+    def * = (id, intArr, longArr, longlongArr, shortArr, strList, strArr, uuidArr, institutions, mktFinancialProducts) <> (ArrayBean.tupled, ArrayBean.unapply)
   }
   val ArrayTests = TableQuery[ArrayTestTable]
 
@@ -73,11 +79,11 @@ class PgArraySupportSuite extends FunSuite {
   val uuid2 = UUID.randomUUID()
   val uuid3 = UUID.randomUUID()
 
-  val testRec1 = ArrayBean(33L, List(101, 102, 103), Buffer(1L, 3L, 5L, 7L), List(1,7), List("robert}; drop table students--", "NULL"),
+  val testRec1 = ArrayBean(33L, List(101, 102, 103), Buffer(1L, 3L, 5L, 7L), List(List(11L, 12L, 13L)), List(1,7), List("robert}; drop table students--", "NULL"),
     Some(Vector("str1", "str3", "", " ")), List(uuid1, uuid2), List(Institution(113)), None)
-  val testRec2 = ArrayBean(37L, List(101, 103), Buffer(11L, 31L, 5L), Nil, List(""),
+  val testRec2 = ArrayBean(37L, List(101, 103), Buffer(11L, 31L, 5L), List(List(21L, 22L, 23L)), Nil, List(""),
     Some(Vector("str11", "str3")), List(uuid1, uuid2, uuid3), List(Institution(579)), Some(List(MarketFinancialProduct("product1"))))
-  val testRec3 = ArrayBean(41L, List(103, 101), Buffer(11L, 5L, 31L), List(35,77), Nil,
+  val testRec3 = ArrayBean(41L, List(103, 101), Buffer(11L, 5L, 31L), List(List(31L, 32L, 33L)), List(35,77), Nil,
     Some(Vector("(s)", "str5", "str3")), List(uuid1, uuid3), Nil, Some(List(MarketFinancialProduct("product3"), MarketFinancialProduct("product x"))))
 
   test("Array Lifted support") {

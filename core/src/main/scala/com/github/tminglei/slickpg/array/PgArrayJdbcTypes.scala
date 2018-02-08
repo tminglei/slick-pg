@@ -10,7 +10,7 @@ import slick.jdbc.{JdbcTypesComponent, PostgresProfile}
 
 trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
 
-  class SimpleArrayJdbcType[T] private[slickpg] (sqlBaseType: String,
+  class SimpleArrayJdbcType[T] private[slickpg](sqlBaseType: String,
                                                 tmap: Any => T,
                                                 tcomap: T => Any,
                                                 zero: Seq[T] = null.asInstanceOf[Seq[T]])(
@@ -21,7 +21,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
 
     override def sqlType: Int = java.sql.Types.ARRAY
 
-    override def sqlTypeName(size: Option[FieldSymbol]): String = s"$sqlBaseType ARRAY"
+    override def sqlTypeName(size: Option[FieldSymbol]): String = s"$sqlBaseType []"
 
     override def getValue(r: ResultSet, idx: Int): Seq[T] = {
       val value = r.getArray(idx)
@@ -72,7 +72,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
 
     override def sqlType: Int = java.sql.Types.ARRAY
 
-    override def sqlTypeName(size: Option[FieldSymbol]): String = s"$sqlBaseType ARRAY"
+    override def sqlTypeName(size: Option[FieldSymbol]): String = s"$sqlBaseType []"
 
     override def getValue(r: ResultSet, idx: Int): Seq[T] = {
       val value = r.getString(idx)
