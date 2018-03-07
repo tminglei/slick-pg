@@ -1,7 +1,10 @@
 package com.github.tminglei.slickpg
 
 import java.sql.{Date, Timestamp}
+import java.time.{LocalDate, LocalDateTime, OffsetDateTime}
+
 import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
+
 import scala.reflect.classTag
 
 // edge type definitions
@@ -39,7 +42,7 @@ object Range {
 /**
  * simple range support; if all you want is just getting from / saving to db, and using pg range operations/methods, it should be enough
  */
-trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
+trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcTypes with PgDate2Support { driver: PostgresProfile =>
   import driver.api._
 
   private def toTimestamp(str: String) = Timestamp.valueOf(str)
@@ -53,18 +56,24 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
       driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("numrange", classTag[Range[Float]])
       driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("tsrange", classTag[Range[Timestamp]])
       driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("daterange", classTag[Range[Date]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("tsrange", classTag[Range[LocalDateTime]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("tstzrange", classTag[Range[OffsetDateTime]])
+      driver.asInstanceOf[ExPostgresProfile].bindPgTypeToScala("daterange", classTag[Range[LocalDate]])
     }
   }
 
   /// alias
   trait RangeImplicits extends SimpleRangeImplicits
 
-  trait SimpleRangeImplicits extends SimpleRangeCodeGenSupport {
+  trait SimpleRangeImplicits extends SimpleRangeCodeGenSupport with Date2DateTimeFormatters {
     implicit val simpleIntRangeTypeMapper: JdbcType[Range[Int]] = new GenericJdbcType[Range[Int]]("int4range", mkRangeFn(_.toInt))
     implicit val simpleLongRangeTypeMapper: JdbcType[Range[Long]] = new GenericJdbcType[Range[Long]]("int8range", mkRangeFn(_.toLong))
     implicit val simpleFloatRangeTypeMapper: JdbcType[Range[Float]] = new GenericJdbcType[Range[Float]]("numrange", mkRangeFn(_.toFloat))
     implicit val simpleTimestampRangeTypeMapper: JdbcType[Range[Timestamp]] = new GenericJdbcType[Range[Timestamp]]("tsrange", mkRangeFn(toTimestamp))
     implicit val simpleDateRangeTypeMapper: JdbcType[Range[Date]] = new GenericJdbcType[Range[Date]]("daterange", mkRangeFn(toSQLDate))
+    implicit val simpleLocalDateTimeRangeTypeMapper: JdbcType[Range[LocalDateTime]] = new GenericJdbcType[Range[LocalDateTime]]("tsrange", mkRangeFn(fromDateTimeOrInfinity))
+    implicit val simpleOffsetDateTimeRangeTypeMapper: JdbcType[Range[OffsetDateTime]] = new GenericJdbcType[Range[OffsetDateTime]]("tstzrange", mkRangeFn(fromOffsetDateTimeOrInfinity))
+    implicit val simpleLocalDateRangeTypeMapper: JdbcType[Range[LocalDate]] = new GenericJdbcType[Range[LocalDate]]("daterange", mkRangeFn(fromDateOrInfinity))
 
     implicit def simpleRangeColumnExtensionMethods[B0](c: Rep[Range[B0]])(
       implicit tm: JdbcType[B0], tm1: JdbcType[Range[B0]]) = {
@@ -76,7 +85,7 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
       }
   }
 
-  trait SimpleRangePlainImplicits extends SimpleRangeCodeGenSupport {
+  trait SimpleRangePlainImplicits extends SimpleRangeCodeGenSupport with Date2DateTimeFormatters {
     import utils.PlainSQLUtils._
 
     // to support 'nextArray[T]/nextArrayOption[T]' in PgArraySupport
@@ -86,6 +95,9 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
       addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(_.toFloat))(r.nextString()))
       addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(toTimestamp))(r.nextString()))
       addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(toSQLDate))(r.nextString()))
+      addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(fromDateTimeOrInfinity))(r.nextString()))
+      addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(fromOffsetDateTimeOrInfinity))(r.nextString()))
+      addNextArrayConverter((r) => utils.SimpleArrayUtils.fromString(mkRangeFn(fromDateOrInfinity))(r.nextString()))
     }
 
     implicit class PgRangePositionedResult(r: PositionedResult) {
@@ -99,6 +111,12 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
       def nextTimestampRangeOption() = r.nextStringOption().map(mkRangeFn(toTimestamp))
       def nextDateRange() = nextDateRangeOption().orNull
       def nextDateRangeOption() = r.nextStringOption().map(mkRangeFn(toSQLDate))
+      def nextLocalDateTimeRange() = nextLocalDateTimeRangeOption().orNull
+      def nextLocalDateTimeRangeOption() = r.nextStringOption().map(mkRangeFn(fromDateTimeOrInfinity))
+      def nextOffsetDateTimeRange() = nextTimestampRangeOption().orNull
+      def nextOffsetDateTimeRangeOption() = r.nextStringOption().map(mkRangeFn(fromOffsetDateTimeOrInfinity))
+      def nextLocalDateRange() = nextLocalDateRangeOption().orNull
+      def nextLocalDateRangeOption() = r.nextStringOption().map(mkRangeFn(fromDateOrInfinity))
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -117,7 +135,7 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
     implicit val setFloatRange = mkSetParameter[Range[Float]]("numrange")
     implicit val setFloatRangeOption = mkOptionSetParameter[Range[Float]]("numrange")
 
-    implicit val getTimestampRange = mkGetResult(_.nextTimestamp())
+    implicit val getTimestampRange = mkGetResult(_.nextTimestampRange())
     implicit val getTimestampRangeOption = mkGetResult(_.nextTimestampRangeOption())
     implicit val setTimestampRange = mkSetParameter[Range[Timestamp]]("tsrange")
     implicit val setTimestampRangeOption = mkOptionSetParameter[Range[Timestamp]]("tsrange")
@@ -126,6 +144,21 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
     implicit val getDateRangeOption = mkGetResult(_.nextDateRangeOption())
     implicit val setDateRange = mkSetParameter[Range[Date]]("daterange")
     implicit val setDateRangeOption = mkOptionSetParameter[Range[Date]]("daterange")
+
+    implicit val getLocalDateTimeRange = mkGetResult(_.nextLocalDateTimeRange())
+    implicit val getLocalDateTimeRangeOption = mkGetResult(_.nextLocalDateTimeRangeOption())
+    implicit val setLocalDateTimeRange = mkSetParameter[Range[LocalDateTime]]("tstzrange")
+    implicit val setLocalDateTimeRangeOption = mkOptionSetParameter[Range[LocalDateTime]]("tstzrange")
+
+    implicit val getOffsetDateTimeRange = mkGetResult(_.nextTimestamp())
+    implicit val getOffsetDateTimeRangeOption = mkGetResult(_.nextTimestampRangeOption())
+    implicit val setOffsetDateTimeRange = mkSetParameter[Range[OffsetDateTime]]("tsrange")
+    implicit val setOffsetDateTimeRangeOption = mkOptionSetParameter[Range[OffsetDateTime]]("tsrange")
+
+    implicit val getLocalDateRange = mkGetResult(_.nextLocalDateRange())
+    implicit val getLocalDateRangeOption = mkGetResult(_.nextLocalDateRangeOption())
+    implicit val setLocalDateRange = mkSetParameter[Range[LocalDate]]("daterange")
+    implicit val setLocalDateRangeOption = mkOptionSetParameter[Range[LocalDate]]("daterange")
   }
 }
 
