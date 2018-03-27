@@ -75,37 +75,37 @@ class PgDateSupportSuite extends FunSuite {
           Datetimes.to[List].result.map(
             r => List(testRec1, testRec2, testRec3).zip(r).map {
               case (b1, b2) => {
-                assert(b1.date === b2.date)
-                assert(b1.time === b2.time)
-                assert(b1.timestamp === b2.timestamp)
+                assert(b1.date.toLocalDate === b2.date.toLocalDate)
+                assert(b1.time.toLocalTime === b2.time.toLocalTime)
+                assert(b1.timestamp.toLocalDateTime === b2.timestamp.toLocalDateTime)
               }
             }
           ),
           // +
           Datetimes.filter(_.id === 101L.bind).map(r => r.date + r.time).result.head.map(
-            r => assert(ts("2010-11-3 12:33:01.000") === r)
+            r => assert(ts("2010-11-3 12:33:01.000").toLocalDateTime === r.toLocalDateTime)
           ),
           Datetimes.filter(_.id === 101L.bind).map(r => r.time + r.date).result.head.map(
-            r => assert(ts("2010-11-3 12:33:01.000") === r)
+            r => assert(ts("2010-11-3 12:33:01.000").toLocalDateTime === r.toLocalDateTime)
           ),
           Datetimes.filter(_.id === 101L.bind).map(r => r.date +++ r.interval).result.head.map(
-            r => assert(ts("2010-11-4 01:00:00.000") === r)
+            r => assert(ts("2010-11-4 01:00:00.000").toLocalDateTime === r.toLocalDateTime)
           ),
           Datetimes.filter(_.id === 101L.bind).map(r => r.time +++ r.interval).result.head.map(
-            r => assert(time("13:33:01") === r)
+            r => assert(time("13:33:01").toLocalTime === r.toLocalTime)
           ),
           Datetimes.filter(_.id === 101L.bind).map(r => r.timestamp +++ r.interval).result.head.map(
-            r => assert(ts("2001-1-4 14:21:00.103") === r)
+            r => assert(ts("2001-1-4 14:21:00.103").toLocalDateTime === r.toLocalDateTime)
           ),
           Datetimes.filter(_.id === 101L.bind).map(r => r.date ++ 7.bind).result.head.map(
-            r => assert(date("2010-11-10") === r)
+            r => assert(date("2010-11-10").toLocalDate === r.toLocalDate)
           ),
           // -
           Datetimes.filter(_.id === 101L.bind).map(r => r.date -- 1.bind).result.head.map(
-            r => assert(date("2010-11-2") === r)
+            r => assert(date("2010-11-2").toLocalDate === r.toLocalDate)
           ),
           Datetimes.filter(_.id === 101L.bind).map(r => r.timestamp -- r.time).result.head.map(
-            r => assert(ts("2001-1-3 00:47:59.103") === r)
+            r => assert(ts("2001-1-3 00:47:59.103").toLocalDateTime === r.toLocalDateTime)
           ),
           Datetimes.filter(_.id === 101L.bind).map(r => r.timestamp - r.date).result.head.map(
             r => assert(Interval("-3590 days -10 hours -38 mins -59.897 secs") === r)
@@ -120,13 +120,13 @@ class PgDateSupportSuite extends FunSuite {
             r => assert(Interval("9 hours 56 mins 1.00 secs") === r)
           ),
           Datetimes.filter(_.id === 101L.bind).map(r => r.timestamp --- r.interval).result.head.map(
-            r => assert(ts("2001-1-2 12:21:00.103") === r)
+            r => assert(ts("2001-1-2 12:21:00.103").toLocalDateTime === r.toLocalDateTime)
           ),
           Datetimes.filter(_.id === 101L.bind).map(r => r.time --- r.interval).result.head.map(
-            r => assert(time("11:33:01") === r)
+            r => assert(time("11:33:01").toLocalTime === r.toLocalTime)
           ),
           Datetimes.filter(_.id === 101L.bind).map(r => r.date --- r.interval).result.head.map(
-            r => assert(ts("2010-11-1 23:00:00.0") === r)
+            r => assert(ts("2010-11-1 23:00:00.0").toLocalDateTime === r.toLocalDateTime)
           ),
           // age
 //          Datetimes.filter(_.id === 101L.bind).map(r => r.timestamp.age === r.timestamp.age(Functions.currentDate.asColumnOf[Timestamp])).result.head.map(
@@ -141,7 +141,7 @@ class PgDateSupportSuite extends FunSuite {
           ),
           // trunc
           Datetimes.filter(_.id === 101L.bind).map(r => r.timestamp.trunc("day")).result.head.map(
-            r => assert(ts("2001-1-3 00:00:00.0") === r)
+            r => assert(ts("2001-1-3 00:00:00.0").toLocalDateTime === r.toLocalDateTime)
           ),
           // isFinite
           Datetimes.filter(_.id === 101L.bind).map(r => r.timestamp.isFinite).result.head.map(
