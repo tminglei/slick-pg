@@ -105,6 +105,44 @@ class PgUpsertSuite extends FunSuite {
     ), Duration.Inf)
   }
 
+  test("native bulk upsert support") {
+    import MyPostgresProfile.api._
+
+    val upsertSql = MyPostgresProfile.compileInsert(UpsertTests.toNode).multiUpsert.sql
+    println(s"upsert sql: $upsertSql")
+
+    assert(upsertSql.contains("on conflict"))
+
+    Await.result(db.run(
+      DBIO.seq(
+        (UpsertTests.schema) create,
+        ///
+        UpsertTests forceInsertAll Seq(
+          Bean(101, "aa", 3),
+          Bean(102, "bb", 5),
+          Bean(103, "cc", 11)
+        ),
+        UpsertTests insertOrUpdateAll Seq(
+          Bean(101, "a1", 3),
+          Bean(107, "dd", 7)
+        )
+      ).andThen(
+        DBIO.seq(
+          UpsertTests.sortBy(_.id).to[List].result.map(
+            r => assert(Seq(
+              Bean(101, "a1", 3),
+              Bean(102, "bb", 5),
+              Bean(103, "cc", 11),
+              Bean(107, "dd", 7)
+            ) === r)
+          )
+        )
+      ).andFinally(
+        (UpsertTests.schema) drop
+      ).transactionally
+    ), Duration.Inf)
+  }
+
   ///---
 
   case class Bean1(id: Option[Long], code: String, col2: Int)
@@ -165,6 +203,45 @@ class PgUpsertSuite extends FunSuite {
     ), Duration.Inf)
   }
 
+  test("native bulk upsert support - autoInc + independent pk") {
+    import MyPostgresProfile.api._
+
+    val upsertSql = MyPostgresProfile.compileInsert(UpsertTests1.toNode).multiUpsert.sql
+    println(s"upsert sql: $upsertSql")
+
+    assert(upsertSql.contains("on conflict"))
+
+    Await.result(db.run(
+      DBIO.seq(
+        (UpsertTests1.schema) create,
+        ///
+        UpsertTests1 forceInsertAll Seq(
+          Bean1(Some(101L), "aa", 3),
+          Bean1(Some(102L), "bb", 5),
+          Bean1(Some(103L), "cc", 11)
+        ),
+        UpsertTests1 insertOrUpdateAll Seq(
+          Bean1(None, "aa", 1),
+          Bean1(Some(107L), "dd", 7)
+        )
+      ).andThen(
+        DBIO.seq(
+          UpsertTests1.sortBy(_.id).to[List].result.map(
+            r => assert(Seq(
+              Bean1(Some(2), "dd", 7),
+              Bean1(Some(101L), "aa", 1),
+              Bean1(Some(102L), "bb", 5),
+              Bean1(Some(103L), "cc", 11)
+            ) === r)
+          )
+        )
+      ).andFinally(
+        (UpsertTests1.schema) drop
+      ).transactionally
+    ), Duration.Inf)
+  }
+
+
   test("native upsert support - autoInc + pk defined by using `primaryKey`") {
     import MyPostgresProfile.api._
 
@@ -200,6 +277,46 @@ class PgUpsertSuite extends FunSuite {
       ).transactionally
     ), Duration.Inf)
   }
+
+
+  test("native bulk upsert support - autoInc + pk defined by using `primaryKey`") {
+    import MyPostgresProfile.api._
+
+    val upsertSql = MyPostgresProfile.compileInsert(UpsertTests11.toNode).multiUpsert.sql
+    println(s"upsert sql: $upsertSql")
+
+    assert(upsertSql.contains("on conflict"))
+
+    Await.result(db.run(
+      DBIO.seq(
+        (UpsertTests11.schema) create,
+        ///
+        UpsertTests11 forceInsertAll Seq(
+          Bean1(Some(101L), "aa", 3),
+          Bean1(Some(102L), "bb", 5),
+          Bean1(Some(103L), "cc", 11)
+        ),
+        UpsertTests11 insertOrUpdateAll Seq(
+          Bean1(None, "aa", 1),
+          Bean1(Some(107L), "dd", 7)
+        )
+      ).andThen(
+        DBIO.seq(
+          UpsertTests11.sortBy(_.id).to[List].result.map(
+            r => assert(Seq(
+              Bean1(Some(2), "dd", 7),
+              Bean1(Some(101L), "aa", 1),
+              Bean1(Some(102L), "bb", 5),
+              Bean1(Some(103L), "cc", 11)
+            ) === r)
+          )
+        )
+      ).andFinally(
+        (UpsertTests11.schema) drop
+      ).transactionally
+    ), Duration.Inf)
+  }
+
 
   ///
   case class Bean12(id: Option[Long], code: String)
@@ -247,6 +364,45 @@ class PgUpsertSuite extends FunSuite {
       ).transactionally
     ), Duration.Inf)
   }
+
+  test("native bulk upsert support - autoInc + pk defined by using `primaryKey` w/o other columns") {
+    import MyPostgresProfile.api._
+
+    val upsertSql = MyPostgresProfile.compileInsert(UpsertTests12.toNode).multiUpsert.sql
+    println(s"upsert sql: $upsertSql")
+
+    assert(upsertSql.contains("on conflict"))
+
+    Await.result(db.run(
+      DBIO.seq(
+        (UpsertTests12.schema) create,
+        ///
+        UpsertTests12 forceInsertAll Seq(
+          Bean12(Some(101L), "aa"),
+          Bean12(Some(102L), "bb"),
+          Bean12(Some(103L), "cc")
+        ),
+        UpsertTests12 insertOrUpdateAll Seq(
+          Bean12(None, "aa"),
+          Bean12(Some(107L), "dd")
+        )
+      ).andThen(
+        DBIO.seq(
+          UpsertTests12.sortBy(_.id).to[List].result.map(
+            r => assert(Seq(
+              Bean12(Some(2), "dd"),
+              Bean12(Some(101L), "aa"),
+              Bean12(Some(102L), "bb"),
+              Bean12(Some(103L), "cc")
+            ) === r)
+          )
+        )
+      ).andFinally(
+        (UpsertTests12.schema) drop
+      ).transactionally
+    ), Duration.Inf)
+  }
+
 
   ///---
   case class Bean2(id: Long, start: Int, end: Int)
@@ -297,4 +453,43 @@ class PgUpsertSuite extends FunSuite {
       ).transactionally
     ), Duration.Inf)
   }
+
+  test("native bulk upsert support with keyword columns") {
+    import MyPostgresProfile.api._
+
+    val upsertSql = MyPostgresProfile.compileInsert(UpsertTests2.toNode).multiUpsert.sql
+    println(s"upsert sql: $upsertSql")
+
+    assert(upsertSql.contains("on conflict"))
+
+    Await.result(db.run(
+      DBIO.seq(
+        (UpsertTests2.schema) create,
+        ///
+        UpsertTests2 forceInsertAll Seq(
+          Bean2(101, 1, 2),
+          Bean2(102, 3, 4),
+          Bean2(103, 5, 6)
+        ),
+        UpsertTests2 insertOrUpdateAll Seq(
+          Bean2(101, 1, 7),
+          Bean2(107, 8, 9)
+        )
+      ).andThen(
+        DBIO.seq(
+          UpsertTests2.sortBy(_.id).to[List].result.map(
+            r => assert(Seq(
+              Bean2(101, 1, 7),
+              Bean2(102, 3, 4),
+              Bean2(103, 5, 6),
+              Bean2(107, 8, 9)
+            ) === r)
+          )
+        )
+      ).andFinally(
+        (UpsertTests2.schema) drop
+      ).transactionally
+    ), Duration.Inf)
+  }
+
 }

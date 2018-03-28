@@ -2,11 +2,13 @@ package com.github.tminglei.slickpg
 
 import java.util.UUID
 
+import slick.SlickException
 import slick.ast._
-import slick.compiler.CompilerState
+import slick.compiler.{CompilerState, InsertCompiler, Phase, QueryCompiler}
+import slick.dbio.{Effect, NoStream}
 import slick.jdbc._
 import slick.jdbc.meta.MTable
-import slick.lifted.PrimaryKey
+import slick.lifted.{PrimaryKey, Query}
 import slick.util.Logging
 
 import scala.concurrent.ExecutionContext
@@ -91,20 +93,20 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
     *                          for upsert support
    ***********************************************************************/
 
-  class NativeUpsertBuilder(ins: Insert) extends super.InsertBuilder(ins) {
-    /* NOTE: pk defined by using method `primaryKey` and pk defined with `PrimaryKey` can only have one,
-             here we let table ddl to help us ensure this. */
-    private lazy val funcDefinedPKs = table.profileTable.asInstanceOf[Table[_]].primaryKeys
-    private lazy val (nonPkAutoIncSyms, insertingSyms) = syms.toSeq.partition { s =>
+  abstract class UpsertBuilderBase(ins: Insert) extends super.InsertBuilder(ins) {
+    protected lazy val funcDefinedPKs = table.profileTable.asInstanceOf[Table[_]].primaryKeys
+    protected lazy val (nonPkAutoIncSyms, insertingSyms) = syms.toSeq.partition { s =>
       s.options.contains(ColumnOption.AutoInc) && !(s.options contains ColumnOption.PrimaryKey) }
-    private lazy val (pkSyms, softSyms) = insertingSyms.partition { sym =>
+    protected lazy val (pkSyms, softSyms) = insertingSyms.partition { sym =>
       sym.options.contains(ColumnOption.PrimaryKey) || funcDefinedPKs.exists(pk => pk.columns.collect {
         case Select(_, f: FieldSymbol) => f
       }.exists(_.name == sym.name)) }
-    private lazy val insertNames = insertingSyms.map { fs => quoteIdentifier(fs.name) }
-    private lazy val pkNames = pkSyms.map { fs => quoteIdentifier(fs.name) }
-    private lazy val softNames = softSyms.map { fs => quoteIdentifier(fs.name) }
+    protected lazy val insertNames = insertingSyms.map { fs => quoteIdentifier(fs.name) }
+    protected lazy val pkNames = pkSyms.map { fs => quoteIdentifier(fs.name) }
+    protected lazy val softNames = softSyms.map { fs => quoteIdentifier(fs.name) }
+  }
 
+  class NativeUpsertBuilder(ins: Insert) extends UpsertBuilderBase(ins) {
     override def buildInsert: InsertBuilderResult = {
       val insert = s"insert into $tableName (${insertNames.mkString(",")}) values (${insertNames.map(_ => "?").mkString(",")})"
       val conflictWithPadding = "conflict (" + pkNames.mkString(", ") + ")" + (/* padding */ if (nonPkAutoIncSyms.isEmpty) "" else "where ? is null or ?=?")
@@ -114,6 +116,89 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
 
     override def transformMapping(n: Node) = reorderColumns(n, insertingSyms ++ nonPkAutoIncSyms ++ nonPkAutoIncSyms ++ nonPkAutoIncSyms)
   }
+
+  class MultiUpsertBuilder(ins: Insert) extends UpsertBuilderBase(ins) {
+    override def buildInsert: InsertBuilderResult = {
+      val start = allNames.iterator.mkString(s"insert into $tableName (", ",", ") ")
+      val insert = s"$start values $allVars"
+      val conflictWithPadding = "conflict (" + pkNames.mkString(", ") + ")" + (
+        if (nonPkAutoIncSyms.isEmpty) ""
+        else "where ? is null or ?=?"
+      )
+      val updateOrNothing =
+        if (softNames.isEmpty) "nothing"
+        else "update set " + softNames.map(n => s"$n=EXCLUDED.$n").mkString(",")
+      new InsertBuilderResult(table, s"$insert on $conflictWithPadding do $updateOrNothing", syms)
+    }
+
+    override def transformMapping(n: Node) =
+      reorderColumns(n, insertingSyms ++ nonPkAutoIncSyms ++ nonPkAutoIncSyms ++ nonPkAutoIncSyms)
+  }
+
+  class MultiUpsertCompiledInsert(node: Node) extends JdbcCompiledInsert(node) {
+    lazy val multiUpsert = compile(multiUpsertCompiler)
+  }
+
+  implicit def multiUpsertExtensionMethods[U, C[_]](q: Query[_, U, C]): InsertActionComposerImpl[U] =
+    new InsertActionComposerImpl[U](compileInsert(q.toNode))
+
+  lazy val multiUpsertCompiler = QueryCompiler(
+    Phase.assignUniqueSymbols,
+    Phase.inferTypes,
+    new InsertCompiler(InsertCompiler.AllColumns),
+    new JdbcInsertCodeGen(insert => new MultiUpsertBuilder(insert)))
+
+  override def compileInsert(tree: Node) = new MultiUpsertCompiledInsert(tree)
+  protected class InsertActionComposerImpl[U](override val compiled: CompiledInsert)
+    extends super.CountingInsertActionComposerImpl[U](compiled) {
+
+    /** Upsert a batch of records - insert rows whose primary key is not present in
+      * the table, and update rows whose primary key is present.. */
+    def insertOrUpdateAll(values: Iterable[U]): ProfileAction[MultiInsertResult, NoStream, Effect.Write] =
+      if (useNativeUpsert)
+        new MultiInsertOrUpdateAction(values)
+      else throw new IllegalStateException("Cannot insertOrUpdateAll in without native upsert capability. Instead use DBIO.sequence(values.map(query.insertOrUpdate))")
+        // Below fails to compile because it returns a DBIOAction and not a ProfileAction
+        // api.DBIO.sequence(values.map(insertOrUpdate)).map { insertResults: Iterable[SingleInsertOrUpdateResult] =>
+        //   Option(insertResults.sum)
+        // }
+
+    class MultiInsertOrUpdateAction(values: Iterable[U]) extends SimpleJdbcProfileAction[MultiInsertResult](
+      "MultiInsertOrUpdateAction",
+      Vector(compiled.asInstanceOf[MultiUpsertCompiledInsert].multiUpsert.sql)) {
+
+      private def tableHasPrimaryKey: Boolean =
+        List(compiled.upsert, compiled.checkInsert, compiled.updateInsert)
+          .filter(_ != null)
+          .exists(artifacts =>
+            artifacts.ibr.table.profileTable.asInstanceOf[Table[_]].primaryKeys.nonEmpty
+              || artifacts.ibr.fields.exists(_.options.contains(ColumnOption.PrimaryKey))
+          )
+
+      if (!tableHasPrimaryKey)
+        throw new SlickException("InsertOrUpdateAll is not supported on a table without PK.")
+
+      override def run(ctx: Backend#Context, sql: Vector[String]) =
+        nativeUpsert(values, sql.head)(ctx.session)
+
+      protected def nativeUpsert(values: Iterable[U], sql: String)(
+        implicit session: Backend#Session): MultiInsertResult =
+        preparedInsert(sql, session) { st =>
+          st.clearParameters()
+          for (value <- values) {
+            compiled
+              .asInstanceOf[MultiUpsertCompiledInsert]
+              .multiUpsert
+              .converter
+              .set(value, st)
+            st.addBatch()
+          }
+          val counts = st.executeBatch()
+          retManyBatch(st, values, counts)
+        }
+    }
+  }
+
 
   /***********************************************************************
     *                          for codegen support
