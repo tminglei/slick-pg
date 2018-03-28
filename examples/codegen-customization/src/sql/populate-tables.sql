@@ -1,8 +1,8 @@
-insert into SUPPLIER values(49,  'Superior Coffee', null, '1 Party Place', 'Mendocino', 'CA', '95460');
-insert into SUPPLIER values(101, 'Acme, Inc.', null, '99 Market Street', 'Groundsville', 'CA', '95199');
-insert into SUPPLIER values(150, 'The High Ground', null, '100 Coffee Lane', 'Meadows', 'CA', '93966');
-insert into SUPPLIER values(456, 'Restaurant Supplies, Inc.', null, '200 Magnolia Street', 'Meadows', 'CA', '93966');
-insert into SUPPLIER values(927, 'Professional Kitchen', null, '300 Daisy Avenue', 'Groundsville', 'CA', '95199');
+insert into SUPPLIER values(49,  'Superior Coffee', '1 Party Place', 'Mendocino', 'CA', '95460');
+insert into SUPPLIER values(101, 'Acme, Inc.', '99 Market Street', 'Groundsville', 'CA', '95199');
+insert into SUPPLIER values(150, 'The High Ground', '100 Coffee Lane', 'Meadows', 'CA', '93966');
+insert into SUPPLIER values(456, 'Restaurant Supplies, Inc.', '200 Magnolia Street', 'Meadows', 'CA', '93966');
+insert into SUPPLIER values(927, 'Professional Kitchen', '300 Daisy Avenue', 'Groundsville', 'CA', '95199');
 
 insert into COFFEE values('Colombian',          101, 7.99, 0, 0);
 insert into COFFEE values('French_Roast',       49,  8.99, 0, 0);

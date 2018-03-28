@@ -9,30 +9,32 @@ lazy val root = (project in file("."))
 /** codegen project containing the customized code generator */
 lazy val codegen = project
   .settings(sharedSettings)
-  .settings(libraryDependencies += "com.typesafe.slick" %% "slick-codegen" % "3.1.1")
+  .settings(libraryDependencies += "com.typesafe.slick" %% "slick-codegen" % "3.2.3")
 
 
 // shared sbt config between main project and codegen project
 lazy val sharedSettings = Seq(
-  scalaVersion := "2.11.8",
+  scalaVersion := "2.12.5",
   scalacOptions := Seq("-feature", "-unchecked", "-deprecation"),
   libraryDependencies ++= List(
-    "com.typesafe.slick" %% "slick" % "3.1.1",
-    "org.postgresql" % "postgresql" % "9.4-1201-jdbc41",
-    "com.github.tminglei" %% "slick-pg" % "0.14.1",
-    "com.github.tminglei" %% "slick-pg_play-json" % "0.14.1",
-    "com.github.tminglei" %% "slick-pg_joda-time" % "0.14.1",
-    "com.github.tminglei" %% "slick-pg_jts" % "0.14.1",
-    "joda-time" % "joda-time" % "2.4",
-    "org.joda" % "joda-convert" % "1.7",
+    "com.typesafe.slick" %% "slick" % "3.2.3",
+    "org.postgresql" % "postgresql" % "42.2.2",
+    "com.github.tminglei" %% "slick-pg" % "0.16.0",
+    "com.github.tminglei" %% "slick-pg_play-json" % "0.16.0",
+    "com.github.tminglei" %% "slick-pg_joda-time" % "0.16.0",
+    "com.github.tminglei" %% "slick-pg_jts" % "0.16.0",
+    "joda-time" % "joda-time" % "2.9.9",
+    "org.joda" % "joda-convert" % "2.0.1",
     "com.vividsolutions" % "jts" % "1.13",
-    "org.slf4j" % "slf4j-nop" % "1.7.12"
+    "org.slf4j" % "log4j-over-slf4j" % "1.7.25",
+    "ch.qos.logback" % "logback-core" % "1.2.3",
+    "ch.qos.logback" % "logback-classic" % "1.2.3"
   )
 )
 
 
 // code generation task that calls the customized code generator
-lazy val slick = taskKey[Seq[File]]("gen-tables")
+lazy val slick = taskKey[Seq[File]]("slick")
 lazy val slickCodeGenTask = Def.task {
   val dir = sourceManaged.value
   val cp = (dependencyClasspath in Compile).value
