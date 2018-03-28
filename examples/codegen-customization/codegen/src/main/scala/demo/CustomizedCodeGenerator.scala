@@ -19,7 +19,7 @@ object CustomizedCodeGenerator {
     // prepare database
     for(script <- initScripts) {
       // FIXME don't forget to adjust it according to your environment
-      val cmd = s"psql -U test -h 192.168.99.100 -p 5432 -d test -f $projectDir/src/sql/$script"
+      val cmd = s"psql -U test -h $pgHost -p 5432 -d test -f $projectDir/src/sql/$script"
       val exec = Runtime.getRuntime.exec(cmd)
       if (exec.waitFor() == 0) {
         println(s"$script finished.")
@@ -56,11 +56,11 @@ object CustomizedCodeGenerator {
               tpe =>
                 tpe.asInstanceOf[ColumnOption.SqlType].typeName match {
                   case "hstore" => Option("Map[String, String]")
-                  case "_text"|"_varchar" => Option("List[String]")
+                  case "_text"|"text[]"|"_varchar"|"varchar[]" => Option("List[String]")
                   case "geometry" => Option("com.vividsolutions.jts.geom.Geometry")
-                  case "_int8" => Option("List[Long]")
-                  case "_int4" => Option("List[Int]")
-                  case "_int2" => Option("List[Short]")
+                  case "_int8"|"int8[]" => Option("List[Long]")
+                  case "_int4"|"int4[]" => Option("List[Int]")
+                  case "_int2"|"int2[]" => Option("List[Short]")
                   case _ =>       None
                 }
             }.getOrElse{
