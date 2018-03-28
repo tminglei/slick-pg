@@ -1,0 +1,23 @@
+version: '3.3'
+
+services:
+  postgres:
+    image: postgres:9.6
+    restart: always
+    environment:
+      POSTGRES_DB: 'test'
+      POSTGRES_USER: 'test'
+      POSTGRES_PASSWORD: 'test'
+    ports:
+      - "5432:5432"
+  pgweb:
+    image: sosedoff/pgweb
+    restart: always
+    environment:
+      DATABASE_URL: postgres://test:test@postgres:5432/test?sslmode=disable
+    depends_on:
+      - postgres
+    links:
+      - postgres:postgres
+    ports:
+      - "8081:8081"

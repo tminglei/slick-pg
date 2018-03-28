@@ -1,9 +1,9 @@
 package demo
 
 import Config._
-import scala.concurrent.duration._
-import slick.profile.SqlProfile.ColumnOption
+import slick.sql.SqlProfile.ColumnOption
 
+import scala.concurrent.duration._
 import scala.concurrent.Await
 
 /**
@@ -13,22 +13,24 @@ import scala.concurrent.Await
 object CustomizedCodeGenerator {
   import scala.concurrent.ExecutionContext.Implicits.global
 
+  val projectDir = System.getProperty("user.dir")
+
   def main(args: Array[String]): Unit = {
     // prepare database
     for(script <- initScripts) {
       // FIXME don't forget to adjust it according to your environment
-      val cmd = s"psql -U test -h 172.17.0.1 -p 5432 -d test -f /media/workspace/repos/slick-pg/examples/codegen-customization/src/sql/$script"
-      val exec = Runtime.getRuntime().exec(cmd)
+      val cmd = s"psql -U test -h 192.168.99.100 -p 5432 -d test -f $projectDir/src/sql/$script"
+      val exec = Runtime.getRuntime.exec(cmd)
       if (exec.waitFor() == 0) {
         println(s"$script finished.")
       }
     }
 
     // write the generated results to file
-    Await.ready(
+    Await.result(
       codegen.map(_.writeToFile(
         "demo.MyPostgresDriver", // use our customized postgres driver
-        args(0),
+        s"$projectDir/target/scala-2.12/src_managed/slick",
         "demo",
         "Tables",
         "Tables.scala"
@@ -38,28 +40,38 @@ object CustomizedCodeGenerator {
   }
 
   val db = slickProfile.api.Database.forURL(url,driver=jdbcDriver)
+
   // filter out desired tables
   val included = Seq("COFFEE","SUPPLIER","COFFEE_INVENTORY")
   lazy val codegen = db.run {
     slickProfile.defaultTables.map(_.filter(t => included contains t.name.name.toUpperCase))
-      .flatMap( slickProfile.createModelBuilder(_, false).buildModel )
+      .flatMap( slickProfile.createModelBuilder(_, ignoreInvalidDefaults = false).buildModel )
   }.map { model =>
     new slick.codegen.SourceCodeGenerator(model) {
       override def Table = new Table(_) { table =>
         override def Column = new Column(_) { column =>
           // customize db type -> scala type mapping, pls adjust it according to your environment
-          override def rawType: String = model.tpe match {
-            case "java.sql.Date" => "org.joda.time.LocalDate"
-            case "java.sql.Time" => "org.joda.time.LocalTime"
-            case "java.sql.Timestamp" => "org.joda.time.LocalDateTime"
-            // currently, all types that's not built-in support were mapped to `String`
-            case "String" => model.options.find(_.isInstanceOf[ColumnOption.SqlType]).map(_.asInstanceOf[ColumnOption.SqlType].typeName).map({
-              case "hstore" => "Map[String, String]"
-              case "geometry" => "com.vividsolutions.jts.geom.Geometry"
-              case "int8[]" => "List[Long]"
-              case _ =>  "String"
-            }).getOrElse("String")
-            case _ => super.rawType
+          override def rawType: String = {
+            model.options.find(_.isInstanceOf[ColumnOption.SqlType]).flatMap {
+              tpe =>
+                tpe.asInstanceOf[ColumnOption.SqlType].typeName match {
+                  case "hstore" => Option("Map[String, String]")
+                  case "_text"|"_varchar" => Option("List[String]")
+                  case "geometry" => Option("com.vividsolutions.jts.geom.Geometry")
+                  case "_int8" => Option("List[Long]")
+                  case "_int4" => Option("List[Int]")
+                  case "_int2" => Option("List[Short]")
+                  case _ =>       None
+                }
+            }.getOrElse{
+                model.tpe match {
+                  case "java.sql.Date" => "org.joda.time.LocalDate"
+                  case "java.sql.Time" => "org.joda.time.LocalTime"
+                  case "java.sql.Timestamp" => "org.joda.time.LocalDateTime"
+                  case _ =>
+                    super.rawType
+
+            }}
           }
         }
       }
