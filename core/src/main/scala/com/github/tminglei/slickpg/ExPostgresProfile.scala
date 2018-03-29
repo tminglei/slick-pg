@@ -2,8 +2,10 @@ package com.github.tminglei.slickpg
 
 import java.util.UUID
 
+import slick.SlickException
 import slick.ast._
 import slick.compiler.CompilerState
+import slick.dbio.{Effect, NoStream}
 import slick.jdbc._
 import slick.jdbc.meta.MTable
 import slick.lifted.PrimaryKey
@@ -37,6 +39,9 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
     implicit class AggFuncOver[R: TypedType](aggFunc: agg.AggFuncRep[R]) {
       def over = window.WindowFuncRep[R](aggFunc._parts.toNode(implicitly[TypedType[R]]))
     }
+    ///
+    implicit def multiUpsertExtensionMethods[U, C[_]](q: Query[_, U, C]): InsertActionComposerImpl[U] =
+      new InsertActionComposerImpl[U](compileInsert(q.toNode))
   }
 
   trait ByteaPlainImplicits {
@@ -92,18 +97,16 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
    ***********************************************************************/
 
   class NativeUpsertBuilder(ins: Insert) extends super.InsertBuilder(ins) {
-    /* NOTE: pk defined by using method `primaryKey` and pk defined with `PrimaryKey` can only have one,
-             here we let table ddl to help us ensure this. */
-    private lazy val funcDefinedPKs = table.profileTable.asInstanceOf[Table[_]].primaryKeys
-    private lazy val (nonPkAutoIncSyms, insertingSyms) = syms.toSeq.partition { s =>
+    protected lazy val funcDefinedPKs = table.profileTable.asInstanceOf[Table[_]].primaryKeys
+    protected lazy val (nonPkAutoIncSyms, insertingSyms) = syms.toSeq.partition { s =>
       s.options.contains(ColumnOption.AutoInc) && !(s.options contains ColumnOption.PrimaryKey) }
-    private lazy val (pkSyms, softSyms) = insertingSyms.partition { sym =>
+    protected lazy val (pkSyms, softSyms) = insertingSyms.partition { sym =>
       sym.options.contains(ColumnOption.PrimaryKey) || funcDefinedPKs.exists(pk => pk.columns.collect {
         case Select(_, f: FieldSymbol) => f
       }.exists(_.name == sym.name)) }
-    private lazy val insertNames = insertingSyms.map { fs => quoteIdentifier(fs.name) }
-    private lazy val pkNames = pkSyms.map { fs => quoteIdentifier(fs.name) }
-    private lazy val softNames = softSyms.map { fs => quoteIdentifier(fs.name) }
+    protected lazy val insertNames = insertingSyms.map { fs => quoteIdentifier(fs.name) }
+    protected lazy val pkNames = pkSyms.map { fs => quoteIdentifier(fs.name) }
+    protected lazy val softNames = softSyms.map { fs => quoteIdentifier(fs.name) }
 
     override def buildInsert: InsertBuilderResult = {
       val insert = s"insert into $tableName (${insertNames.mkString(",")}) values (${insertNames.map(_ => "?").mkString(",")})"
@@ -114,6 +117,53 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
 
     override def transformMapping(n: Node) = reorderColumns(n, insertingSyms ++ nonPkAutoIncSyms ++ nonPkAutoIncSyms ++ nonPkAutoIncSyms)
   }
+
+  protected class InsertActionComposerImpl[U](override val compiled: CompiledInsert)
+    extends super.CountingInsertActionComposerImpl[U](compiled) {
+
+    /** Upsert a batch of records - insert rows whose primary key is not present in
+      * the table, and update rows whose primary key is present.. */
+    def insertOrUpdateAll(values: Iterable[U]): ProfileAction[MultiInsertResult, NoStream, Effect.Write] =
+      if (useNativeUpsert)
+        new MultiInsertOrUpdateAction(values)
+      else throw new IllegalStateException("Cannot insertOrUpdateAll in without native upsert capability. " +
+        "Instead use DBIO.sequence(values.map(query.insertOrUpdate))")
+
+    ///
+    class MultiInsertOrUpdateAction(values: Iterable[U]) extends SimpleJdbcProfileAction[MultiInsertResult](
+      "MultiInsertOrUpdateAction", Vector(compiled.upsert.sql)) {
+
+      private def tableHasPrimaryKey: Boolean =
+        List(compiled.upsert, compiled.checkInsert, compiled.updateInsert)
+          .filter(_ != null)
+          .exists(artifacts =>
+            artifacts.ibr.table.profileTable.asInstanceOf[Table[_]].primaryKeys.nonEmpty
+              || artifacts.ibr.fields.exists(_.options.contains(ColumnOption.PrimaryKey))
+          )
+
+      if (!tableHasPrimaryKey)
+        throw new SlickException("InsertOrUpdateAll is not supported on a table without PK.")
+
+      override def run(ctx: Backend#Context, sql: Vector[String]) =
+        nativeUpsert(values, sql.head)(ctx.session)
+
+      protected def nativeUpsert(values: Iterable[U], sql: String)(
+        implicit session: Backend#Session): MultiInsertResult =
+        preparedInsert(sql, session) { st =>
+          st.clearParameters()
+          for (value <- values) {
+            compiled
+              .upsert
+              .converter
+              .set(value, st)
+            st.addBatch()
+          }
+          val counts = st.executeBatch()
+          retManyBatch(st, values, counts)
+        }
+    }
+  }
+
 
   /***********************************************************************
     *                          for codegen support
