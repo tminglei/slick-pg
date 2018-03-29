@@ -37,7 +37,7 @@ class PgUpsertSuite extends FunSuite {
   test("emulate upsert support") {
 
     val upsertSql = ExPostgresProfile.compileInsert(UpsertTests.toNode).upsert.sql
-    println(s"upsert sql: $upsertSql")
+    println(s"emulate upsert sql: $upsertSql")
 
     assert(upsertSql.contains("where not exists"))
 
@@ -73,7 +73,7 @@ class PgUpsertSuite extends FunSuite {
     import MyPostgresProfile.api._
 
     val upsertSql = MyPostgresProfile.compileInsert(UpsertTests.toNode).upsert.sql
-    println(s"upsert sql: $upsertSql")
+    println(s"native upsert sql: $upsertSql")
 
     assert(upsertSql.contains("on conflict"))
 
@@ -108,8 +108,8 @@ class PgUpsertSuite extends FunSuite {
   test("native bulk upsert support") {
     import MyPostgresProfile.api._
 
-    val upsertSql = MyPostgresProfile.compileInsert(UpsertTests.toNode).multiUpsert.sql
-    println(s"upsert sql: $upsertSql")
+    val upsertSql = MyPostgresProfile.compileInsert(UpsertTests.toNode).upsert.sql
+    println(s"native bulk upsert sql: $upsertSql")
 
     assert(upsertSql.contains("on conflict"))
 
@@ -171,7 +171,7 @@ class PgUpsertSuite extends FunSuite {
     import MyPostgresProfile.api._
 
     val upsertSql = MyPostgresProfile.compileInsert(UpsertTests1.toNode).upsert.sql
-    println(s"upsert sql: $upsertSql")
+    println(s"native upsert sql: $upsertSql")
 
     assert(upsertSql.contains("on conflict"))
 
@@ -206,8 +206,8 @@ class PgUpsertSuite extends FunSuite {
   test("native bulk upsert support - autoInc + independent pk") {
     import MyPostgresProfile.api._
 
-    val upsertSql = MyPostgresProfile.compileInsert(UpsertTests1.toNode).multiUpsert.sql
-    println(s"upsert sql: $upsertSql")
+    val upsertSql = MyPostgresProfile.compileInsert(UpsertTests1.toNode).upsert.sql
+    println(s"native bulk upsert sql: $upsertSql")
 
     assert(upsertSql.contains("on conflict"))
 
@@ -246,7 +246,7 @@ class PgUpsertSuite extends FunSuite {
     import MyPostgresProfile.api._
 
     val upsertSql = MyPostgresProfile.compileInsert(UpsertTests11.toNode).upsert.sql
-    println(s"upsert sql: $upsertSql")
+    println(s"native upsert sql: $upsertSql")
 
     assert(upsertSql.contains("on conflict"))
 
@@ -282,8 +282,8 @@ class PgUpsertSuite extends FunSuite {
   test("native bulk upsert support - autoInc + pk defined by using `primaryKey`") {
     import MyPostgresProfile.api._
 
-    val upsertSql = MyPostgresProfile.compileInsert(UpsertTests11.toNode).multiUpsert.sql
-    println(s"upsert sql: $upsertSql")
+    val upsertSql = MyPostgresProfile.compileInsert(UpsertTests11.toNode).upsert.sql
+    println(s"native bulk upsert sql: $upsertSql")
 
     assert(upsertSql.contains("on conflict"))
 
@@ -333,7 +333,7 @@ class PgUpsertSuite extends FunSuite {
     import MyPostgresProfile.api._
 
     val upsertSql = MyPostgresProfile.compileInsert(UpsertTests12.toNode).upsert.sql
-    println(s"upsert sql: $upsertSql")
+    println(s"native upsert sql: $upsertSql")
 
     assert(upsertSql.contains("on conflict"))
 
@@ -368,8 +368,8 @@ class PgUpsertSuite extends FunSuite {
   test("native bulk upsert support - autoInc + pk defined by using `primaryKey` w/o other columns") {
     import MyPostgresProfile.api._
 
-    val upsertSql = MyPostgresProfile.compileInsert(UpsertTests12.toNode).multiUpsert.sql
-    println(s"upsert sql: $upsertSql")
+    val upsertSql = MyPostgresProfile.compileInsert(UpsertTests12.toNode).upsert.sql
+    println(s"native bulk upsert sql: $upsertSql")
 
     assert(upsertSql.contains("on conflict"))
 
@@ -422,7 +422,7 @@ class PgUpsertSuite extends FunSuite {
     import MyPostgresProfile.api._
 
     val upsertSql = MyPostgresProfile.compileInsert(UpsertTests2.toNode).upsert.sql
-    println(s"upsert sql: $upsertSql")
+    println(s"native upsert sql: $upsertSql")
 
     assert(upsertSql.contains("on conflict"))
 
@@ -457,8 +457,8 @@ class PgUpsertSuite extends FunSuite {
   test("native bulk upsert support with keyword columns") {
     import MyPostgresProfile.api._
 
-    val upsertSql = MyPostgresProfile.compileInsert(UpsertTests2.toNode).multiUpsert.sql
-    println(s"upsert sql: $upsertSql")
+    val upsertSql = MyPostgresProfile.compileInsert(UpsertTests2.toNode).upsert.sql
+    println(s"native bulk upsert sql: $upsertSql")
 
     assert(upsertSql.contains("on conflict"))
 

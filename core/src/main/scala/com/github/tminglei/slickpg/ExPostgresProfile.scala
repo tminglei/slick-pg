@@ -4,11 +4,11 @@ import java.util.UUID
 
 import slick.SlickException
 import slick.ast._
-import slick.compiler.{CompilerState, InsertCompiler, Phase, QueryCompiler}
+import slick.compiler.CompilerState
 import slick.dbio.{Effect, NoStream}
 import slick.jdbc._
 import slick.jdbc.meta.MTable
-import slick.lifted.{PrimaryKey, Query}
+import slick.lifted.PrimaryKey
 import slick.util.Logging
 
 import scala.concurrent.ExecutionContext
@@ -39,6 +39,9 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
     implicit class AggFuncOver[R: TypedType](aggFunc: agg.AggFuncRep[R]) {
       def over = window.WindowFuncRep[R](aggFunc._parts.toNode(implicitly[TypedType[R]]))
     }
+    ///
+    implicit def multiUpsertExtensionMethods[U, C[_]](q: Query[_, U, C]): InsertActionComposerImpl[U] =
+      new InsertActionComposerImpl[U](compileInsert(q.toNode))
   }
 
   trait ByteaPlainImplicits {
@@ -93,7 +96,7 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
     *                          for upsert support
    ***********************************************************************/
 
-  abstract class UpsertBuilderBase(ins: Insert) extends super.InsertBuilder(ins) {
+  class NativeUpsertBuilder(ins: Insert) extends super.InsertBuilder(ins) {
     protected lazy val funcDefinedPKs = table.profileTable.asInstanceOf[Table[_]].primaryKeys
     protected lazy val (nonPkAutoIncSyms, insertingSyms) = syms.toSeq.partition { s =>
       s.options.contains(ColumnOption.AutoInc) && !(s.options contains ColumnOption.PrimaryKey) }
@@ -104,9 +107,7 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
     protected lazy val insertNames = insertingSyms.map { fs => quoteIdentifier(fs.name) }
     protected lazy val pkNames = pkSyms.map { fs => quoteIdentifier(fs.name) }
     protected lazy val softNames = softSyms.map { fs => quoteIdentifier(fs.name) }
-  }
 
-  class NativeUpsertBuilder(ins: Insert) extends UpsertBuilderBase(ins) {
     override def buildInsert: InsertBuilderResult = {
       val insert = s"insert into $tableName (${insertNames.mkString(",")}) values (${insertNames.map(_ => "?").mkString(",")})"
       val conflictWithPadding = "conflict (" + pkNames.mkString(", ") + ")" + (/* padding */ if (nonPkAutoIncSyms.isEmpty) "" else "where ? is null or ?=?")
@@ -117,38 +118,6 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
     override def transformMapping(n: Node) = reorderColumns(n, insertingSyms ++ nonPkAutoIncSyms ++ nonPkAutoIncSyms ++ nonPkAutoIncSyms)
   }
 
-  class MultiUpsertBuilder(ins: Insert) extends UpsertBuilderBase(ins) {
-    override def buildInsert: InsertBuilderResult = {
-      val start = allNames.iterator.mkString(s"insert into $tableName (", ",", ") ")
-      val insert = s"$start values $allVars"
-      val conflictWithPadding = "conflict (" + pkNames.mkString(", ") + ")" + (
-        if (nonPkAutoIncSyms.isEmpty) ""
-        else "where ? is null or ?=?"
-      )
-      val updateOrNothing =
-        if (softNames.isEmpty) "nothing"
-        else "update set " + softNames.map(n => s"$n=EXCLUDED.$n").mkString(",")
-      new InsertBuilderResult(table, s"$insert on $conflictWithPadding do $updateOrNothing", syms)
-    }
-
-    override def transformMapping(n: Node) =
-      reorderColumns(n, insertingSyms ++ nonPkAutoIncSyms ++ nonPkAutoIncSyms ++ nonPkAutoIncSyms)
-  }
-
-  class MultiUpsertCompiledInsert(node: Node) extends JdbcCompiledInsert(node) {
-    lazy val multiUpsert = compile(multiUpsertCompiler)
-  }
-
-  implicit def multiUpsertExtensionMethods[U, C[_]](q: Query[_, U, C]): InsertActionComposerImpl[U] =
-    new InsertActionComposerImpl[U](compileInsert(q.toNode))
-
-  lazy val multiUpsertCompiler = QueryCompiler(
-    Phase.assignUniqueSymbols,
-    Phase.inferTypes,
-    new InsertCompiler(InsertCompiler.AllColumns),
-    new JdbcInsertCodeGen(insert => new MultiUpsertBuilder(insert)))
-
-  override def compileInsert(tree: Node) = new MultiUpsertCompiledInsert(tree)
   protected class InsertActionComposerImpl[U](override val compiled: CompiledInsert)
     extends super.CountingInsertActionComposerImpl[U](compiled) {
 
@@ -157,15 +126,12 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
     def insertOrUpdateAll(values: Iterable[U]): ProfileAction[MultiInsertResult, NoStream, Effect.Write] =
       if (useNativeUpsert)
         new MultiInsertOrUpdateAction(values)
-      else throw new IllegalStateException("Cannot insertOrUpdateAll in without native upsert capability. Instead use DBIO.sequence(values.map(query.insertOrUpdate))")
-        // Below fails to compile because it returns a DBIOAction and not a ProfileAction
-        // api.DBIO.sequence(values.map(insertOrUpdate)).map { insertResults: Iterable[SingleInsertOrUpdateResult] =>
-        //   Option(insertResults.sum)
-        // }
+      else throw new IllegalStateException("Cannot insertOrUpdateAll in without native upsert capability. " +
+        "Instead use DBIO.sequence(values.map(query.insertOrUpdate))")
 
+    ///
     class MultiInsertOrUpdateAction(values: Iterable[U]) extends SimpleJdbcProfileAction[MultiInsertResult](
-      "MultiInsertOrUpdateAction",
-      Vector(compiled.asInstanceOf[MultiUpsertCompiledInsert].multiUpsert.sql)) {
+      "MultiInsertOrUpdateAction", Vector(compiled.upsert.sql)) {
 
       private def tableHasPrimaryKey: Boolean =
         List(compiled.upsert, compiled.checkInsert, compiled.updateInsert)
@@ -187,8 +153,7 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
           st.clearParameters()
           for (value <- values) {
             compiled
-              .asInstanceOf[MultiUpsertCompiledInsert]
-              .multiUpsert
+              .upsert
               .converter
               .set(value, st)
             st.addBatch()
