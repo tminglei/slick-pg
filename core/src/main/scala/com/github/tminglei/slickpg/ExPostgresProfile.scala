@@ -97,25 +97,30 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
    ***********************************************************************/
 
   class NativeUpsertBuilder(ins: Insert) extends super.InsertBuilder(ins) {
-    protected lazy val funcDefinedPKs = table.profileTable.asInstanceOf[Table[_]].primaryKeys
-    protected lazy val (nonPkAutoIncSyms, insertingSyms) = syms.toSeq.partition { s =>
+    /* NOTE: pk defined by using method `primaryKey` and pk defined with `PrimaryKey` can only have one,
+             here we let table ddl to help us ensure this. */
+    private lazy val funcDefinedPKs = table.profileTable.asInstanceOf[Table[_]].primaryKeys
+    private lazy val (nonPkAutoIncSyms, insertingSyms) = syms.toSeq.partition { s =>
       s.options.contains(ColumnOption.AutoInc) && !(s.options contains ColumnOption.PrimaryKey) }
-    protected lazy val (pkSyms, softSyms) = insertingSyms.partition { sym =>
+    private lazy val (pkSyms, softSyms) = insertingSyms.partition { sym =>
       sym.options.contains(ColumnOption.PrimaryKey) || funcDefinedPKs.exists(pk => pk.columns.collect {
         case Select(_, f: FieldSymbol) => f
       }.exists(_.name == sym.name)) }
-    protected lazy val insertNames = insertingSyms.map { fs => quoteIdentifier(fs.name) }
-    protected lazy val pkNames = pkSyms.map { fs => quoteIdentifier(fs.name) }
-    protected lazy val softNames = softSyms.map { fs => quoteIdentifier(fs.name) }
+    private lazy val insertNames = insertingSyms.map { fs => quoteIdentifier(fs.name) }
+    private lazy val pkNames = pkSyms.map { fs => quoteIdentifier(fs.name) }
+    private lazy val softNames = softSyms.map { fs => quoteIdentifier(fs.name) }
 
     override def buildInsert: InsertBuilderResult = {
       val insert = s"insert into $tableName (${insertNames.mkString(",")}) values (${insertNames.map(_ => "?").mkString(",")})"
-      val conflictWithPadding = "conflict (" + pkNames.mkString(", ") + ")" + (/* padding */ if (nonPkAutoIncSyms.isEmpty) "" else "where ? is null or ?=?")
-      val updateOrNothing = if (softNames.isEmpty) "nothing" else "update set " + softNames.map(n => s"$n=EXCLUDED.$n").mkString(",")
+      val conflictWithPadding = "conflict (" + pkNames.mkString(", ") + ")" +
+        (/* padding */ if (nonPkAutoIncSyms.isEmpty) "" else "where ? is null or ?=?")
+      val updateOrNothing = if (softNames.isEmpty) "nothing" else
+        "update set " + softNames.map(n => s"$n=EXCLUDED.$n").mkString(",")
       new InsertBuilderResult(table, s"$insert on $conflictWithPadding do $updateOrNothing", syms)
     }
 
-    override def transformMapping(n: Node) = reorderColumns(n, insertingSyms ++ nonPkAutoIncSyms ++ nonPkAutoIncSyms ++ nonPkAutoIncSyms)
+    override def transformMapping(n: Node) = reorderColumns(n,
+      insertingSyms ++ nonPkAutoIncSyms ++ nonPkAutoIncSyms ++ nonPkAutoIncSyms)
   }
 
   protected class InsertActionComposerImpl[U](override val compiled: CompiledInsert)
