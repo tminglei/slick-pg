@@ -65,7 +65,7 @@ class PgPlayJsonSupportSuite extends FunSuite {
 
   //------------------------------------------------------------------------------
 
-  val testRec1 = JsonBean(33L, Json.parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """), List(Json.parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """)),
+  val testRec1 = JsonBean(33L, Json.parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """), List(Json.parse(""" { "a":101, "b":"", "c":[3,4,5,9] } """)),
     JBean("tt", 3), List(JBean("tt", 3)))
   val testRec2 = JsonBean(35L, Json.parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """), List(Json.parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """)),
     JBean("t1", 5), List(JBean("t1", 5)))
