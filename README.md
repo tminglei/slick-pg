@@ -27,7 +27,7 @@ Slick-pg
 - Pg_trgm
 
 
-** _Tested on `PostgreSQL 10` with `Slick 3.2.1`._
+** _Tested on `PostgreSQL 10` with `Slick 3.2.3`._
 ** _`Java 8` is required._
 
 
