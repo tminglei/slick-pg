@@ -1,13 +1,14 @@
 package com.github.tminglei.slickpg
 package array
 
-import slick.ast.TypedType
+import slick.ast.{Library, LiteralNode, TypedType}
 import slick.ast.Library.{SqlFunction, SqlOperator}
-import slick.lifted.ExtensionMethods
+import slick.lifted.{ExtensionMethods, FunctionSymbolExtensionMethods}
 import slick.jdbc.{JdbcType, JdbcTypesComponent, PostgresProfile}
 
 trait PgArrayExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
   import driver.api._
+  import FunctionSymbolExtensionMethods._
 
   object ArrayLibrary {
     val Any = new SqlFunction("any")
@@ -52,7 +53,7 @@ trait PgArrayExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
         om.column(ArrayLibrary.Concatenate, e.toNode, n)
       }
     def length[R](dim: Rep[Int] = LiteralColumn(1))(implicit om: o#to[Int, R]) = {
-        om.column(ArrayLibrary.Length, n, dim.toNode)
+        om.column(Library.IfNull, ArrayLibrary.Length.column[Int](n, dim.toNode).toNode, LiteralNode(0))
       }
     def unnest[R](implicit om: o#to[B0, R]) = om.column(ArrayLibrary.Unnest, n)
   }

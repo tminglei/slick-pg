@@ -123,6 +123,9 @@ class PgArraySupportSuite extends FunSuite {
           ArrayTests.filter(_.longArr.length() > 3.bind).sortBy(_.id).to[List].result.map(
             r => assert(List(testRec1) === r)
           ),
+          ArrayTests.filter(_.shortArr.length() === 0.bind).map(_.id).to[List].result.map(
+            r => assert(List(37L) === r)
+          ),
           // unnest
           ArrayTests.filter(5L.bind <= _.longArr.all).map(_.strArr.unnest).to[List].result.map(
             r => assert((testRec2.strArr.get ++ testRec3.strArr.get).toList === r.map(_.orNull))
