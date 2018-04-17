@@ -113,7 +113,7 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
       def nextDateRangeOption() = r.nextStringOption().map(mkRangeFn(toSQLDate))
       def nextLocalDateTimeRange() = nextLocalDateTimeRangeOption().orNull
       def nextLocalDateTimeRangeOption() = r.nextStringOption().map(mkRangeFn(fromDateTimeOrInfinity))
-      def nextOffsetDateTimeRange() = nextTimestampRangeOption().orNull
+      def nextOffsetDateTimeRange() = nextOffsetDateTimeRangeOption().orNull
       def nextOffsetDateTimeRangeOption() = r.nextStringOption().map(mkRangeFn(fromOffsetDateTimeOrInfinity))
       def nextLocalDateRange() = nextLocalDateRangeOption().orNull
       def nextLocalDateRangeOption() = r.nextStringOption().map(mkRangeFn(fromDateOrInfinity))
@@ -150,8 +150,8 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
     implicit val setLocalDateTimeRange = mkSetParameter[Range[LocalDateTime]]("tstzrange")
     implicit val setLocalDateTimeRangeOption = mkOptionSetParameter[Range[LocalDateTime]]("tstzrange")
 
-    implicit val getOffsetDateTimeRange = mkGetResult(_.nextTimestamp())
-    implicit val getOffsetDateTimeRangeOption = mkGetResult(_.nextTimestampRangeOption())
+    implicit val getOffsetDateTimeRange = mkGetResult(_.nextOffsetDateTimeRange())
+    implicit val getOffsetDateTimeRangeOption = mkGetResult(_.nextOffsetDateTimeRangeOption())
     implicit val setOffsetDateTimeRange = mkSetParameter[Range[OffsetDateTime]]("tsrange")
     implicit val setOffsetDateTimeRangeOption = mkOptionSetParameter[Range[OffsetDateTime]]("tsrange")
 
