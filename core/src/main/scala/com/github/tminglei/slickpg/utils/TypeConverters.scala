@@ -3,7 +3,8 @@ package utils
 
 import slick.util.Logging
 import scala.reflect.runtime.{universe => u}
-import java.sql.{Timestamp, Time, Date}
+import java.sql.{Date, Time, Timestamp}
+import java.time.{LocalDate, LocalDateTime, LocalTime}
 import java.util.UUID
 
 object TypeConverters extends Logging {
@@ -27,6 +28,12 @@ object TypeConverters extends Logging {
   register((v: Date) => v.toString)
   register((v: Time) => v.toString)
   register((v: Timestamp) => v.toString)
+  register((v: String) => LocalDate.parse(v))
+  register((v: String) => LocalTime.parse(v))
+  register((v: String) => LocalDateTime.parse(v.replace(' ', 'T')))
+  register((v: LocalDate) => v.toString)
+  register((v: LocalTime) => v.toString)
+  register((v: LocalDateTime) => v.toString)
 
   def register[FROM,TO](convert: (FROM => TO))(implicit from: u.TypeTag[FROM], to: u.TypeTag[TO]) = {
     logger.info(s"register converter for ${from.tpe.erasure} => ${to.tpe.erasure}")

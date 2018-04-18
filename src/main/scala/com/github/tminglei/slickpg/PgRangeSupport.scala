@@ -147,8 +147,8 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
 
     implicit val getLocalDateTimeRange = mkGetResult(_.nextLocalDateTimeRange())
     implicit val getLocalDateTimeRangeOption = mkGetResult(_.nextLocalDateTimeRangeOption())
-    implicit val setLocalDateTimeRange = mkSetParameter[Range[LocalDateTime]]("tstzrange")
-    implicit val setLocalDateTimeRangeOption = mkOptionSetParameter[Range[LocalDateTime]]("tstzrange")
+    implicit val setLocalDateTimeRange = mkSetParameter[Range[LocalDateTime]]("tsrange")
+    implicit val setLocalDateTimeRangeOption = mkOptionSetParameter[Range[LocalDateTime]]("tsrange")
 
     implicit val getOffsetDateTimeRange = mkGetResult(_.nextOffsetDateTimeRange())
     implicit val getOffsetDateTimeRangeOption = mkGetResult(_.nextOffsetDateTimeRangeOption())

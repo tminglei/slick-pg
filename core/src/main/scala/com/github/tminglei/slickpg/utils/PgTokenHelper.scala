@@ -204,8 +204,10 @@ object PgTokenHelper {
         }
         //-- process marker tokens
         // mark + mark (empty string)
-        case Marker(m) if (m != "" && level(m) == stack.top.level + 2) =>
-          stack.top.tokens += Chunk("")
+        case Marker(m) if (m != "" && level(m) == stack.top.level + 2) => {
+          val m2 = m.substring(0, m.length / 2)
+          stack.top.tokens += GroupToken(List(Marker(m2), Chunk(""), Marker(m2)))
+        }
         // mark + escape
         case Marker(m) if (m != "" && level(m) != math.round(level(m))
                        && (tokens(i-1) == Comma || tokens(i-1).isInstanceOf[Open])) => {

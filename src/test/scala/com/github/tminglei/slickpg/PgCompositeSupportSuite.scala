@@ -5,8 +5,7 @@ import org.scalatest.FunSuite
 import slick.jdbc.{GetResult, PositionedResult, PostgresProfile}
 
 import scala.collection.convert.{WrapAsJava, WrapAsScala}
-import java.sql.Timestamp
-import java.text.SimpleDateFormat
+import java.time.LocalDateTime
 
 import composite.Struct
 
@@ -14,14 +13,13 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 object PgCompositeSupportSuite {
-  val tsFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-  def ts(str: String) = new Timestamp(tsFormat.parse(str).getTime)
+  def ts(str: String) = LocalDateTime.parse(str.replace(' ', 'T'))
 
   case class Composite1(
     id: Long,
     txt: String,
-    date: Timestamp,
-    tsRange: Option[Range[Timestamp]]
+    date: LocalDateTime,
+    tsRange: Option[Range[LocalDateTime]]
   ) extends Struct
 
   case class Composite2(
@@ -47,7 +45,7 @@ object PgCompositeSupportSuite {
     ///
     trait API extends super.API with ArrayImplicits {
       utils.TypeConverters.register(PgRangeSupportUtils.mkRangeFn(ts))
-      utils.TypeConverters.register(PgRangeSupportUtils.toStringFn[Timestamp](tsFormat.format))
+      utils.TypeConverters.register(PgRangeSupportUtils.toStringFn[LocalDateTime](_.toString))
       utils.TypeConverters.register(mapToString)
       utils.TypeConverters.register(stringToMap)
 
@@ -142,11 +140,11 @@ class PgCompositeSupportSuite extends FunSuite {
 
   //-------------------------------------------------------------------
 
-  val rec1 = TestBean(333, List(Composite2(201, Composite1(101, "(test1'", ts("2001-1-3 13:21:00"),
-    Some(Range(ts("2010-01-01 14:30:00"), ts("2010-01-03 15:30:00")))), true, Map("t" -> "haha", "t2" -> "133"))))
-  val rec2 = TestBean(335, List(Composite2(202, Composite1(102, "test2\\", ts("2012-5-8 11:31:06"),
-    Some(Range(ts("2011-01-01 14:30:00"), ts("2011-11-01 15:30:00")))), false, Map("t't" -> "1,363"))))
-  val rec3 = TestBean(337, List(Composite2(203, Composite1(103, "ABC ABC", ts("2015-3-8 17:17:03"), None), false, Map("t,t" -> "ewtew"))))
+  val rec1 = TestBean(333, List(Composite2(201, Composite1(101, "(test1'", ts("2001-01-03T13:21:00"),
+    Some(Range(ts("2010-01-01T14:30:00"), ts("2010-01-03T15:30:00")))), true, Map("t" -> "haha", "t2" -> "133"))))
+  val rec2 = TestBean(335, List(Composite2(202, Composite1(102, "test2\\", ts("2012-05-08T11:31:06"),
+    Some(Range(ts("2011-01-01T14:30:00"), ts("2011-11-01T15:30:00")))), false, Map("t't" -> "1,363"))))
+  val rec3 = TestBean(337, List(Composite2(203, Composite1(103, "ABC ABC", ts("2015-03-08T17:17:03"), None), false, Map("t,t" -> "ewtew"))))
 
   val rec11 = TestBean1(111, List(Composite3(Some("(test1'"))))
   val rec12 = TestBean1(112, List(Composite3(code = Some(102))))
@@ -154,8 +152,8 @@ class PgCompositeSupportSuite extends FunSuite {
   val rec14 = TestBean1(114, List(Composite3(Some("Word1 (Word2)"))))
   val rec15 = TestBean1(115, List(Composite3(Some(""))))
 
-  val rec21 = TestBean2(211, Composite1(201, "test3", ts("2015-1-3 13:21:00"), Some(Range(ts("2015-01-01 14:30:00"), ts("2016-01-03 15:30:00")))))
-  val rec22 = TestBean2(212, Composite1(202, "", ts("2015-1-3 13:21:00"), Some(Range(ts("2015-01-01 14:30:00"), ts("2016-01-03 15:30:00")))))
+  val rec21 = TestBean2(211, Composite1(201, "test3", ts("2015-01-03T13:21:00"), Some(Range(ts("2015-01-01T14:30:00"), ts("2016-01-03T15:30:00")))))
+  val rec22 = TestBean2(212, Composite1(202, "", ts("2015-01-03T13:21:00"), Some(Range(ts("2015-01-01T14:30:00"), ts("2016-01-03T15:30:00")))))
 
   test("Composite type Lifted support") {
     Await.result(db.run(
