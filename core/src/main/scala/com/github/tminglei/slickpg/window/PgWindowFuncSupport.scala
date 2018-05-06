@@ -32,9 +32,13 @@ trait PgWindowFuncSupport extends JdbcTypesComponent { driver: PostgresProfile =
     def ntile[P,R](c: Rep[P])(implicit tm: JdbcType[Int], om: OptionMapperDSL.arg[Int,P]#to[Int,R]) =
       WindowFunc[Int](WindowLibrary.Ntile, List(c.toNode))
     def lag[T](c: Rep[Option[T]], offset: Option[Int] = None, default: Option[T] = None)(implicit tm: JdbcType[T], tm1: JdbcType[Int]) =
-      WindowFunc[Option[T]](WindowLibrary.Lag, List(c.toNode, LiteralNode(tm1, offset.getOrElse(1)), LiteralNode(tm, default.getOrElse(null.asInstanceOf[T]))))
+      if (default.isDefined)
+        WindowFunc[Option[T]](WindowLibrary.Lag, List(c.toNode, LiteralNode(tm1, offset.getOrElse(1)), LiteralNode(tm, default.get)))
+      else WindowFunc[Option[T]](WindowLibrary.Lag, List(c.toNode, LiteralNode(tm1, offset.getOrElse(1))))
     def lead[T](c: Rep[Option[T]], offset: Option[Int] = None, default: Option[T] = None)(implicit tm: JdbcType[T], tm1: JdbcType[Int]) =
-      WindowFunc[Option[T]](WindowLibrary.Lead, List(c.toNode, LiteralNode(tm1, offset.getOrElse(1)), LiteralNode(tm, default.getOrElse(null.asInstanceOf[T]))))
+      if (default.isDefined)
+        WindowFunc[Option[T]](WindowLibrary.Lead, List(c.toNode, LiteralNode(tm1, offset.getOrElse(1)), LiteralNode(tm, default.get)))
+      else WindowFunc[Option[T]](WindowLibrary.Lead, List(c.toNode, LiteralNode(tm1, offset.getOrElse(1))))
     def firstValue[T](c: Rep[Option[T]])(implicit tm: JdbcType[T]) =
       WindowFunc[T](WindowLibrary.FirstValue, List(c.toNode))
     def lastValue[T](c: Rep[Option[T]])(implicit tm: JdbcType[T]) =

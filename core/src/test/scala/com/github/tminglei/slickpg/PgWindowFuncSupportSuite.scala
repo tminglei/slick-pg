@@ -1,5 +1,7 @@
 package com.github.tminglei.slickpg
 
+import java.util.UUID
+
 import org.scalatest.FunSuite
 
 import scala.concurrent.Await
@@ -11,11 +13,11 @@ class PgWindowFuncSupportSuite extends FunSuite {
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
-  case class Tab(col1: String, col2: String, col3: String, col4: Int)
+  case class Tab(col1: Option[UUID], col2: Option[String], col3: String, col4: Int)
 
   class Tabs(tag: Tag) extends Table[Tab](tag, "TAB_Window_func1") {
-    def col1 = column[String]("COL1")
-    def col2 = column[String]("COL2")
+    def col1 = column[Option[UUID]]("COL1")
+    def col2 = column[Option[String]]("COL2")
     def col3 = column[String]("COL3")
     def col4 = column[Int]("COL4")
 
@@ -34,19 +36,22 @@ class PgWindowFuncSupportSuite extends FunSuite {
 
     val sql2 = tabs.map { t =>
       val w = Over.partitionBy(t.col2)
-      (ntile(t.col4) :: w, ntile(t.col4.?) :: w, lag(t.col1.?) :: w, lead(t.col1.?) :: w, firstValue(t.col1.?) :: w, lastValue(t.col4.?) :: w, nthValue(t.col4.?, 3) :: w)
+      (ntile(t.col4) :: w, ntile(t.col4.?) :: w, lag(t.col1) :: w, lead(t.col1) :: w, firstValue(t.col1) :: w, lastValue(t.col4.?) :: w, nthValue(t.col4.?, 3) :: w)
     }.result.statements.head
     println(s"sql2: $sql2")
+
+    val r1Id = UUID.randomUUID()
+    val r2Id = UUID.randomUUID()
 
     Await.result(db.run(
       DBIO.seq(
         (tabs.schema) create,
         tabs ++= Seq(
-          Tab("foo", "bar",  "bat", 1),
-          Tab("foo", "bar",  "bat", 2),
-          Tab("foo", "quux", "bat", 3),
-          Tab("baz", "quux", "bat", 4),
-          Tab("az", "quux", "bat", 5)
+          Tab(Some(r1Id), Some("bar"),  "bat", 1),
+          Tab(Some(r1Id), Some("bar"),  "bat", 2),
+          Tab(Some(r1Id), Some("quux"), "bat", 3),
+          Tab(Some(r2Id), None, "bat", 4),
+          Tab(None, Some("quux"), "bat", 5)
         )
       ).andThen(
         DBIO.seq(
@@ -57,24 +62,24 @@ class PgWindowFuncSupportSuite extends FunSuite {
             val expected = List(
               (2, 1, 1, 0.0, 0.5),
               (1, 2, 2, 1.0, 1.0),
-              (5, 1, 1, 0.0, 1.0/3),
-              (4, 2, 2, 0.5, 2.0/3),
-              (3, 3, 3, 1.0, 1.0)
+              (5, 1, 1, 0.0, 0.5),
+              (3, 2, 2, 1.0, 1.0),
+              (4, 1, 1, 0.0, 1.0)
             )
-            assert(expected === r)
+            assert(r === expected)
           },
           tabs.map { t =>
             val w = Over.partitionBy(t.col2)
-            (ntile(t.col4) :: w, ntile(t.col4.?) :: w, lag(t.col1.?) :: w, lead(t.col1.?) :: w, firstValue(t.col1.?) :: w, lastValue(t.col4.?) :: w, nthValue(t.col4.?, 3) :: w)
+            (ntile(t.col4) :: w, ntile(t.col4.?) :: w, lag(t.col1) :: w, lead(t.col1) :: w, firstValue(t.col1) :: w, lastValue(t.col4.?) :: w, nthValue(t.col4.?, 3) :: w)
           }.result.map { r =>
             val expected = List(
-              (1, 1, None, Some("foo"), "foo", 2, None),
-              (1, 1, Some("foo"), None, "foo", 2, None),
-              (1, 1, None, Some("baz"), "foo", 5, Some(5)),
-              (2, 2, Some("foo"), Some("az"), "foo", 5, Some(5)),
-              (3, 3, Some("baz"), None, "foo", 5, Some(5))
+              (1, 1, None, Some(r1Id), r1Id, 2, None),
+              (1, 1, Some(r1Id), None, r1Id, 2, None),
+              (1, 1, None, None, r1Id, 5, None),
+              (2, 2, Some(r1Id), None, r1Id, 5, None),
+              (1, 1, None, None, r2Id, 4, None)
             )
-            assert(expected === r)
+            assert(r === expected)
           }
         )
       ).andFinally(
