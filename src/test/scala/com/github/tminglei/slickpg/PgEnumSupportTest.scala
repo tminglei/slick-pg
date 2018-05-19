@@ -18,7 +18,7 @@ class PgEnumSupportTest {
   import WeekDays._
   import Rainbows._
 
-  object MyPostgresDriver1 extends PostgresDriver with PgEnumSupport {
+  trait MyPostgresDriver1 extends PostgresDriver with PgEnumSupport {
     override lazy val Implicit = new Implicits with MyEnumImplicits {}
     override val simple = new SimpleQL with MyEnumImplicits {}
 
@@ -34,6 +34,7 @@ class PgEnumSupportTest {
       implicit val rainbowOptionColumnExtensionMethodsBuilder = createEnumOptionColumnExtensionMethodsBuilder(Rainbows)
     }
   }
+  object MyPostgresDriver1 extends MyPostgresDriver1
 
   ////////////////////////////////////////////////////////////////////
   import MyPostgresDriver1.simple._

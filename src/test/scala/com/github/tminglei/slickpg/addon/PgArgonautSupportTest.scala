@@ -9,18 +9,21 @@ import scala.util.Try
 class PgArgonautSupportTest {
   import scala.slick.driver.PostgresDriver
 
-  object MyPostgresDriver extends PostgresDriver
+  trait MyPostgresDriver extends PostgresDriver
                             with PgArgonautSupport
                             with array.PgArrayJdbcTypes {
     override val pgjson = "jsonb"
 
-    override lazy val Implicit = new Implicits with JsonImplicits
-    override val simple = new Implicits with SimpleQL with JsonImplicits {
+    override lazy val Implicit = new Implicits with JsonImplicits {}
+    override val simple = new Simple {}
+
+    trait Simple extends Implicits with SimpleQL with JsonImplicits {
       implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
     }
 
-    val plainImplicits = new Implicits with ArgonautJsonPlainImplicits
+    val plainImplicits = new Implicits with ArgonautJsonPlainImplicits {}
   }
+  object MyPostgresDriver extends MyPostgresDriver
 
   ///
   import MyPostgresDriver.simple._
@@ -39,9 +42,9 @@ class PgArgonautSupportTest {
 
   //------------------------------------------------------------------------------
 
-  val testRec1 = JsonBean(33L, """ { "a":101, "b":"aaa", "c":[3,4,5,9] } """.parse.toOption.getOrElse(jNull))
-  val testRec2 = JsonBean(35L, """ [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """.parse.toOption.getOrElse(jNull))
-  val testRec3 = JsonBean(37L, """ ["a", "b"] """.parse.toOption.getOrElse(jNull))
+  val testRec1 = JsonBean(33L, """ { "a":101, "b":"aaa", "c":[3,4,5,9] } """.parseOption.getOrElse(jNull))
+  val testRec2 = JsonBean(35L, """ [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """.parseOption.getOrElse(jNull))
+  val testRec3 = JsonBean(37L, """ ["a", "b"] """.parseOption.getOrElse(jNull))
 
   @Test
   def testJsonFunctions(): Unit = {
@@ -51,8 +54,8 @@ class PgArgonautSupportTest {
 
       JsonTests forceInsertAll (testRec1, testRec2, testRec3)
 
-      val json1 = """ {"a":"v1","b":2} """.parse.toOption.getOrElse(jNull)
-      val json2 = """ {"a":"v5","b":3} """.parse.toOption.getOrElse(jNull)
+      val json1 = """ {"a":"v1","b":2} """.parseOption.getOrElse(jNull)
+      val json2 = """ {"a":"v5","b":3} """.parseOption.getOrElse(jNull)
 
       val q0 = JsonTests.filter(_.id === testRec2.id.bind).map(_.json)
       println(s"[argonaut] sql0 = ${q0.selectStatement}")
@@ -103,11 +106,11 @@ class PgArgonautSupportTest {
       println(s"[argonaut] 'objectKeys' sql = ${q51.selectStatement}")
       assertEquals("a", q51.first)
 
-      val q6 = JsonTests.filter(_.json @> """ {"b":"aaa"} """.parse.toOption.getOrElse(jNull)).map(_.id)
+      val q6 = JsonTests.filter(_.json @> """ {"b":"aaa"} """.parseOption.getOrElse(jNull)).map(_.id)
       println(s"[argonaut] '@>' sql = ${q6.selectStatement}")
       assertEquals(33L, q6.first)
 
-      val q7 = JsonTests.filter(""" {"b":"aaa"} """.parse.toOption.getOrElse(jNull) <@: _.json).map(_.id)
+      val q7 = JsonTests.filter(""" {"b":"aaa"} """.parseOption.getOrElse(jNull) <@: _.json).map(_.id)
       println(s"[argonaut] '<@' sql = ${q7.selectStatement}")
       assertEquals(33L, q7.first)
 
@@ -141,7 +144,7 @@ class PgArgonautSupportTest {
       Try { JsonTests.ddl drop }
       Try { JsonTests.ddl create }
 
-      val jsonBean = JsonBean(37L, """ { "a":101, "b":"aaa", "c":[3,4,5,9] } """.parse.toOption.getOrElse(jNull))
+      val jsonBean = JsonBean(37L, """ { "a":101, "b":"aaa", "c":[3,4,5,9] } """.parseOption.getOrElse(jNull))
 
       (Q.u + "insert into \"JsonTest4\" values(" +? jsonBean.id + ", " +? jsonBean.json + ")").execute
 

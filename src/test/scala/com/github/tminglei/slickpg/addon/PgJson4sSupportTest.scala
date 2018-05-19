@@ -9,7 +9,7 @@ import scala.util.Try
 class PgJson4sSupportTest {
   import scala.slick.driver.PostgresDriver
 
-  object MyPostgresDriver extends PostgresDriver
+  trait MyPostgresDriver extends PostgresDriver
                             with PgJson4sSupport
                             with array.PgArrayJdbcTypes {
     /// for json support
@@ -17,13 +17,16 @@ class PgJson4sSupportTest {
     type DOCType = text.Document
     override val jsonMethods = org.json4s.native.JsonMethods
 
-    override lazy val Implicit = new Implicits with JsonImplicits
-    override val simple = new Implicits with SimpleQL with JsonImplicits {
+    override lazy val Implicit = new Implicits with JsonImplicits {}
+    override val simple = new Simple {}
+
+    trait Simple extends Implicits with SimpleQL with JsonImplicits {
       implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
     }
 
-    val plainImplicits = new Implicits with Json4sJsonPlainImplicits
+    val plainImplicits = new Implicits with Json4sJsonPlainImplicits {}
   }
+  object MyPostgresDriver extends MyPostgresDriver
 
   ///
   import MyPostgresDriver.simple._

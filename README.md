@@ -21,7 +21,7 @@ Slick-pg
 - composite type (`basic`)
 
 
-** _tested on `PostgreSQL` `v9.4` with `Slick` `v2.1.0`._
+** _tested on `PostgreSQL` `v9.6` with `Slick` `v2.1.0`._
 
 
 Usage
@@ -124,7 +124,7 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.8.2"
+libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.8.6"
 ```
 
 
@@ -132,8 +132,8 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 ```xml
 <dependency>
     <groupId>com.github.tminglei</groupId>
-    <artifactId>slick-pg_2.10</artifactId>
-    <version>0.8.2</version>
+    <artifactId>slick-pg_2.12</artifactId>
+    <version>0.8.6</version>
 </dependency>
 ```
 

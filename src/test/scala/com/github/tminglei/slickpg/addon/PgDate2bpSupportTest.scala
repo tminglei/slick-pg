@@ -9,15 +9,16 @@ import scala.util.Try
 class PgDate2bpSupportTest {
   import scala.slick.driver.PostgresDriver
 
-  object MyPostgresDriver extends PostgresDriver
+  trait MyPostgresDriver extends PostgresDriver
                             with PgDateSupport2bp {
 
-    override lazy val Implicit = new Implicits with DateTimeImplicits
-    override val simple = new Implicits with SimpleQL with DateTimeImplicits
+    override lazy val Implicit = new Implicits with DateTimeImplicits {}
+    override val simple = new Implicits with SimpleQL with DateTimeImplicits {}
 
     ///
-    val plainImplicits = new Implicits with BpDateTimePlainImplicits
+    val plainImplicits = new Implicits with BpDateTimePlainImplicits {}
   }
+  object MyPostgresDriver extends MyPostgresDriver
 
   ///
   import MyPostgresDriver.simple._

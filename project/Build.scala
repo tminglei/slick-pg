@@ -7,10 +7,10 @@ object SlickPgBuild extends Build {
     organizationName := "slick-pg",
     organization := "com.github.tminglei",
     name := "slick-pg",
-    version := "0.8.5",
+    version := "0.8.6",
 
-    scalaVersion := "2.11.5",
-    crossScalaVersions := Seq("2.11.5", "2.10.4"),
+    scalaVersion := "2.12.6",
+    crossScalaVersions := Seq("2.12.6", "2.11.12", "2.10.7"),
     scalacOptions ++= Seq("-deprecation", "-feature",
       "-language:implicitConversions",
       "-language:reflectiveCalls",
@@ -61,7 +61,7 @@ object SlickPgBuild extends Build {
   def mainDependencies(scalaVersion: String) = {
     val extractedLibs = CrossVersion.partialVersion(scalaVersion) match {
       case Some((2, scalaMajor)) if scalaMajor >= 11 =>
-        Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.1" % "provided")
+        Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.0" % "provided")
       case _ =>
         Seq()
     }
@@ -82,21 +82,21 @@ object SlickPgBuild extends Build {
     )
   )
 
-  val json4sVersion = "3.2.10"
+  val json4sVersion = "3.2.11"
   lazy val slickPgProject = Project(id = "slick-pg", base = file("."),
     settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
       name := "slick-pg",
       description := "Slick extensions for PostgreSQL",
       libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-        "joda-time" % "joda-time" % "2.4" % "provided",
-        "org.joda" % "joda-convert" % "1.7" % "provided",
+        "joda-time" % "joda-time" % "2.9.9" % "provided",
+        "org.joda" % "joda-convert" % "2.0.1" % "provided",
         "org.threeten" % "threetenbp" % "1.0" % "provided",
         "org.json4s" %% "json4s-ast" % json4sVersion % "provided",
         "org.json4s" %% "json4s-core" % json4sVersion % "provided",
         "org.json4s" %% "json4s-native" % json4sVersion % "test",
-        "com.typesafe.play" %% "play-json" % "2.3.0" % "provided",
-        "io.spray" %%  "spray-json" % "1.3.1" % "provided",
-        "io.argonaut" %% "argonaut" % "6.0.4" % "provided",
+        "com.typesafe.play" %% "play-json" % "2.6.9" % "provided",
+        "io.spray" %%  "spray-json" % "1.3.4" % "provided",
+        "io.argonaut" %% "argonaut" % "6.2.1" % "provided",
         "com.vividsolutions" % "jts" % "1.13" % "provided"
       )
     )

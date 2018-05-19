@@ -17,7 +17,7 @@ class PgArraySupportTest {
   case class Institution(value: Long)
   case class MarketFinancialProduct(value: String)
 
-  object MyPostgresDriver1 extends PostgresDriver with PgArraySupport {
+  trait MyPostgresDriver1 extends PostgresDriver with PgArraySupport {
     override lazy val Implicit = new Implicits with ArrayImplicits with MyArrayImplicitsPlus {}
     override val simple = new SimpleQL with ArrayImplicits with MyArrayImplicitsPlus {}
 
@@ -34,6 +34,7 @@ class PgArraySupportTest {
         fromString(identity)(_).orNull, mkString(identity))
     }
   }
+  object MyPostgresDriver1 extends MyPostgresDriver1
 
   //////////////////////////////////////////////////////////////////////////
   import MyPostgresDriver1.simple._

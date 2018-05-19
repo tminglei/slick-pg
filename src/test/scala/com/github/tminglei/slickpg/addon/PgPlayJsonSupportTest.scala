@@ -9,18 +9,21 @@ import scala.util.Try
 class PgPlayJsonSupportTest {
   import scala.slick.driver.PostgresDriver
 
-  object MyPostgresDriver extends PostgresDriver
+  trait MyPostgresDriver extends PostgresDriver
                             with PgPlayJsonSupport
                             with array.PgArrayJdbcTypes {
     override val pgjson = "jsonb"
 
-    override lazy val Implicit = new Implicits with JsonImplicits
-    override val simple = new Implicits with SimpleQL with JsonImplicits {
+    override lazy val Implicit = new Implicits with JsonImplicits {}
+    override val simple = new Simple {}
+
+    trait Simple extends Implicits with SimpleQL with JsonImplicits {
       implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
     }
 
-    val plainImplicits = new Implicits with PlayJsonPlainImplicits
+    val plainImplicits = new Implicits with PlayJsonPlainImplicits {}
   }
+  object MyPostgresDriver extends MyPostgresDriver
 
   ///
   import MyPostgresDriver.simple._

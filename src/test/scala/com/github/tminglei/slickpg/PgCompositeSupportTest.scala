@@ -35,7 +35,7 @@ object PgCompositeSupportTest {
     ) extends Struct
 
   //-------------------------------------------------------------
-  object MyPostgresDriver1 extends PostgresDriver with PgCompositeSupport with PgArraySupport with utils.PgCommonJdbcTypes {
+  trait MyPostgresDriver1 extends PostgresDriver with PgCompositeSupport with PgArraySupport with utils.PgCommonJdbcTypes {
     override lazy val Implicit = new Implicits with ArrayImplicits with CompositeImplicits {}
     override val simple = new SimpleQL with ArrayImplicits with CompositeImplicits {}
 
@@ -87,6 +87,7 @@ object PgCompositeSupportTest {
       implicit val composite3ArrayOptSetParameter = createCompositeOptionArraySetParameter[Composite3]("composite3")
     }
   }
+  object MyPostgresDriver1 extends MyPostgresDriver1
 }
 
 ///
