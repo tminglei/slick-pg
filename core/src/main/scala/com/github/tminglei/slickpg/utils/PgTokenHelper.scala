@@ -283,7 +283,7 @@ object PgTokenHelper {
             // case: '"Word1 (Word2)", ...'
             if (stack.top.border.isInstanceOf[Marker] && stack.top.border.marker == m) {
               stack.top.tokens += Chunk(v)
-              val toBeMerged = GroupToken(stack.pop.tokens.toList.tail)
+              val toBeMerged = GroupToken(stack.pop.tokens.toList :+ Marker(m))
               stack.top.tokens += toBeMerged
             }
             // case: ',"}ttt...'

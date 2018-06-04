@@ -69,7 +69,7 @@ class PgPlayJsonSupportSuite extends FunSuite {
     JBean("tt", 3), List(JBean("tt", 3)))
   val testRec2 = JsonBean(35L, Json.parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """), List(Json.parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """)),
     JBean("t1", 5), List(JBean("t1", 5)))
-  val testRec3 = JsonBean(37L, Json.parse(""" {"user-agent": ["PF/02.8.77 (xyz)"]} """), Nil, JBean("tx", 7), Nil)
+  val testRec3 = JsonBean(37L, Json.parse(""" { "field": "PF/00.0.0 (abc.xyz abc os x.x.x)" } """), List(Json.parse(""" { "field": "PF/00.0.0 (abc.xyz abc os x.x.x)" } """)), JBean("tx", 7), Nil)
 
 
   test("Play json Lifted support") {
