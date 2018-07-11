@@ -229,10 +229,12 @@ object PgTokenHelper {
           }
         }
         // mark + escape + mark
-        case Marker(m) if ((tokens(i-1) == Comma || tokens(i-1).isInstanceOf[Open])
-                        && (tokens(i+1) == Comma || tokens(i+1).isInstanceOf[Close])) => {
+        case t @ Marker(m) if ((tokens(i-1) == Comma || tokens(i-1).isInstanceOf[Open])
+                            && (tokens(i+1) == Comma || tokens(i+1).isInstanceOf[Close])) => {
           val topMarker = stack.top.border.marker
-          if ((m.length > topMarker.length * 2) && m.startsWith(topMarker) && m.endsWith(topMarker)) {
+          if (topMarker == "") {
+            stack.push(WorkingGroup(t, stack.top.level +1))
+          } else if ((m.length > topMarker.length * 2) && m.startsWith(topMarker) && m.endsWith(topMarker)) {
             stack.top.tokens += Escape(m.substring(topMarker.length -1, m.length -topMarker.length))
           } else stack.top.tokens += Escape(m)
         }
