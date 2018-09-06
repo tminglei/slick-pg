@@ -56,11 +56,11 @@ class PgJson4sSupportSuite extends FunSuite {
   //------------------------------------------------------------------------------
 
   val testRec1 = JsonBean(33L, parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """), List(parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """)))
-  val testRec2 = JsonBean(35L, parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """), List(parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """)))
+  val testRec2 = JsonBean(35L, parse(""" [ {"a":"v\\n1","b":2}, {"a":"v5","b":3} ] """), List(parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """)))
   val testRec3 = JsonBean(37L, parse(""" ["a", "b"] """), List(parse("{\"level\":\"DAILY_LEVEL\",\"start\":{\"year\":2013,\"month\":1,\"day\":1},\"end\":{\"year\":2016,\"month\":1,\"day\":1}}")))
 
   test("Json4s Lifted support") {
-    val json1 = parse(""" {"a":"v1","b":2} """)
+    val json1 = parse(""" {"a":"v\\n1","b":2} """)
     val json2 = parse(""" {"a":"v5","b":3} """)
 
     Await.result(db.run(
