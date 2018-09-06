@@ -67,13 +67,13 @@ class PgPlayJsonSupportSuite extends FunSuite {
 
   val testRec1 = JsonBean(33L, Json.parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """), List(Json.parse(""" { "a":101, "b":"", "c":[3,4,5,9] } """)),
     JBean("tt", 3), List(JBean("tt", 3)))
-  val testRec2 = JsonBean(35L, Json.parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """), List(Json.parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """)),
+  val testRec2 = JsonBean(35L, Json.parse(""" [ {"title":"hello\nworld","b":2}, {"a":"v5","b":3} ] """), List(Json.parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """)),
     JBean("t1", 5), List(JBean("t1", 5)))
   val testRec3 = JsonBean(37L, Json.parse(""" { "field": "PF/00.0.0 (abc.xyz abc os x.x.x)" } """), List(Json.parse(""" { "field": "PF/00.0.0 (abc.xyz abc os x.x.x)" } """)), JBean("tx", 7), Nil)
 
 
   test("Play json Lifted support") {
-    val json1 = Json.parse(""" {"a":"v1","b":2} """)
+    val json1 = Json.parse(""" {"b":2,"title":"hello\nworld"} """)
     val json2 = Json.parse(""" {"a":"v5","b":3} """)
 
     // Unicode testing
