@@ -18,7 +18,7 @@ lazy val sharedSettings = Seq(
   scalacOptions := Seq("-feature", "-unchecked", "-deprecation"),
   libraryDependencies ++= List(
     "com.typesafe.slick" %% "slick" % "3.2.3",
-    "org.postgresql" % "postgresql" % "42.2.2",
+    "org.postgresql" % "postgresql" % "42.2.5",
     "com.github.tminglei" %% "slick-pg" % "0.16.0",
     "com.github.tminglei" %% "slick-pg_play-json" % "0.16.0",
     "com.github.tminglei" %% "slick-pg_joda-time" % "0.16.0",
