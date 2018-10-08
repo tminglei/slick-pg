@@ -14,7 +14,7 @@ lazy val codegen = project
 
 // shared sbt config between main project and codegen project
 lazy val sharedSettings = Seq(
-  scalaVersion := "2.12.5",
+  scalaVersion := "2.12.7",
   scalacOptions := Seq("-feature", "-unchecked", "-deprecation"),
   libraryDependencies ++= List(
     "com.typesafe.slick" %% "slick" % "3.2.3",
