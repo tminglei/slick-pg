@@ -4,8 +4,8 @@ lazy val commonSettings = Seq(
   name := "slick-pg",
   version := "0.16.3",
 
-  scalaVersion := "2.12.6",
-  crossScalaVersions := Seq("2.12.6", "2.11.12"),
+  scalaVersion := "2.12.7",
+  crossScalaVersions := Seq("2.12.7", "2.11.12"),
   scalacOptions ++= Seq("-deprecation", "-feature",
     "-language:implicitConversions",
     "-language:reflectiveCalls",
@@ -63,7 +63,7 @@ def mainDependencies(scalaVersion: String) = {
   Seq (
     "org.scala-lang" % "scala-reflect" % scalaVersion,
     "com.typesafe.slick" %% "slick" % "3.2.3",
-    "org.postgresql" % "postgresql" % "42.2.2",
+    "org.postgresql" % "postgresql" % "42.2.5",
     "org.slf4j" % "slf4j-simple" % "1.7.24" % "provided",
     "org.scalatest" %% "scalatest" % "3.0.4" % "test"
   ) ++ extractedLibs
@@ -144,9 +144,9 @@ lazy val slickPgCirceJson = Project(id = "slick-pg_circe-json", base = file("./a
     name := "slick-pg_circe-json",
     description := "Slick extensions for PostgreSQL - circe module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "io.circe" %% "circe-core" % "0.9.3",
-      "io.circe" %% "circe-generic" % "0.9.3",
-      "io.circe" %% "circe-parser" % "0.9.3"
+      "io.circe" %% "circe-core" % "0.10.0",
+      "io.circe" %% "circe-generic" % "0.10.0",
+      "io.circe" %% "circe-parser" % "0.10.0"
     )
   )
 ) dependsOn (slickPgCore)

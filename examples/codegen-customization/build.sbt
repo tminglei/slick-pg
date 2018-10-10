@@ -14,11 +14,11 @@ lazy val codegen = project
 
 // shared sbt config between main project and codegen project
 lazy val sharedSettings = Seq(
-  scalaVersion := "2.12.5",
+  scalaVersion := "2.12.7",
   scalacOptions := Seq("-feature", "-unchecked", "-deprecation"),
   libraryDependencies ++= List(
     "com.typesafe.slick" %% "slick" % "3.2.3",
-    "org.postgresql" % "postgresql" % "42.2.2",
+    "org.postgresql" % "postgresql" % "42.2.5",
     "com.github.tminglei" %% "slick-pg" % "0.16.0",
     "com.github.tminglei" %% "slick-pg_play-json" % "0.16.0",
     "com.github.tminglei" %% "slick-pg_joda-time" % "0.16.0",
