@@ -7,45 +7,48 @@ import slick.jdbc.{PositionedResult, PostgresProfile}
 
 trait PgCompositeSupport extends utils.PgCommonJdbcTypes with array.PgArrayJdbcTypes { driver: PostgresProfile =>
 
+  protected lazy val emptyMembersAsNull = true
+
+  //---
   def createCompositeJdbcType[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
-    val util = new PgCompositeSupportUtils(cl)
+    val util = new PgCompositeSupportUtils(cl, emptyMembersAsNull)
     new GenericJdbcType[T](sqlTypeName, util.mkCompositeFromString[T], util.mkStringFromComposite[T])
   }
 
   def createCompositeArrayJdbcType[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
-    val util = new PgCompositeSupportUtils(cl)
+    val util = new PgCompositeSupportUtils(cl, emptyMembersAsNull)
     new AdvancedArrayJdbcType[T](sqlTypeName, util.mkCompositeSeqFromString[T], util.mkStringFromCompositeSeq[T])
   }
 
   /// Plain SQL support
   def nextComposite[T <: Struct](r: PositionedResult, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
-    val util = new PgCompositeSupportUtils(cl)
+    val util = new PgCompositeSupportUtils(cl, emptyMembersAsNull)
     r.nextStringOption().map(util.mkCompositeFromString[T])
   }
   def nextCompositeArray[T <: Struct](r: PositionedResult, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
-    val util = new PgCompositeSupportUtils(cl)
+    val util = new PgCompositeSupportUtils(cl, emptyMembersAsNull)
     r.nextStringOption().map(util.mkCompositeSeqFromString[T])
   }
 
   def createCompositeSetParameter[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
-    val util = new PgCompositeSupportUtils(cl)
+    val util = new PgCompositeSupportUtils(cl, emptyMembersAsNull)
     utils.PlainSQLUtils.mkSetParameter[T](sqlTypeName, util.mkStringFromComposite[T])
   }
   def createCompositeOptionSetParameter[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
-    val util = new PgCompositeSupportUtils(cl)
+    val util = new PgCompositeSupportUtils(cl, emptyMembersAsNull)
     utils.PlainSQLUtils.mkOptionSetParameter[T](sqlTypeName, util.mkStringFromComposite[T])
   }
   def createCompositeArraySetParameter[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
-    val util = new PgCompositeSupportUtils(cl)
+    val util = new PgCompositeSupportUtils(cl, emptyMembersAsNull)
     utils.PlainSQLUtils.mkArraySetParameter[T](sqlTypeName, seqToStr = Some(util.mkStringFromCompositeSeq[T]))
   }
   def createCompositeOptionArraySetParameter[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
-    val util = new PgCompositeSupportUtils(cl)
+    val util = new PgCompositeSupportUtils(cl, emptyMembersAsNull)
     utils.PlainSQLUtils.mkArrayOptionSetParameter[T](sqlTypeName, seqToStr = Some(util.mkStringFromCompositeSeq[T]))
   }
 }
 
-class PgCompositeSupportUtils(cl: ClassLoader) {
+class PgCompositeSupportUtils(cl: ClassLoader, emptyMembersAsNull: Boolean) {
   import utils.PgTokenHelper._
   import utils.TypeConverters._
 
@@ -144,8 +147,15 @@ class PgCompositeSupportUtils(cl: ClassLoader) {
   }
 
   case class OptionConverter(delegate: TokenConverter) extends TokenConverter {
+
+    private def isNull(token: Token): Boolean = token match {
+      case g @ GroupToken(_) if emptyMembersAsNull => getChildren(g).forall(isNull)
+      case Null => true
+      case _ => false
+    }
+
     def fromToken(token: Token): Any =
-      if (token == Null) None else Some(delegate.fromToken(token))
+      if (isNull(token)) None else Some(delegate.fromToken(token))
     def toToken(value: Any): Token = value match {
       case Some(v) => delegate.toToken(v)
       case None => Null
@@ -167,4 +177,4 @@ class PgCompositeSupportUtils(cl: ClassLoader) {
   }
 }
 
-object PgCompositeSupportUtils extends PgCompositeSupportUtils(getClass.getClassLoader)
+object PgCompositeSupportUtils extends PgCompositeSupportUtils(getClass.getClassLoader, true)
