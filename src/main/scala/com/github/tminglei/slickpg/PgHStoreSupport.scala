@@ -1,6 +1,6 @@
 package com.github.tminglei.slickpg
 
-import scala.collection.convert.{WrapAsJava, WrapAsScala}
+import scala.collection.JavaConverters
 import org.postgresql.util.HStoreConverter
 import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
 import scala.reflect.classTag
@@ -22,8 +22,8 @@ trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcT
     implicit val simpleHStoreTypeMapper: JdbcType[Map[String, String]] =
       new GenericJdbcType[Map[String, String]](
         "hstore",
-        (v) => WrapAsScala.mapAsScalaMap(HStoreConverter.fromString(v).asInstanceOf[java.util.Map[String, String]]).toMap,
-        (v) => HStoreConverter.toString(WrapAsJava.mapAsJavaMap(v)),
+        (v) => JavaConverters.mapAsScalaMap(HStoreConverter.fromString(v).asInstanceOf[java.util.Map[String, String]]).toMap,
+        (v) => HStoreConverter.toString(JavaConverters.mapAsJavaMap(v)),
         hasLiteralForm = false
       )
 
@@ -42,7 +42,7 @@ trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcT
     implicit class PgHStorePositionedResult(r: PositionedResult) {
       def nextHStore() = nextHStoreOption().getOrElse(Map.empty)
       def nextHStoreOption() = r.nextStringOption().map { v =>
-        WrapAsScala.mapAsScalaMap(HStoreConverter.fromString(v).asInstanceOf[java.util.Map[String, String]]).toMap
+        JavaConverters.mapAsScalaMap(HStoreConverter.fromString(v).asInstanceOf[java.util.Map[String, String]]).toMap
       }
     }
 
@@ -50,8 +50,8 @@ trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcT
     implicit val getHStore = mkGetResult(_.nextHStore())
     implicit val getHStoreOption = mkGetResult(_.nextHStoreOption())
     implicit val setHStore = mkSetParameter[Map[String, String]]("hstore",
-      (v) => HStoreConverter.toString(WrapAsJava.mapAsJavaMap(v)))
+      (v) => HStoreConverter.toString(JavaConverters.mapAsJavaMap(v)))
     implicit val setHStoreOption = mkOptionSetParameter[Map[String, String]]("hstore",
-      (v) => HStoreConverter.toString(WrapAsJava.mapAsJavaMap(v)))
+      (v) => HStoreConverter.toString(JavaConverters.mapAsJavaMap(v)))
   }
 }
