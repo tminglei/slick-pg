@@ -1,5 +1,6 @@
 package com.github.tminglei.slickpg.utils
 
+import java.util.concurrent.atomic.AtomicReference
 import scala.collection.mutable.{ListBuffer, Stack}
 
 object PgTokenHelper {
@@ -170,56 +171,71 @@ object PgTokenHelper {
         case other  => other
       }
 
-    def checkDiggable(wg: WorkingGroup, token: Token, tails: List[Token]): (Boolean, Open, Marker, Escape, List[Token]) = {
+    def isDiggable(wg: WorkingGroup, token: Token, tails: List[Token],
+            resultRef: AtomicReference[(Open, Marker, Escape, List[Token])]): Boolean = {
       val mLength = math.pow(2, wg.level).toInt
       token match {
         case open @ Open(_) if !wg.isInChunk() =>
-          (true, open, Marker(""), null, tails)
+          resultRef.set((open, Marker(""), null, tails))
+          true
         case marker @ Marker(m) if !wg.isInChunk() && (m.length >= mLength && (m.length / mLength) % 2 == 1) =>
           if (m.length == mLength) {
             tails match {
-              case (open @ Open(_)) :: tail => (true, open, marker, null, tail)
-              case _  =>  (true, null, marker, null, tails)
+              case (open @ Open(_)) :: tail =>
+                resultRef.set((open, marker, null, tail))
+                true
+              case _  =>
+                resultRef.set((null, marker, null, tails))
+                true
             }
           } else {
             val mStr = m.substring(0, mLength)
             val eStr = m.substring(mLength)
-            (true, null, Marker(mStr), Escape(eStr), tails)
+            resultRef.set((null, Marker(mStr), Escape(eStr), tails))
+            true
           }
-        case _ => (false, null, null, null, token :: tails)
+        case _ => false
       }
     }
 
-    def checkClosable(wg: WorkingGroup, token: Token, tails: List[Token]): (Boolean, Close, Marker, Escape, List[Token]) = {
-      val mLength = wg.marker.value.length
-      token match {
-        case close @ Close(_) if !wg.isInChunk() && isCompatible(wg.open, close) =>
-          if (wg.marker.value.nonEmpty && (tails.nonEmpty && wg.marker.value == tails.head.value))
-            (true, close, Marker(tails.head.value), null, tails.tail)
-          else if (wg.marker.value.isEmpty)
-            (true, close, Marker(""), null, tails)
-          else
-            (false, null, null, null, token :: tails)
-        case marker @ Marker(m) if /*wg.isInChunk()*/ mLength > 0 && (m.length >= mLength && (m.length / mLength) % 2 == 1) =>
-          val escaped = if (m.length > mLength) Escape(m.substring(0, m.length - mLength)) else null
-          val nMarker = if (m.length > mLength) Marker(m.substring(m.length - mLength)) else marker
-          (true, null, nMarker, escaped, tails)
-        case _ => (false, null, null, null, token :: tails)
-      }
-    }
+    def isClosable(stack: Stack[WorkingGroup], token: Token, tail: List[Token],
+            resultRef: AtomicReference[(Close, Marker, Escape, Int, List[Token])]): Boolean = {
 
-    def findClosable(stack: Stack[WorkingGroup], token: Token, tail: List[Token]): (Boolean, Close, Marker, Escape, Int, List[Token]) = {
-      if (token.isInstanceOf[Close] || token.isInstanceOf[Marker]) {
-        for (i <- 0 until stack.length ) {
-          val (closable, close, marker, escaped, tails) = checkClosable(stack(i), token, tail)
-          if (closable)
-            return (true, close, marker, escaped, i, tails)
+      def checkClosable(wg: WorkingGroup, i: Int, token: Token, tails: List[Token]): Boolean = {
+        val mLength = wg.marker.value.length
+        token match {
+          case close @ Close(_) if !wg.isInChunk() && isCompatible(wg.open, close) =>
+            if (wg.marker.value.nonEmpty && (tails.nonEmpty && wg.marker.value == tails.head.value)) {
+              resultRef.set((close, Marker(tails.head.value), null, i, tails.tail))
+              true
+            } else if (wg.marker.value.isEmpty) {
+              resultRef.set((close, Marker(""), null, i, tails))
+              true
+            } else false
+          case marker @ Marker(m) if /*wg.isInChunk()*/ mLength > 0 && (m.length >= mLength && (m.length / mLength) % 2 == 1) =>
+            val escaped = if (m.length > mLength) Escape(m.substring(0, m.length - mLength)) else null
+            val nMarker = if (m.length > mLength) Marker(m.substring(m.length - mLength)) else marker
+            resultRef.set((null, nMarker, escaped, i, tails))
+            true
+          case _ => false
         }
       }
-      (false, null, null, null, -1, token :: tail)
+
+      //
+      if (token.isInstanceOf[Close] || token.isInstanceOf[Marker]) {
+        for (i <- 0 until stack.length ) {
+          val closable = checkClosable(stack(i), i, token, tail)
+          if (closable) {
+            return true
+          }
+        }
+      }
+      false
     }
 
     def groupForward(stack: Stack[WorkingGroup], tokens: List[Token]): Unit = {
+      val diggResultRef  = new AtomicReference[(Open, Marker, Escape, List[Token])]()
+      val closeResultRef = new AtomicReference[(Close, Marker, Escape, Int, List[Token])]()
       val mLength = math.pow(2, stack.top.level).toInt
       tokens match {
         // for empty string
@@ -227,36 +243,44 @@ object PgTokenHelper {
           val m2 = m.substring(0, m.length / 2)
           stack.top.tokens += GroupToken(List(Marker(m2), Chunk(""), Marker(m2)))
           groupForward(stack, tail)
+
         // for null value: '..,,..' / '..,)'
         case Comma :: sep2 :: tail if !stack.top.isInChunk() && (sep2 == Comma || sep2.isInstanceOf[Close]) =>
           stack.top.tokens += Comma += Null
           groupForward(stack, sep2 :: tail)
+
         // for diggable
-        case (head: Border) :: tail if !head.isInstanceOf[Close] && checkDiggable(stack.top, head, tail)._1 =>
-          val (_, open, marker, escaped, tails) = checkDiggable(stack.top, head, tail)
+        case (head: Border) :: tail if isDiggable(stack.top, head, tail, diggResultRef) =>
+          val (open, marker, escaped, tails) = diggResultRef.get()
           val level = if (marker.value.isEmpty) stack.top.level else stack.top.level +1 // keep level if marker is empty
-        val newWorkingGroup = WorkingGroup(open, marker, level)
+
+          val newWorkingGroup = WorkingGroup(open, marker, level)
           newWorkingGroup.tokens += marker += open += escaped // open and escaped can't be non-empty at same time.
-          if (open != null && (tails.nonEmpty && tails.head == Comma))  // for null value: '\"(,..'
+          // fill in null value for case '\"(,..'
+          if (open != null && (tails.nonEmpty && tails.head == Comma))
             newWorkingGroup.tokens += Null
+
           stack.push(newWorkingGroup)
           groupForward(stack, tails)
+
         // for closable
-        case (head: Border) :: tail if !head.isInstanceOf[Open] && findClosable(stack, head, tail)._1 =>
-          val (_, close, marker, escaped, sIndex, tails) = findClosable(stack, head, tail)
+        case (head: Border) :: tail if isClosable(stack, head, tail, closeResultRef) =>
+          val (close, marker, escaped, sIndex, tails) = closeResultRef.get()
           // merge wrong digged group
           for (_ <- 0 until sIndex -1) {
             stack.top.tokens ++= stack.pop().tokens.map(toContentToken)
           }
 
           stack.top.tokens += escaped += close += marker  // close and escaped can't be non-empty at same time.
-        val toBeMerged = GroupToken(stack.pop().tokens.toList.filterNot(_ == null))
+          val toBeMerged = GroupToken(stack.pop().tokens.toList.filterNot(_ == null))
           stack.top.tokens += toBeMerged
           groupForward(stack, tails)
+
         // for normal tokens
         case head :: tail =>
           stack.top.tokens += toContentToken(head)
           groupForward(stack, tail)
+
         // for end back
         case Nil  => // do nothing
       }
