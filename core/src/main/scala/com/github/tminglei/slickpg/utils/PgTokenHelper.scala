@@ -173,7 +173,7 @@ object PgTokenHelper {
     def checkDiggable(wg: WorkingGroup, token: Token, tails: List[Token]): (Boolean, Open, Marker, Escape, List[Token]) = {
       val mLength = math.pow(2, wg.level).toInt
       token match {
-        case open @ Open(_) if (!wg.isInChunk() || wg.level <= 0) =>
+        case open @ Open(_) if !wg.isInChunk() =>
           (true, open, Marker(""), null, tails)
         case marker @ Marker(m) if !wg.isInChunk() && (m.length >= mLength && (m.length / mLength) % 2 == 1) =>
           if (m.length == mLength) {
@@ -191,7 +191,7 @@ object PgTokenHelper {
     }
 
     def checkClosable(wg: WorkingGroup, token: Token, tails: List[Token]): (Boolean, Close, Marker, Escape, List[Token]) = {
-      val mLength = math.pow(2, wg.level -1).toInt
+      val mLength = wg.marker.value.length
       token match {
         case close @ Close(_) if !wg.isInChunk() && isCompatible(wg.open, close) =>
           if (wg.marker.value.nonEmpty && (tails.nonEmpty && wg.marker.value == tails.head.value))
@@ -200,7 +200,7 @@ object PgTokenHelper {
             (true, close, Marker(""), null, tails)
           else
             (false, null, null, null, token :: tails)
-        case marker @ Marker(m) if /*wg.isInChunk()*/ wg.level > 0 && (m.length >= mLength && (m.length / mLength) % 2 == 1) =>
+        case marker @ Marker(m) if /*wg.isInChunk()*/ mLength > 0 && (m.length >= mLength && (m.length / mLength) % 2 == 1) =>
           val escaped = if (m.length > mLength) Escape(m.substring(0, m.length - mLength)) else null
           val nMarker = if (m.length > mLength) Marker(m.substring(m.length - mLength)) else marker
           (true, null, nMarker, escaped, tails)
