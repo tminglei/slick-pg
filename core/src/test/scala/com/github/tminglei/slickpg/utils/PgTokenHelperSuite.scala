@@ -10,32 +10,36 @@ class PgTokenHelperSuite extends FunSuite {
     val input = """{"(201,\"(101,\"\"(test1'\"\",\"\"2001-01-03 13:21:00\"\",\"\"[\"\"\"\"2010-01-01 14:30:00\"\"\"\",\"\"\"\"2010-01-03 15:30:00\"\"\"\")\"\")\",t)"}"""
     val tokens = Tokenizer.tokenize(input)
 
-    val expected = Open("{") +: Open("(","\"") +: Chunk("201") +: Comma +: Open("(","\\\"") +: Chunk("101") +: Comma +: Open("(","\\\"\\\"") +: Chunk("test1'") +: Marker("\\\"\\\"") +:
-      Comma +: Marker("\\\"\\\"") +: Chunk("2001-01-03 13:21:00") +: Marker("\\\"\\\"") +: Comma +: Open("[","\\\"\\\"") +: Marker("\\\"\\\"\\\"\\\"") +: Chunk("2010-01-01 14:30:00") +: Marker("\\\"\\\"\\\"\\\"") +:
-      Comma +: Marker("\\\"\\\"\\\"\\\"") +: Chunk("2010-01-03 15:30:00") +: Marker("\\\"\\\"\\\"\\\"") +: Close(")","\\\"\\\"") +: Close(")","\\\"") +: Comma +: Chunk("t") +: Close(")","\"") +: Close("}") +: Nil
+    val expected = Open("{") +: Marker("\"") +: Open("(") +: Chunk("201") +: Comma +: Marker("\\\"") +: Open("(") +: Chunk("101") +: Comma +: Marker("\\\"\\\"") +: Open("(") +: Chunk("test1'") +: Marker("\\\"\\\"") +:
+      Comma +: Marker("\\\"\\\"") +: Chunk("2001-01-03 13:21:00") +: Marker("\\\"\\\"") +: Comma +: Marker("\\\"\\\"") +: Open("[") +: Marker("\\\"\\\"\\\"\\\"") +: Chunk("2010-01-01 14:30:00") +: Marker("\\\"\\\"\\\"\\\"") +:
+      Comma +: Marker("\\\"\\\"\\\"\\\"") +: Chunk("2010-01-03 15:30:00") +: Marker("\\\"\\\"\\\"\\\"") +: Close(")") +: Marker("\\\"\\\"") +: Close(")") +: Marker("\\\"") +: Comma +: Chunk("t") +: Close(")") +: Marker("\"") +: Close("}") +: Nil
 
-    assert(expected === tokens)
+    assert(tokens === expected)
   }
 
   test("grouping") {
-    val tokens = Open("{") +: Open("(","\"") +: Chunk("201") +: Comma +: Open("(","\\\"") +: Chunk("101") +: Comma +: Open("(","\\\"\\\"") +: Chunk("test1'") +: Marker("\\\"\\\"") +:
-      Comma +: Marker("\\\"\\\"") +: Chunk("2001-01-03 13:21:00") +: Marker("\\\"\\\"") +: Comma +: Open("[","\\\"\\\"") +: Marker("\\\"\\\"\\\"\\\"") +: Chunk("2010-01-01 14:30:00") +: Marker("\\\"\\\"\\\"\\\"") +:
-      Comma +: Marker("\\\"\\\"\\\"\\\"") +: Chunk("2010-01-03 15:30:00") +: Marker("\\\"\\\"\\\"\\\"") +: Close(")","\\\"\\\"") +: Close(")","\\\"") +: Comma +: Chunk("t") +: Close(")","\"") +: Close("}") +: Nil
+    val tokens = Open("{") +: Marker("\"") +: Open("(") +: Chunk("201") +: Comma +: Marker("\\\"") +: Open("(") +: Chunk("101") +: Comma +: Marker("\\\"\\\"") +: Open("(") +: Chunk("test1'") +: Marker("\\\"\\\"") +:
+      Comma +: Marker("\\\"\\\"") +: Chunk("2001-01-03 13:21:00") +: Marker("\\\"\\\"") +: Comma +: Marker("\\\"\\\"") +: Open("[") +: Marker("\\\"\\\"\\\"\\\"") +: Chunk("2010-01-01 14:30:00") +: Marker("\\\"\\\"\\\"\\\"") +:
+      Comma +: Marker("\\\"\\\"\\\"\\\"") +: Chunk("2010-01-03 15:30:00") +: Marker("\\\"\\\"\\\"\\\"") +: Close(")") +: Marker("\\\"\\\"") +: Close(")") +: Marker("\\\"") +: Comma +: Chunk("t") +: Close(")") +: Marker("\"") +: Close("}") +: Nil
     val root = grouping(tokens)
 
     val expected =
       GroupToken(List(
+        Marker(""),
         Open("{"),
         GroupToken(List(
-          Open("(","\""),
+          Marker("\""),
+          Open("("),
           Chunk("201"),
           Comma,
           GroupToken(List(
-            Open("(","\\\""),
+            Marker("\\\""),
+            Open("("),
             Chunk("101"),
             Comma,
             GroupToken(List(
-              Open("(","\\\"\\\""),
+              Marker("\\\"\\\""),
+              Open("("),
               Chunk("test1'"),
               Marker("\\\"\\\"")
             )),
@@ -47,7 +51,8 @@ class PgTokenHelperSuite extends FunSuite {
             )),
             Comma,
             GroupToken(List(
-              Open("[","\\\"\\\""),
+              Marker("\\\"\\\""),
+              Open("["),
               GroupToken(List(
                 Marker("\\\"\\\"\\\"\\\""),
                 Chunk("2010-01-01 14:30:00"),
@@ -59,27 +64,34 @@ class PgTokenHelperSuite extends FunSuite {
                 Chunk("2010-01-03 15:30:00"),
                 Marker("\\\"\\\"\\\"\\\"")
               )),
-              Close(")","\\\"\\\"")
+              Close(")"),
+              Marker("\\\"\\\"")
             )),
-            Close(")","\\\"")
+            Close(")"),
+            Marker("\\\"")
           )),
           Comma,
           Chunk("t"),
-          Close(")","\"")
+          Close(")"),
+          Marker("\"")
         )),
-        Close("}")
+        Close("}"),
+        Marker("")
       ))
 
-    assert(expected === root)
+    assert(root === expected)
 
     val root1 = grouping(Tokenizer.tokenize("""{"(\"(test1'\",,,)"}"""))
     val expected1 =
       GroupToken(List(
+        Marker(""),
         Open("{"),
         GroupToken(List(
-          Open("(", marker = "\""),
+          Marker("\""),
+          Open("("),
           GroupToken(List(
-            Open("(", marker = "\\\""),
+            Marker("\\\""),
+            Open("("),
             Chunk("test1'"),
             Marker("\\\"")
           )),
@@ -89,18 +101,22 @@ class PgTokenHelperSuite extends FunSuite {
           Null,
           Comma,
           Null,
-          Close(")", marker = "\"")
+          Close(")"),
+          Marker("\"")
         )),
-        Close("}")
+        Close("}"),
+        Marker("")
       ))
-    assert(expected1 === root1)
+    assert(root1 === expected1)
 
     val root2 = grouping(Tokenizer.tokenize(("""{"(,102,,)"}""")))
     val expected2 =
       GroupToken(List(
+        Marker(""),
         Open("{"),
         GroupToken(List(
-          Open("(", marker = "\""),
+          Marker("\""),
+          Open("("),
           Null,
           Comma,
           Chunk("102"),
@@ -108,18 +124,22 @@ class PgTokenHelperSuite extends FunSuite {
           Null,
           Comma,
           Null,
-          Close(")", marker = "\"")
+          Close(")"),
+          Marker("\"")
         )),
-        Close("}")
+        Close("}"),
+        Marker("")
       ))
-    assert(expected2 === root2)
+    assert(root2 === expected2)
 
     val root3 = grouping(Tokenizer.tokenize("""{"(,,,)"}"""))
     val expected3 =
       GroupToken(List(
+        Marker(""),
         Open("{"),
         GroupToken(List(
-          Open("(", marker = "\""),
+          Marker("\""),
+          Open("("),
           Null,
           Comma,
           Null,
@@ -127,17 +147,20 @@ class PgTokenHelperSuite extends FunSuite {
           Null,
           Comma,
           Null,
-          Close(")", marker = "\"")
+          Close(")"),
+          Marker("\"")
         )),
-        Close("}")
+        Close("}"),
+        Marker("")
       ))
-    assert(expected3 === root3)
+    assert(root3 === expected3)
   }
 
   test("get string") {
     val input =
       GroupToken(List(
-        Open("[","\\\"\\\""),
+        Marker("\\\"\\\""),
+        Open("["),
         GroupToken(List(
           Marker("\\\"\\\"\\\"\\\""),
           Chunk("2010-01-01 14:30:00"),
@@ -149,18 +172,20 @@ class PgTokenHelperSuite extends FunSuite {
           Chunk("2010-01-03 15:30:00"),
           Marker("\\\"\\\"\\\"\\\"")
         )),
-        Close(")","\\\"\\\"")
+        Close(")"),
+        Marker("\\\"\\\"")
       ))
     val rangeStr = getString(input, 2)
 
     val expected = """["2010-01-01 14:30:00","2010-01-03 15:30:00")"""
-    assert(expected === rangeStr)
+    assert(rangeStr === expected)
   }
 
   test("get children") {
     val input =
       GroupToken(List(
-        Open("[","\\\"\\\""),
+        Marker("\\\"\\\""),
+        Open("["),
         GroupToken(List(
           Marker("\\\"\\\"\\\"\\\""),
           Chunk("2010-01-01 14:30:00"),
@@ -172,7 +197,8 @@ class PgTokenHelperSuite extends FunSuite {
           Chunk("2010-01-03 15:30:00"),
           Marker("\\\"\\\"\\\"\\\"")
         )),
-        Close(")","\\\"\\\"")
+        Close(")"),
+        Marker("\\\"\\\"")
       ))
     val children = getChildren(input)
 
@@ -190,7 +216,7 @@ class PgTokenHelperSuite extends FunSuite {
         ))
       )
 
-    assert(expected === children)
+    assert(children === expected)
   }
 
   test("create string") {
@@ -198,13 +224,16 @@ class PgTokenHelperSuite extends FunSuite {
       GroupToken(List(
         Open("{"),
         GroupToken(List(
-          Open("(","\""),
+          Marker("\""),
+          Open("("),
           Chunk("201"),
           GroupToken(List(
-            Open("(","\\\""),
+            Marker("\\\""),
+            Open("("),
             Chunk("101"),
             GroupToken(List(
-              Open("(","\\\"\\\""),
+              Marker("\\\"\\\""),
+              Open("("),
               Chunk("test1'"),
               Marker("\\\"\\\"")
             )),
@@ -214,7 +243,8 @@ class PgTokenHelperSuite extends FunSuite {
               Marker("\\\"\\\"")
             )),
             GroupToken(List(
-              Open("[","\\\"\\\""),
+              Marker("\\\"\\\""),
+              Open("["),
               GroupToken(List(
                 Marker("\\\"\\\"\\\"\\\""),
                 Chunk("2010-01-01 14:30:00"),
@@ -225,12 +255,15 @@ class PgTokenHelperSuite extends FunSuite {
                 Chunk("2010-01-03 15:30:00"),
                 Marker("\\\"\\\"\\\"\\\"")
               )),
-              Close(")","\\\"\\\"")
+              Close(")"),
+              Marker("\\\"\\\"")
             )),
-            Close(")","\\\"")
+            Close(")"),
+            Marker("\\\"")
           )),
           Chunk("t"),
-          Close(")","\"")
+          Close(")"),
+          Marker("\"")
         )),
         Close("}")
       ))
@@ -243,13 +276,16 @@ class PgTokenHelperSuite extends FunSuite {
     ///
     val input1 =
       GroupToken(List(
-        Open("(","\""),
+        Marker("\""),
+        Open("("),
         Chunk("201"),
         GroupToken(List(
-          Open("(","\\\""),
+          Marker("\\\""),
+          Open("("),
           Chunk("101"),
           GroupToken(List(
-            Open("(","\\\"\\\""),
+            Marker("\\\"\\\""),
+            Open("("),
             Chunk("test1'"),
             Marker("\\\"\\\"")
           )),
@@ -259,7 +295,8 @@ class PgTokenHelperSuite extends FunSuite {
             Marker("\\\"\\\"")
           )),
           GroupToken(List(
-            Open("[","\\\"\\\""),
+            Marker("\\\"\\\""),
+            Open("["),
             GroupToken(List(
               Marker("\\\"\\\"\\\"\\\""),
               Chunk("2010-01-01 14:30:00"),
@@ -270,12 +307,15 @@ class PgTokenHelperSuite extends FunSuite {
               Chunk("2010-01-03 15:30:00"),
               Marker("\\\"\\\"\\\"\\\"")
             )),
-            Close(")","\\\"\\\"")
+            Close(")"),
+            Marker("\\\"\\\"")
           )),
-          Close(")","\\\"")
+          Close(")"),
+          Marker("\\\"")
         )),
         Chunk("t"),
-        Close(")","\"")
+        Close(")"),
+        Marker("\"")
       ))
     val pgStr1 = createString(input1)
 

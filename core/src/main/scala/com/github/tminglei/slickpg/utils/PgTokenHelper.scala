@@ -1,10 +1,6 @@
-package com.github.tminglei.slickpg
-package utils
+package com.github.tminglei.slickpg.utils
 
-import scala.util.parsing.combinator.RegexParsers
-import scala.util.parsing.input.CharSequenceReader
-import scala.collection.mutable
-import slick.SlickException
+import scala.collection.mutable.{ListBuffer, Stack}
 
 object PgTokenHelper {
 
@@ -35,24 +31,29 @@ object PgTokenHelper {
     override def toString = s"Escape($value)"
   }
 
-  trait Border extends Token {
-    def marker: String
+  trait Border extends Token
+  case class Open (value: String) extends Border {
+    override def toString = s"Open($value)"
   }
-  case class Open (value: String, marker: String = "") extends Border {
-    override def toString = s"Open($marker$value)"
+  case class Close(value: String) extends Border {
+    override def toString = s"Close($value)"
   }
-  case class Close(value: String, marker: String = "") extends Border {
-    override def toString = s"Close($value$marker)"
-  }
-  case class Marker(marker: String) extends Border {
-    val value = ""
-    override def toString = s"Marker($marker)"
+  case class Marker(value: String) extends Border {
+    override def toString = s"Marker($value)"
   }
 
-  ///////////////////////////////////////////////////////////////////
-  private case class WorkingGroup(border: Border, level: Int) {
-    val tokens = mutable.ListBuffer[Token]()
-  }
+  ////////////////////////////////////////////////////////////////////////////
+
+  def isCompatible(open: Token, token: Token): Boolean =
+    (open, token) match {
+      case (Open("("), Close(")")) => true
+      case (Open("["), Close("]")) => true
+      case (Open("{"), Close("}")) => true
+      case (Open("("), Close("]")) => true  // for range type
+      case (Open("["), Close(")")) => true  // for range type
+      case (_, _)                  => false
+    }
+
 
   def getString(token: Token, level: Int): String = {
     def unescape(value: String, level: Int): String = {
@@ -61,7 +62,7 @@ object PgTokenHelper {
         .mkString("")
     }
 
-    def mergeString(buf: mutable.StringBuilder, token: Token): Unit =
+    def mergeString(buf: StringBuilder, token: Token): Unit =
       token match {
         case GroupToken(mList) => mList.foreach(mergeString(buf, _))
         case Escape(v) => buf append unescape(v, level + 1)
@@ -76,7 +77,7 @@ object PgTokenHelper {
   }
 
   def getChildren(token: Token): Seq[Token] = token match {
-    case GroupToken(mList) => mList.filterNot(_.isInstanceOf[Border]).filterNot(_ == Comma)
+    case GroupToken(mList) => mList.filterNot(_ == null).filterNot(_.isInstanceOf[Border]).filterNot(_ == Comma)
     case _ => throw new IllegalArgumentException("WRONG token type: " + token)
   }
 
@@ -87,7 +88,7 @@ object PgTokenHelper {
     def isArray(token: Token): Boolean = token match {
       case GroupToken(mList) =>
         mList match {
-          case Open("{", _) :: _ => true
+          case Open("{") :: _ => true
           case _ => false
         }
       case _ => false
@@ -100,7 +101,7 @@ object PgTokenHelper {
     }
 
     val rootIsArray = isArray(root)
-    def appendMark(buf: mutable.StringBuilder, level: Int) =
+    def appendMark(buf: StringBuilder, level: Int): Unit =
       if (level >= 0) {
         val markLen = math.pow(2, level).toInt
         level match {
@@ -111,7 +112,7 @@ object PgTokenHelper {
         }
       }
 
-    def appendEscaped(buf: mutable.StringBuilder, ch: Char, level: Int) = 
+    def appendEscaped(buf: StringBuilder, ch: Char, level: Int): Unit =
       if (level < 0) buf append ch
       else {
         val escapeLen = math.pow(2, level +1).toInt
@@ -122,18 +123,25 @@ object PgTokenHelper {
         }
       }
 
-    def mergeString(buf: mutable.StringBuilder, token: Token, level: Int, parentIsArray: Boolean): Unit = {
+    def mergeString(buf: StringBuilder, token: Token, level: Int, parentIsArray: Boolean): Unit = {
       val markRequired = isMarkRequired(token, parentIsArray)
       if (markRequired) appendMark(buf, level)
       token match {
         case GroupToken(mList) => {
-          buf append mList(0).value
-          var isFirst = true
-          for(i <- 1 to (mList.length -2)) {
-            if (isFirst) isFirst = false else buf append ","
-            mergeString(buf, mList(i), level +1, isArray(token))
+          val vList = mList.filterNot(_.isInstanceOf[Marker])
+          if (vList.size > 2 && isCompatible(vList.head, vList.last)) {
+            buf append vList.head.value
+            var isFirst = true
+            for (i <- 1 to (vList.length -2)) {
+              if (isFirst) isFirst = false else buf append ","
+              mergeString(buf, vList(i), level +1, isArray(token))
+            }
+            buf append vList.last.value
+          } else {
+            for (t <- vList) {
+              t.value.map(appendEscaped(buf, _, level))
+            }
           }
-          buf append mList.last.value
         }
         case Chunk(v) => v.map(appendEscaped(buf, _, level))
         case _  =>  //nothing to do
@@ -148,160 +156,124 @@ object PgTokenHelper {
   }
 
   def grouping(tokens: List[Token]): Token = {
-    def level(marker: String): Double =
-      math.log(marker.length) / math.log(2)
+    case class WorkingGroup(open: Open, marker: Marker, level: Int) {
+      val tokens = ListBuffer[Token]()
+      def isInChunk(): Boolean = open == null && marker.value.nonEmpty
+    }
 
-    def isCompatible(open: Border, close: Border) =
-      (open, close) match {
-        case (Open("(", m1), Close(")", m2)) if m1 == m2 => true
-        case (Open("(", m1), Close("]", m2)) if m1 == m2 => true
-        case (Open("[", m1), Close(")", m2)) if m1 == m2 => true
-        case (Open("[", m1), Close("]", m2)) if m1 == m2 => true
-        case (Open("{", m1), Close("}", m2)) if m1 == m2 => true
-        case (_, _)      =>      false
+    def toContentToken(token: Token): Token =
+      token match {
+        case b: Border =>
+          if (b.isInstanceOf[Marker])
+            Escape(b.value)
+          else Chunk(b.value)
+        case other  => other
       }
 
-    ///
-    val stack = mutable.Stack[WorkingGroup]()
-    stack.push(WorkingGroup(Marker(""), -1))
+    def checkDiggable(wg: WorkingGroup, token: Token, tails: List[Token]): (Boolean, Open, Marker, Escape, List[Token]) = {
+      val mLength = math.pow(2, wg.level).toInt
+      token match {
+        case open @ Open(_) if (!wg.isInChunk() || wg.level <= 0) =>
+          (true, open, Marker(""), null, tails)
+        case marker @ Marker(m) if !wg.isInChunk() && (m.length >= mLength && (m.length / mLength) % 2 == 1) =>
+          if (m.length == mLength) {
+            tails match {
+              case (open @ Open(_)) :: tail => (true, open, marker, null, tail)
+              case _  =>  (true, null, marker, null, tails)
+            }
+          } else {
+            val mStr = m.substring(0, mLength)
+            val eStr = m.substring(mLength)
+            (true, null, Marker(mStr), Escape(eStr), tails)
+          }
+        case _ => (false, null, null, null, token :: tails)
+      }
+    }
 
-    for(i <- 0 until tokens.length) {
-      tokens(i) match {
-        //-- process head and last tokens
-        case t if (i == 0 || i == tokens.length -1) => stack.top.tokens += t
-        //-- insert Null token if necessary
-        case Comma => {
-          if (tokens(i-1) == Comma || tokens(i-1).isInstanceOf[Open]) {
-            stack.top.tokens += Null
-          }
-          stack.top.tokens += Comma
-          if (tokens(i+1).isInstanceOf[Close]) {
-            stack.top.tokens += Null
-          }
+    def checkClosable(wg: WorkingGroup, token: Token, tails: List[Token]): (Boolean, Close, Marker, Escape, List[Token]) = {
+      val mLength = math.pow(2, wg.level -1).toInt
+      token match {
+        case close @ Close(_) if !wg.isInChunk() && isCompatible(wg.open, close) =>
+          if (wg.marker.value.nonEmpty && (tails.nonEmpty && wg.marker.value == tails.head.value))
+            (true, close, Marker(tails.head.value), null, tails.tail)
+          else if (wg.marker.value.isEmpty)
+            (true, close, Marker(""), null, tails)
+          else
+            (false, null, null, null, token :: tails)
+        case marker @ Marker(m) if /*wg.isInChunk()*/ wg.level > 0 && (m.length >= mLength && (m.length / mLength) % 2 == 1) =>
+          val escaped = if (m.length > mLength) Escape(m.substring(0, m.length - mLength)) else null
+          val nMarker = if (m.length > mLength) Marker(m.substring(m.length - mLength)) else marker
+          (true, null, nMarker, escaped, tails)
+        case _ => (false, null, null, null, token :: tails)
+      }
+    }
+
+    def findClosable(stack: Stack[WorkingGroup], token: Token, tail: List[Token]): (Boolean, Close, Marker, Escape, Int, List[Token]) = {
+      if (token.isInstanceOf[Close] || token.isInstanceOf[Marker]) {
+        for (i <- 0 until stack.length ) {
+          val (closable, close, marker, escaped, tails) = checkClosable(stack(i), token, tail)
+          if (closable)
+            return (true, close, marker, escaped, i, tails)
         }
-        //-- process open tokens
-        // '{' + '{' -> multi-dimension array, 'ttt{' -> normal string
-        case t @ Open("{", "") => {
-          if (tokens(i-1).value == "{") {
-            stack.push(WorkingGroup(t, stack.top.level))
-            stack.top.tokens += t
-          } else stack.top.tokens += Chunk("{")
-        }
-        // open border should prefix a marker, negative case: ',"tt(a...' <--> ',"(tt...' (normal)
-        case Open(v, "") => stack.top.tokens += Chunk(v)
-        // mark + escape, case: ',"\"(...",' <--> ',"...",' (normal)
-        case Open(v, m) if (m != "" && level(m) != math.round(level(m))) => {
-          val index = math.pow(2, stack.top.level).toInt
-          stack.push(WorkingGroup(Marker(m.substring(0, index)), stack.top.level +1))
-          stack.top.tokens += Marker(m.substring(0, index)) += Escape(m.substring(index)) += Chunk(v)
-        }
-        case t @ Open(v, m) => {
-          if (tokens(i-1) == Comma || tokens(i-1).isInstanceOf[Open]) {
-            stack.push(WorkingGroup(t, stack.top.level +1))
-            stack.top.tokens += t
-          } // case: 'tt\"(...'
-          else stack.top.tokens += Escape(m) += Chunk(v)
-        }
-        //-- process marker tokens
-        // mark + mark (empty string)
-        case Marker(m) if (m != "" && level(m) == stack.top.level + 2) => {
+      }
+      (false, null, null, null, -1, token :: tail)
+    }
+
+    def groupForward(stack: Stack[WorkingGroup], tokens: List[Token]): Unit = {
+      val mLength = math.pow(2, stack.top.level).toInt
+      tokens match {
+        // for empty string
+        case Marker(m) :: tail if !stack.top.isInChunk() && m.length == mLength * 2 =>
           val m2 = m.substring(0, m.length / 2)
           stack.top.tokens += GroupToken(List(Marker(m2), Chunk(""), Marker(m2)))
-        }
-        // mark + escape
-        case Marker(m) if (m != "" && level(m) != math.round(level(m))
-                       && (tokens(i-1) == Comma || tokens(i-1).isInstanceOf[Open])) => {
-          val index = math.pow(2, stack.top.level +1).toInt
-          stack.push(WorkingGroup(Marker(m.substring(0, index)), stack.top.level +1))
-          stack.top.tokens += Marker(m.substring(0, index)) += Escape(m.substring(index))
-        }
-        // escape + mark
-        case Marker(m) if (m != "" && level(m) != math.round(level(m))
-                       && (tokens(i+1) == Comma || tokens(i+1).isInstanceOf[Close])) => {
-          val existed = stack.find(g => m.endsWith(g.border.marker)).get
-          for (_ <- 0 to stack.lastIndexOf(existed)) {
-            if (stack.top == existed) {
-              val index = m.length - stack.top.border.marker.length
-              stack.top.tokens += Escape(m.substring(0, index)) += Marker(m.substring(index))
-            }
-            val toBeMerged = GroupToken(stack.pop.tokens.toList)
-            stack.top.tokens += toBeMerged
+          groupForward(stack, tail)
+        // for null value: '..,,..' / '..,)'
+        case Comma :: sep2 :: tail if !stack.top.isInChunk() && (sep2 == Comma || sep2.isInstanceOf[Close]) =>
+          stack.top.tokens += Comma += Null
+          groupForward(stack, sep2 :: tail)
+        // for diggable
+        case (head: Border) :: tail if !head.isInstanceOf[Close] && checkDiggable(stack.top, head, tail)._1 =>
+          val (_, open, marker, escaped, tails) = checkDiggable(stack.top, head, tail)
+          val level = if (marker.value.isEmpty) stack.top.level else stack.top.level +1 // keep level if marker is empty
+        val newWorkingGroup = WorkingGroup(open, marker, level)
+          newWorkingGroup.tokens += marker += open += escaped // open and escaped can't be non-empty at same time.
+          if (open != null && (tails.nonEmpty && tails.head == Comma))  // for null value: '\"(,..'
+            newWorkingGroup.tokens += Null
+          stack.push(newWorkingGroup)
+          groupForward(stack, tails)
+        // for closable
+        case (head: Border) :: tail if !head.isInstanceOf[Open] && findClosable(stack, head, tail)._1 =>
+          val (_, close, marker, escaped, sIndex, tails) = findClosable(stack, head, tail)
+          // merge wrong digged group
+          for (_ <- 0 until sIndex -1) {
+            stack.top.tokens ++= stack.pop().tokens.map(toContentToken)
           }
-        }
-        // mark + escape + mark
-        case t @ Marker(m) if ((tokens(i-1) == Comma || tokens(i-1).isInstanceOf[Open])
-                            && (tokens(i+1) == Comma || tokens(i+1).isInstanceOf[Close])) => {
-          val topMarker = stack.top.border.marker
-          if (topMarker == "") {
-            stack.push(WorkingGroup(t, stack.top.level +1))
-          } else if ((m.length > topMarker.length * 2) && m.startsWith(topMarker) && m.endsWith(topMarker)) {
-            stack.top.tokens += Escape(m.substring(topMarker.length -1, m.length -topMarker.length))
-          } else stack.top.tokens += Escape(m)
-        }
-        case t @ Marker(m) => {
-          val escape = stack.top.tokens.find(e => e.isInstanceOf[Escape] && e.value == m)
-          // mark + escape ... + [escape]
-          if (escape.isDefined) {
-            stack.top.tokens += Escape(m)
-          } else { // others
-            val existed = stack.find(g => g.border.marker == m)
-            if (existed.isDefined) {
-              for (_ <- 0 to stack.lastIndexOf(existed.get)) {
-                if (stack.top == existed.get) stack.top.tokens += t
-                val toBeMerged = GroupToken(stack.pop.tokens.toList)
-                stack.top.tokens += toBeMerged
-              }
-            } else {
-              stack.push(WorkingGroup(t, stack.top.level +1))
-              stack.top.tokens += t
-            }
-          }
-        }
-        //-- process close tokens
-        // '{' + '{' -> multi-dimension array, 'ttt{' -> normal string
-        case Close("}", "") if (tokens(i+1).value != "}") => stack.top.tokens += Chunk("}")
-        // close border should postfix a marker, negative case: ',"...)ttt' <--> ',"...)\",' (normal)
-        case Close(v, "") if (v != "}") => stack.top.tokens += Chunk(v)
-        // escape + mark, case: '...tt)\"",' <--> '...tt)",..' (normal)
-        case Close(v, m)  if (m != "" && level(m) != math.round(level(m))) => {
-          val existed = stack.find(b => m.endsWith(b.border.marker)).get
-          for (_ <- 0 to stack.lastIndexOf(existed)) {
-            if (stack.top == existed) {
-              val index = m.length - stack.top.border.marker.length
-              stack.top.tokens += Chunk(v) += Escape(m.substring(0, index)) += Marker(m.substring(index))
-            }
-            val toBeMerged = GroupToken(stack.pop.tokens.toList)
-            stack.top.tokens += toBeMerged
-          }
-        }
-        case t @ Close(v, m) => {
-          // case: '(...),' or '...}}'
-          if ((tokens(i+1) == Comma || tokens(i+1).isInstanceOf[Close]) && isCompatible(stack.top.border, t)) {
-            stack.top.tokens += t
-            val toBeMerged = GroupToken(stack.pop.tokens.toList)
-            stack.top.tokens += toBeMerged
-          }
-          else {
-            // case: '"Word1 (Word2)", ...'
-            if (stack.top.border.isInstanceOf[Marker] && stack.top.border.marker == m) {
-              stack.top.tokens += Chunk(v)
-              val toBeMerged = GroupToken(stack.pop.tokens.toList :+ Marker(m))
-              stack.top.tokens += toBeMerged
-            }
-            // case: ',"}ttt...'
-            else stack.top.tokens += Chunk(v) += Escape(m)
-          }
-        }
-        //-- process other tokens
-        case t => stack.top.tokens += t
+
+          stack.top.tokens += escaped += close += marker  // close and escaped can't be non-empty at same time.
+        val toBeMerged = GroupToken(stack.pop().tokens.toList.filterNot(_ == null))
+          stack.top.tokens += toBeMerged
+          groupForward(stack, tails)
+        // for normal tokens
+        case head :: tail =>
+          stack.top.tokens += toContentToken(head)
+          groupForward(stack, tail)
+        // for end back
+        case Nil  => // do nothing
       }
     }
 
     ///
-    GroupToken(stack.top.tokens.toList)
+    val stack = Stack[WorkingGroup]()
+    stack.push(WorkingGroup(null, Marker(""), 0))
+    groupForward(stack, tokens)
+    stack.top.tokens(0)
   }
 
   ////////////////////////////////////////////////////////////////////////////
+  import scala.util.parsing.combinator.RegexParsers
+  import scala.util.parsing.input.CharSequenceReader
+  import slick.SlickException
+
   object Tokenizer extends RegexParsers {
     override def skipWhitespace = false
 
@@ -309,27 +281,27 @@ object PgTokenHelper {
     val ESCAPE = """\\+[^"\\]""".r
     val CHUNK  = """[^}){(\[\]\\,"]+""".r
 
-    def open: Parser[Token] = opt(MARKER) ~ (elem('{') | elem('(') | elem('[')) ^^ {
-      case (x ~ y) => Open(String.valueOf(y), x.getOrElse(""))
+    def open: Parser[Token] = (elem('{') | elem('(') | elem('[')) ^^ {
+      case (x) => Open(String.valueOf(x))
     }
 
-    def close: Parser[Token] = (elem('}') | elem(')') | elem(']')) ~ opt(MARKER) ^^ {
-      case (x ~ y) => Close(String.valueOf(x), y.getOrElse(""))
+    def close: Parser[Token] = (elem('}') | elem(')') | elem(']')) ^^ {
+      case (x) => Close(String.valueOf(x))
     }
 
     def escape = ESCAPE ^^ { x => Escape(x) }
     def marker = MARKER ^^ { x => Marker(x) }
-    def comma = elem(',') ^^ { x => Comma }
+    def comma = elem(',') ^^ { _ => Comma }
     def chunk = CHUNK ^^ { x => Chunk(x) }
 
     def patterns = open | close | escape | marker | comma | chunk
 
     //--
-    def tokenize(input: String) =
+    def tokenize(input: String): List[Token] = {
       parseAll(rep(patterns), new CharSequenceReader(input)) match {
         case Success(result, _) => result
         case failure: NoSuccess => throw new SlickException(failure.msg)
       }
-
+    }
   }
 }
