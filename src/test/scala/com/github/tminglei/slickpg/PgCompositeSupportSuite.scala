@@ -36,6 +36,14 @@ object PgCompositeSupportSuite {
     bool: Option[Boolean] = None
   ) extends Struct
 
+  case class C1 (
+    name: String
+  ) extends Struct
+
+  case class C2 (
+    c1: List[C1]
+  ) extends Struct
+
   //-------------------------------------------------------------
   trait MyPostgresProfile1 extends PostgresProfile with PgCompositeSupport with PgArraySupport with utils.PgCommonJdbcTypes {
     def mapToString(m: Map[String, String]): String = HStoreConverter.toString(WrapAsJava.mapAsJavaMap(m))
@@ -52,6 +60,9 @@ object PgCompositeSupportSuite {
       implicit val composite1TypeMapper = createCompositeJdbcType[Composite1]("composite1")
       implicit val composite2TypeMapper = createCompositeJdbcType[Composite2]("composite2")
       implicit val composite3TypeMapper = createCompositeJdbcType[Composite3]("composite3")
+      implicit val c1TypeMapper = createCompositeJdbcType[C1]("c1")
+      implicit val c2TypeMapper = createCompositeJdbcType[C2]("c2")
+
       implicit val composite1ArrayTypeMapper = createCompositeArrayJdbcType[Composite1]("composite1").to(_.toList)
       implicit val composite2ArrayTypeMapper = createCompositeArrayJdbcType[Composite2]("composite2").to(_.toList)
       implicit val composite3ArrayTypeMapper = createCompositeArrayJdbcType[Composite3]("composite3").to(_.toList)
@@ -111,7 +122,8 @@ class PgCompositeSupportSuite extends FunSuite {
 
   case class TestBean2(
     id: Long,
-    comps: Composite1
+    comps: Composite1,
+    c2: C2
   )
 
   class TestTable(tag: Tag) extends Table[TestBean](tag, "CompositeTest") {
@@ -133,8 +145,9 @@ class PgCompositeSupportSuite extends FunSuite {
   class TestTable2(tag: Tag) extends Table[TestBean2](tag, "CompositeTest2") {
     def id = column[Long]("id")
     def comps = column[Composite1]("comp")
+    def c2 = column[C2]("c2")
 
-    def * = (id,comps) <> (TestBean2.tupled, TestBean2.unapply)
+    def * = (id,comps,c2) <> (TestBean2.tupled, TestBean2.unapply)
   }
   val CompositeTests2 = TableQuery(new TestTable2(_))
 
@@ -152,8 +165,10 @@ class PgCompositeSupportSuite extends FunSuite {
   val rec14 = TestBean1(114, List(Composite3(Some("Word1 (Word2)"))))
   val rec15 = TestBean1(115, List(Composite3(Some(""))))
 
-  val rec21 = TestBean2(211, Composite1(201, "test3", ts("2015-01-03T13:21:00"), Some(Range(ts("2015-01-01T14:30:00"), ts("2016-01-03T15:30:00")))))
-  val rec22 = TestBean2(212, Composite1(202, "", ts("2015-01-03T13:21:00"), Some(Range(ts("2015-01-01T14:30:00"), ts("2016-01-03T15:30:00")))))
+  val rec21 = TestBean2(211, Composite1(201, "test3", ts("2015-01-03T13:21:00"),
+    Some(Range(ts("2015-01-01T14:30:00"), ts("2016-01-03T15:30:00")))), C2(List(C1("1s"))))
+  val rec22 = TestBean2(212, Composite1(202, "", ts("2015-01-03T13:21:00"),
+    Some(Range(ts("2015-01-01T14:30:00"), ts("2016-01-03T15:30:00")))), C2(List(C1("test1"))))
 
   test("Composite type Lifted support") {
     Await.result(db.run(
@@ -161,6 +176,8 @@ class PgCompositeSupportSuite extends FunSuite {
         sqlu"create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)",
         sqlu"create type composite2 as (id int8, comp1 composite1, confirm boolean, map hstore)",
         sqlu"create type composite3 as (txt text, id int4, code int4, bool boolean)",
+        sqlu"create type c1 as (name text)",
+        sqlu"create type c2 as (c1 c1[])",
         (CompositeTests.schema ++ CompositeTests1.schema ++ CompositeTests2.schema) create,
         CompositeTests forceInsertAll List(rec1, rec2, rec3),
         CompositeTests1 forceInsertAll List(rec11, rec12, rec13, rec14, rec15),
@@ -210,6 +227,8 @@ class PgCompositeSupportSuite extends FunSuite {
       ).andFinally(
         DBIO.seq(
           (CompositeTests.schema ++ CompositeTests1.schema ++ CompositeTests2.schema) drop,
+          sqlu"drop type c2",
+          sqlu"drop type c1",
           sqlu"drop type composite3",
           sqlu"drop type composite2",
           sqlu"drop type composite1"
