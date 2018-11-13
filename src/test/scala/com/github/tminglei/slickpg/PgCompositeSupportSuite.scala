@@ -157,7 +157,8 @@ class PgCompositeSupportSuite extends FunSuite {
     Some(Range(ts("2010-01-01T14:30:00"), ts("2010-01-03T15:30:00")))), true, Map("t" -> "haha", "t2" -> "133"))))
   val rec2 = TestBean(335, List(Composite2(202, Composite1(102, "test2\\", ts("2012-05-08T11:31:06"),
     Some(Range(ts("2011-01-01T14:30:00"), ts("2011-11-01T15:30:00")))), false, Map("t't" -> "1,363"))))
-  val rec3 = TestBean(337, List(Composite2(203, Composite1(103, "ABC ABC", ts("2015-03-08T17:17:03"), None), false, Map("t,t" -> "ewtew"))))
+  val rec3 = TestBean(337, List(Composite2(203, Composite1(103, "getRate(\"x\") + 5;", ts("2015-03-08T17:17:03"),
+    None), false, Map("t,t" -> "getRate(\"x\") + 5;"))))
 
   val rec11 = TestBean1(111, List(Composite3(Some("(test1'"))))
   val rec12 = TestBean1(112, List(Composite3(code = Some(102))))
