@@ -36,6 +36,14 @@ object PgCompositeSupportSuite {
     bool: Option[Boolean] = None
   ) extends Struct
 
+  case class Composite4(
+    id: Int,
+    name: String,
+    variable: List[String],
+    script1: String,
+    script2: String
+  ) extends Struct
+
   case class C1 (
     name: String
   ) extends Struct
@@ -60,6 +68,7 @@ object PgCompositeSupportSuite {
       implicit val composite1TypeMapper = createCompositeJdbcType[Composite1]("composite1")
       implicit val composite2TypeMapper = createCompositeJdbcType[Composite2]("composite2")
       implicit val composite3TypeMapper = createCompositeJdbcType[Composite3]("composite3")
+      implicit val composite4TypeMapper = createCompositeJdbcType[Composite4]("composite4")
       implicit val c1TypeMapper = createCompositeJdbcType[C1]("c1")
       implicit val c2TypeMapper = createCompositeJdbcType[C2]("c2")
 
@@ -126,6 +135,11 @@ class PgCompositeSupportSuite extends FunSuite {
     c2: C2
   )
 
+  case class TestBean3(
+    id: Long,
+    comps: Option[Composite4]
+  )
+
   class TestTable(tag: Tag) extends Table[TestBean](tag, "CompositeTest") {
     def id = column[Long]("id")
     def comps = column[List[Composite2]]("comps", O.Default(Nil))
@@ -151,6 +165,14 @@ class PgCompositeSupportSuite extends FunSuite {
   }
   val CompositeTests2 = TableQuery(new TestTable2(_))
 
+  class TestTable3(tag: Tag) extends Table[TestBean3](tag, "CompositeTest3") {
+    def id = column[Long]("id")
+    def comps = column[Option[Composite4]]("comp")
+
+    def * = (id, comps) <> (TestBean3.tupled, TestBean3.unapply)
+  }
+  val CompositeTests3 = TableQuery(new TestTable3(_))
+
   //-------------------------------------------------------------------
 
   val rec1 = TestBean(333, List(Composite2(201, Composite1(101, "(test1'", ts("2001-01-03T13:21:00"),
@@ -171,18 +193,24 @@ class PgCompositeSupportSuite extends FunSuite {
   val rec22 = TestBean2(212, Composite1(202, "", ts("2015-01-03T13:21:00"),
     Some(Range(ts("2015-01-01T14:30:00"), ts("2016-01-03T15:30:00")))), C2(List(C1("test1"))))
 
+  val rec31 = TestBean3(1, None)
+  val rec32 = TestBean3(2, Some(Composite4(1, "x1", Nil, "get(\"x1\").ok", "(4).ok")))
+  val rec33 = TestBean3(3, Some(Composite4(2, "x2", List("A", "B"), "(get(\"A\") + get(\"A\")).ok", "call(A, B).ok")))
+
   test("Composite type Lifted support") {
     Await.result(db.run(
       DBIO.seq(
         sqlu"create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)",
         sqlu"create type composite2 as (id int8, comp1 composite1, confirm boolean, map hstore)",
         sqlu"create type composite3 as (txt text, id int4, code int4, bool boolean)",
+        sqlu"create type composite4 as (id int4, name text, variable text[], script1 text, script2 text)",
         sqlu"create type c1 as (name text)",
         sqlu"create type c2 as (c1 c1[])",
-        (CompositeTests.schema ++ CompositeTests1.schema ++ CompositeTests2.schema) create,
+        (CompositeTests.schema ++ CompositeTests1.schema ++ CompositeTests2.schema ++ CompositeTests3.schema) create,
         CompositeTests forceInsertAll List(rec1, rec2, rec3),
         CompositeTests1 forceInsertAll List(rec11, rec12, rec13, rec14, rec15),
-        CompositeTests2 forceInsertAll List(rec21, rec22)
+        CompositeTests2 forceInsertAll List(rec21, rec22),
+        CompositeTests3 forceInsertAll List(rec31, rec32, rec33)
       ).andThen(
         DBIO.seq(
           CompositeTests.filter(_.id === 333L.bind).result.head.map(
@@ -225,11 +253,18 @@ class PgCompositeSupportSuite extends FunSuite {
             r => assert(rec22 === r)
           )
         )
+      ).andThen(
+        DBIO.seq(
+          CompositeTests3.filter(_.id === 1L.bind).result.head.map(r => assert(rec31 === r)),
+          CompositeTests3.filter(_.id === 2L.bind).result.head.map(r => assert(rec32 === r)),
+          CompositeTests3.filter(_.id === 3L.bind).result.head.map(r => assert(rec33 === r))
+        )
       ).andFinally(
         DBIO.seq(
-          (CompositeTests.schema ++ CompositeTests1.schema ++ CompositeTests2.schema) drop,
+          (CompositeTests.schema ++ CompositeTests1.schema ++ CompositeTests2.schema ++ CompositeTests3.schema) drop,
           sqlu"drop type c2",
           sqlu"drop type c1",
+          sqlu"drop type composite4",
           sqlu"drop type composite3",
           sqlu"drop type composite2",
           sqlu"drop type composite1"
