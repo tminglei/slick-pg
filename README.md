@@ -164,7 +164,7 @@ Here's the related technical details:
 | `play-json` JsValue                 | json                  |        `play-json` v2.6.8              |
 | `spray-json` JsValue                | json                  |        `spray-json` v1.3.4             |
 | `argonaut json` Json                | json                  |        `argonaut` v6.2.1               |
-| `circe json` Json                   | json                  |        `circe` v0.10.0                 |
+| `circe json` Json                   | json                  |        `circe` v0.10.1                 |
 | `jawn json` Json                    | json                  |        `jawn` v0.11.0                  |
 | (TsQuery+TsVector)                  | `text` search         |        no 3rd party dependencies       |
 | `jts` Geometry                      | `postgis` geometry    |        `jts` v1.14.0                   |
