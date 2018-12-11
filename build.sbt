@@ -2,7 +2,7 @@ lazy val commonSettings = Seq(
   organizationName := "slick-pg",
   organization := "com.github.tminglei",
   name := "slick-pg",
-  version := "0.16.3",
+  version := "0.17.0",
 
   scalaVersion := "2.12.7",
   crossScalaVersions := Seq("2.12.7", "2.11.12"),
@@ -12,6 +12,9 @@ lazy val commonSettings = Seq(
     "-language:higherKinds",
     "-language:postfixOps",
     "-language:existentials"),
+
+  fork := true,
+  javaOptions ++= Seq("-XX:MaxMetaspaceSize=512m"),
 
   resolvers += Resolver.mavenLocal,
   resolvers += Resolver.sonatypeRepo("snapshots"),
