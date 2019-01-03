@@ -5,7 +5,6 @@ import scala.reflect.classTag
 
 trait PgJawnJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
   import driver.api._
-  import jawn.Parser
   import jawn.ast._
 
   ///---
