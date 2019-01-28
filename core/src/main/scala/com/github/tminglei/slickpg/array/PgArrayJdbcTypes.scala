@@ -10,6 +10,10 @@ import slick.jdbc.{JdbcTypesComponent, PostgresProfile}
 
 trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
 
+  ///---
+  protected def useNativeArray: Boolean = true
+  ///---
+
   class SimpleArrayJdbcType[T] private[slickpg](sqlBaseType: String,
                                                 tmap: Any => T,
                                                 tcomap: T => Any,
@@ -38,7 +42,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
 
     //--
     protected def mkArray(v: Seq[T], conn: Option[Connection] = None): java.sql.Array = (v, conn) match {
-      case (v, Some(c)) if isPrimitive(v) && c.isWrapperFor(classOf[PgConnection]) =>
+      case (v, Some(c)) if useNativeArray && isPrimitive(v) && c.isWrapperFor(classOf[PgConnection]) =>
         c.unwrap(classOf[PgConnection]).createArrayOf(sqlBaseType, v.toArray)
       case (v, _) => utils.SimpleArrayUtils.mkArray(buildArrayStr)(sqlBaseType, v.map(tcomap))
     }
