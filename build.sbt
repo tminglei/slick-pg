@@ -122,6 +122,16 @@ lazy val slickPgJts = Project(id = "slick-pg_jts", base = file("./addons/jts"),
   )
 ) dependsOn (slickPgCore)
 
+lazy val slickPgJtsLt = Project(id = "slick-pg_jts_lt", base = file("./addons/jts_lt"),
+  settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
+    name := "slick-pg_jts_lt",
+    description := "Slick extensions for PostgreSQL - (locationtech) jts module",
+    libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
+      "org.locationtech.jts" % "jts-core" % "1.16.0"
+    )
+  )
+) dependsOn (slickPgCore)
+
 lazy val slickPgPlayJson = Project(id = "slick-pg_play-json", base = file("./addons/play-json"),
   settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
     name := "slick-pg_play-json",
