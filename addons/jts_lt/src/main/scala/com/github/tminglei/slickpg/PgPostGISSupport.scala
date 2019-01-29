@@ -2,8 +2,8 @@ package com.github.tminglei.slickpg
 
 import java.sql.{PreparedStatement, ResultSet}
 
-import com.locationtech.jts.geom._
-import com.locationtech.jts.io.{WKBReader, WKBWriter, WKTReader, WKTWriter}
+import org.locationtech.jts.geom._
+import org.locationtech.jts.io.{WKBReader, WKBWriter, WKTReader, WKTWriter}
 import slick.ast.FieldSymbol
 import slick.jdbc._
 

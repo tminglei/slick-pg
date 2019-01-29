@@ -87,7 +87,7 @@ lazy val slickPgProject = Project(id = "slick-pg", base = file("."),
     libraryDependencies := mainDependencies(scalaVersion.value)
   )
 ).dependsOn (slickPgCore)
-  .aggregate (slickPgCore, slickPgJoda, slickPgJson4s, slickPgJts, slickPgPlayJson, slickPgSprayJson, slickPgCirceJson, slickPgArgonaut, slickPgJawn)
+  .aggregate (slickPgCore, slickPgJoda, slickPgJson4s, slickPgJts, slickPgJtsLt, slickPgPlayJson, slickPgSprayJson, slickPgCirceJson, slickPgArgonaut, slickPgJawn)
 
 lazy val slickPgJoda = Project(id = "slick-pg_joda-time", base = file("./addons/joda-time"),
   settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(

@@ -2,8 +2,8 @@ package com.github.tminglei.slickpg
 
 import java.util.concurrent.Executors
 
-import com.locationtech.jts.geom.{Geometry, Point}
-import com.locationtech.jts.io.{WKBWriter, WKTReader, WKTWriter}
+import org.locationtech.jts.geom.{Geometry, Point}
+import org.locationtech.jts.io.{WKBWriter, WKTReader, WKTWriter}
 import org.scalatest.FunSuite
 import slick.jdbc.{GetResult, PostgresProfile}
 
@@ -55,7 +55,7 @@ class PgPostGISSupportSuite extends FunSuite {
   val wktWriter = new WKTWriter()
   val wkbWriter = new WKBWriter(2, true)
 
-  test("PostGIS Lifted support - constructor") {
+  test("PostGIS (lt) Lifted support - constructor") {
     val POINT = "POINT(-71.064544 42.28787)"
     val point = wktReader.read(POINT).asInstanceOf[Point]
     val point1 = wktReader.read("POINT(-81.064544 32.28787)").asInstanceOf[Point]
@@ -142,7 +142,7 @@ class PgPostGISSupportSuite extends FunSuite {
     ), Duration.Inf)
   }
 
-  test("PostGIS Lifted support - operator") {
+  test("PostGIS (lt) Lifted support - operator") {
     val line1 = wktReader.read("LINESTRING(0 0, 3 3)")
     val line2 = wktReader.read("LINESTRING(1 2, 4 6)")
     val line3 = wktReader.read("LINESTRING(1 1, 2 2)")
@@ -241,7 +241,7 @@ class PgPostGISSupportSuite extends FunSuite {
     ), Duration.Inf)
   }
 
-  test("PostGIS Lifted support - accessor") {
+  test("PostGIS (lt) Lifted support - accessor") {
     val point = wktReader.read("POINT(4 5 7)")
     val line = wktReader.read("LINESTRING(0 0, 3 3)")
     val polygon = wktReader.read("POLYGON((0 0, 1 1, 1 2, 1 1, 0 0))")
@@ -374,7 +374,7 @@ class PgPostGISSupportSuite extends FunSuite {
     ), Duration.Inf)
   }
 
-  test("PostGIS Lifted support - output") {
+  test("PostGIS (lt) Lifted support - output") {
     val POLYGON = "POLYGON((0 0,0 1,1 1,1 0,0 0))"
     val polygon = wktReader.read(POLYGON)
     val POLYGON_EWKT = POLYGON // not "SRID=0;POLYGON((0 0,0 1,1 1,1 0,0 0))"
@@ -445,7 +445,7 @@ class PgPostGISSupportSuite extends FunSuite {
     ), Duration.Inf)
   }
 
-  test("PostGIS Lifted support - relationship") {
+  test("PostGIS (lt) Lifted support - relationship") {
     val polygon = wktReader.read("POLYGON((175 150, 20 40, 50 60, 125 100, 175 150))")
     val multiPoints = wktReader.read("MULTIPOINT(125 100, 125 101)")
     val point = wktReader.read("POINT(175 150)")
@@ -529,7 +529,7 @@ class PgPostGISSupportSuite extends FunSuite {
     ), Duration.Inf)
   }
 
-  test("PostGIS Lifted support - measure") {
+  test("PostGIS (lt) Lifted support - measure") {
     val point1 = wktReader.read("POINT(25 45)").asInstanceOf[Point]
     val point2 = wktReader.read("POINT(75 100)").asInstanceOf[Point]
     val point3 = wktReader.read("POINT(-75 80)").asInstanceOf[Point]
@@ -627,7 +627,7 @@ class PgPostGISSupportSuite extends FunSuite {
     ), Duration.Inf)
   }
 
-  test("PostGIS Lifted support - processing") {
+  test("PostGIS (lt) Lifted support - processing") {
     val point = wktReader.read("POINT(-123.365556 48.428611)")
     val point1 = wktReader.read("POINT(3 1)")
     val line = wktReader.read("LINESTRING(1 1,2 2,2 3.5,1 3,1 2,2 1)")
@@ -744,7 +744,7 @@ class PgPostGISSupportSuite extends FunSuite {
     ), Duration.Inf)
   }
 
-  test("PostGIS Plain SQL support") {
+  test("PostGIS (lt) Plain SQL support") {
     import MyPostgresProfile.plainAPI._
 
     implicit val GetPointBeanResult = GetResult(r => PointBean(r.nextLong, r.nextGeometry[Point]))
