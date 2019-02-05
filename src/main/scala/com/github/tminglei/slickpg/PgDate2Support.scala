@@ -100,7 +100,16 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
       toInfinitable[Instant](Instant.MAX, Instant.MIN, _.toString)
   }
 
-  trait Date2DateTimeImplicits[INTERVAL] extends Date2DateTimeFormatters {
+  trait Date2DateTimeImplicits[INTERVAL] extends Date2DateTimeFormatters with API {
+    //hide date types introduced in slick 3.3.0 to preserve compatibility
+    override def offsetDateTimeColumnType = columnTypes.offsetDateTimeType
+    override def zonedDateTimeColumnType = columnTypes.zonedDateType
+    override def localTimeColumnType = columnTypes.localTimeType
+    override def localDateColumnType = columnTypes.localDateType
+    override def localDateTimeColumnType = columnTypes.localDateTimeType
+    override def offsetTimeColumnType = columnTypes.offsetTimeType
+    override def instantColumnType = columnTypes.instantType
+
     implicit val date2DateTypeMapper: JdbcType[LocalDate] = new GenericDateJdbcType[LocalDate]("date", java.sql.Types.DATE)
     implicit val date2TimeTypeMapper: JdbcType[LocalTime] = new GenericDateJdbcType[LocalTime]("time", java.sql.Types.TIME)
     implicit val date2DateTimeTypeMapper: JdbcType[LocalDateTime] = new GenericDateJdbcType[LocalDateTime]("timestamp", java.sql.Types.TIMESTAMP)

@@ -229,12 +229,12 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
       } else table.primaryKeys
     }
 
-    override protected def createTable: String = {
+    override protected def createTable(checkNotExists: Boolean): String = {
       if(table.isInstanceOf[InheritingTable]) {
         val hTable = table.asInstanceOf[InheritingTable].inherited
         val hTableNode = hTable.toNode.asInstanceOf[TableExpansion].table.asInstanceOf[TableNode]
-        s"${super.createTable} inherits (${quoteTableName(hTableNode)})"
-      } else super.createTable
+        s"${super.createTable(checkNotExists)} inherits (${quoteTableName(hTableNode)})"
+      } else super.createTable(checkNotExists)
     }
   }
 }
