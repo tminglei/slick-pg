@@ -1,11 +1,11 @@
-dist: bionic
+dist: trusty
 sudo: required
 language: scala
 scala:
    - 2.11.12
    - 2.12.7
 jdk:
-  - oraclejdk11
+  - oraclejdk8
 before_install:
   - sudo /etc/init.d/postgresql stop
   - sudo apt-get -y remove --purge postgresql-9.1
@@ -15,13 +15,13 @@ before_install:
   - sudo apt-get -y remove --purge postgresql-9.5
   - sudo apt-get -y remove --purge postgresql-9.6
   - sudo apt-get -y autoremove
-  - wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-  - sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main 11" >> /etc/apt/sources.list.d/postgresql.list'
+  - sudo apt-key adv --keyserver keys.gnupg.net --recv-keys 7FCC7D46ACCC4CF8
+  - sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main 10" >> /etc/apt/sources.list.d/postgresql.list'
   - sudo apt-get update
-  - sudo apt-get -y install postgresql-11 postgresql-contrib-11 postgresql-11-postgis-2.5
-  - sudo sh -c 'echo "local all postgres trust" > /etc/postgresql/11/main/pg_hba.conf'
-  - sudo sh -c 'echo -n "host all all 127.0.0.1/32 trust" >> /etc/postgresql/11/main/pg_hba.conf'
-  - sudo service postgresql restart 11
+  - sudo apt-get -y install postgresql-10 postgresql-contrib-10 postgresql-10-postgis-2.4
+  - sudo sh -c 'echo "local all postgres trust" > /etc/postgresql/10/main/pg_hba.conf'
+  - sudo sh -c 'echo -n "host all all 127.0.0.1/32 trust" >> /etc/postgresql/10/main/pg_hba.conf'
+  - sudo service postgresql restart 10
 before_script:
   - psql -c 'create database test;' -U postgres
   - psql test -c 'CREATE EXTENSION IF NOT EXISTS hstore;' -U postgres
