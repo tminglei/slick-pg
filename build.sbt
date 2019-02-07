@@ -137,7 +137,7 @@ lazy val slickPgPlayJson = Project(id = "slick-pg_play-json", base = file("./add
     name := "slick-pg_play-json",
     description := "Slick extensions for PostgreSQL - play-json module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "com.typesafe.play" %% "play-json" % "2.6.13"
+      "com.typesafe.play" %% "play-json" % "2.7.1"
     )
   )
 ) dependsOn (slickPgCore)
