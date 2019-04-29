@@ -21,7 +21,8 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
               implicit override val classTag: ClassTag[Seq[T]], ctag: ClassTag[T], checked: ElemWitness[T])
                     extends DriverJdbcType[Seq[T]] { self =>
 
-    def this(sqlBaseType: String)(implicit ctag: ClassTag[T], checked: ElemWitness[T]) = this(sqlBaseType, _.asInstanceOf[T], identity)
+    def this(sqlBaseType: String)(implicit ctag: ClassTag[T], checked: ElemWitness[T]) =
+      this(sqlBaseType, _.asInstanceOf[T], (r: T) => identity(r))
 
     override def sqlType: Int = java.sql.Types.ARRAY
 
@@ -36,7 +37,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
 
     override def updateValue(vList: Seq[T], r: ResultSet, idx: Int): Unit = r.updateArray(idx, mkArray(vList))
 
-    override def hasLiteralForm: Boolean = false
+    override def hasLiteralForm: Boolean = true
 
     override def valueToSQLLiteral(vList: Seq[T]) = if(vList eq null) "NULL" else s"'${buildArrayStr(vList)}'"
 
@@ -68,9 +69,10 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
 
   ///
   class AdvancedArrayJdbcType[T](sqlBaseType: String,
-                                fromString: (String => Seq[T]),
-                                mkString: (Seq[T] => String),
-                                zero: Seq[T] = null.asInstanceOf[Seq[T]])(
+                                 fromString: (String => Seq[T]),
+                                 mkString: (Seq[T] => String),
+                                 zero: Seq[T] = null.asInstanceOf[Seq[T]],
+                                 override val hasLiteralForm: Boolean = false)(
               implicit override val classTag: ClassTag[Seq[T]], tag: ClassTag[T])
                     extends DriverJdbcType[Seq[T]] {
 
@@ -86,8 +88,6 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
     override def setValue(vList: Seq[T], p: PreparedStatement, idx: Int): Unit = p.setArray(idx, mkArray(vList))
 
     override def updateValue(vList: Seq[T], r: ResultSet, idx: Int): Unit = r.updateArray(idx, mkArray(vList))
-
-    override def hasLiteralForm: Boolean = false
 
     override def valueToSQLLiteral(vList: Seq[T]) = if(vList eq null) "NULL" else s"'${mkString(vList)}'"
 

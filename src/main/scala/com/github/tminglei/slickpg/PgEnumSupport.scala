@@ -42,7 +42,8 @@ trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes {
                                (implicit tag: ClassTag[T]): JdbcType[List[T]] = {
     new AdvancedArrayJdbcType[T](sqlName(sqlEnumTypeName, quoteName),
       fromString = s => utils.SimpleArrayUtils.fromString(s1 => stringToEnum(s1))(s).orNull,
-      mkString = v => utils.SimpleArrayUtils.mkString[T](enumToString)(v)
+      mkString = v => utils.SimpleArrayUtils.mkString[T](enumToString)(v),
+      hasLiteralForm = true
     ).to(_.toList)
   }
 

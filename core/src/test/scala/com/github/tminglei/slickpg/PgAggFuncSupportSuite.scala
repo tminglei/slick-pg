@@ -99,7 +99,7 @@ class PgAggFuncSupportSuite extends FunSuite {
     val sql3 = tabs.map { t =>
       (stdDev(t.x.?), stdDevPop(t.y.?).sortBy(t.name), stdDevSamp(t.x.?).distinct(), variance(t.y.?), varPop(t.x.?).filter(t.count < 10), varSamp(t.y.?))
     }.result.statements.head
-    println(s"sql2: $sql3")
+    println(s"sql3: $sql3")
 
     Await.result(db.run(
       DBIO.seq(
@@ -147,10 +147,10 @@ class PgAggFuncSupportSuite extends FunSuite {
   test("ordered-set agg functions") {
     import agg.PgAggFuncSupport.OrderedSetAggFunctions._
 
-    val sql1 = tabs.map { t =>
-      (mode().within(t.x), percentileCont(0.5).within(t.x), percentileCont(List(0.45, 0.5)).within(t.x), percentileDisc(0.5).within(t.count), percentileDisc[String](List(0.5,0.3)).within(t.name))
+    val sql = tabs.map { t =>
+      (mode().within(t.x), percentileCont(0.5).within(t.x), percentileCont(List(0.45, 0.5).bind).within(t.x), percentileDisc(0.5).within(t.count), percentileDisc[String](List(0.5,0.3).bind).within(t.name))
     }.result.statements.head
-    println(s"sql1: $sql1")
+    println(s"sql: $sql")
 
     Await.result(db.run(
       DBIO.seq(
@@ -159,7 +159,7 @@ class PgAggFuncSupportSuite extends FunSuite {
       ).andThen(
         DBIO.seq(
           tabs.map { t =>
-            (mode().within(t.x), percentileCont(0.5).within(t.x), percentileCont(List(0.45, 0.5)).within(t.x), percentileDisc(0.5).within(t.count), percentileDisc[String](List(0.5,0.3)).within(t.name))
+            (mode().within(t.x), percentileCont(0.5).within(t.x), percentileCont(List(0.45, 0.5).bind).within(t.x), percentileDisc(0.5).within(t.count), percentileDisc[String](List(0.5,0.3).bind).within(t.name))
           }.result.head.map { r =>
             assert((35.89, 65.57, List(63.116, 65.57), 2, List("bar", "bar")) === r)
           }
@@ -173,10 +173,10 @@ class PgAggFuncSupportSuite extends FunSuite {
   test("hypothetical-set agg functions") {
     import agg.PgAggFuncSupport.HypotheticalSetAggFunctions._
 
-    val sql1 = tabs.map { t =>
+    val sql = tabs.map { t =>
       (rank("bar").within(t.name), denseRank("bar").within(t.name), percentRank("bar").within(t.name), cumeDist("bar").within(t.name))
     }.result.statements.head
-    println(s"sql1: $sql1")
+    println(s"sql: $sql")
 
     Await.result(db.run(
       DBIO.seq(

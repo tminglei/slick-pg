@@ -118,24 +118,24 @@ trait PgAggFuncSupport extends JdbcTypesComponent { driver: PostgresProfile =>
 
   trait OrderedSetAggFunctions {
     def mode() = OrderedAggFuncRep(AggLibrary.Mode, Nil)
-    def percentileCont(f: Double) = OrderedAggFuncRep.withTypes[Double, Double](AggLibrary.PercentileCont, List(LiteralNode(f)))
-    def percentileCont(f: List[Double])(implicit tm: JdbcType[List[Double]]) =
-      OrderedAggFuncRep.withTypes[Double, List[Double]](AggLibrary.PercentileCont, List(LiteralNode(tm, f)))
-    def percentileDisc(f: Double) = OrderedAggFuncRep(AggLibrary.PercentileDisc, List(LiteralNode(f)))
+    def percentileCont(f: Rep[Double]) = OrderedAggFuncRep.withTypes[Double, Double](AggLibrary.PercentileCont, List(f.toNode))
+    def percentileCont(f: Rep[List[Double]])(implicit tm: JdbcType[List[Double]]) =
+      OrderedAggFuncRep.withTypes[Double, List[Double]](AggLibrary.PercentileCont, List(f.toNode))
+    def percentileDisc(f: Rep[Double]) = OrderedAggFuncRep(AggLibrary.PercentileDisc, List(f.toNode))
     /** NOTES: to use it correctly, you need specify the [T] by manual like this: {{{ percentileDisc[String](List(0.5,0.3)).within(t.name) }}} */
-    def percentileDisc[T](f: List[Double])(implicit tm: JdbcType[List[Double]], tm1: JdbcType[T], tm2: JdbcType[List[T]]) =
-      OrderedAggFuncRep.withTypes[T,List[T]](AggLibrary.PercentileDisc, List(LiteralNode(tm, f)))
+    def percentileDisc[T](f: Rep[List[Double]])(implicit tm: JdbcType[List[Double]], tm1: JdbcType[T], tm2: JdbcType[List[T]]) =
+      OrderedAggFuncRep.withTypes[T,List[T]](AggLibrary.PercentileDisc, List(f.toNode))
   }
 
   trait HypotheticalSetAggFunctions {
-    def rank[T](v: T)(implicit tm: JdbcType[T]) =
-      OrderedAggFuncRep.withTypes[Any, Long](AggLibrary.Rank, List(LiteralNode(tm, v)))
-    def denseRank[T](v: T)(implicit tm: JdbcType[T]) =
-      OrderedAggFuncRep.withTypes[Any, Long](AggLibrary.DenseRank, List(LiteralNode(tm, v)))
-    def percentRank[T](v: T)(implicit tm: JdbcType[T]) =
-      OrderedAggFuncRep.withTypes[Any, Double](AggLibrary.PercentRank, List(LiteralNode(tm, v)))
-    def cumeDist[T](v: T)(implicit tm: JdbcType[T]) =
-      OrderedAggFuncRep.withTypes[Any, Double](AggLibrary.CumeDist, List(LiteralNode(tm, v)))
+    def rank[T](v: Rep[T])(implicit tm: JdbcType[T]) =
+      OrderedAggFuncRep.withTypes[Any, Long](AggLibrary.Rank, List(v.toNode))
+    def denseRank[T](v: Rep[T])(implicit tm: JdbcType[T]) =
+      OrderedAggFuncRep.withTypes[Any, Long](AggLibrary.DenseRank, List(v.toNode))
+    def percentRank[T](v: Rep[T])(implicit tm: JdbcType[T]) =
+      OrderedAggFuncRep.withTypes[Any, Double](AggLibrary.PercentRank, List(v.toNode))
+    def cumeDist[T](v: Rep[T])(implicit tm: JdbcType[T]) =
+      OrderedAggFuncRep.withTypes[Any, Double](AggLibrary.CumeDist, List(v.toNode))
   }
 }
 
