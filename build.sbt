@@ -2,7 +2,7 @@ lazy val commonSettings = Seq(
   organizationName := "slick-pg",
   organization := "com.github.tminglei",
   name := "slick-pg",
-  version := "0.17.2",
+  version := "0.17.3",
 
   scalaVersion := "2.12.8",
   crossScalaVersions := Seq("2.12.8", "2.11.12"),
@@ -59,7 +59,7 @@ lazy val commonSettings = Seq(
 def mainDependencies(scalaVersion: String) = {
   val extractedLibs = CrossVersion.partialVersion(scalaVersion) match {
     case Some((2, scalaMajor)) if scalaMajor >= 11 =>
-      Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.0" % "provided")
+      Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2" % "provided")
     case _ =>
       Seq()
   }
