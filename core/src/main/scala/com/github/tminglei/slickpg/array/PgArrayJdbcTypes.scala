@@ -14,15 +14,19 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
   protected def useNativeArray: Boolean = true
   ///---
 
-  class SimpleArrayJdbcType[T] private[slickpg](sqlBaseType: String,
-                                                tmap: Any => T,
-                                                tcomap: T => Any,
-                                                zero: Seq[T] = null.asInstanceOf[Seq[T]])(
+  class SimpleArrayJdbcType[T](sqlBaseType: String,
+                               tmap: Any => T,
+                               tcomap: T => Any,
+                               zero: Seq[T] = null.asInstanceOf[Seq[T]],
+                               override val hasLiteralForm: Boolean = true)(
               implicit override val classTag: ClassTag[Seq[T]], ctag: ClassTag[T], checked: ElemWitness[T])
                     extends DriverJdbcType[Seq[T]] { self =>
 
     def this(sqlBaseType: String)(implicit ctag: ClassTag[T], checked: ElemWitness[T]) =
       this(sqlBaseType, _.asInstanceOf[T], (r: T) => identity(r))
+
+    def this(sqlBaseType: String, hasLiteralForm: Boolean)(implicit ctag: ClassTag[T], checked: ElemWitness[T]) =
+      this(sqlBaseType, _.asInstanceOf[T], (r: T) => identity(r), hasLiteralForm = hasLiteralForm)
 
     override def sqlType: Int = java.sql.Types.ARRAY
 
@@ -36,8 +40,6 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
     override def setValue(vList: Seq[T], p: PreparedStatement, idx: Int): Unit = p.setArray(idx, mkArray(vList, Some(p.getConnection)))
 
     override def updateValue(vList: Seq[T], r: ResultSet, idx: Int): Unit = r.updateArray(idx, mkArray(vList))
-
-    override def hasLiteralForm: Boolean = true
 
     override def valueToSQLLiteral(vList: Seq[T]) = if(vList eq null) "NULL" else s"'${buildArrayStr(vList)}'"
 
