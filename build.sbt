@@ -59,7 +59,7 @@ lazy val commonSettings = Seq(
 def mainDependencies(scalaVersion: String) = {
   val extractedLibs = CrossVersion.partialVersion(scalaVersion) match {
     case Some((2, scalaMajor)) if scalaMajor >= 11 =>
-      Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2" % "provided")
+      Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2")
     case _ =>
       Seq()
   }
