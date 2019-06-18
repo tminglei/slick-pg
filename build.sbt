@@ -179,7 +179,7 @@ lazy val slickPgJawn = Project(id = "slick-pg_jawn", base = file("./addons/jawn"
     name := "slick-pg_jawn",
     description := "Slick extensions for PostgreSQL - jawn module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "org.spire-math" %% "jawn-ast" % "0.13.0"
+      "org.typelevel" %% "jawn-ast" % "0.14.2"
     )
   )
 ) dependsOn (slickPgCore)
