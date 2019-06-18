@@ -18,8 +18,8 @@ lazy val commonSettings = Seq(
 
   resolvers += Resolver.mavenLocal,
   resolvers += Resolver.sonatypeRepo("snapshots"),
-  resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
-  resolvers += "spray" at "http://repo.spray.io/",
+  resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/",
+
   //    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))),
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
