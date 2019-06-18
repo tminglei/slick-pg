@@ -22,8 +22,8 @@ trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcT
     implicit val simpleHStoreTypeMapper: JdbcType[Map[String, String]] =
       new GenericJdbcType[Map[String, String]](
         "hstore",
-        (v) => mapAsScalaMap(HStoreConverter.fromString(v)).toMap,
-        (v) => HStoreConverter.toString(mapAsJavaMap(v)),
+        (v) => HStoreConverter.fromString(v).asScala.toMap,
+        (v) => HStoreConverter.toString(v.asJava),
         hasLiteralForm = false
       )
 
@@ -42,7 +42,7 @@ trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcT
     implicit class PgHStorePositionedResult(r: PositionedResult) {
       def nextHStore() = nextHStoreOption().getOrElse(Map.empty)
       def nextHStoreOption() = r.nextStringOption().map { v =>
-        mapAsScalaMap(HStoreConverter.fromString(v).asInstanceOf[java.util.Map[String, String]]).toMap
+        HStoreConverter.fromString(v).asInstanceOf[java.util.Map[String, String]].asScala.toMap
       }
     }
 
@@ -50,8 +50,8 @@ trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcT
     implicit val getHStore = mkGetResult(_.nextHStore())
     implicit val getHStoreOption = mkGetResult(_.nextHStoreOption())
     implicit val setHStore = mkSetParameter[Map[String, String]]("hstore",
-      (v) => HStoreConverter.toString(mapAsJavaMap(v)))
+      (v) => HStoreConverter.toString(v.asJava))
     implicit val setHStoreOption = mkOptionSetParameter[Map[String, String]]("hstore",
-      (v) => HStoreConverter.toString(mapAsJavaMap(v)))
+      (v) => HStoreConverter.toString(v.asJava))
   }
 }
