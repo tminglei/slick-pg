@@ -2,8 +2,8 @@ package com.github.tminglei.slickpg
 
 import java.util.concurrent.Executors
 
-import jawn._
-import jawn.ast._
+import org.typelevel.jawn._
+import org.typelevel.jawn.ast._
 
 import org.scalatest.FunSuite
 import slick.jdbc.{GetResult, PostgresProfile}
