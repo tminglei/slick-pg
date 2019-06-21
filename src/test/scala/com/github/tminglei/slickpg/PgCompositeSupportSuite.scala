@@ -4,7 +4,7 @@ import org.postgresql.util.HStoreConverter
 import org.scalatest.FunSuite
 import slick.jdbc.{GetResult, PositionedResult, PostgresProfile}
 
-import scala.collection.convert.{WrapAsJava, WrapAsScala}
+import scala.collection.JavaConverters._
 import java.time.LocalDateTime
 
 import composite.Struct
@@ -54,9 +54,9 @@ object PgCompositeSupportSuite {
 
   //-------------------------------------------------------------
   trait MyPostgresProfile1 extends PostgresProfile with PgCompositeSupport with PgArraySupport with utils.PgCommonJdbcTypes {
-    def mapToString(m: Map[String, String]): String = HStoreConverter.toString(WrapAsJava.mapAsJavaMap(m))
-    def stringToMap(s: String): Map[String, String] = WrapAsScala.mapAsScalaMap(HStoreConverter.fromString(s)
-      .asInstanceOf[java.util.Map[String, String]]).toMap
+    def mapToString(m: Map[String, String]): String = HStoreConverter.toString((m).asJava)
+    def stringToMap(s: String): Map[String, String] = (HStoreConverter.fromString(s)
+      .asInstanceOf[java.util.Map[String, String]]).asScala.toMap
 
     ///
     trait API extends super.API with ArrayImplicits {

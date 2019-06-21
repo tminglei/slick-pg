@@ -22,7 +22,7 @@ class PgArraySupportSuite extends FunSuite {
 
     ///
     trait API extends super.API with ArrayImplicits {
-      implicit val simpleLongBufferTypeMapper = new SimpleArrayJdbcType[Long]("int8").to(_.toBuffer)
+      implicit val simpleLongBufferTypeMapper = new SimpleArrayJdbcType[Long]("int8").to(_.toBuffer[Long], (v: Buffer[Long]) => v.toSeq)
       implicit val simpleStrVectorTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toVector)
       implicit val institutionListTypeWrapper =  new SimpleArrayJdbcType[Long]("int8")
         .mapTo[Institution](new Institution(_), _.value).to(_.toList)
@@ -195,7 +195,7 @@ class PgArraySupportSuite extends FunSuite {
         r.<<?[Seq[String]].map(_.toList),
         r.<<[Seq[Long]],
         r.<<[Seq[Int]].toList,
-        r.<<[Seq[Short]].to[Vector],
+        r.<<[Seq[Short]].toVector,
         r.<<[Seq[Float]].toList,
         r.<<[Seq[Double]].toList,
         r.<<[Seq[Boolean]],

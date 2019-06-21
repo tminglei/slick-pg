@@ -44,11 +44,11 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
     implicit val simpleTsListTypeMapper: JdbcType[List[Timestamp]] = new SimpleArrayJdbcType[Timestamp]("timestamp").to(_.toList)
 
     ///
-    implicit def simpleArrayColumnExtensionMethods[B1, SEQ[B1] <: Seq[B1]](c: Rep[SEQ[B1]])(
+    implicit def simpleArrayColumnExtensionMethods[B1, SEQ[B1]](c: Rep[SEQ[B1]])(
       implicit tm: JdbcType[B1], tm1: JdbcType[SEQ[B1]]) = {
         new ArrayColumnExtensionMethods[B1, SEQ, SEQ[B1]](c)
       }
-    implicit def simpleArrayOptionColumnExtensionMethods[B1, SEQ[B1] <: Seq[B1]](c: Rep[Option[SEQ[B1]]])(
+    implicit def simpleArrayOptionColumnExtensionMethods[B1, SEQ[B1]](c: Rep[Option[SEQ[B1]]])(
       implicit tm: JdbcType[B1], tm1: JdbcType[SEQ[B1]]) = {
         new ArrayColumnExtensionMethods[B1, SEQ, Option[SEQ[B1]]](c)
       }
@@ -73,7 +73,7 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
     private def simpleNextArray[T](r: PositionedResult): Option[Seq[T]] = {
       val value = r.rs.getArray(r.skip.currentPos)
       if (r.rs.wasNull) None else Some(
-        value.getArray.asInstanceOf[Array[Any]].map(_.asInstanceOf[T]))
+        value.getArray.asInstanceOf[Array[Any]].toSeq.map(_.asInstanceOf[T]))
     }
 
     //////////////////////////////////////////////////////////////////////////

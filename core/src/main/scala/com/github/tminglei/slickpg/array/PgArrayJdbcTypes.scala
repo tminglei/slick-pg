@@ -34,7 +34,7 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
 
     override def getValue(r: ResultSet, idx: Int): Seq[T] = {
       val value = r.getArray(idx)
-      if (r.wasNull) zero else value.getArray.asInstanceOf[Array[Any]].map(tmap)
+      if (r.wasNull) zero else value.getArray.asInstanceOf[Array[Any]].toSeq.map(tmap)
     }
 
     override def setValue(vList: Seq[T], p: PreparedStatement, idx: Int): Unit = p.setArray(idx, mkArray(vList, Some(p.getConnection)))
@@ -65,8 +65,8 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
     def mapTo[U](tmap: T => U, tcomap: U => T)(implicit ctags: ClassTag[Seq[U]], ctag: ClassTag[U]): SimpleArrayJdbcType[U] =
       new SimpleArrayJdbcType[U](sqlBaseType, v => tmap(self.tmap(v)), r => self.tcomap(tcomap(r)))(ctags, ctag, ElemWitness.AnyWitness.asInstanceOf[ElemWitness[U]])
 
-    def to[SEQ[T] <: Seq[T]](conv: Seq[T] => SEQ[T])(implicit classTag: ClassTag[SEQ[T]]): DriverJdbcType[SEQ[T]] =
-      new WrappedConvArrayJdbcType[T, SEQ](this, conv)
+    def to[SEQ[T]](conv: Seq[T] => SEQ[T], rconv: SEQ[T] => Seq[T] = (v: SEQ[T]) => v.asInstanceOf[Seq[T]])(implicit classTag: ClassTag[SEQ[T]]): DriverJdbcType[SEQ[T]] =
+      new WrappedConvArrayJdbcType[T, SEQ](this, conv, rconv)
   }
 
   ///
@@ -96,12 +96,12 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
     //--
     private def mkArray(vList: Seq[T]): java.sql.Array = utils.SimpleArrayUtils.mkArray(mkString)(sqlBaseType, vList)
 
-    def to[SEQ[T] <: Seq[T]](conv: Seq[T] => SEQ[T])(implicit classTag: ClassTag[SEQ[T]]): DriverJdbcType[SEQ[T]] =
-      new WrappedConvArrayJdbcType[T, SEQ](this, conv)
+    def to[SEQ[T]](conv: Seq[T] => SEQ[T], rconv: SEQ[T] => Seq[T] = (v: SEQ[T]) => v.asInstanceOf[Seq[T]])(implicit classTag: ClassTag[SEQ[T]]): DriverJdbcType[SEQ[T]] =
+      new WrappedConvArrayJdbcType[T, SEQ](this, conv, rconv)
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////////
-  private[array] class WrappedConvArrayJdbcType[T, SEQ[T] <: Seq[T]](val delegate: DriverJdbcType[Seq[T]], val conv: Seq[T] => SEQ[T])(
+  private[array] class WrappedConvArrayJdbcType[T, SEQ[T]](val delegate: DriverJdbcType[Seq[T]], val conv: Seq[T] => SEQ[T], val rconv: SEQ[T] => Seq[T])(
       implicit override val classTag: ClassTag[SEQ[T]], ctag: ClassTag[T]) extends DriverJdbcType[SEQ[T]] {
 
     override def sqlType: Int = delegate.sqlType
@@ -110,13 +110,13 @@ trait PgArrayJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
 
     override def getValue(r: ResultSet, idx: Int): SEQ[T] = Option(delegate.getValue(r, idx)).map(conv).getOrElse(null.asInstanceOf[SEQ[T]])
 
-    override def setValue(vList: SEQ[T], p: PreparedStatement, idx: Int): Unit = delegate.setValue(vList, p, idx)
+    override def setValue(vList: SEQ[T], p: PreparedStatement, idx: Int): Unit = delegate.setValue(rconv(vList), p, idx)
 
-    override def updateValue(vList: SEQ[T], r: ResultSet, idx: Int): Unit = delegate.updateValue(vList, r, idx)
+    override def updateValue(vList: SEQ[T], r: ResultSet, idx: Int): Unit = delegate.updateValue(rconv(vList), r, idx)
 
     override def hasLiteralForm: Boolean = delegate.hasLiteralForm
 
-    override def valueToSQLLiteral(vList: SEQ[T]) = delegate.valueToSQLLiteral(Option(vList).orNull)
+    override def valueToSQLLiteral(vList: SEQ[T]) = delegate.valueToSQLLiteral(Option(rconv(vList)).orNull)
   }
 
   /// added to help check built-in support array types statically
