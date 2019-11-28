@@ -2,7 +2,7 @@ lazy val commonSettings = Seq(
   organizationName := "slick-pg",
   organization := "com.github.tminglei",
   name := "slick-pg",
-  version := "0.18.0",
+  version := "0.18.1",
 
   scalaVersion := "2.13.0",
   crossScalaVersions := Seq("2.13.0", "2.12.8", "2.11.12"),
@@ -20,6 +20,7 @@ lazy val commonSettings = Seq(
   resolvers += Resolver.sonatypeRepo("snapshots"),
   resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/",
 
+  useGpg := true,
   //    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))),
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
@@ -94,8 +95,8 @@ lazy val slickPgJoda = Project(id = "slick-pg_joda-time", base = file("./addons/
     name := "slick-pg_joda-time",
     description := "Slick extensions for PostgreSQL - joda time module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "joda-time" % "joda-time" % "2.10.1",
-      "org.joda" % "joda-convert" % "2.1.2"
+      "joda-time" % "joda-time" % "2.10.5",
+      "org.joda" % "joda-convert" % "2.2.1"
     )
   )
 ) dependsOn (slickPgCore)
@@ -127,7 +128,7 @@ lazy val slickPgJtsLt = Project(id = "slick-pg_jts_lt", base = file("./addons/jt
     name := "slick-pg_jts_lt",
     description := "Slick extensions for PostgreSQL - (locationtech) jts module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "org.locationtech.jts" % "jts-core" % "1.16.0"
+      "org.locationtech.jts" % "jts-core" % "1.16.1"
     )
   )
 ) dependsOn (slickPgCore)
@@ -156,10 +157,21 @@ lazy val slickPgCirceJson = Project(id = "slick-pg_circe-json", base = file("./a
   settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
     name := "slick-pg_circe-json",
     description := "Slick extensions for PostgreSQL - circe module",
-    libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "io.circe" %% "circe-core" % "0.12.0-M3",
-      "io.circe" %% "circe-generic" % "0.12.0-M3",
-      "io.circe" %% "circe-parser" % "0.12.0-M3"
+    libraryDependencies := mainDependencies(scalaVersion.value) ++ (
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, scalaMajor)) if scalaMajor > 11 =>
+          Seq(
+            "io.circe" %% "circe-core" % "0.12.3",
+            "io.circe" %% "circe-generic" % "0.12.3",
+            "io.circe" %% "circe-parser" % "0.12.3"
+          )
+        case _ =>
+          Seq(
+            "io.circe" %% "circe-core" % "0.11.2",
+            "io.circe" %% "circe-generic" % "0.11.2",
+            "io.circe" %% "circe-parser" % "0.11.2"
+          )
+      }
     )
   )
 ) dependsOn (slickPgCore)
