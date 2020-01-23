@@ -25,3 +25,6 @@
 .classpath
 .settings
 .DS_Store
+.metals
+.bloop
+project/metals.sbt
