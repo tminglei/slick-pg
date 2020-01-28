@@ -147,3 +147,8 @@ Supported Geometry Oper/Functions
 | segmentize          | ST_Segmentize         | geometry having no segment longer than the given distance from the geometry | ST_Segmentize( geom, maxLength) |
 | snap                | ST_Snap               | Snap segments and vertices of input geometry to vertices of a reference geometry   | ST_Snap(geom, refGeom, tolerance) |
 | translate           | ST_Translate          | Translates the geometry to a new location using the numeric parameters as offsets  | ST_Translate(geom, deltax, deltay[, deltaz]) |
+
+#### Clustering
+| Slick Oper/Function | PostGIS Oper/Function |           Description                                                                        |                 Example                |
+| ------------------- | --------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------- |
+| clusterDBSCAN       | ST_ClusterDBSCAN      | Window function that returns a cluster id for each input geometry using the DBSCAN algorithm | ST_ClusterDBSCAN(geom, eps, minpoints) |

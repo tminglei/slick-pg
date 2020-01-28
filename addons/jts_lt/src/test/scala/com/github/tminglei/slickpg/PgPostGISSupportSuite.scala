@@ -13,7 +13,7 @@ import scala.concurrent.duration._
 class PgPostGISSupportSuite extends FunSuite {
   implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
-  trait MyPostgresProfile extends PostgresProfile with PgPostGISSupport {
+  trait MyPostgresProfile extends ExPostgresProfile with PgPostGISSupport {
 
     override val api: API = new API {}
     val plainAPI = new API with PostGISPlainImplicits
@@ -763,6 +763,35 @@ class PgPostGISSupportSuite extends FunSuite {
         )
       ).andFinally(
         (GeomTests.schema ++ PointTests.schema) drop
+      ).transactionally
+    ), Duration.Inf)
+  }
+
+  test("PostGIS (lt) Lifted support - clustering") {
+    val point1 = wktReader.read("POINT(25 45)").asInstanceOf[Point]
+    val point2 = wktReader.read("POINT(75 100)").asInstanceOf[Point]
+    val point3 = wktReader.read("POINT(76 101)").asInstanceOf[Point]
+
+    val pbean1 = PointBean(1L, point1)
+    val pbean2 = PointBean(2L, point2)
+    val pbean3 = PointBean(3L, point3)
+
+    Await.result(db.run(
+      DBIO.seq(
+        PointTests.schema.create,
+        PointTests forceInsertAll List(pbean1, pbean2, pbean3)
+      ).andThen(
+        DBIO.seq(
+          // ClusterDBSCAN
+          PointTests.map(r => (r.id, r.point.clusterDBSCAN(2.2f.bind, 1.bind) :: Over)).result.map {
+            r =>
+              assert(r.find(_._1 == pbean1.id).get._2 == 0)
+              assert(r.find(_._1 == pbean2.id).get._2 == 1)
+              assert(r.find(_._1 == pbean3.id).get._2 == 1)
+          }
+        )
+      ).andFinally(
+        PointTests.schema.drop
       ).transactionally
     ), Duration.Inf)
   }
