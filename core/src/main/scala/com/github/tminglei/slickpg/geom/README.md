@@ -152,3 +152,4 @@ Supported Geometry Oper/Functions
 | Slick Oper/Function | PostGIS Oper/Function |           Description                                                                        |                 Example                |
 | ------------------- | --------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------- |
 | clusterDBSCAN       | ST_ClusterDBSCAN      | Window function that returns a cluster id for each input geometry using the DBSCAN algorithm | ST_ClusterDBSCAN(geom, eps, minpoints) |
+| clusterKMeans       | ST_ClusterKMeans      | Window function that returns a cluster id for each input geometry using the K-means algorithm | ST_ClusterKMeans(geom, number_of_clusters) |

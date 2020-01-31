@@ -788,6 +788,13 @@ class PgPostGISSupportSuite extends FunSuite {
               assert(r.find(_._1 == pbean1.id).get._2 == 0)
               assert(r.find(_._1 == pbean2.id).get._2 == 1)
               assert(r.find(_._1 == pbean3.id).get._2 == 1)
+          },
+          // ClusterKMeans
+          PointTests.map(r => (r.id, r.point.clusterKMeans(2) :: Over)).result.map {
+            r =>
+              assert(r.find(_._1 == pbean1.id).get._2 == 0)
+              assert(r.find(_._1 == pbean2.id).get._2 == 1)
+              assert(r.find(_._1 == pbean3.id).get._2 == 1)
           }
         )
       ).andFinally(

@@ -243,6 +243,7 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
 
     /** Clustering */
     val ClusterDBSCAN = new SqlFunction("ST_ClusterDBSCAN")
+    val ClusterKMeans = new SqlFunction("ST_ClusterKMeans")
   }
 
   /** Extension methods for postgis geometry Columns */
@@ -633,6 +634,9 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
     /** Clustering */
     def clusterDBSCAN(eps: Rep[Float], minpoints: Rep[Int]) = {
       WindowFunc[Long](GeomLibrary.ClusterDBSCAN, Seq(n, eps.toNode, minpoints.toNode))
+    }
+    def clusterKMeans(numberOfClusters: Rep[Int]) = {
+      WindowFunc[Long](GeomLibrary.ClusterKMeans, Seq(n, numberOfClusters.toNode))
     }
   }
 
