@@ -20,7 +20,6 @@ lazy val commonSettings = Seq(
   resolvers += Resolver.sonatypeRepo("snapshots"),
   resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/",
 
-  useGpg := true,
   //    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))),
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
@@ -32,7 +31,9 @@ lazy val commonSettings = Seq(
   publishMavenStyle := true,
   publishArtifact in Test := false,
   pomIncludeRepository := { _ => false },
-  makePomConfiguration ~= { _.copy(configurations = Some(Seq(Compile, Runtime, Optional))) },
+  makePomConfiguration := makePomConfiguration.value.withConfigurations(
+    configurations = Vector(Compile, Runtime, Optional)
+  ),
 
   pomExtra :=
     <url>https://github.com/tminglei/slick-pg</url>
@@ -73,35 +74,38 @@ def mainDependencies(scalaVersion: String) = {
   ) ++ extractedLibs
 }
 
-lazy val slickPgCore = Project(id = "slick-pg_core", base = file("./core"),
-  settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
+lazy val slickPgCore = (project in file("./core"))
+  .settings(commonSettings)
+  .settings(
     name := "slick-pg_core",
     description := "Slick extensions for PostgreSQL - Core",
     libraryDependencies := mainDependencies(scalaVersion.value)
   )
-)
 
-lazy val slickPgProject = Project(id = "slick-pg", base = file("."),
-  settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
+lazy val slickPg = (project in file("."))
+  .settings(commonSettings)
+  .settings(
     name := "slick-pg",
     description := "Slick extensions for PostgreSQL",
     libraryDependencies := mainDependencies(scalaVersion.value)
   )
-).dependsOn (slickPgCore)
+  .dependsOn (slickPgCore)
   .aggregate (slickPgCore, slickPgJoda, slickPgJson4s, slickPgJts, slickPgJtsLt, slickPgPlayJson, slickPgSprayJson, slickPgCirceJson, slickPgArgonaut, slickPgJawn)
 
-lazy val slickPgJoda = Project(id = "slick-pg_joda-time", base = file("./addons/joda-time"),
-  settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
+lazy val slickPgJoda = (project in file("./addons/joda-time"))
+  .settings(commonSettings)
+  .settings(
     name := "slick-pg_joda-time",
     description := "Slick extensions for PostgreSQL - joda time module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
       "joda-time" % "joda-time" % "2.10.5"
     )
   )
-) dependsOn (slickPgCore)
-
-lazy val slickPgJson4s = Project(id = "slick-pg_json4s", base = file("./addons/json4s"),
-  settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
+  .dependsOn (slickPgCore)
+  
+lazy val slickPgJson4s = (project in file("./addons/json4s"))
+  .settings(commonSettings)
+  .settings(
     name := "slick-pg_json4s",
     description := "Slick extensions for PostgreSQL - json4s module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
@@ -109,51 +113,56 @@ lazy val slickPgJson4s = Project(id = "slick-pg_json4s", base = file("./addons/j
       "org.json4s" %% "json4s-core" % "3.6.6",
       "org.json4s" %% "json4s-native" % "3.6.6" % "test"
     )
-  )
-) dependsOn (slickPgCore)
+  ) 
+  .dependsOn (slickPgCore)
 
-lazy val slickPgJts = Project(id = "slick-pg_jts", base = file("./addons/jts"),
-  settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
+lazy val slickPgJts = (project in file("./addons/jts"))
+  .settings(commonSettings)
+  .settings(
     name := "slick-pg_jts",
     description := "Slick extensions for PostgreSQL - jts module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
       "com.vividsolutions" % "jts-core" % "1.14.0"
     )
   )
-) dependsOn (slickPgCore)
+  .dependsOn (slickPgCore)
 
-lazy val slickPgJtsLt = Project(id = "slick-pg_jts_lt", base = file("./addons/jts_lt"),
-  settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
+lazy val slickPgJtsLt = (project in file("./addons/jts_lt"))
+  .settings(commonSettings)
+  .settings(
     name := "slick-pg_jts_lt",
     description := "Slick extensions for PostgreSQL - (locationtech) jts module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
       "org.locationtech.jts" % "jts-core" % "1.16.1"
     )
   )
-) dependsOn (slickPgCore)
+  .dependsOn (slickPgCore)
 
-lazy val slickPgPlayJson = Project(id = "slick-pg_play-json", base = file("./addons/play-json"),
-  settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
+lazy val slickPgPlayJson = (project in file("./addons/play-json"))
+  .settings(commonSettings)
+  .settings(
     name := "slick-pg_play-json",
     description := "Slick extensions for PostgreSQL - play-json module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
       "com.typesafe.play" %% "play-json" % "2.7.4"
     )
   )
-) dependsOn (slickPgCore)
+  .dependsOn (slickPgCore)
 
-lazy val slickPgSprayJson = Project(id = "slick-pg_spray-json", base = file("./addons/spray-json"),
-  settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
+lazy val slickPgSprayJson = (project in file("./addons/spray-json"))
+  .settings(commonSettings)
+  .settings(
     name := "slick-pg_spray-json",
     description := "Slick extensions for PostgreSQL - spray-json module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
       "io.spray" %%  "spray-json" % "1.3.5"
     )
   )
-) dependsOn (slickPgCore)
+  .dependsOn (slickPgCore)
 
-lazy val slickPgCirceJson = Project(id = "slick-pg_circe-json", base = file("./addons/circe-json"),
-  settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
+lazy val slickPgCirceJson = (project in file("./addons/circe-json"))
+  .settings(commonSettings)
+  .settings(
     name := "slick-pg_circe-json",
     description := "Slick extensions for PostgreSQL - circe module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ (
@@ -173,27 +182,29 @@ lazy val slickPgCirceJson = Project(id = "slick-pg_circe-json", base = file("./a
       }
     )
   )
-) dependsOn (slickPgCore)
+  .dependsOn (slickPgCore)
 
-lazy val slickPgArgonaut = Project(id = "slick-pg_argonaut", base = file("./addons/argonaut"),
-  settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
+lazy val slickPgArgonaut = (project in file("./addons/argonaut"))
+  .settings(commonSettings)
+  .settings(
     name := "slick-pg_argonaut",
     description := "Slick extensions for PostgreSQL - argonaut module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
       "io.argonaut" %% "argonaut" % "6.2.3"
     )
   )
-) dependsOn (slickPgCore)
+  .dependsOn (slickPgCore)
 
-lazy val slickPgJawn = Project(id = "slick-pg_jawn", base = file("./addons/jawn"),
-  settings = Defaults.coreDefaultSettings ++ commonSettings ++ Seq(
+lazy val slickPgJawn = (project in file("./addons/jawn"))
+  .settings(commonSettings)
+  .settings(
     name := "slick-pg_jawn",
     description := "Slick extensions for PostgreSQL - jawn module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
       "org.typelevel" %% "jawn-ast" % "0.14.2"
     )
   )
-) dependsOn (slickPgCore)
+  .dependsOn (slickPgCore)
 
 
 
