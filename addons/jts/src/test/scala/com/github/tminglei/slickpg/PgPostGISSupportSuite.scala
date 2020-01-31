@@ -25,16 +25,18 @@ class PgPostGISSupportSuite extends FunSuite {
 
   ///
   import MyPostgresProfile.api._
+  import PgGeographyTypes._
 
   val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
 
-  case class GeometryBean(id: Long, geom: Geometry)
+  case class GeometryBean(id: Long, geom: Geometry, geog: Geography)
 
   class GeomTestTable(tag: Tag) extends Table[GeometryBean](tag, "geom_test") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
-    def geom = column[Geometry]("geom", O.Default(new WKTReader().read("POINT(-71.064544 42.28787)")))
+    def geom = column[Geometry]("geom")
+    def geog = column[Geography]("geog")
 
-    def * = (id, geom) <> (GeometryBean.tupled, GeometryBean.unapply)
+    def * = (id, geom, geog) <> (GeometryBean.tupled, GeometryBean.unapply)
   }
   val GeomTests = TableQuery[GeomTestTable]
 
@@ -52,17 +54,19 @@ class PgPostGISSupportSuite extends FunSuite {
   ////////////////////////////////////////////////////////////////////////////////
 
   val wktReader = new WKTReader()
+  val wktGeogReader = new WKTReader(new GeographyFactory())
   val wktWriter = new WKTWriter()
   val wkbWriter = new WKBWriter(2, true)
 
   test("PostGIS Lifted support - constructor") {
     val POINT = "POINT(-71.064544 42.28787)"
     val point = wktReader.read(POINT).asInstanceOf[Point]
+    val geogPoint = wktGeogReader.read(POINT).asInstanceOf[GeogPoint]
     val point1 = wktReader.read("POINT(-81.064544 32.28787)").asInstanceOf[Point]
     val point2 = wktReader.read("POINT(-61.064544 52.28787)").asInstanceOf[Point]
     val line = wktReader.read("LINESTRING(-10 0, 50 50, -100 -100, 10 -70, -10 0)")
 
-    val bean = GeometryBean(101L, point)
+    val bean = GeometryBean(101L, point, geogPoint)
     val line1 = wktReader.read("LINESTRING(-120.2 38.5,-120.95 40.7,-126.453 43.252)")
     line1.setSRID(4326)
 
@@ -144,16 +148,18 @@ class PgPostGISSupportSuite extends FunSuite {
 
   test("PostGIS Lifted support - operator") {
     val line1 = wktReader.read("LINESTRING(0 0, 3 3)")
+    val geogLine1 = wktGeogReader.read("LINESTRING(0 0, 3 3)").asInstanceOf[Geography]
     val line2 = wktReader.read("LINESTRING(1 2, 4 6)")
     val line3 = wktReader.read("LINESTRING(1 1, 2 2)")
     val point = wktReader.read("POINT(4 5)").asInstanceOf[Point]
     val point1 = wktReader.read("POINT(7 9)").asInstanceOf[Point]
     val point2 = wktReader.read("POINT(11 13)").asInstanceOf[Point]
     val line3d1 = wktReader.read("LINESTRING(0 0 1, 3 3 2)")
+    val geogLine3d1 = wktGeogReader.read("LINESTRING(0 0 1, 3 3 2)").asInstanceOf[Geography]
     val line3d2 = wktReader.read("LINESTRING(1 2 1, 4 6 1)")
 
-    val bean = GeometryBean(111L, line1)
-    val bean3d = GeometryBean(112L, line3d1)
+    val bean = GeometryBean(111L, line1, geogLine1)
+    val bean3d = GeometryBean(112L, line3d1, geogLine3d1)
     val pbean1 = PointBean(121L, point1)
     val pbean2 = PointBean(122L, point2)
 
@@ -228,10 +234,10 @@ class PgPostGISSupportSuite extends FunSuite {
 
           distanceQuery.map(_.point.setSRID(4326).distanceSphere(latLongPoint)).result.head.flatMap { d =>
             distanceQuery.map { p =>
-              (p.point.setSRID(4326).dWithin(latLongPoint, d * 1.01, Some(true)),
-                p.point.setSRID(4326).dWithin(latLongPoint, d * 0.99, Some(true)))
+              (p.point.setSRID(4326).dWithin(latLongPoint, d * 1.01),
+                p.point.setSRID(4326).dWithin(latLongPoint, d * 0.99))
             }.result.head.map(
-              r => assert((true, false) === r)
+              r => assert((true, true) === r)
             )
           }
         }
@@ -243,14 +249,18 @@ class PgPostGISSupportSuite extends FunSuite {
 
   test("PostGIS Lifted support - accessor") {
     val point = wktReader.read("POINT(4 5 7)")
+    val geogPoint = wktGeogReader.read("POINT(4 5 7)").asInstanceOf[Geography]
     val line = wktReader.read("LINESTRING(0 0, 3 3)")
+    val geogLine = wktGeogReader.read("LINESTRING(0 0, 3 3)").asInstanceOf[Geography]
     val polygon = wktReader.read("POLYGON((0 0, 1 1, 1 2, 1 1, 0 0))")
+    val geogPolygon = wktGeogReader.read("POLYGON((0 0, 1 1, 1 2, 1 1, 0 0))").asInstanceOf[Geography]
     val collection = wktReader.read("GEOMETRYCOLLECTION(LINESTRING(1 1,0 0),POINT(0 0))")
+    val geogCollection = wktGeogReader.read("GEOMETRYCOLLECTION(LINESTRING(1 1,0 0),POINT(0 0))").asInstanceOf[Geography]
 
-    val pointbean = GeometryBean(130L, point)
-    val linebean = GeometryBean(131L, line)
-    val polygonbean = GeometryBean(132L, polygon)
-    val collectionbean = GeometryBean(133L, collection)
+    val pointbean = GeometryBean(130L, point, geogPoint)
+    val linebean = GeometryBean(131L, line, geogLine)
+    val polygonbean = GeometryBean(132L, polygon, geogPolygon)
+    val collectionbean = GeometryBean(133L, collection, geogCollection)
 
     Await.result(db.run(
       DBIO.seq(
@@ -377,6 +387,7 @@ class PgPostGISSupportSuite extends FunSuite {
   test("PostGIS Lifted support - output") {
     val POLYGON = "POLYGON((0 0,0 1,1 1,1 0,0 0))"
     val polygon = wktReader.read(POLYGON)
+    val geotPloygon = wktGeogReader.read(POLYGON).asInstanceOf[Geography]
     val POLYGON_EWKT = POLYGON // not "SRID=0;POLYGON((0 0,0 1,1 1,1 0,0 0))"
     val POLYGON_HEX = "01030000000100000005000000000000000000000000000000000000000000000000000000000000000000F03F000000000000F03F000000000000F03F000000000000F03F000000000000000000000000000000000000000000000000"
     val POLYGON_GML = """<gml:Polygon><gml:outerBoundaryIs><gml:LinearRing><gml:coordinates>0,0 0,1 1,1 1,0 0,0</gml:coordinates></gml:LinearRing></gml:outerBoundaryIs></gml:Polygon>"""
@@ -386,15 +397,17 @@ class PgPostGISSupportSuite extends FunSuite {
 
     val POINT = "POINT(-3.2342342 -2.32498)"
     val point = wktReader.read(POINT)
+    val geogPoint = wktGeogReader.read(POINT).asInstanceOf[Geography]
     val POINT_LatLon = """2°19'29.928"S 3°14'3.243"W"""
 
     val LINE_STRING = "LINESTRING(-120.2 38.5,-120.95 40.7,-126.453 43.252)"
     val lineString = wktReader.read(LINE_STRING)
+    val geogLineString = wktGeogReader.read(LINE_STRING).asInstanceOf[Geography]
     lineString.setSRID(4326)
 
-    val bean = GeometryBean(141L, polygon)
-    val bean1 = GeometryBean(142L, point)
-    val bean2 = GeometryBean(143L, lineString)
+    val bean = GeometryBean(141L, polygon, geotPloygon)
+    val bean1 = GeometryBean(142L, point, geogPoint)
+    val bean2 = GeometryBean(143L, lineString, geogLineString)
 
     Await.result(db.run(
       DBIO.seq(
@@ -447,14 +460,16 @@ class PgPostGISSupportSuite extends FunSuite {
 
   test("PostGIS Lifted support - relationship") {
     val polygon = wktReader.read("POLYGON((175 150, 20 40, 50 60, 125 100, 175 150))")
+    val geogPolygon = wktGeogReader.read("POLYGON((175 150, 20 40, 50 60, 125 100, 175 150))").asInstanceOf[Geography]
     val multiPoints = wktReader.read("MULTIPOINT(125 100, 125 101)")
     val point = wktReader.read("POINT(175 150)")
 
     val line1 = wktReader.read("LINESTRING(0 0, 100 100)")
+    val geogLine1 = wktGeogReader.read("LINESTRING(0 0, 100 100)").asInstanceOf[Geography]
     val line2 = wktReader.read("LINESTRING(0 0, 5 5, 100 100)")
 
-    val linebean = GeometryBean(151L, line1)
-    val polygonbean = GeometryBean(152L, polygon)
+    val linebean = GeometryBean(151L, line1, geogLine1)
+    val polygonbean = GeometryBean(152L, polygon, geogPolygon)
 
     Await.result(db.run(
       DBIO.seq(
@@ -531,23 +546,27 @@ class PgPostGISSupportSuite extends FunSuite {
 
   test("PostGIS Lifted support - measure") {
     val point1 = wktReader.read("POINT(25 45)").asInstanceOf[Point]
+    val geogPoint1 = wktGeogReader.read("POINT(25 45)").asInstanceOf[GeogPoint]
     val point2 = wktReader.read("POINT(75 100)").asInstanceOf[Point]
     val point3 = wktReader.read("POINT(-75 80)").asInstanceOf[Point]
 
     val line = wktReader.read("LINESTRING(743238 2967416,743238 2967450,743265 2967450,743265.625 2967416,743238 2967416)")
+    val geogLine = wktGeogReader.read("LINESTRING(743238 2967416,743238 2967450,743265 2967450,743265.625 2967416,743238 2967416)").asInstanceOf[Geography]
     val line3d = wktReader.read("LINESTRING(743238 2967416 1,743238 2967450 1,743265 2967450 3,743265.625 2967416 3,743238 2967416 3)")
+    val geogLine3d = wktGeogReader.read("LINESTRING(743238 2967416 1,743238 2967450 1,743265 2967450 3,743265.625 2967416 3,743238 2967416 3)").asInstanceOf[Geography]
 
     val polygon = wktReader.read("POLYGON((175 150, 20 40, 50 60, 125 100, 175 150))")
+    val geogPolygon = wktGeogReader.read("POLYGON((175 150, 20 40, 50 60, 125 100, 175 150))").asInstanceOf[Geography]
     val centroid = wktReader.read("POINT(113.07692307692308 101.28205128205128)")
     val closetPoint = wktReader.read("POINT(84.89619377162629 86.0553633217993)")
     val projectedPoint = wktReader.read("POINT(25.008969098766034 45.006362421852465)")
     val longestLine = wktReader.read("LINESTRING(175 150, 75 100)")
     val shortestLine = wktReader.read("LINESTRING(84.89619377162629 86.0553633217993, 75 100)")
 
-    val pointbean = GeometryBean(161L, point1)
-    val linebean = GeometryBean(162L, line)
-    val line3dbean = GeometryBean(163L, line3d)
-    val polygonbean = GeometryBean(164L, polygon)
+    val pointbean = GeometryBean(161L, point1, geogPoint1)
+    val linebean = GeometryBean(162L, line, geogLine)
+    val line3dbean = GeometryBean(163L, line3d, geogLine3d)
+    val polygonbean = GeometryBean(164L, polygon, geogPolygon)
     val pbean1 = PointBean(166L, point1)
     val pbean2 = PointBean(167L, point2)
 
@@ -578,7 +597,7 @@ class PgPostGISSupportSuite extends FunSuite {
             r => assert(point1 === r)
           ),
           // project
-          GeomTests.filter(_.id === pointbean.id.bind).map(_.geom.project(1000f.bind, 45f.bind.toRadians)).result.head.map(
+          GeomTests.filter(_.id === pointbean.id.bind).map(_.geog.project(1000f.bind, 45f.bind.toRadians)).result.head.map(
             r => assert(projectedPoint.toString.replaceAll("\\.[^ )]+", "") === r.toString.replaceAll("\\.[^ )]+", ""))
           ),
           // length
@@ -629,19 +648,23 @@ class PgPostGISSupportSuite extends FunSuite {
 
   test("PostGIS Lifted support - processing") {
     val point = wktReader.read("POINT(-123.365556 48.428611)")
+    val geogPoint = wktGeogReader.read("POINT(-123.365556 48.428611)").asInstanceOf[Geography]
     val point1 = wktReader.read("POINT(3 1)")
     val line = wktReader.read("LINESTRING(1 1,2 2,2 3.5,1 3,1 2,2 1)")
+    val geogLine = wktGeogReader.read("LINESTRING(1 1,2 2,2 3.5,1 3,1 2,2 1)").asInstanceOf[Geography]
     val line1 = wktReader.read("LINESTRING(1 2,2 1,3 1)")
     val bladeLine = wktReader.read("LINESTRING(0 4,4 0)")
     val multiLine = wktReader.read("MULTILINESTRING((-29 -27,-30 -29.7,-36 -31,-45 -33),(-45 -33,-46 -32))")
+    val geogMultiLine = wktGeogReader.read("MULTILINESTRING((-29 -27,-30 -29.7,-36 -31,-45 -33),(-45 -33,-46 -32))").asInstanceOf[Geography]
     val collection = wktReader.read("GEOMETRYCOLLECTION(GEOMETRYCOLLECTION(LINESTRING(0 0, 1 1)),LINESTRING(2 2, 3 3))")
+    val geogCollection = wktGeogReader.read("GEOMETRYCOLLECTION(GEOMETRYCOLLECTION(LINESTRING(0 0, 1 1)),LINESTRING(2 2, 3 3))").asInstanceOf[Geography]
 
     point.setSRID(4326)
 
-    val pointbean = GeometryBean(171L, point)
-    val linebean = GeometryBean(172L, line)
-    val multilinebean = GeometryBean(173L, multiLine)
-    val collectionbean = GeometryBean(174L, collection)
+    val pointbean = GeometryBean(171L, point, geogPoint)
+    val linebean = GeometryBean(172L, line, geogLine)
+    val multilinebean = GeometryBean(173L, multiLine, geogMultiLine)
+    val collectionbean = GeometryBean(174L, collection, geogCollection)
 
     Await.result(db.run(
       DBIO.seq(

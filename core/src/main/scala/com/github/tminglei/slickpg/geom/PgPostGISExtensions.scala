@@ -10,7 +10,7 @@ import slick.jdbc.{JdbcType, JdbcTypesComponent, PostgresProfile}
 trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
   import driver.api._
 
-  trait BasePostGISAssistants[GEOMETRY, POINT <: GEOMETRY, LINESTRING <: GEOMETRY, POLYGON <: GEOMETRY, GEOMETRYCOLLECTION <: GEOMETRY] {
+  trait BasePostGISAssistants[GEOMETRY, GEOGRAPHY, POINT <: GEOMETRY, LINESTRING <: GEOMETRY, POLYGON <: GEOMETRY, GEOMETRYCOLLECTION <: GEOMETRY] {
     /** Geometry Constructors */
     def geomFromText[P, R](wkt: Rep[P], srid: Option[Int] = None)(
       implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[String, P]#to[GEOMETRY, R]) =
@@ -82,6 +82,15 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
       implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[G, P]#to[GEOMETRY, R]) = {
         om.column(GeomLibrary.MakePolygon, linestring.toNode)
       }
+    /** Geography Constructors */
+    def geogFromText[P, R](ewkt: Rep[P])(
+      implicit tm: JdbcType[GEOGRAPHY], om: OptionMapperDSL.arg[String, P]#to[GEOGRAPHY, R]) = {
+        om.column(GeomLibrary.GeogFromText, ewkt.toNode)
+      }
+    def geogFromWKB[P, R](wkb: Rep[P])(
+      implicit tm: JdbcType[GEOGRAPHY], om: OptionMapperDSL.arg[Array[Byte], P]#to[GEOGRAPHY, R]) = {
+        om.column(GeomLibrary.GeogFromWKB, wkb.toNode)
+      }
   }
 
   //////////////////////////////////////////////////////////////////////////////////
@@ -113,6 +122,8 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
     val GeomFromGML = new SqlFunction("ST_GeomFromGML")
     val GeomFromKML = new SqlFunction("ST_GeomFromKML")
     val GeomFromGeoJSON = new SqlFunction("ST_GeomFromGeoJSON")
+    val GeogFromText = new SqlFunction("ST_GeogFromText")
+    val GeogFromWKB = new SqlFunction("ST_GeogFromWKB")
     val LineFromEncodedPolyline = new SqlFunction("ST_LineFromEncodedPolyline")
     val MakeBox = new SqlFunction("ST_MakeBox2D")
     val MakeBox3D = new SqlFunction("ST_3DMakeBox")
@@ -180,6 +191,8 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
     val DFullyWithin = new SqlFunction("ST_DFullyWithin")
     val Touches = new SqlFunction("ST_Touches")
     val Relate = new SqlFunction("ST_Relate")
+    val CoveredBy = new SqlFunction("ST_CoveredBy")
+    val Covers = new SqlFunction("ST_Covers")
 
     /** Spatial Measurements */
     val Azimuth = new SqlFunction("ST_Azimuth")
@@ -228,7 +241,7 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
     val Translate = new SqlFunction("ST_Translate")
   }
 
-  /** Extension methods for postgis Columns */
+  /** Extension methods for postgis geometry Columns */
   class GeometryColumnExtensionMethods[GEOMETRY, POINT <: GEOMETRY, LINESTRING <: GEOMETRY, POLYGON <: GEOMETRY, GEOMETRYCOLLECTION <: GEOMETRY, G1 <: GEOMETRY, P1](val c: Rep[P1])(
             implicit tm: JdbcType[GEOMETRY], tm1: JdbcType[POINT], tm2: JdbcType[LINESTRING], tm3: JdbcType[POLYGON], tm4: JdbcType[GEOMETRYCOLLECTION])
                   extends ExtensionMethods[G1, P1] {
@@ -452,10 +465,8 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
     def within[P2, R](geom: Rep[P2])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.Within, n, geom.toNode)
       }
-    def dWithin[P2, R](geom: Rep[P2], distance: Rep[Double], useSpheroid: Option[Boolean] = None)(
-      implicit om: o#to[Boolean, R]) = useSpheroid match {
-        case Some(_) => om.column(GeomLibrary.DWithin, n, geom.toNode, distance.toNode, LiteralNode(useSpheroid.get))
-        case _    =>    om.column(GeomLibrary.DWithin, n, geom.toNode, distance.toNode)
+    def dWithin[P2, R](geom: Rep[P2], distance: Rep[Double])(implicit om: o#to[Boolean, R]) = {
+        om.column(GeomLibrary.DWithin, n, geom.toNode, distance.toNode)
       }
     def dFullyWithin[P2, R](geom: Rep[P2], distance: Rep[Double])(implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.DFullyWithin, n, geom.toNode, distance.toNode)
@@ -471,6 +482,12 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
         case Some(rule) => om.column(GeomLibrary.Relate, n, geom.toNode, LiteralNode(rule))
         case None    => om.column(GeomLibrary.Relate, n, geom.toNode)
       }
+    def coveredBy[P2, R](geom: Rep[P2])(implicit om: o#to[Boolean, R]) = {
+        om.column(GeomLibrary.CoveredBy, n, geom.toNode)
+      }
+    def covers[P2, R](geom: Rep[P2])(implicit om: o#to[Boolean, R]) = {
+        om.column(GeomLibrary.Covers, n, geom.toNode)
+      }
 
     /** Spatial Measurements */
     def azimuth[P2, R](geom: Rep[P2])(implicit om: o#to[Float, R]) = {
@@ -484,9 +501,6 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
       }
     def pointOnSurface[R](implicit om: o#to[POINT, R]) = {
         om.column(GeomLibrary.PointOnSurface, n)
-      }
-    def project[R](distance: Rep[Float], azimuth: Rep[Float])(implicit om: o#to[POINT, R]) = {
-        om.column(GeomLibrary.Project, n, distance.toNode, azimuth.toNode)
       }
     def length[R](implicit om: o#to[Float, R]) = {
         om.column(GeomLibrary.Length, n)
@@ -610,6 +624,119 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
       deltaZ match {
         case Some(deltaZ) => om.column(GeomLibrary.Translate, n, deltaX.toNode, deltaY.toNode, LiteralNode(deltaZ))
         case None   =>  om.column(GeomLibrary.Translate, n, deltaX.toNode, deltaY.toNode)
+      }
+  }
+
+  /** Extension methods for postgis geography Columns */
+  class GeographyColumnExtensionMethods[GEOGRAPHY, POINT <: GEOGRAPHY, LINESTRING <: GEOGRAPHY, POLYGON <: GEOGRAPHY, GEOMETRYCOLLECTION <: GEOGRAPHY, G1 <: GEOGRAPHY, P1](val c: Rep[P1])(
+          implicit tm: JdbcType[GEOGRAPHY], tm1: JdbcType[POINT], tm2: JdbcType[LINESTRING], tm3: JdbcType[POLYGON], tm4: JdbcType[GEOMETRYCOLLECTION])
+                  extends ExtensionMethods[G1, P1] {
+    protected implicit def b1Type: TypedType[G1] = implicitly[TypedType[GEOGRAPHY]].asInstanceOf[TypedType[G1]]
+
+    /** Geography Operators */
+    def @&&[P2, R](geog: Rep[P2])(implicit om: o#to[Boolean, R]) = {
+        om.column(GeomLibrary.BoxIntersects, n, geog.toNode)
+      }
+    def <->[P2, R](geog: Rep[P2])(implicit om: o#to[Double, R]) = {
+        om.column(GeomLibrary.PointDistance, n, geog.toNode)
+      }
+
+    /** Geography Accessors */
+    def area[R](implicit om: o#to[Float, R]) = {
+        om.column(GeomLibrary.Area, n)
+      }
+
+    /** Spatial Measurements */
+    def azimuth[P2, R](geog: Rep[P2])(implicit om: o#to[Float, R]) = {
+        om.column(GeomLibrary.Azimuth, n, geog.toNode)
+      }
+    def centroid[R](useSpheroid: Option[Boolean]=None)(implicit om: o#to[POINT, R]) =
+      useSpheroid match {
+        case Some(_) => om.column(GeomLibrary.Centroid, n, LiteralNode(useSpheroid.get))
+        case None    => om.column(GeomLibrary.Centroid, n)
+      }
+    def length[R](useSpheroid: Option[Boolean]=None)(implicit om: o#to[Float, R]) =
+      useSpheroid match {
+        case Some(_) => om.column(GeomLibrary.Length, n, LiteralNode(useSpheroid.get))
+        case None    => om.column(GeomLibrary.Length, n)
+      }
+    def distance[P2, R](geog: Rep[P2], useSpheroid: Option[Boolean]=None)(implicit om: o#to[Float, R]) =
+      useSpheroid match {
+        case Some(_) => om.column(GeomLibrary.Distance, n, geog.toNode, LiteralNode(useSpheroid.get))
+        case None    => om.column(GeomLibrary.Distance, n, geog.toNode)
+      }
+    def perimeter[R](useSpheroid: Option[Boolean]=None)(implicit om: o#to[Float, R]) =
+      useSpheroid match {
+        case Some(_) => om.column(GeomLibrary.Perimeter, n, LiteralNode(useSpheroid.get))
+        case None    => om.column(GeomLibrary.Perimeter, n)
+      }
+    def project[R](distance: Rep[Float], azimuth: Rep[Float])(implicit om: o#to[POINT, R]) = {
+        om.column(GeomLibrary.Project, n, distance.toNode, azimuth.toNode)
+      }
+
+    /** Geography Processing */
+    def buffer[R](radius: Rep[Float], bufferStyles: Option[String] = None)(implicit om: o#to[GEOGRAPHY, R]) =
+      bufferStyles match {
+        case Some(styles) => om.column(GeomLibrary.Buffer, n, radius.toNode, LiteralNode(styles))
+        case None   =>  om.column(GeomLibrary.Buffer, n, radius.toNode)
+      }
+    def intersection[P2, R](geog: Rep[P2])(implicit om: o#to[GEOGRAPHY, R]) = {
+        om.column(GeomLibrary.Intersection, n, geog.toNode)
+      }
+    def segmentize[R](maxLength: Rep[Float])(implicit om: o#to[GEOGRAPHY, R]) = {
+        om.column(GeomLibrary.Segmentize, n, maxLength.toNode)
+      }
+
+    /** Spatial Relationships */
+    def coveredBy[P2, R](geog: Rep[P2])(implicit om: o#to[Boolean, R]) = {
+        om.column(GeomLibrary.CoveredBy, n, geog.toNode)
+      }
+    def covers[P2, R](geog: Rep[P2])(implicit om: o#to[Boolean, R]) = {
+        om.column(GeomLibrary.Covers, n, geog.toNode)
+      }
+    def dWithin[P2, R](geog: Rep[P2], distance: Rep[Double], useSpheroid: Option[Boolean] = None)(
+      implicit om: o#to[Boolean, R]) = useSpheroid match {
+        case Some(_) => om.column(GeomLibrary.DWithin, n, geog.toNode, distance.toNode, LiteralNode(useSpheroid.get))
+        case _    =>    om.column(GeomLibrary.DWithin, n, geog.toNode, distance.toNode)
+      }
+    def intersects[P2, R](geog: Rep[P2])(implicit om: o#to[Boolean, R]) = {
+        om.column(GeomLibrary.Intersects, n, geog.toNode)
+      }
+
+    /** Geography Outputs */
+    def asBinary[R](NDRorXDR: Option[String] = None)(implicit om: o#to[Array[Byte], R]) =
+      NDRorXDR match {
+        case Some(endian) => om.column(GeomLibrary.AsBinary, n, LiteralNode(endian))
+        case None   => om.column(GeomLibrary.AsBinary, n)
+      }
+    def asText[R](implicit om: o#to[String, R]) = {
+        om.column(GeomLibrary.AsText, n)
+      }
+    def asEWKT[R](implicit om: o#to[String, R]) = {
+        om.column(GeomLibrary.AsEWKT, n)
+      }
+    def asGeoJSON[R](maxDigits: Rep[Int] = LiteralColumn(15), options: Rep[Int] = LiteralColumn(0),
+                     geoJsonVer: Option[Int] = None)(implicit om: o#to[String, R]) =
+      geoJsonVer match {
+        case Some(ver) => om.column(GeomLibrary.AsGeoJSON, LiteralNode(ver), n, maxDigits.toNode, options.toNode)
+        case None   => om.column(GeomLibrary.AsGeoJSON, n, maxDigits.toNode, options.toNode)
+      }
+    def asGML[R](maxDigits: Rep[Int] = LiteralColumn(15), options: Rep[Int] = LiteralColumn(0),
+                 version: Option[Int] = None,  nPrefix: Option[String] = None)(implicit om: o#to[String, R]) =
+      (version, nPrefix) match {
+        case (Some(ver), Some(prefix)) => om.column(GeomLibrary.AsGML, LiteralNode(ver), n, maxDigits.toNode, options.toNode, LiteralNode(prefix))
+        case (Some(ver), None) => om.column(GeomLibrary.AsGML, LiteralNode(ver), n, maxDigits.toNode, options.toNode)
+        case (_, _)   => om.column(GeomLibrary.AsGML, n, maxDigits.toNode, options.toNode)
+      }
+    def asKML[R](maxDigits: Rep[Int] = LiteralColumn(15), version: Option[Int] = None, nPrefix: Option[String] = None)(
+      implicit om: o#to[String, R]) =
+      (version, nPrefix) match {
+        case (Some(ver), Some(prefix)) => om.column(GeomLibrary.AsKML, LiteralNode(ver), n, maxDigits.toNode, LiteralNode(prefix))
+        case (Some(ver), None) => om.column(GeomLibrary.AsKML, LiteralNode(ver), n, maxDigits.toNode)
+        case (_, _)   => om.column(GeomLibrary.AsKML, n, maxDigits.toNode)
+      }
+    def asSVG[R](rel: Rep[Int] = LiteralColumn(0), maxDigits: Rep[Int] = LiteralColumn(15))(implicit om: o#to[String, R]) = {
+        om.column(GeomLibrary.AsSVG, n, rel.toNode, maxDigits.toNode)
       }
   }
 }
