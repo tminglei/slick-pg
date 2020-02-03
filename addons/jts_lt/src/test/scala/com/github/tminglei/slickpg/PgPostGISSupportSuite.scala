@@ -399,6 +399,7 @@ class PgPostGISSupportSuite extends FunSuite {
     val point = wktReader.read(POINT)
     val geogPoint = wktGeogReader.read(POINT).asInstanceOf[Geography]
     val POINT_LatLon = """2°19'29.928"S 3°14'3.243"W"""
+    val POINT_GeoHash = "7ztdy2ubhbk4n42xg760"
 
     val LINE_STRING = "LINESTRING(-120.2 38.5,-120.95 40.7,-126.453 43.252)"
     val lineString = wktReader.read(LINE_STRING)
@@ -446,6 +447,10 @@ class PgPostGISSupportSuite extends FunSuite {
           // as_GeoJson
           GeomTests.filter(_.id === bean.id.bind).map(_.geom.asGeoJSON()).result.head.map(
             r => assert(POLYGON_JSON === r)
+          ),
+          // as_GeoHash
+          GeomTests.filter(_.id === bean1.id.bind).map(_.geom.asGeoHash()).result.head.map(
+            r => assert(POINT_GeoHash === r)
           ),
           // as_SVG
           GeomTests.filter(_.id === bean.id.bind).map(_.geom.asSVG()).result.head.map(

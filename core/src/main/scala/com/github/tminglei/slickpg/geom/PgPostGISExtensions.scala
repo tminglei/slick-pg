@@ -413,8 +413,8 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
       }
     def asGeoHash[R](maxChars: Option[Int] = None)(implicit om: o#to[String, R]) =
       maxChars match {
-        case Some(charNum) => om.column(GeomLibrary.AsHEXEWKB, n, LiteralNode(charNum))
-        case None   => om.column(GeomLibrary.AsHEXEWKB, n)
+        case Some(charNum) => om.column(GeomLibrary.AsGeoHash, n, LiteralNode(charNum))
+        case None   => om.column(GeomLibrary.AsGeoHash, n)
       }
     def asGML[R](maxDigits: Rep[Int] = LiteralColumn(15), options: Rep[Int] = LiteralColumn(0),
                  version: Option[Int] = None,  nPrefix: Option[String] = None)(implicit om: o#to[String, R]) =
