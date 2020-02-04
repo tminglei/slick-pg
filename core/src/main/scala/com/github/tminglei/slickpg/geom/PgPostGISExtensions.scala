@@ -1,6 +1,7 @@
 package com.github.tminglei.slickpg
 package geom
 
+import com.github.tminglei.slickpg.window.WindowFunc
 import slick.lifted._
 import slick.ast.{LiteralNode, TypedType}
 import slick.ast.Library.{SqlFunction, SqlOperator}
@@ -239,6 +240,10 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
     val Segmentize = new SqlFunction("ST_Segmentize")
     val Snap = new SqlFunction("ST_Snap")
     val Translate = new SqlFunction("ST_Translate")
+
+    /** Clustering */
+    val ClusterDBSCAN = new SqlFunction("ST_ClusterDBSCAN")
+    val ClusterKMeans = new SqlFunction("ST_ClusterKMeans")
   }
 
   /** Extension methods for postgis geometry Columns */
@@ -625,6 +630,14 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
         case Some(deltaZ) => om.column(GeomLibrary.Translate, n, deltaX.toNode, deltaY.toNode, LiteralNode(deltaZ))
         case None   =>  om.column(GeomLibrary.Translate, n, deltaX.toNode, deltaY.toNode)
       }
+
+    /** Clustering */
+    def clusterDBSCAN(eps: Rep[Float], minpoints: Rep[Int]) = {
+      WindowFunc[Long](GeomLibrary.ClusterDBSCAN, Seq(n, eps.toNode, minpoints.toNode))
+    }
+    def clusterKMeans(numberOfClusters: Rep[Int]) = {
+      WindowFunc[Long](GeomLibrary.ClusterKMeans, Seq(n, numberOfClusters.toNode))
+    }
   }
 
   /** Extension methods for postgis geography Columns */
