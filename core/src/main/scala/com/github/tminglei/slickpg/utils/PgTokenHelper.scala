@@ -118,7 +118,7 @@ object PgTokenHelper {
       else {
         val escapeLen = math.pow(2, level +1).toInt
         ch match {
-          case '\'' => buf append ("'"  * escapeLen)
+          case '\'' => buf append ("''")
           case '\\' => buf append ("\\" * escapeLen)
           case '"'  => buf append ("\\" * (escapeLen -1)) append '"'
           case _  =>   buf append ch
