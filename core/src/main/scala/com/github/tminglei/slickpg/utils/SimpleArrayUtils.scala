@@ -19,10 +19,18 @@ object SimpleArrayUtils {
     }
 
   def mkString[T](toString: T => String)(value: Seq[Any]): String = {
+    def escaped(str: String): String = {
+      val buf = StringBuilder.newBuilder
+      str.map {
+        case '\'' => buf append "''"
+        case ch   => buf append ch
+      }
+      buf.toString
+    }
     def toGroupToken(vList: Seq[Any]): Token = GroupToken(Open("{") +: vList.map {
       case null => Null
       case v if v.isInstanceOf[Seq[_]] => toGroupToken(v.asInstanceOf[Seq[_]])
-      case v    => Chunk(toString(v.asInstanceOf[T]))
+      case v    => Chunk(escaped(toString(v.asInstanceOf[T])))
     } :+ Close("}"))
 
     createString (value match {
