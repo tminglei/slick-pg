@@ -27,7 +27,9 @@ trait PgJawnJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
       new GenericJdbcType[JValue](
         pgjson,
         (v) => JParser.parseUnsafe(v),
-        (v) => v.render,
+        (v) => v.render
+          .replace("""\\u0000""", "")
+          .replace("\\u0000", ""),
         hasLiteralForm = false
       )
 

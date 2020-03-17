@@ -29,7 +29,9 @@ trait PgCirceJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
       new GenericJdbcType[Json](
         pgjson,
         (v) => parse(v).getOrElse(Json.Null),
-        (v) => v.asJson.spaces2,
+        (v) => v.asJson.spaces2
+          .replace("""\\u0000""", "")
+          .replace("\\u0000", ""),
         hasLiteralForm = false
       )
 

@@ -27,7 +27,9 @@ trait PgPlayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
       new GenericJdbcType[JsValue](
         pgjson,
         (v) => Json.parse(v),
-        (v) => Json.stringify(v).replace("\\u0000", ""),
+        (v) => Json.stringify(v)
+          .replace("""\\u0000""", "")
+          .replace("\\u0000", ""),
         hasLiteralForm = false
       )
 
