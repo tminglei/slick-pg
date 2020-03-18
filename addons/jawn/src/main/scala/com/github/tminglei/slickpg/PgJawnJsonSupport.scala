@@ -9,6 +9,7 @@ trait PgJawnJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
 
   ///---
   def pgjson: String
+  def u0000_pHolder = "[\\\\_u_0000]" //!!! change if if necessary
   ///---
 
   trait JawnJsonCodeGenSupport {
@@ -28,8 +29,9 @@ trait PgJawnJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
         pgjson,
         (v) => JParser.parseUnsafe(v),
         (v) => v.render
-          .replace("""\\u0000""", "")
-          .replace("\\u0000", ""),
+          .replace("\\\\u0000", u0000_pHolder)
+          .replace("\\u0000", "")
+          .replace(u0000_pHolder, "\\\\u0000"),
         hasLiteralForm = false
       )
 

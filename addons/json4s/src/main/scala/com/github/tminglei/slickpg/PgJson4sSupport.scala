@@ -10,6 +10,7 @@ trait PgJson4sSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes
   ///---
   type DOCType
   def pgjson: String
+  def u0000_pHolder = "[\\\\_u_0000]" //!!! change if if necessary
 
   val jsonMethods: JsonMethods[DOCType]
   ///---
@@ -30,7 +31,10 @@ trait PgJson4sSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes
       new GenericJdbcType[JValue](
         pgjson,
         (s) => jsonMethods.parse(s),
-        (v) => jsonMethods.compact(jsonMethods.render(v)),
+        (v) => jsonMethods.compact(jsonMethods.render(v))
+          .replace("""\\u0000""", u0000_pHolder)
+          .replace("\\u0000", "")
+          .replace(u0000_pHolder, """\\u0000"""),
         hasLiteralForm = false
       )
 
