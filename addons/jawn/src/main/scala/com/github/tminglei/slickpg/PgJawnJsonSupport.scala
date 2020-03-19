@@ -9,7 +9,6 @@ trait PgJawnJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
 
   ///---
   def pgjson: String
-  def u0000_pHolder = "[\\\\_u_0000]" //!!! change if if necessary
   ///---
 
   trait JawnJsonCodeGenSupport {
@@ -24,14 +23,12 @@ trait PgJawnJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
   trait JsonImplicits extends JawnJsonImplicits
 
   trait JawnJsonImplicits extends JawnJsonCodeGenSupport {
+    import utils.JsonUtils.clean
     implicit val playJsonTypeMapper: JdbcType[JValue] =
       new GenericJdbcType[JValue](
         pgjson,
         (v) => JParser.parseUnsafe(v),
-        (v) => v.render
-          .replace("\\\\u0000", u0000_pHolder)
-          .replace("\\u0000", "")
-          .replace(u0000_pHolder, "\\\\u0000"),
+        (v) => clean(v.render),
         hasLiteralForm = false
       )
 

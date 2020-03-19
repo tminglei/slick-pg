@@ -10,7 +10,6 @@ trait PgSprayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
 
   ///---
   def pgjson: String
-  def u0000_pHolder = "[\\\\_u_0000]" //!!! change if if necessary
   ///---
 
   trait SprayJsonCodeGenSupport {
@@ -25,14 +24,12 @@ trait PgSprayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
   trait JsonImplicits extends SprayJsonImplicits
 
   trait SprayJsonImplicits extends SprayJsonCodeGenSupport {
+    import utils.JsonUtils.clean
     implicit val sprayJsonTypeMapper: JdbcType[JsValue] =
       new GenericJdbcType[JsValue](
         pgjson,
         (s) => s.parseJson,
-        (v) => v.toJson.compactPrint
-          .replace("\\\\u0000", u0000_pHolder)
-          .replace("\\u0000", "")
-          .replace(u0000_pHolder, "\\\\u0000"),
+        (v) => clean(v.toJson.compactPrint),
         hasLiteralForm = false
       )
 

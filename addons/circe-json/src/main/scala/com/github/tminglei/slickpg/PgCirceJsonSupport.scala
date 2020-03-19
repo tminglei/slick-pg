@@ -12,7 +12,6 @@ trait PgCirceJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
 
   ///---
   def pgjson: String
-  def u0000_pHolder = "[\\\\_u_0000]" //!!! change if if necessary
   ///---
 
   trait CirceCodeGenSupport {
@@ -26,14 +25,12 @@ trait PgCirceJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
   trait JsonImplicits extends CirceImplicits
 
   trait CirceImplicits extends CirceCodeGenSupport {
+    import utils.JsonUtils.clean
     implicit val circeJsonTypeMapper: JdbcType[Json] =
       new GenericJdbcType[Json](
         pgjson,
         (v) => parse(v).getOrElse(Json.Null),
-        (v) => v.asJson.spaces2
-          .replace("\\\\u0000", u0000_pHolder)
-          .replace("\\u0000", "")
-          .replace(u0000_pHolder, "\\\\u0000"),
+        (v) => clean(v.asJson.spaces2),
         hasLiteralForm = false
       )
 
