@@ -22,7 +22,7 @@ Supported Date/Time Oper/Functions
 | -                   | -                | time - time             | time '05:00' - time '03:00'            | interval '02:00:00'              |
 | ---                 | -                | time - interval         | time '05:00' - interval '2 hours'      | time '03:00:00'                  |
 | +                   | +                | interval + interval     | interval '1 day' + interval '1 hour'   | interval '1 day 01:00:00'        |
-| unary_-             | -                | - inteval               | - interval '23 hours'                  | interval '-23:00:00'             |
+| unary_-             | -                | - interval              | - interval '23 hours'                  | interval '-23:00:00'             |
 | -                   | -                | interval - interval     | interval '1 day' - interval '1 hour'   | interval '1 day -01:00:00'       |
 | *                   | *                | interval * factor       | double precision '3.5' * interval '1 hour'| interval '03:30:00'           |
 | /                   | /                | interval / factor       | interval '1 hour' / double precision '1.5'| interval '00:40:00'           |
