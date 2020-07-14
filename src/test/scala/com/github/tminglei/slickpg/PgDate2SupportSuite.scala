@@ -69,6 +69,9 @@ class PgDate2SupportSuite extends FunSuite {
         Datetimes forceInsertAll List(testRec1, testRec2, testRec3)
       ).andThen(
         DBIO.seq(
+          Datetimes.groupBy(_.id).map { case (id, e) => (id, e.map(_.dateTime).max) }.result.head.map(
+            r => assert(r._1 === 101L)
+          ),
           Datetimes.result.head.map(
             // testRec2 and testRec3 will fail to equal test, because of different time zone
             r => {
