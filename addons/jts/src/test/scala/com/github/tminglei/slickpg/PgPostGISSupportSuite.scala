@@ -249,6 +249,8 @@ class PgPostGISSupportSuite extends FunSuite {
 
   test("PostGIS Lifted support - accessor") {
     val point = wktReader.read("POINT(4 5 7)")
+    val point1 = wktReader.read("POINT(0 0)").asInstanceOf[Point]
+    val point2 = wktReader.read("POINT(3 3)").asInstanceOf[Point]
     val geogPoint = wktGeogReader.read("POINT(4 5 7)").asInstanceOf[Geography]
     val line = wktReader.read("LINESTRING(0 0, 3 3)")
     val geogLine = wktGeogReader.read("LINESTRING(0 0, 3 3)").asInstanceOf[Geography]
@@ -316,6 +318,10 @@ class PgPostGISSupportSuite extends FunSuite {
           GeomTests.filter(_.id === collectionbean.id.bind).map(_.geom.dimension).result.head.map(
             r => assert(1 === r)
           ),
+          // endPoint
+          GeomTests.filter(_.id === linebean.id.bind).map(_.geom.endPoint).result.head.map(
+            r => assert(point2 === r)
+          ),
           // coord_dim
           GeomTests.filter(_.id === collectionbean.id.bind).map(_.geom.coordDim).result.head.map(
             r => assert(2 === r)
@@ -331,6 +337,14 @@ class PgPostGISSupportSuite extends FunSuite {
           // nRings
           GeomTests.filter(_.id === polygonbean.id.bind).map(_.geom.nRings).result.head.map(
             r => assert(1 === r)
+          ),
+          // pointN
+          GeomTests.filter(_.id === linebean.id.bind).map(_.geom.pointN(2)).result.head.map(
+            r => assert(point2 === r)
+          ),
+          // startPoint
+          GeomTests.filter(_.id === linebean.id.bind).map(_.geom.startPoint).result.head.map(
+            r => assert(point1 === r)
           ),
           // x
           GeomTests.filter(_.id === pointbean.id.bind).map(_.geom.x).result.head.map(

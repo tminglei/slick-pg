@@ -147,9 +147,12 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
     val Boundary = new SqlFunction("ST_Boundary")
     val Dimension = new SqlFunction("ST_Dimension")
     val CoordDim = new SqlFunction("ST_CoordDim")
+    val EndPoint = new SqlFunction("ST_EndPoint")
     val NDims = new SqlFunction("ST_NDims")
     val NPoints = new SqlFunction("ST_NPoints")
     val NRings = new SqlFunction("ST_NRings")
+    val PointN = new SqlFunction("ST_PointN")
+    val StartPoint = new SqlFunction("ST_StartPoint")
     val X = new SqlFunction("ST_X")
     val Y = new SqlFunction("ST_Y")
     val Z = new SqlFunction("ST_Z")
@@ -335,6 +338,9 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
     def dimension[R](implicit om: o#to[Int, R]) = {
         om.column(GeomLibrary.Dimension, n)
       }
+    def endPoint[R](implicit om: o#to[POINT, R]) = {
+      om.column(GeomLibrary.EndPoint, n)
+      }
     def coordDim[R](implicit om: o#to[Int, R]) = {
         om.column(GeomLibrary.CoordDim, n)
       }
@@ -346,6 +352,12 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
       }
     def nRings[R](implicit om: o#to[Int, R]) = {
         om.column(GeomLibrary.NRings, n)
+      }
+    def pointN[R](position: Rep[Int])(implicit om: o#to[POINT, R]) = {
+      om.column(GeomLibrary.PointN, n, position.toNode)
+      }
+    def startPoint[R](implicit om: o#to[POINT, R]) = {
+      om.column(GeomLibrary.StartPoint, n)
       }
     def x[R](implicit om: o#to[Float, R]) = {
         om.column(GeomLibrary.X, n)
