@@ -5,8 +5,11 @@ scala:
    - 2.11.12
    - 2.12.11
    - 2.13.2
-jdk:
-  - oraclejdk8
+env:
+  matrix:
+    - ADOPTOPENJDK=8
+    - ADOPTOPENJDK=11
+    - ADOPTOPENJDK=13
 before_install:
   - sudo /etc/init.d/postgresql stop
   - sudo apt-get -y remove --purge postgresql-9.1
