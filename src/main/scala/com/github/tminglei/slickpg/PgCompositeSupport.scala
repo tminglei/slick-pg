@@ -177,4 +177,5 @@ class PgCompositeSupportUtils(cl: ClassLoader, emptyMembersAsNull: Boolean) {
   }
 }
 
-object PgCompositeSupportUtils extends PgCompositeSupportUtils(getClass.getClassLoader, true)
+object PgCompositeSupportUtils extends PgCompositeSupportUtils(
+  classOf[PgCompositeSupportUtils].getClassLoader, true)
