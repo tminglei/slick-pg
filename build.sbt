@@ -2,7 +2,7 @@ lazy val commonSettings = Seq(
   organizationName := "slick-pg",
   organization := "com.github.tminglei",
   name := "slick-pg",
-  version := "0.19.0",
+  version := "0.19.1",
 
   scalaVersion := "2.13.3",
   crossScalaVersions := Seq("2.13.3", "2.12.12", "2.11.12"),
