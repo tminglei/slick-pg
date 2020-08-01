@@ -152,7 +152,7 @@ Here's the related technical details:
 | List[T]                             | ARRAY                 |        no 3rd party dependencies       |
 | `java.sql` Date <br> Time<br> Timestamp<br> slickpg Interval<br> Calendar | date<br> time<br> timestamp<br> interval<br> timestamptz |    no 3rd party dependencies     |
 | `java.time` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime <br> OffsetDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz <br> timestamptz |    (built-in) no 3rd party dependencies    |
-| `joda` LocalDate<br> LocalTime<br> LocalDateTime<br> Period<br> DateTime  | date<br> time<br> timestamp<br> interval<br> timestamptz |    `joda-time` v2.9.9 / `joda-convert` v1.9.2     |
+| `joda` LocalDate<br> LocalTime<br> LocalDateTime<br> Period<br> DateTime  | date<br> time<br> timestamp<br> interval<br> timestamptz |    `joda-time` v2.10.5     |
 | `scala` Enumeration                 | enum                  |        no 3rd party dependencies       |
 | `slickpg` Range[T]                  | range                 |        no 3rd party dependencies       |
 | `slickpg` LTree                     | ltree                 |        no 3rd party dependencies       |
@@ -160,15 +160,15 @@ Here's the related technical details:
 | `slickpg` InetString                | inet                  |        no 3rd party dependencies       |
 | `slickpg` MacAddrString             | macaddr               |        no 3rd party dependencies       |
 | `slickpg` JsonString                | json                  |        no 3rd party dependencies       |
-| `json4s` JValue                     | json                  |        `json4s` v3.5.3                 |
-| `play-json` JsValue                 | json                  |        `play-json` v2.6.8              |
-| `spray-json` JsValue                | json                  |        `spray-json` v1.3.4             |
-| `argonaut json` Json                | json                  |        `argonaut` v6.2.1               |
-| `circe json` Json                   | json                  |        `circe` v0.10.1                 |
-| `jawn json` Json                    | json                  |        `jawn` v0.11.0                  |
+| `json4s` JValue                     | json                  |        `json4s` v3.6.6                 |
+| `play-json` JsValue                 | json                  |        `play-json` v2.7.4              |
+| `spray-json` JsValue                | json                  |        `spray-json` v1.3.5             |
+| `argonaut json` Json                | json                  |        `argonaut` v6.2.3               |
+| `circe json` Json                   | json                  |        `circe` v0.11.2 / v0.12.3       |
+| `jawn json` Json                    | json                  |        `jawn` v0.14.2                  |
 | (TsQuery+TsVector)                  | `text` search         |        no 3rd party dependencies       |
 | `jts` Geometry                      | `postgis` geometry    |        `jts` v1.14.0                   |
-| `locationtech's jts` Geometry       | `postgis` geometry    |       locationtech's `jts` v1.16.0     |
+| `locationtech's jts` Geometry       | `postgis` geometry    |       locationtech's `jts` v1.16.1     |
 
 _**Warning:** When your work with time data that contain Timezone, be wary of your postgres configuration. By default `ZonedDateTime` in Java 8 contains more information than `timestamptz` in Postgres. As a consequence, when you store a `ZonedDateTime` you are not guaranteed to get the same timezone as the original class instance. Prefer `OffsetDateTime` instead. cf [Issue #248](https://github.com/tminglei/slick-pg/issues/248)_
 
@@ -195,44 +195,44 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.19.1"
+libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.19.2"
 ```
 
 > If you need `joda-time` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.19.1"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.19.2"
 ```
 
 > If you need `jts` geom support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.19.1"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.19.2"
 or
-libraryDependencies += "com.github.tminglei" %% "slick-pg_jts_lt" % "0.19.1"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_jts_lt" % "0.19.2"
 ```
 
 > If you need `json4s` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.19.1"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.19.2"
 ```
 
 > If you need `play-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.19.1"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.19.2"
 ```
 
 > If you need `spray-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.19.1"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.19.2"
 ```
 
 > If you need `argonaut json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.19.1"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.19.2"
 ```
 
 > If you need `circe json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_circe-json" % "0.19.1"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_circe-json" % "0.19.2"
 ```
 
 
@@ -241,7 +241,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.12</artifactId>
-    <version>0.19.1</version>
+    <version>0.19.2</version>
 </dependency>
 <!-- other addons if necessary -->
 ...
