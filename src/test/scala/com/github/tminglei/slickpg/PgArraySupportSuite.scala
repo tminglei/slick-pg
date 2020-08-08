@@ -22,6 +22,8 @@ class PgArraySupportSuite extends FunSuite {
 
     ///
     trait API extends super.API with ArrayImplicits {
+      implicit val simpleOptStrListListMapper = new SimpleArrayJdbcType[String]("text")
+        .mapTo[Option[String]](Option(_), _.orNull).to(_.toList)
       implicit val simpleLongBufferTypeMapper = new SimpleArrayJdbcType[Long]("int8").to(_.toBuffer[Long], (v: Buffer[Long]) => v.toSeq)
       implicit val simpleStrVectorTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toVector)
       implicit val institutionListTypeWrapper =  new SimpleArrayJdbcType[Long]("int8")
@@ -55,12 +57,13 @@ class PgArraySupportSuite extends FunSuite {
     longlongArr: List[List[Long]],
     shortArr: List[Short],
     strList: List[String],
+    optStrList: List[Option[String]],
     strArr: Option[Vector[String]],
     uuidArr: List[UUID],
     bigDecimalArr: List[BigDecimal],
     institutions: List[Institution],
     mktFinancialProducts: Option[List[MarketFinancialProduct]]
-    )
+  )
 
   class ArrayTestTable(tag: Tag) extends Table[ArrayBean](tag, "ArrayTest") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
@@ -70,13 +73,14 @@ class PgArraySupportSuite extends FunSuite {
     def longlongArr = column[List[List[Long]]]("longlongArray")
     def shortArr = column[List[Short]]("shortArray")
     def strList = column[List[String]]("stringList")
+    def optStrList = column[List[Option[String]]]("optStrList")
     def strArr = column[Option[Vector[String]]]("stringArray")
     def uuidArr = column[List[UUID]]("uuidArray")
     def bigDecimalArr = column[List[BigDecimal]]("bigDecimalArr")
     def institutions = column[List[Institution]]("institutions")
     def mktFinancialProducts = column[Option[List[MarketFinancialProduct]]]("mktFinancialProducts")
 
-    def * = (id, str, intArr, longArr, longlongArr, shortArr, strList, strArr, uuidArr,
+    def * = (id, str, intArr, longArr, longlongArr, shortArr, strList, optStrList, strArr, uuidArr,
       bigDecimalArr, institutions, mktFinancialProducts) <> (ArrayBean.tupled, ArrayBean.unapply)
   }
   val ArrayTests = TableQuery[ArrayTestTable]
@@ -87,11 +91,12 @@ class PgArraySupportSuite extends FunSuite {
   val uuid2 = UUID.randomUUID()
   val uuid3 = UUID.randomUUID()
 
-  val testRec1 = ArrayBean(33L, "tt", List(101, 102, 103), Buffer(1L, 3L, 5L, 7L), List(List(11L, 12L, 13L)), List(1,7), List("robert}; drop table students--", "NULL"),
+  val testRec1 = ArrayBean(33L, "tt", List(101, 102, 103), Buffer(1L, 3L, 5L, 7L), List(List(11L, 12L, 13L)), List(1,7),
+    List("robert}; drop table students--", null, "NULL"), List(Some("[2.3,)"), Some("[0.3.0,)"), None, Some("7.1.0"), None),
     Some(Vector("str1", "str3", "", " ")), List(uuid1, uuid2), List(BigDecimal.decimal(0.5)), List(Institution(113)), None)
-  val testRec2 = ArrayBean(37L, "test'", List(101, 103), Buffer(11L, 31L, 5L), List(List(21L, 22L, 23L)), Nil, List(""),
+  val testRec2 = ArrayBean(37L, "test'", List(101, 103), Buffer(11L, 31L, 5L), List(List(21L, 22L, 23L)), Nil, List(""), Nil,
     Some(Vector("str11", "str3")), List(uuid1, uuid2, uuid3), Nil, List(Institution(579)), Some(List(MarketFinancialProduct("product1"))))
-  val testRec3 = ArrayBean(41L, "haha", List(103, 101), Buffer(11L, 5L, 31L), List(List(31L, 32L, 33L)), List(35,77), Nil,
+  val testRec3 = ArrayBean(41L, "haha", List(103, 101), Buffer(11L, 5L, 31L), List(List(31L, 32L, 33L)), List(35,77), Nil, Nil,
     Some(Vector("(s)", "str5", "str3")), List(uuid1, uuid3), Nil, Nil, Some(List(MarketFinancialProduct("product3"), MarketFinancialProduct("product x"))))
 
   test("Array Lifted support") {

@@ -145,6 +145,7 @@ object PgTokenHelper {
           }
         }
         case Chunk(v) => v.map(appendEscaped(buf, _, level))
+        case Null if parentIsArray => buf append "null"
         case _  =>  //nothing to do
       }
       if (markRequired) appendMark(buf, level)

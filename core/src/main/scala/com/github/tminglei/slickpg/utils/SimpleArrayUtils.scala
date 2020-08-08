@@ -28,7 +28,7 @@ object SimpleArrayUtils {
       buf.toString
     }
     def toGroupToken(vList: Seq[Any]): Token = GroupToken(Open("{") +: vList.map {
-      case null => Null
+      case null | None => Null
       case v if v.isInstanceOf[Seq[_]] => toGroupToken(v.asInstanceOf[Seq[_]])
       case v    => Chunk(escaped(toString(v.asInstanceOf[T])))
     } :+ Close("}"))
