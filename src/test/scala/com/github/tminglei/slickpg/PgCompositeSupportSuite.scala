@@ -40,6 +40,7 @@ object PgCompositeSupportSuite {
     id: Int,
     name: String,
     variable: List[String],
+    optVars: Option[List[String]],
     script1: String,
     script2: String
   ) extends Struct
@@ -194,8 +195,9 @@ class PgCompositeSupportSuite extends FunSuite {
     Some(Range(ts("2015-01-01T14:30:00"), ts("2016-01-03T15:30:00")))), C2(List(C1("test1"))))
 
   val rec31 = TestBean3(1, None)
-  val rec32 = TestBean3(2, Some(Composite4(1, "x1", Nil, "get(\"x1\").ok", "(4).ok")))
-  val rec33 = TestBean3(3, Some(Composite4(2, "x2", List("A", "B"), "(get(\"A\") + get(\"A\")).ok", "call(A, B).ok")))
+  val rec32 = TestBean3(2, Some(Composite4(1, "x1", Nil, Some(List.empty), "get(\"x1\").ok", "(4).ok")))
+  val rec32_al = TestBean3(2, Some(Composite4(1, "x1", Nil, None, "get(\"x1\").ok", "(4).ok")))
+  val rec33 = TestBean3(3, Some(Composite4(2, "x2", List("A", "B"), Some(List("\"t")), "(get(\"A\") + get(\"A\")).ok", "call(A, B).ok")))
 
   test("Composite type Lifted support") {
     Await.result(db.run(
@@ -203,7 +205,7 @@ class PgCompositeSupportSuite extends FunSuite {
         sqlu"create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)",
         sqlu"create type composite2 as (id int8, comp1 composite1, confirm boolean, map hstore)",
         sqlu"create type composite3 as (txt text, id int4, code int4, bool boolean)",
-        sqlu"create type composite4 as (id int4, name text, variable text[], script1 text, script2 text)",
+        sqlu"create type composite4 as (id int4, name text, variable text[], optVars text[], script1 text, script2 text)",
         sqlu"create type c1 as (name text)",
         sqlu"create type c2 as (c1 c1[])",
         (CompositeTests.schema ++ CompositeTests1.schema ++ CompositeTests2.schema ++ CompositeTests3.schema) create,
@@ -256,7 +258,7 @@ class PgCompositeSupportSuite extends FunSuite {
       ).andThen(
         DBIO.seq(
           CompositeTests3.filter(_.id === 1L.bind).result.head.map(r => assert(rec31 === r)),
-          CompositeTests3.filter(_.id === 2L.bind).result.head.map(r => assert(rec32 === r)),
+          CompositeTests3.filter(_.id === 2L.bind).result.head.map(r => assert(rec32_al === r)),
           CompositeTests3.filter(_.id === 3L.bind).result.head.map(r => assert(rec33 === r))
         )
       ).andFinally(
