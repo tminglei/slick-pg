@@ -217,7 +217,7 @@ class PgArraySupportSuite extends FunSuite {
       )
     }
 
-    val b = ArrayBean1(101L, "tt".getBytes, List(UUID.randomUUID()), Some(List("tewe", "ttt")), List(111L), List(1, 2), Vector(3, 5), List(1.2f, 43.32f), List(21.35d), List(true, true),
+    val b = ArrayBean1(101L, "tt".getBytes, List(UUID.randomUUID()), Some(List("tewe", "ttt", "apostrophe'")), List(111L), List(1, 2), Vector(3, 5), List(1.2f, 43.32f), List(21.35d), List(true, true),
       List(new Date(System.currentTimeMillis())), List(new Time(System.currentTimeMillis())), List(new Timestamp(System.currentTimeMillis())), List(Institution(579)))
 
     Await.result(db.run(
