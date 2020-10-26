@@ -62,7 +62,7 @@ object PlainSQLUtils extends Logging {
 
   private def internalSetArray[T: ClassTag](baseType: String, v: Option[Seq[T]], p: PositionedParameters,
           toStr: (T => String), seqToStr: Option[(Seq[T] => String)]) = {
-    val _seqToStr = seqToStr.getOrElse(mkString(toStr) _); p.pos += 1
+    val _seqToStr = seqToStr.getOrElse(mkStringUnsafe(toStr) _); p.pos += 1
     v match {
       case Some(vList) => p.ps.setArray(p.pos, mkArray(_seqToStr)(baseType, vList))
       case None        => p.ps.setNull(p.pos, java.sql.Types.ARRAY)
