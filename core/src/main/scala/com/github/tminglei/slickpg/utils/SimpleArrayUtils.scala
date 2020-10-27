@@ -8,7 +8,7 @@ import scala.reflect.ClassTag
 
 object SimpleArrayUtils {
   import PgTokenHelper._
-  
+
   def fromString[T](convert: String => T)(arrString: String): Option[Seq[T]] =
     grouping(Tokenizer.tokenize(arrString)) match {
       case Null => None
@@ -18,19 +18,20 @@ object SimpleArrayUtils {
       })
     }
 
-  def mkString[T](toString: T => String)(value: Seq[Any]): String = {
-    def escaped(str: String): String = {
-      val buf = StringBuilder.newBuilder
-      str.map {
-        case '\'' => buf append "''"
-        case ch   => buf append ch
-      }
-      buf.toString
+  private def escaped(str: String): String = {
+    val buf = new StringBuilder()
+    str.map {
+      case '\'' => buf append "''"
+      case ch   => buf append ch
     }
+    buf.toString
+  }
+
+  private def mkStringInternal[T](toString: T => String, escape: String => String)(value: Seq[Any]): String = {
     def toGroupToken(vList: Seq[Any]): Token = GroupToken(Open("{") +: vList.map {
       case null | None => Null
       case v if v.isInstanceOf[Seq[_]] => toGroupToken(v.asInstanceOf[Seq[_]])
-      case v    => Chunk(escaped(toString(v.asInstanceOf[T])))
+      case v    => Chunk(escape(toString(v.asInstanceOf[T])))
     } :+ Close("}"))
 
     createString (value match {
@@ -38,6 +39,9 @@ object SimpleArrayUtils {
       case vList => toGroupToken(vList)
     })
   }
+
+  def mkString[T](toString: T => String)(value: Seq[Any]): String = mkStringInternal[T](toString, escaped)(value)
+  def mkStringUnsafe[T](toString: T => String)(value: Seq[Any]): String = mkStringInternal[T](toString, identity)(value)
 
   def mkArray[T : ClassTag](mkString: (Seq[T] => String))(sqlBaseType: String, vList: Seq[T]): java.sql.Array =
     new SimpleArray(sqlBaseType, vList, mkString)
