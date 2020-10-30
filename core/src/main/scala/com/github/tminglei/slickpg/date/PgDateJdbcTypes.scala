@@ -38,7 +38,8 @@ trait PgDateJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
 
     override def getValue(r: ResultSet, idx: Int): T = {
       val value = classTag.runtimeClass match {
-        case clazz if clazz == classOf[OffsetDateTime]  => Option(r.getObject(idx, classOf[OffsetDateTime])).map(t => if (t != OffsetDateTime.MAX && t != OffsetDateTime.MIN) t.atZoneSameInstant(TimeZone.getDefault.toZoneId).toOffsetDateTime else t).orNull
+        case clazz if clazz == classOf[OffsetDateTime]  => Option(r.getObject(idx, classOf[OffsetDateTime])).map(t =>
+          if (t != OffsetDateTime.MAX && t != OffsetDateTime.MIN) t.atZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime else t).orNull
         case clazz if clazz == classOf[Instant]         => Option(r.getTimestamp(idx)).map(_.toInstant).orNull
         case clazz if clazz == classOf[Duration]        => Option(r.getString(idx)).map(new PGInterval(_)).map(pgInterval2Duration).orNull
         case clazz                                      => r.getObject(idx, clazz)
