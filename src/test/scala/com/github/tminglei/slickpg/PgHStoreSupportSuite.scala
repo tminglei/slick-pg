@@ -41,7 +41,7 @@ class PgHStoreSupportSuite extends FunSuite {
           ),
           // ->
           HStoreTests.filter(_.id === testRec1.id.bind).map(_.hstore.+>("a")).result.head.map(
-            r => assert("val1" === r)
+            r => assert(Some("val1") === r)
           ),
           HStoreTests.filter(_.hstore.+>("a") === "val7".bind).sortBy(_.id).to[List].result.map(
             r => assert(List(testRec2).map(_.hstore) === r.map(_.hstore))

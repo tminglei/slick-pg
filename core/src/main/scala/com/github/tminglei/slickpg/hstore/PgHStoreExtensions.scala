@@ -33,7 +33,7 @@ trait PgHStoreExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
     protected implicit def b1Type: TypedType[Map[String, String]] = implicitly[TypedType[Map[String, String]]]
 
     def +>[P2, R](k: Rep[P2])(implicit om: o#arg[String, P2]#to[String, R]) = {
-        om.column(HStoreLibrary.On, n, k.toNode)
+        HStoreLibrary.On.column[Option[String]](n, k.toNode)
       }
     def >>[T: JdbcType](k: Rep[String]) = {
         Library.Cast.column[T](HStoreLibrary.On.column[String](n, k.toNode).toNode)
