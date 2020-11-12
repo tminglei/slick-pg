@@ -2,7 +2,7 @@ lazy val commonSettings = Seq(
   organizationName := "slick-pg",
   organization := "com.github.tminglei",
   name := "slick-pg",
-  version := "0.19.3",
+  version := "0.19.4",
 
   scalaVersion := "2.13.3",
   crossScalaVersions := Seq("2.13.3", "2.12.12", "2.11.12"),
@@ -67,7 +67,7 @@ def mainDependencies(scalaVersion: String) = {
   }
   Seq (
     "org.scala-lang" % "scala-reflect" % scalaVersion,
-    "com.typesafe.slick" %% "slick" % "3.3.2",
+    "com.typesafe.slick" %% "slick" % "3.3.3",
     "org.postgresql" % "postgresql" % "42.2.14",
     "org.slf4j" % "slf4j-simple" % "1.7.24" % "provided",
     "org.scalatest" %% "scalatest" % "3.0.8" % "test"
@@ -102,7 +102,7 @@ lazy val slickPgJoda = (project in file("./addons/joda-time"))
     )
   )
   .dependsOn (slickPgCore)
-  
+
 lazy val slickPgJson4s = (project in file("./addons/json4s"))
   .settings(commonSettings)
   .settings(
@@ -113,7 +113,7 @@ lazy val slickPgJson4s = (project in file("./addons/json4s"))
       "org.json4s" %% "json4s-core" % "3.6.6",
       "org.json4s" %% "json4s-native" % "3.6.6" % "test"
     )
-  ) 
+  )
   .dependsOn (slickPgCore)
 
 lazy val slickPgJts = (project in file("./addons/jts"))
