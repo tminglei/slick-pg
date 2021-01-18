@@ -55,6 +55,18 @@ class PgStringSupportSuite extends FunSuite {
           stringTestTable.filter(_.str ilike "Test%").map(_.id).to[List].result.map {
             r => assert(List(testRec1.id, testRec2.id) === r)
           },
+          stringTestTable.filter(_.str ~ "test.*").map(_.id).to[List].result.map {
+            r => assert(List(testRec1.id, testRec2.id) === r)
+          },
+          stringTestTable.filter(_.str ~* "TEST.*").map(_.id).to[List].result.map {
+            r => assert(List(testRec1.id, testRec2.id) === r)
+          },
+          stringTestTable.filter(_.str !~ "ew.*").map(_.id).to[List].result.map {
+            r => assert(List(testRec1.id, testRec2.id) === r)
+          },
+          stringTestTable.filter(_.str !~* "EW.*").map(_.id).to[List].result.map {
+            r => assert(List(testRec1.id, testRec2.id) === r)
+          },
           stringTestTable.filter(_.id === 101L).map(_.strArr.convert("utf-8", "sql_ascii")).result.head.map {
             r => assert("test1" === new String(r, StandardCharsets.US_ASCII))
           },
