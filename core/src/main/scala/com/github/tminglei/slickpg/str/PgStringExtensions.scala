@@ -14,6 +14,10 @@ trait PgStringExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
 
   object StringLibrary {
     val ILike = new SqlOperator("ilike")
+    val PosixMatchCaseSensitive = new SqlOperator("~")
+    val PosixMatchCaseInsensitive = new SqlOperator("~*")
+    val PosixNoMatchCaseSensitive = new SqlOperator("!~")
+    val PosixNoMatchCaseInsensitive = new SqlOperator("!~*")
 
     val Convert = new SqlFunction("convert")
     val ConvertFrom = new SqlFunction("convert_from")
@@ -28,6 +32,22 @@ trait PgStringExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
     def ilike[P2, R](e: Rep[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
         om.column(StringLibrary.ILike, n, e.toNode)
       }
+
+    def ~[P2, R](e: Rep[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
+      om.column(StringLibrary.PosixMatchCaseSensitive, n, e.toNode)
+    }
+
+    def ~*[P2, R](e: Rep[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
+      om.column(StringLibrary.PosixMatchCaseInsensitive, n, e.toNode)
+    }
+
+    def !~[P2, R](e: Rep[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
+      om.column(StringLibrary.PosixNoMatchCaseSensitive, n, e.toNode)
+    }
+
+    def !~*[P2, R](e: Rep[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
+      om.column(StringLibrary.PosixNoMatchCaseInsensitive, n, e.toNode)
+    }
 
     def convertTo[R](destEncoding: Rep[String])(implicit om: o#to[Array[Byte], R]) = {
         om.column(StringLibrary.ConvertTo, n, destEncoding.toNode)
