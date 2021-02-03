@@ -317,7 +317,7 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
     def isCollection[R](implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.IsCollection, n)
       }
-    def isEmpty[R](implicit om: o#to[Boolean, R]) = {
+    def IsEmpty[R](implicit om: o#to[Boolean, R]) = {
         om.column(GeomLibrary.IsEmpty, n)
       }
     def isRing[R](implicit om: o#to[Boolean, R]) = {

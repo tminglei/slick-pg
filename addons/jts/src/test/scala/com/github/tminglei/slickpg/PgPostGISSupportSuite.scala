@@ -291,7 +291,7 @@ class PgPostGISSupportSuite extends FunSuite {
             r => assert(false === r)
           ),
           // is_empty
-          GeomTests.filter(_.id === polygonbean.id.bind).map(_.geom.isEmpty).result.head.map(
+          GeomTests.filter(_.id === polygonbean.id.bind).map(_.geom.IsEmpty).result.head.map(
             r => assert(false === r)
           ),
           // is_ring
