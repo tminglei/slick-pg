@@ -28,6 +28,14 @@ class PgJsonSupportSuite extends FunSuite {
   val testRec2 = JsonBean(35L, JsonString(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """))
   val testRec3 = JsonBean(37L, JsonString(""" ["a", "b"] """))
 
+  // Unicode testing
+  // This byte string is equal to {"d":"123\u000045\u00006"}
+  val unicodeJsonBytes: List[Byte] = List(123, 34, 100, 34, 58, 34, 49, 50, 51, 92, 117, 48, 48, 48, 48, 52, 53, 92, 117, 48, 48, 48, 48, 54, 34, 125)
+  val unicodeJsonString = new String(unicodeJsonBytes.map(_.toChar).toArray)
+  val unicodedJson = JsonString(unicodeJsonString)
+  val unicodelessJson = JsonString("""{"d": "123456"}""")
+  val testRec4 = JsonBean(39L, unicodedJson)
+
   test("Json Lifted support") {
     val json1 = """{"a":"v1","b":2}"""
     val json2 = """{"a":"v5","b":3}"""
@@ -36,7 +44,7 @@ class PgJsonSupportSuite extends FunSuite {
       DBIO.seq(
         JsonTests.schema create,
         ///
-        JsonTests forceInsertAll List(testRec1, testRec2, testRec3)
+        JsonTests forceInsertAll List(testRec1, testRec2, testRec3, testRec4)
       ).andThen(
         DBIO.seq(
           JsonTests.filter(_.id === testRec2.id.bind).map(_.json).result.head.map(
@@ -123,7 +131,11 @@ class PgJsonSupportSuite extends FunSuite {
           // #-
           JsonTests.filter(_.id === 33L).map(_.json.set(List("c"), JsonString(""" [1] """))).result.head.map(
             r => assert(""" {"a": 101, "b": "aaa", "c": [1]} """.replace(" ", "") === r.value.replace(" ", ""))
-          )
+          ),
+          // \u0000 test
+          JsonTests.filter(_.id === testRec4.id).map(_.json).result.head.map { r =>
+            assert(unicodelessJson === r)
+          }
         )
       ).andFinally(
         JsonTests.schema drop

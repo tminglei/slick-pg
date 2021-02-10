@@ -1,5 +1,6 @@
 package com.github.tminglei.slickpg
 
+import com.github.tminglei.slickpg.utils.JsonUtils
 import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
 import scala.reflect.classTag
 
@@ -32,7 +33,7 @@ trait PgJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes {
       new GenericJdbcType[JsonString](
         pgjson,
         (v) => JsonString(v),
-        (v) => v.value,
+        (v) => JsonUtils.clean(v.value),
         hasLiteralForm = false
       )
 
