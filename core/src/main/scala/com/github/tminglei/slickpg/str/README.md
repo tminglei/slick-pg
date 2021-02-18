@@ -9,3 +9,7 @@ Supported Search Oper/Functions
 | convertTo           | convert_to       | Convert string to dest_encoding  | convert_to('some text', 'UTF8')        | `some text` represented in the UTF8 encoding |
 | encode              | encode           | Encode binary data into a textual representation. Supported formats are: base64, hex, escape  | encode(E'123\\000\\001', 'base64') | MTIzAAE= |
 | decode              | decode           | Decode binary data from textual representation in string. Options for format are same as in encode  | decode('MTIzAAE=', 'base64') | \x3132330001 |
+| ~                   | ~                | Matches regular expression, case sensitive | 'thomas' ~ '.\*thomas.\*'    | t            |
+| ~\*                 | ~\*              | Matches regular expression, case insensitive | 'thomas' ~\* '.\*Thomas.\*' | t           |
+| !~                  | !~               | Does not match regular expression, case sensitive | 'thomas' !~ '.\*Thomas.\*' | t       |
+| !~\*                | !~\*             | Does not match regular expression, case insensitive | 'thomas' !~\* '.\*vadim.\*' | t    |
