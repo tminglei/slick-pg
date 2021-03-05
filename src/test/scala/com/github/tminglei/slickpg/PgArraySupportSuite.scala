@@ -40,6 +40,9 @@ class PgArraySupportSuite extends FunSuite {
       implicit val longlongWitness = ElemWitness.AnyWitness.asInstanceOf[ElemWitness[List[Long]]]
       implicit val simpleLongLongListTypeMapper = new SimpleArrayJdbcType[List[Long]]("int8[]")
         .to(_.asInstanceOf[Seq[Array[Any]]].toList.map(_.toList.asInstanceOf[List[Long]]))
+
+      implicit val institutionTypeWrapper = MappedJdbcType.base[Institution, Long](_.value, Institution)
+      implicit val marketFinancialProductTypeWrapper = MappedJdbcType.base[MarketFinancialProduct, String](_.value, MarketFinancialProduct)
     }
   }
   object MyPostgresProfile1 extends MyPostgresProfile1
@@ -125,12 +128,21 @@ class PgArraySupportSuite extends FunSuite {
           ArrayTests.filter(_.strArr @> Vector("str3")).sortBy(_.id).to[List].result.map(
             r => assert(List(testRec1, testRec2, testRec3) === r)
           ),
+          ArrayTests.filter(_.mktFinancialProducts @> List(MarketFinancialProduct("product1"))).sortBy(_.id).to[List].result.map(
+            r => assert(List(testRec2) === r)
+          ),
+          ArrayTests.filter(_.institutions @> List(Institution(579))).sortBy(_.id).to[List].result.map(
+            r => assert(List(testRec2) === r)
+          ),
           ArrayTests.filter(_.strArr @> Vector("str3").bind).sortBy(_.id).to[List].result.map(
             r => assert(List(testRec1, testRec2, testRec3) === r)
           ),
           // <@
           ArrayTests.filter(Vector("str3").bind <@: _.strArr).sortBy(_.id).to[List].result.map(
             r => assert(List(testRec1, testRec2, testRec3) === r)
+          ),
+          ArrayTests.filter(List(Institution(579)).bind <@: _.institutions).sortBy(_.id).to[List].result.map(
+            r => assert(List(testRec2) === r)
           ),
           // &&
           ArrayTests.filter(_.longArr @& Buffer(5L, 17L).bind).sortBy(_.id).to[List].result.map(
