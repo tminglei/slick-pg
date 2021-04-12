@@ -3,18 +3,18 @@ package lobj
 
 import java.io.ByteArrayInputStream
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.concurrent.Await
 import scala.util.{Failure, Success}
 import scala.concurrent.duration._
 
-class LargeObjectSupportSuite extends FunSuite {
+class LargeObjectSupportSuite extends AnyFunSuite with PostgresContainer {
   import ExPostgresProfile.api._
 
   val driver = new LargeObjectSupport with ExPostgresProfile {}
 
-  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
+  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   test("upload and download large object") {
     val testString = "some string to store as a large object"

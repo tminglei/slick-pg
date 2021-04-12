@@ -1,14 +1,14 @@
 package com.github.tminglei.slickpg
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class PgInheritsSuite extends FunSuite {
+class PgInheritsSuite extends AnyFunSuite with PostgresContainer {
   import ExPostgresProfile.api._
 
-  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
+  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   abstract class BaseT[T](tag: Tag, tname: String = "test_tab1") extends Table[T](tag, tname) {
     def col1 = column[String]("COL1")

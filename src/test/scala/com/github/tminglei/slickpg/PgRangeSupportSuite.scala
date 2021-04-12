@@ -3,16 +3,16 @@ package com.github.tminglei.slickpg
 import java.sql.Timestamp
 import java.time.{LocalDate, LocalDateTime, OffsetDateTime}
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import slick.jdbc.GetResult
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class PgRangeSupportSuite extends FunSuite {
+class PgRangeSupportSuite extends AnyFunSuite with PostgresContainer {
   import MyPostgresProfile.api._
 
-  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
+  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   val tsFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
   def ts(str: String) = new Timestamp(tsFormatter.parse(str).getTime)

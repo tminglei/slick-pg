@@ -1,13 +1,13 @@
 package com.github.tminglei.slickpg
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import slick.basic.Capability
 import slick.jdbc.JdbcCapabilities
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class PgUpsertSuite extends FunSuite {
+class PgUpsertSuite extends AnyFunSuite with PostgresContainer {
 
   object MyPostgresProfile extends ExPostgresProfile {
     // Add back `capabilities.insertOrUpdate` to enable native `upsert` support
@@ -19,7 +19,7 @@ class PgUpsertSuite extends FunSuite {
 
   import ExPostgresProfile.api._
 
-  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
+  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class Bean(id: Long, col1: String, col2: Int)
 

@@ -5,13 +5,13 @@ import java.util.concurrent.Executors
 import cats.syntax.either._
 import io.circe._
 import io.circe.parser._
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import slick.jdbc.{GetResult, PostgresProfile}
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 
-class PgCirceJsonSupportSuite extends FunSuite {
+class PgCirceJsonSupportSuite extends AnyFunSuite with PostgresContainer {
   implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
   trait MyPostgresProfile extends PostgresProfile
@@ -32,7 +32,7 @@ class PgCirceJsonSupportSuite extends FunSuite {
 
   import MyPostgresProfile.api._
 
-  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
+  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class JsonBean(id: Long, json: Json)
 

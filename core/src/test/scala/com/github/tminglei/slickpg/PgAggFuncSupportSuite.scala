@@ -1,11 +1,11 @@
 package com.github.tminglei.slickpg
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-class PgAggFuncSupportSuite extends FunSuite {
+class PgAggFuncSupportSuite extends AnyFunSuite with PostgresContainer {
   import ExPostgresProfile.api._
 
   val PgArrayJdbcTypes = new array.PgArrayJdbcTypes with ExPostgresProfile {}
@@ -13,7 +13,7 @@ class PgAggFuncSupportSuite extends FunSuite {
   implicit val simpleStrListTypeMapper = new PgArrayJdbcTypes.SimpleArrayJdbcType[String]("text").to(_.toList)
   implicit val simpleDoubleListTypeMapper = new PgArrayJdbcTypes.SimpleArrayJdbcType[Double]("float8").to(_.toList)
 
-  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
+  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class Tab(name: String, count: Int, bool: Boolean, x: Double, y: Double)
 

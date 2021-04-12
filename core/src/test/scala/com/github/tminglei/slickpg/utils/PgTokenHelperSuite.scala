@@ -1,9 +1,9 @@
 package com.github.tminglei.slickpg
 package utils
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class PgTokenHelperSuite extends FunSuite {
+class PgTokenHelperSuite extends AnyFunSuite {
   import PgTokenHelper._
 
   test("tokenize") {

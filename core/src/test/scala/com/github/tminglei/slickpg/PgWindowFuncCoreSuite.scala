@@ -1,6 +1,6 @@
 package com.github.tminglei.slickpg
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import slick.ast.Library.SqlFunction
 import slick.ast.LiteralNode
 import slick.jdbc.JdbcType
@@ -12,10 +12,10 @@ import scala.concurrent.duration.Duration
 /**
   * Created by tminglei on 5/5/16.
   */
-class PgWindowFuncCoreSuite extends FunSuite {
+class PgWindowFuncCoreSuite extends AnyFunSuite with PostgresContainer {
   import ExPostgresProfile.api._
 
-  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
+  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class Tab(col1: String, col2: String, col3: String, col4: Int)
 

@@ -4,7 +4,7 @@ package str
 import java.nio.charset.StandardCharsets
 import java.util.Base64
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -12,7 +12,7 @@ import scala.concurrent.duration.Duration
 /**
   * Created by minglei on 12/12/16.
   */
-class PgStringSupportSuite extends FunSuite {
+class PgStringSupportSuite extends AnyFunSuite with PostgresContainer {
 
   trait MyPostgresProfile1 extends ExPostgresProfile with PgStringSupport {
     override val api: API = new API {}
@@ -25,7 +25,7 @@ class PgStringSupportSuite extends FunSuite {
   ///
   import MyPostgresProfile1.api._
 
-  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
+  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class StrBean(id: Long, str: String, strArr: Array[Byte])
 

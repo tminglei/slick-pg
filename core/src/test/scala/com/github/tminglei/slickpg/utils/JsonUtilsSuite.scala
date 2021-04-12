@@ -1,8 +1,8 @@
 package com.github.tminglei.slickpg.utils
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class JsonUtilsSuite extends FunSuite {
+class JsonUtilsSuite extends AnyFunSuite {
   import JsonUtils._
 
   test("clean") {
