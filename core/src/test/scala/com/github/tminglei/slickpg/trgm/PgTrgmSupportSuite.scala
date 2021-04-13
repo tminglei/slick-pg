@@ -1,7 +1,7 @@
 package com.github.tminglei.slickpg
 package trgm
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -9,7 +9,7 @@ import scala.concurrent.duration.Duration
 /**
   * Created by minglei on 6/21/17.
   */
-class PgTrgmSupportSuite extends FunSuite {
+class PgTrgmSupportSuite extends AnyFunSuite with PostgresContainer {
 
   trait MyPostgresProfile1 extends ExPostgresProfile with PgTrgmSupport {
     override val api: API = new API {}
@@ -22,7 +22,7 @@ class PgTrgmSupportSuite extends FunSuite {
   ///
   import MyPostgresProfile1.api._
 
-  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
+  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class StrBean(id: Long, str: String)
 

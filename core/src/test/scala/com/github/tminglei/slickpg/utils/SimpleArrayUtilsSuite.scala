@@ -1,8 +1,8 @@
 package com.github.tminglei.slickpg.utils
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class SimpleArrayUtilsSuite extends FunSuite {
+class SimpleArrayUtilsSuite extends AnyFunSuite {
 
   test("fromString") {
     val v1 = SimpleArrayUtils.fromString(identity)("""{)}""")

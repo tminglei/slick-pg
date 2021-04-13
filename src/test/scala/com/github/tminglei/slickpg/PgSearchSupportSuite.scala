@@ -1,15 +1,15 @@
 package com.github.tminglei.slickpg
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import slick.jdbc.GetResult
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class PgSearchSupportSuite extends FunSuite {
+class PgSearchSupportSuite extends AnyFunSuite with PostgresContainer {
   import MyPostgresProfile.api._
 
-  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
+  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class TestBean(id: Long, text: String, search: TsVector, comment: String)
 

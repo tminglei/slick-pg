@@ -6,15 +6,15 @@ import java.text.SimpleDateFormat
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class PgDateSupportSuite extends FunSuite {
+class PgDateSupportSuite extends AnyFunSuite with PostgresContainer {
   import MyPostgresProfile.api._
 
-  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
+  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
   val timeFormat = new SimpleDateFormat("HH:mm:ss")

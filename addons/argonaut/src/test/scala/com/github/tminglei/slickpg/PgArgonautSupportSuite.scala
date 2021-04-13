@@ -4,13 +4,13 @@ import java.util.concurrent.Executors
 
 import argonaut.Argonaut._
 import argonaut._
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import slick.jdbc.{GetResult, PostgresProfile}
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 
-class PgArgonautSupportSuite extends FunSuite {
+class PgArgonautSupportSuite extends AnyFunSuite with PostgresContainer {
   implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
   trait MyPostgresProfile extends PostgresProfile
@@ -32,7 +32,7 @@ class PgArgonautSupportSuite extends FunSuite {
   ///
   import MyPostgresProfile.api._
 
-  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
+  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class JsonBean(id: Long, json: Json)
 

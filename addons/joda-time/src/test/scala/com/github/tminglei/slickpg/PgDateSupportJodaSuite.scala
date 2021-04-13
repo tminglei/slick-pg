@@ -3,12 +3,12 @@ package com.github.tminglei.slickpg
 import java.util.concurrent.Executors
 
 import org.joda.time._
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import slick.jdbc.{GetResult, PostgresProfile}
 
 import scala.concurrent.{Await, ExecutionContext}
 
-class PgDateSupportJodaSuite extends FunSuite {
+class PgDateSupportJodaSuite extends AnyFunSuite with PostgresContainer {
   implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
   trait MyPostgresProfile extends PostgresProfile
@@ -26,7 +26,7 @@ class PgDateSupportJodaSuite extends FunSuite {
   ///
   import MyPostgresProfile.api._
 
-  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
+  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class DatetimeBean(
     id: Long,

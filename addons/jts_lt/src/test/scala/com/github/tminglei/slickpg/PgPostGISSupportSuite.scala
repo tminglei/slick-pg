@@ -4,13 +4,13 @@ import java.util.concurrent.Executors
 
 import org.locationtech.jts.geom.{Geometry, Point}
 import org.locationtech.jts.io.{WKBWriter, WKTReader, WKTWriter}
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import slick.jdbc.{GetResult, PostgresProfile}
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 
-class PgPostGISSupportSuite extends FunSuite {
+class PgPostGISSupportSuite extends AnyFunSuite with PostgresContainer {
   implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
   trait MyPostgresProfile extends ExPostgresProfile with PgPostGISSupport {
@@ -27,7 +27,10 @@ class PgPostGISSupportSuite extends FunSuite {
   import MyPostgresProfile.api._
   import PgGeographyTypes._
 
-  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
+  override lazy val imageName: String = "postgis/postgis"
+  override lazy val imageTag: String = "11-3.0"
+  
+  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class GeometryBean(id: Long, geom: Geometry, geog: Geography)
 
@@ -797,9 +800,9 @@ class PgPostGISSupportSuite extends FunSuite {
           // ClusterKMeans
           PointTests.map(r => (r.id, r.point.clusterKMeans(2) :: Over)).result.map {
             r =>
-              assert(r.find(_._1 == pbean1.id).get._2 == 0)
-              assert(r.find(_._1 == pbean2.id).get._2 == 1)
-              assert(r.find(_._1 == pbean3.id).get._2 == 1)
+              assert(r.find(_._1 == pbean1.id).get._2 == 1)
+              assert(r.find(_._1 == pbean2.id).get._2 == 0)
+              assert(r.find(_._1 == pbean3.id).get._2 == 0)
           }
         )
       ).andFinally(

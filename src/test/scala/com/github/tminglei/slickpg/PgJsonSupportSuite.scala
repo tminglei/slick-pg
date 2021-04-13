@@ -1,16 +1,16 @@
 package com.github.tminglei.slickpg
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import slick.jdbc.GetResult
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class PgJsonSupportSuite extends FunSuite {
+class PgJsonSupportSuite extends AnyFunSuite with PostgresContainer {
   import MyPostgresProfile.api._
 
-  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
+  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class JsonBean(id: Long, json: JsonString)
 

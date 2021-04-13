@@ -2,16 +2,16 @@ package com.github.tminglei.slickpg
 
 import java.util.UUID
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-class PgWindowFuncSupportSuite extends FunSuite {
+class PgWindowFuncSupportSuite extends AnyFunSuite with PostgresContainer {
   import ExPostgresProfile.api._
   import window.PgWindowFuncSupport.WindowFunctions._
 
-  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
+  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class Tab(col1: Option[UUID], col2: Option[String], col3: String, col4: Int)
 

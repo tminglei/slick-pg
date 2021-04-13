@@ -3,14 +3,14 @@ package com.github.tminglei.slickpg
 import java.util.concurrent.Executors
 
 import utils.JsonUtils
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import play.api.libs.json._
 import slick.jdbc.{GetResult, PostgresProfile}
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 
-class PgPlayJsonSupportSuite extends FunSuite {
+class PgPlayJsonSupportSuite extends AnyFunSuite with PostgresContainer {
   implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
   case class JBean(name: String, count: Int)
@@ -49,7 +49,7 @@ class PgPlayJsonSupportSuite extends FunSuite {
   ///
   import MyPostgresProfile.api._
 
-  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
+  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class JsonBean(id: Long, json: JsValue, jsons: List[JsValue], jbean: JBean, jbeans: List[JBean])
 

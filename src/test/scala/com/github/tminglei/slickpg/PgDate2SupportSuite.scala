@@ -3,15 +3,15 @@ package com.github.tminglei.slickpg
 import java.time._
 import java.util.TimeZone
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import slick.jdbc.GetResult
 
 import scala.concurrent.Await
 
-class PgDate2SupportSuite extends FunSuite {
+class PgDate2SupportSuite extends AnyFunSuite with PostgresContainer {
   import MyPostgresProfile.api._
 
-  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
+  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class DatetimeBean(
     id: Long,

@@ -2,16 +2,17 @@ package com.github.tminglei.slickpg
 
 import java.util.UUID
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import slick.basic.StaticDatabaseConfig
 
 /*
  * NOTE: to check it, we need move `MyPostgresDriver.scala` from test folder to main folder
  */
 //@StaticDatabaseConfig("file:src/test/resources/application.conf#tsql")
-//class PgTsqlSupportSuite extends FunSuite {
-//
-//  test("tsql support - simple") {
+class PgTsqlSupportSuite extends AnyFunSuite {
+
+  test("tsql support - simple") {
+    pending
 //    import MyPostgresProfile.plainAPI._
 //
 //    /*
@@ -43,5 +44,5 @@ import slick.basic.StaticDatabaseConfig
 //    // NOTE: `pg type map to scala type with type parameter` was not supported by `slick`
 ////    val sql2: DBIO[Seq[(Long, Seq[UUID], Map[String, String], JsonString, LTree, Range[Float], Seq[Long])]] =
 ////      tsql"select * from tsql_test"
-//  }
-//}
+  }
+}

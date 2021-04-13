@@ -1,12 +1,12 @@
 package com.github.tminglei.slickpg
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import slick.jdbc.PostgresProfile
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class PgEnumSupportSuite extends FunSuite {
+class PgEnumSupportSuite extends AnyFunSuite with PostgresContainer {
   object WeekDays extends Enumeration {
     type WeekDay = Value
     val Mon, Tue, Wed, Thu, Fri, Sat, Sun = Value
@@ -83,7 +83,7 @@ class PgEnumSupportSuite extends FunSuite {
   ////////////////////////////////////////////////////////////////////
   import MyPostgresProfile1.api._
 
-  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
+  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class TestEnumBean(
     id: Long,

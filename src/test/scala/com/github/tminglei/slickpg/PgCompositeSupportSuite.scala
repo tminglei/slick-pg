@@ -1,7 +1,7 @@
 package com.github.tminglei.slickpg
 
 import org.postgresql.util.HStoreConverter
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import slick.jdbc.{GetResult, PositionedResult, PostgresProfile}
 
 import scala.collection.JavaConverters._
@@ -114,11 +114,11 @@ object PgCompositeSupportSuite {
 }
 
 ///
-class PgCompositeSupportSuite extends FunSuite {
+class PgCompositeSupportSuite extends AnyFunSuite with PostgresContainer {
   import PgCompositeSupportSuite._
   import MyPostgresProfile1.api._
 
-  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
+  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class TestBean(
     id: Long,

@@ -3,14 +3,14 @@ package com.github.tminglei.slickpg
 import java.sql.{Date, Time, Timestamp}
 import java.util.UUID
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import slick.jdbc.GetResult
 
 import scala.collection.mutable.Buffer
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class PgArraySupportSuite extends FunSuite {
+class PgArraySupportSuite extends AnyFunSuite with PostgresContainer {
   import utils.SimpleArrayUtils._
 
   //-- additional definitions
@@ -50,7 +50,7 @@ class PgArraySupportSuite extends FunSuite {
   //////////////////////////////////////////////////////////////////////////
   import MyPostgresProfile1.api._
 
-  val db = Database.forURL(url = utils.dbUrl, driver = "org.postgresql.Driver")
+  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class ArrayBean(
     id: Long,
