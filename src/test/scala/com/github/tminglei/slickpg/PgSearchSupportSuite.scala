@@ -64,6 +64,12 @@ class PgSearchSupportSuite extends AnyFunSuite with PostgresContainer {
           Tests.filter(r => plainToTsQuery(r.text, Some("english")) @> toTsQuery(r.comment, Some("english"))).sortBy(_.id).to[List].result.map(
             r => assert(List(testRec1) === r)
           ),
+          Tests.filter(r => phraseToTsQuery(r.text, Some("english")) @> toTsQuery(r.comment, Some("english"))).sortBy(_.id).to[List].result.map(
+            r => assert(List(testRec1) === r)
+          ),
+          Tests.filter(r => webSearchToTsQuery(r.text, Some("english")) @> toTsQuery(r.comment, Some("english"))).sortBy(_.id).to[List].result.map(
+            r => assert(List(testRec1) === r)
+          ),
           // length
           Tests.filter(_.id === 33L).map(r => toTsVector(r.text).length).result.head.map(
             r => assert(4 === r)

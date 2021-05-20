@@ -40,6 +40,18 @@ trait PgSearchExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
         case Some(conf) => om.column(SearchLibrary.PlainToTsQuery, LiteralNode(conf), query.toNode)
         case None       => om.column(SearchLibrary.PlainToTsQuery, query.toNode)
       }
+    def phraseToTsQuery[P, R](query: Rep[P], config: Option[String] = None)(
+      implicit tm1: JdbcType[TV], tm2: JdbcType[TQ], om: OptionMapperDSL.arg[String, P]#to[TQ, R]) =
+      config match {
+        case Some(conf) => om.column(SearchLibrary.PhraseToTsQuery, LiteralNode(conf), query.toNode)
+        case None       => om.column(SearchLibrary.PhraseToTsQuery, query.toNode)
+      }
+    def webSearchToTsQuery[P, R](query: Rep[P], config: Option[String] = None)(
+      implicit tm1: JdbcType[TV], tm2: JdbcType[TQ], om: OptionMapperDSL.arg[String, P]#to[TQ, R]) =
+      config match {
+        case Some(conf) => om.column(SearchLibrary.WebSearchToTsQuery, LiteralNode(conf), query.toNode)
+        case None       => om.column(SearchLibrary.WebSearchToTsQuery, query.toNode)
+      }
 
     def tsHeadline[T, P, R](text: Rep[T], query: Rep[P], config: Option[String] = None, options: Option[String] = None)(
                   implicit om: OptionMapperDSL.arg[String, T]#arg[TQ, P]#to[String, R]) =
@@ -85,6 +97,8 @@ trait PgSearchExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
     val ToTsQuery = new SqlFunction("to_tsquery")
     val ToTsVector = new SqlFunction("to_tsvector")
     val PlainToTsQuery = new SqlFunction("plainto_tsquery")
+    val PhraseToTsQuery = new SqlFunction("phraseto_tsquery")
+    val WebSearchToTsQuery = new SqlFunction("websearch_to_tsquery")
     val TsHeadline = new SqlFunction("ts_headline")
     val TsRank = new SqlFunction("ts_rank")
     val TsRankCD = new SqlFunction("ts_rank_cd")
