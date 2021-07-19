@@ -195,44 +195,44 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.19.6"
+libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.19.7"
 ```
 
 > If you need `joda-time` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.19.6"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.19.7"
 ```
 
 > If you need `jts` geom support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.19.6"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.19.7"
 or
-libraryDependencies += "com.github.tminglei" %% "slick-pg_jts_lt" % "0.19.6"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_jts_lt" % "0.19.7"
 ```
 
 > If you need `json4s` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.19.6"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.19.7"
 ```
 
 > If you need `play-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.19.6"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.19.7"
 ```
 
 > If you need `spray-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.19.6"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.19.7"
 ```
 
 > If you need `argonaut json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.19.6"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.19.7"
 ```
 
 > If you need `circe json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_circe-json" % "0.19.6"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_circe-json" % "0.19.7"
 ```
 
 
@@ -241,7 +241,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.12</artifactId>
-    <version>0.19.6</version>
+    <version>0.19.7</version>
 </dependency>
 <!-- other addons if necessary -->
 ...
