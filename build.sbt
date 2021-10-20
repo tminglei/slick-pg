@@ -115,9 +115,9 @@ lazy val slickPgJson4s = (project in file("./addons/json4s"))
     name := "slick-pg_json4s",
     description := "Slick extensions for PostgreSQL - json4s module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "org.json4s" %% "json4s-ast" % "3.6.11",
-      "org.json4s" %% "json4s-core" % "3.6.11",
-      "org.json4s" %% "json4s-native" % "3.6.11" % "test"
+      "org.json4s" %% "json4s-ast" % "4.0.3",
+      "org.json4s" %% "json4s-core" % "4.0.3",
+      "org.json4s" %% "json4s-native" % "4.0.3" % "test"
     )
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
