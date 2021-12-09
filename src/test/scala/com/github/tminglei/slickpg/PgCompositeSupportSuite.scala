@@ -182,7 +182,7 @@ class PgCompositeSupportSuite extends AnyFunSuite with PostgresContainer {
     Some(Range(ts("2011-01-01T14:30:00"), ts("2011-11-01T15:30:00")))), false, Map("t't" -> "1,363"))))
   val rec3 = TestBean(337, List(Composite2(203, Composite1(103, "getRate(\"x\") + 5;", ts("2015-03-08T17:17:03"),
     None), false, Map("t,t" -> "getRate(\"x\") + 5;"))))
-  val rec4 = TestBean(339, List(Composite2(204, Composite1(104, "xxx(yyy)zz,z", ts("2001-01-03T13:21:00"),
+  val rec4 = TestBean(339, List(Composite2(204, Composite1(104, "x=1&y=2&[INSERT_DEVICE_ID_HERE]&z=3", ts("2001-01-03T13:21:00"),
     Some(Range(ts("2010-01-01T14:30:00"), ts("2010-01-03T15:30:00")))), true, Map("t" -> "haha", "t2" -> "133"))))
 
   val rec11 = TestBean1(111, List(Composite3(Some("(test1'"))))

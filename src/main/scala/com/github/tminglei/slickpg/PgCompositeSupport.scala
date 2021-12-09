@@ -4,7 +4,7 @@ import scala.reflect.runtime.{universe => u}
 import scala.reflect.ClassTag
 import composite.Struct
 import slick.jdbc.{PositionedResult, PostgresProfile}
-import scala.annotation.tailrec
+import slick.jdbc.SetParameter
 
 trait PgCompositeSupport extends utils.PgCommonJdbcTypes with array.PgArrayJdbcTypes { driver: PostgresProfile =>
 
@@ -166,17 +166,8 @@ class PgCompositeSupportUtils(cl: ClassLoader, emptyMembersAsNull: Boolean) {
 
   case class SeqConverter(delegate: TokenConverter) extends TokenConverter {
     def fromToken(token: Token): Any =
-      if (token == Null) null else {
-        @tailrec
-        def smush(soFar: Seq[Token], remaining: Seq[Token]): Seq[Token] = (soFar, remaining) match {
-          case (tokens, Seq()) => tokens
-          case (Seq(), head +: tail) => smush(Seq(head), tail)
-          case (lead :+ Chunk(prefix), Chunk(suffix) +: tail) => smush(lead :+ Chunk(prefix + suffix), tail)
-          case (lead, middle +: tail) => smush(lead :+ middle, tail)
-        }
-        val smushed = smush(Vector.empty, (token.asInstanceOf[GroupToken]).members)
-        getChildren(GroupToken(smushed)).map(delegate.fromToken)
-      }
+      if (token == Null) null else getChildren(token).map(delegate.fromToken)
+
     def toToken(value: Any): Token = value match {
       case vList: Seq[Any] => {
         val members = Open("{") +: vList.map(delegate.toToken) :+ Close("}")

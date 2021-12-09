@@ -2,6 +2,7 @@ package com.github.tminglei.slickpg.utils
 
 import java.util.concurrent.atomic.AtomicReference
 import scala.collection.mutable.{ListBuffer, Stack}
+import scala.annotation.tailrec
 
 object PgTokenHelper {
 
@@ -77,8 +78,16 @@ object PgTokenHelper {
     buf.toString
   }
 
+  @tailrec
+  private def smush(soFar: Seq[Token], remaining: Seq[Token]): Seq[Token] = (soFar, remaining) match {
+    case (tokens, Seq()) => tokens
+    case (Seq(), head +: tail) => smush(Seq(head), tail)
+    case (lead :+ Chunk(prefix), Chunk(suffix) +: tail) => smush(lead :+ Chunk(prefix + suffix), tail)
+    case (lead, middle +: tail) => smush(lead :+ middle, tail)
+  }
+  
   def getChildren(token: Token): Seq[Token] = token match {
-    case GroupToken(mList) => mList.filterNot(_ == null).filterNot(_.isInstanceOf[Border]).filterNot(_ == Comma)
+    case GroupToken(mList) => smush(Vector.empty, mList).filterNot(_ == null).filterNot(_.isInstanceOf[Border]).filterNot(_ == Comma)
     case _ => throw new IllegalArgumentException("WRONG token type: " + token)
   }
 
