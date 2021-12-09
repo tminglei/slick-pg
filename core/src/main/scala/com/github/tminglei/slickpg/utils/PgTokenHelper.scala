@@ -250,6 +250,11 @@ object PgTokenHelper {
           stack.top.tokens += Comma += Null
           groupForward(stack, sep2 :: tail)
 
+        // for open characters in strings
+        case Chunk(c) :: Open(o) :: tail => 
+          stack.top.tokens += Chunk(c + o)
+          groupForward(stack, tail)
+
         // for diggable
         case (head: Border) :: tail if !stack.top.isInChunk && isDiggable(stack.top, head, tail, diggResultRef) =>
           val (open, marker, escaped, tails) = diggResultRef.get()
