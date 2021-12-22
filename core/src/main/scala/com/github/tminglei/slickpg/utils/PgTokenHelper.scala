@@ -79,15 +79,24 @@ object PgTokenHelper {
   }
 
   @tailrec
-  private def smush(soFar: Seq[Token], remaining: Seq[Token]): Seq[Token] = (soFar, remaining) match {
-    case (tokens, Seq()) => tokens
-    case (Seq(), head +: tail) => smush(Seq(head), tail)
+  private def smush(soFar: Vector[Token], remaining: Seq[Token]): Seq[Token] = (soFar, remaining) match {
+    case (tokens, Seq())                                => tokens
+    case (empty, head +: tail) if empty.isEmpty         => smush(Vector(head), tail)
     case (lead :+ Chunk(prefix), Chunk(suffix) +: tail) => smush(lead :+ Chunk(prefix + suffix), tail)
-    case (lead, middle +: tail) => smush(lead :+ middle, tail)
+    case (lead, middle +: tail)                         => smush(lead :+ middle, tail)
   }
   
   def getChildren(token: Token): Seq[Token] = token match {
-    case GroupToken(mList) => smush(Vector.empty, mList).filterNot(_ == null).filterNot(_.isInstanceOf[Border]).filterNot(_ == Comma)
+    case GroupToken(mList) => 
+      smush(Vector.empty, mList)
+        // I don't know why, but CompositeConverter.fromToken is going to 
+        // throw an IllegalArgumentException: argument type mismatch 
+        // if you don't make this a list right here and now
+        // no, getChildren(tokens).toList will not work
+        .toList 
+        .filterNot(_ == null)
+        .filterNot(_.isInstanceOf[Border])
+        .filterNot(_ == Comma)
     case _ => throw new IllegalArgumentException("WRONG token type: " + token)
   }
 
