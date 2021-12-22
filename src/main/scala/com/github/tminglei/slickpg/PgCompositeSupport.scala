@@ -4,6 +4,7 @@ import scala.reflect.runtime.{universe => u}
 import scala.reflect.ClassTag
 import composite.Struct
 import slick.jdbc.{PositionedResult, PostgresProfile}
+import slick.jdbc.SetParameter
 
 trait PgCompositeSupport extends utils.PgCommonJdbcTypes with array.PgArrayJdbcTypes { driver: PostgresProfile =>
 
@@ -166,6 +167,7 @@ class PgCompositeSupportUtils(cl: ClassLoader, emptyMembersAsNull: Boolean) {
   case class SeqConverter(delegate: TokenConverter) extends TokenConverter {
     def fromToken(token: Token): Any =
       if (token == Null) null else getChildren(token).map(delegate.fromToken)
+
     def toToken(value: Any): Token = value match {
       case vList: Seq[Any] => {
         val members = Open("{") +: vList.map(delegate.toToken) :+ Close("}")

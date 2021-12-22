@@ -182,6 +182,8 @@ class PgCompositeSupportSuite extends AnyFunSuite with PostgresContainer {
     Some(Range(ts("2011-01-01T14:30:00"), ts("2011-11-01T15:30:00")))), false, Map("t't" -> "1,363"))))
   val rec3 = TestBean(337, List(Composite2(203, Composite1(103, "getRate(\"x\") + 5;", ts("2015-03-08T17:17:03"),
     None), false, Map("t,t" -> "getRate(\"x\") + 5;"))))
+  val rec4 = TestBean(339, List(Composite2(204, Composite1(104, "x=1&y=2&[INSERT_DEVICE_ID_HERE]&z=3", ts("2001-01-03T13:21:00"),
+    Some(Range(ts("2010-01-01T14:30:00"), ts("2010-01-03T15:30:00")))), true, Map("t" -> "haha", "t2" -> "133"))))
 
   val rec11 = TestBean1(111, List(Composite3(Some("(test1'"))))
   val rec12 = TestBean1(112, List(Composite3(code = Some(102))))
@@ -197,7 +199,7 @@ class PgCompositeSupportSuite extends AnyFunSuite with PostgresContainer {
   val rec31 = TestBean3(1, None)
   val rec32 = TestBean3(2, Some(Composite4(1, "x1", Nil, Some(List.empty), "get(\"x1\").ok", "(4).ok")))
   val rec32_al = TestBean3(2, Some(Composite4(1, "x1", Nil, None, "get(\"x1\").ok", "(4).ok")))
-  val rec33 = TestBean3(3, Some(Composite4(2, "x2", List("A", "B"), Some(List("\"t")), "(get(\"A\") + get(\"A\")).ok", "call(A, B).ok")))
+  val rec33 = TestBean3(3, Some(Composite4(2, "x2", List("xxx(yyy)zz,z", "u(vv)w", "x=1&y=2&[INSERT_DEVICE_ID_HERE]&z=3"), Some(List("\"t")), "(get(\"A\") + get(\"A\")).ok", "call(A, B).ok")))
 
   test("Composite type Lifted support") {
     Await.result(db.run(
@@ -209,7 +211,7 @@ class PgCompositeSupportSuite extends AnyFunSuite with PostgresContainer {
         sqlu"create type c1 as (name text)",
         sqlu"create type c2 as (c1 c1[])",
         (CompositeTests.schema ++ CompositeTests1.schema ++ CompositeTests2.schema ++ CompositeTests3.schema) create,
-        CompositeTests forceInsertAll List(rec1, rec2, rec3),
+        CompositeTests forceInsertAll List(rec1, rec2, rec3, rec4),
         CompositeTests1 forceInsertAll List(rec11, rec12, rec13, rec14, rec15),
         CompositeTests2 forceInsertAll List(rec21, rec22),
         CompositeTests3 forceInsertAll List(rec31, rec32, rec33)
@@ -223,6 +225,9 @@ class PgCompositeSupportSuite extends AnyFunSuite with PostgresContainer {
           ),
           CompositeTests.filter(_.id === 337L.bind).result.head.map(
             r => assert(rec3 === r)
+          ),
+          CompositeTests.filter(_.id === 339L.bind).result.head.map(
+            r => assert(rec4 === r)
           )
         )
       ).andThen(
