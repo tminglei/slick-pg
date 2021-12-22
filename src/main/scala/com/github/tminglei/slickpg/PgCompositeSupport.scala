@@ -129,10 +129,14 @@ class PgCompositeSupportUtils(cl: ClassLoader, emptyMembersAsNull: Boolean) {
     def fromToken(token: Token): Any =
       if (token == Null) null
       else {
-        val args = getChildren(token).zip(convList).map({
-          case (token, converter) => converter.fromToken(token)
-        })
-        u.runtimeMirror(cl).reflectClass(theType.typeSymbol.asClass).reflectConstructor(constructor)
+        val args = 
+          getChildren(token)
+            .zip(convList)
+            .map { case (token, converter) => converter.fromToken(token) }
+
+        u.runtimeMirror(cl)
+          .reflectClass(theType.typeSymbol.asClass)
+          .reflectConstructor(constructor)
           .apply(args: _*)
       }
     def toToken(value: Any): Token =
