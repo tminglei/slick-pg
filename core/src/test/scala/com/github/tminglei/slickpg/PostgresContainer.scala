@@ -8,7 +8,13 @@ import org.testcontainers.utility.DockerImageName
 trait PostgresContainer extends ForAllTestContainer { self: Suite =>
   
   lazy val imageName: String = "postgres"
-  lazy val imageTag: String = "11"
+  lazy val imageTag: String = {
+    val variable = "SLICK_PG_TEST_POSTGRES_IMAGE_TAG"
+    sys.env
+      .get(variable)
+      .orElse(sys.props.get(variable))
+      .getOrElse("latest")
+  }
   
   override val container: PostgreSQLContainer = PostgreSQLContainer(
     dockerImageNameOverride = DockerImageName.parse(s"$imageName:$imageTag").asCompatibleSubstituteFor("postgres"),
