@@ -10,7 +10,7 @@ trait PgTrgmSupport extends PgTrgmExtensions { driver: PostgresProfile =>
   import driver.api._
 
   trait PgTrgmImplicits {
-    implicit def pgStringColumnExtensionMethods(c: Rep[String]) = new PgTrgmColumnExtensionMethods[String](c)
-    implicit def pgStringOptionColumnExtensionMethods(c: Rep[Option[String]]) = new PgTrgmColumnExtensionMethods[Option[String]](c)
+    implicit def pgTrgmColumnExtensionMethods(c: Rep[String]) = new PgTrgmColumnExtensionMethods[String](c)
+    implicit def pgTrgmOptionColumnExtensionMethods(c: Rep[Option[String]]) = new PgTrgmColumnExtensionMethods[Option[String]](c)
   }
 }
