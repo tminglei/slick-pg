@@ -13,7 +13,7 @@ jobs:
       matrix:
         java: [8, 11]
         scala: [2.11.12, 2.12.13, 2.13.5]
-        postgres: [11, 12, 13, 14]
+        postgres: [11]
     name: Test (Postgres ${{ matrix.postgres }} Scala ${{ matrix.scala }} Java ${{ matrix.java }})
     runs-on: ubuntu-latest
     steps:
