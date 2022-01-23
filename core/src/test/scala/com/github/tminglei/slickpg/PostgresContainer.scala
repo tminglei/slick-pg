@@ -13,7 +13,7 @@ trait PostgresContainer extends ForAllTestContainer { self: Suite =>
     sys.env
       .get(variable)
       .orElse(sys.props.get(variable))
-      .getOrElse("latest")
+      .getOrElse("11")
   }
   
   override val container: PostgreSQLContainer = PostgreSQLContainer(
