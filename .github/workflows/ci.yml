@@ -16,12 +16,13 @@ jobs:
         postgres: [11, 12, 13, 14]
     name: Test (Postgres ${{ matrix.postgres }} Scala ${{ matrix.scala }} Java ${{ matrix.java }})
     runs-on: ubuntu-latest
+    env:
+      SLICK_PG_TEST_POSTGRES_IMAGE_TAG: ${{ matrix.postgres }}
     steps:
       - uses: actions/checkout@v2
       - uses: coursier/cache-action@v5
       - uses: actions/setup-node@v2
       - uses: olafurpg/setup-scala@v10
         with:
-          distribution: temurin
           java-version: ${{ matrix.java }}
-      - run: sbt -DSLICK_PG_TEST_POSTGRES_IMAGE_TAG=${{ matrix.postgres }} ++${{ matrix.scala }} test
+      - run: sbt ++${{ matrix.scala }} test
