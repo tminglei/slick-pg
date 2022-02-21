@@ -203,7 +203,7 @@ lazy val slickPgArgonaut = (project in file("./addons/argonaut"))
     libraryDependencies := mainDependencies(scalaVersion.value) ++ (
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, scalaMajor)) if scalaMajor > 11 => 
-          Seq("io.argonaut" %% "argonaut" % "6.3.3")
+          Seq("io.argonaut" %% "argonaut" % "6.3.8")
         case _ =>
           Seq("io.argonaut" %% "argonaut" % "6.2.5")
       }
