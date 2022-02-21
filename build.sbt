@@ -180,9 +180,9 @@ lazy val slickPgCirceJson = (project in file("./addons/circe-json"))
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, scalaMajor)) if scalaMajor > 11 =>
           Seq(
-            "io.circe" %% "circe-core" % "0.13.0",
-            "io.circe" %% "circe-generic" % "0.13.0",
-            "io.circe" %% "circe-parser" % "0.13.0"
+            "io.circe" %% "circe-core" % "0.14.1",
+            "io.circe" %% "circe-generic" % "0.14.1",
+            "io.circe" %% "circe-parser" % "0.14.1"
           )
         case _ =>
           Seq(
