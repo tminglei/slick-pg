@@ -1,5 +1,5 @@
-val scala213 = "2.13.5"
-val scala212 = "2.12.13"
+val scala213 = "2.13.8"
+val scala212 = "2.12.15"
 val scala211 = "2.11.12"
 
 lazy val commonSettings = Seq(
@@ -9,7 +9,7 @@ lazy val commonSettings = Seq(
   version := "0.20.2",
 
   scalaVersion := scala213,
-  crossScalaVersions := Seq(scala213, scala212, scala211),
+  crossScalaVersions := Seq(scala213, scala212),
   scalacOptions ++= Seq("-deprecation", "-feature",
     "-language:implicitConversions",
     "-language:reflectiveCalls",
@@ -71,7 +71,7 @@ def mainDependencies(scalaVersion: String) = {
   }
   Seq (
     "org.scala-lang" % "scala-reflect" % scalaVersion,
-    "com.typesafe.slick" %% "slick" % "3.3.3",
+    "com.typesafe.slick" %% "slick" % "3.4.0-M1",
     "org.postgresql" % "postgresql" % "42.2.19",
     "org.slf4j" % "slf4j-simple" % "1.7.30" % "provided",
     "org.scalatest" %% "scalatest" % "3.2.7" % "test",
