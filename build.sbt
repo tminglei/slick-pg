@@ -139,7 +139,7 @@ lazy val slickPgJtsLt = (project in file("./addons/jts_lt"))
     name := "slick-pg_jts_lt",
     description := "Slick extensions for PostgreSQL - (locationtech) jts module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "org.locationtech.jts" % "jts-core" % "1.18.1"
+      "org.locationtech.jts" % "jts-core" % "1.18.2"
     )
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
