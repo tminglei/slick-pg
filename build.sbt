@@ -33,7 +33,7 @@ lazy val commonSettings = Seq(
       Some("releases" at nexus + "service/local/staging/deploy/maven2")
   },
   publishMavenStyle := true,
-  publishArtifact in Test := false,
+  (Test / publishArtifact) := false,
   pomIncludeRepository := { _ => false },
   makePomConfiguration := makePomConfiguration.value.withConfigurations(
     configurations = Vector(Compile, Runtime, Optional)
