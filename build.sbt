@@ -73,7 +73,7 @@ def mainDependencies(scalaVersion: String) = {
     "org.scala-lang" % "scala-reflect" % scalaVersion,
     "com.typesafe.slick" %% "slick" % "3.4.0-M1",
     "org.postgresql" % "postgresql" % "42.2.25",
-    "org.slf4j" % "slf4j-simple" % "1.7.30" % "provided",
+    "org.slf4j" % "slf4j-simple" % "1.7.36" % "provided",
     "org.scalatest" %% "scalatest" % "3.2.7" % "test",
     "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.39.3" % "test",
     "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.39.3" % "test"
@@ -104,7 +104,7 @@ lazy val slickPgJoda = (project in file("./addons/joda-time"))
     name := "slick-pg_joda-time",
     description := "Slick extensions for PostgreSQL - joda time module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "joda-time" % "joda-time" % "2.10.10"
+      "joda-time" % "joda-time" % "2.10.13"
     )
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
@@ -115,9 +115,9 @@ lazy val slickPgJson4s = (project in file("./addons/json4s"))
     name := "slick-pg_json4s",
     description := "Slick extensions for PostgreSQL - json4s module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "org.json4s" %% "json4s-ast" % "4.0.3",
-      "org.json4s" %% "json4s-core" % "4.0.3",
-      "org.json4s" %% "json4s-native" % "4.0.3" % "test"
+      "org.json4s" %% "json4s-ast" % "4.0.4",
+      "org.json4s" %% "json4s-core" % "4.0.4",
+      "org.json4s" %% "json4s-native" % "4.0.4" % "test"
     )
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
@@ -139,7 +139,7 @@ lazy val slickPgJtsLt = (project in file("./addons/jts_lt"))
     name := "slick-pg_jts_lt",
     description := "Slick extensions for PostgreSQL - (locationtech) jts module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "org.locationtech.jts" % "jts-core" % "1.18.1"
+      "org.locationtech.jts" % "jts-core" % "1.18.2"
     )
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
@@ -180,9 +180,9 @@ lazy val slickPgCirceJson = (project in file("./addons/circe-json"))
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, scalaMajor)) if scalaMajor > 11 =>
           Seq(
-            "io.circe" %% "circe-core" % "0.13.0",
-            "io.circe" %% "circe-generic" % "0.13.0",
-            "io.circe" %% "circe-parser" % "0.13.0"
+            "io.circe" %% "circe-core" % "0.14.1",
+            "io.circe" %% "circe-generic" % "0.14.1",
+            "io.circe" %% "circe-parser" % "0.14.1"
           )
         case _ =>
           Seq(
@@ -219,7 +219,7 @@ lazy val slickPgJawn = (project in file("./addons/jawn"))
     libraryDependencies := mainDependencies(scalaVersion.value) ++ (
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, scalaMajor)) if scalaMajor > 11 =>
-          Seq("org.typelevel" %% "jawn-ast" % "1.1.1")
+          Seq("org.typelevel" %% "jawn-ast" % "1.1.2")
         case _ =>
           Seq("org.typelevel" %% "jawn-ast" % "0.14.3")
       }
