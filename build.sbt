@@ -219,7 +219,7 @@ lazy val slickPgJawn = (project in file("./addons/jawn"))
     libraryDependencies := mainDependencies(scalaVersion.value) ++ (
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, scalaMajor)) if scalaMajor > 11 =>
-          Seq("org.typelevel" %% "jawn-ast" % "1.1.2")
+          Seq("org.typelevel" %% "jawn-ast" % "1.3.2")
         case _ =>
           Seq("org.typelevel" %% "jawn-ast" % "0.14.3")
       }
