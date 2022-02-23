@@ -75,8 +75,8 @@ def mainDependencies(scalaVersion: String) = {
     "org.postgresql" % "postgresql" % "42.2.25",
     "org.slf4j" % "slf4j-simple" % "1.7.36" % "provided",
     "org.scalatest" %% "scalatest" % "3.2.11" % "test",
-    "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.39.12" % "test",
-    "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.39.12" % "test"
+    "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.40.2" % "test",
+    "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.40.2" % "test"
   ) ++ extractedLibs
 }
 
