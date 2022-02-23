@@ -74,7 +74,7 @@ def mainDependencies(scalaVersion: String) = {
     "com.typesafe.slick" %% "slick" % "3.4.0-M1",
     "org.postgresql" % "postgresql" % "42.2.25",
     "org.slf4j" % "slf4j-simple" % "1.7.36" % "provided",
-    "org.scalatest" %% "scalatest" % "3.2.7" % "test",
+    "org.scalatest" %% "scalatest" % "3.2.11" % "test",
     "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.39.12" % "test",
     "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.39.12" % "test"
   ) ++ extractedLibs
