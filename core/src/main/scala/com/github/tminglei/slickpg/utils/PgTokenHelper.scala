@@ -167,9 +167,12 @@ object PgTokenHelper {
   }
 
   def grouping(tokens: List[Token]): Token = {
-    case class WorkingGroup(open: Open, marker: Marker, level: Int) {
-      val tokens = ListBuffer[Token]()
-      val isInChunk = (open == null && marker.value.nonEmpty)
+    case class WorkingGroup(open: Open, marker: Marker, level: Int, tokens: ListBuffer[Token] = ListBuffer[Token]()) {
+      val isInMarkedChunk = (open == null && marker.value.nonEmpty)
+      def lastOpt(token: Option[Token] = None): Option[Token] = token.orElse(tokens.lastOption).flatMap({
+        case group: GroupToken => group.members.lastOption.flatMap(t => lastOpt(Some(t)))
+        case token: Token      => Some(token)
+      })
     }
 
     def toContentToken(token: Token): Token =
@@ -184,11 +187,12 @@ object PgTokenHelper {
     def isDiggable(wg: WorkingGroup, token: Token, tails: List[Token],
             resultRef: AtomicReference[(Open, Marker, Escape, List[Token])]): Boolean = {
       val mLength = math.pow(2, wg.level).toInt
+      val prevOpt = wg.lastOpt()
       token match {
-        case open @ Open(_) if !wg.isInChunk =>
+        case open @ Open(_) if !wg.isInMarkedChunk && (prevOpt.isEmpty || prevOpt.get == Comma || prevOpt.get.isInstanceOf[Open]) =>
           resultRef.set((open, Marker(""), null, tails))
           true
-        case marker @ Marker(m) if !wg.isInChunk && (m.length >= mLength && (m.length / mLength) % 2 == 1) =>
+        case marker @ Marker(m) if !wg.isInMarkedChunk && (m.length >= mLength && (m.length / mLength) % 2 == 1) =>
           if (m.length == mLength) {
             tails match {
               case (open @ Open(_)) :: tail =>
@@ -215,7 +219,7 @@ object PgTokenHelper {
           if (stack.top.marker.value.nonEmpty && (tails.nonEmpty && stack.top.marker.value == tails.head.value)) {
             resultRef.set((c, Marker(tails.head.value), null, 0, tails.tail))
             true
-          } else if (stack.top.marker.value.isEmpty) {
+          } else if (stack.top.marker.value.isEmpty && (tails.isEmpty || tails.head == Comma || tails.head.isInstanceOf[Close])) {
             resultRef.set((c, Marker(""), null, 0, tails))
             true
           } else {
@@ -249,28 +253,31 @@ object PgTokenHelper {
       val mLength = math.pow(2, stack.top.level).toInt
       tokens match {
         // for empty string
-        case Marker(m) :: tail if !stack.top.isInChunk && m.length == mLength * 2 =>
+        case Marker(m) :: tail if !stack.top.isInMarkedChunk && m.length == mLength * 2 =>
           val m2 = m.substring(0, m.length / 2)
           stack.top.tokens += GroupToken(List(Marker(m2), Chunk(""), Marker(m2)))
           groupForward(stack, tail)
 
         // for null value: '..,,..' / '..,)'
-        case Comma :: sep2 :: tail if !stack.top.isInChunk && (sep2 == Comma || sep2.isInstanceOf[Close]) =>
+        case Comma :: sep2 :: tail if !stack.top.isInMarkedChunk && (sep2 == Comma || sep2.isInstanceOf[Close]) =>
           stack.top.tokens += Comma += Null
           groupForward(stack, sep2 :: tail)
 
         // for open characters in strings
-        case Chunk(c) :: Open(o) :: tail => 
+        case Chunk(c) :: Open(o) :: tail =>
           stack.top.tokens += Chunk(c + o)
           groupForward(stack, tail)
 
         // for diggable
-        case (head: Border) :: tail if !stack.top.isInChunk && isDiggable(stack.top, head, tail, diggResultRef) =>
+        case (head: Border) :: tail if !stack.top.isInMarkedChunk && isDiggable(stack.top, head, tail, diggResultRef) =>
           val (open, marker, escaped, tails) = diggResultRef.get()
           val level = if (marker.value.isEmpty) stack.top.level else stack.top.level +1 // keep level if marker is empty
 
           val newWorkingGroup = WorkingGroup(open, marker, level)
-          newWorkingGroup.tokens += marker += open += escaped // open and escaped can't be non-empty at same time.
+          // open and escaped can't be non-empty at same time.
+          if (marker != null) newWorkingGroup.tokens += marker
+          if (open != null) newWorkingGroup.tokens += open
+          if (escaped != null) newWorkingGroup.tokens += escaped
           // fill in null value for case '\"(,..'
           if (open != null && (tails.nonEmpty && tails.head == Comma))
             newWorkingGroup.tokens += Null
