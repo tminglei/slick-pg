@@ -51,7 +51,7 @@ trait MyPostgresProfile extends ExPostgresProfile
 
   // Add back `capabilities.insertOrUpdate` to enable native `upsert` support; for postgres 9.5+
   override protected def computeCapabilities: Set[slick.basic.Capability] = 
-    super.computeCapabilities + slick.jdbc.JdbcCapabilities.capabilities.insertOrUpdate
+    super.computeCapabilities + slick.jdbc.JdbcCapabilities.insertOrUpdate
 
   override val api = MyAPI
 
