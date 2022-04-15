@@ -27,13 +27,15 @@ class PgSearchSupportSuite extends AnyFunSuite with PostgresContainer {
 
   val testRec1 = TestBean(33L, "fat cat ate rat", TsVector("'ate' 'cat' 'fat' 'rat'"), "")
   val testRec2 = TestBean(37L, "cat", TsVector("'ca'"), "fat")
+  val testRec3 = TestBean(38L, "mike rose", TsVector("'mike' 'rose'"), "")
+  val testRec4 = TestBean(39L, "mike and rose", TsVector("'mike' 'and' 'rose'"), "")
 
   test("Text search Lifted support") {
     Await.result(db.run(
       DBIO.seq(
         Tests.schema create,
         ///
-        Tests forceInsertAll List(testRec1, testRec2)
+        Tests forceInsertAll List(testRec1, testRec2, testRec3, testRec4)
       ).andThen(
         DBIO.seq(
           // get_current_ts_config
@@ -62,12 +64,16 @@ class PgSearchSupportSuite extends AnyFunSuite with PostgresContainer {
           ),
           // @>
           Tests.filter(r => plainToTsQuery(r.text, Some("english")) @> toTsQuery(r.comment, Some("english"))).sortBy(_.id).to[List].result.map(
-            r => assert(List(testRec1) === r)
+            r => assert(List(testRec1, testRec3, testRec4).map(_.id) === r.map(_.id))
           ),
           Tests.filter(r => phraseToTsQuery(r.text, Some("english")) @> toTsQuery(r.comment, Some("english"))).sortBy(_.id).to[List].result.map(
             r => assert(List(testRec1) === r)
           ),
           Tests.filter(r => webSearchToTsQuery(r.text, Some("english")) @> toTsQuery(r.comment, Some("english"))).sortBy(_.id).to[List].result.map(
+            r => assert(List(testRec1) === r)
+          ),
+          // <->
+          Tests.filter(r => toTsVector(r.text, Some("english")) @@ (tsQuery("mike".bind) <-> tsQuery("rose".bind))).sortBy(_.id).to[List].result.map(
             r => assert(List(testRec1) === r)
           ),
           // length

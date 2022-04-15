@@ -92,6 +92,7 @@ trait PgSearchExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
     val Or = new SqlOperator("||")
     val Negate = new SqlOperator("!!")
     val Contains = new SqlOperator("@>")
+    val Phrase = new SqlOperator("<->")
 
     val GetCurrTsConfig = new SqlFunction("get_current_ts_config")
     val ToTsQuery = new SqlFunction("to_tsquery")
@@ -138,6 +139,8 @@ trait PgSearchExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
     def !! = SearchLibrary.Negate.column[TQ](c.toNode)
     def @>[P2, R](e: Rep[P2])(implicit om: o#arg[TQ, P2]#to[Boolean, R]) =
       om.column(SearchLibrary.Contains, c.toNode, e.toNode)
+    def <->[P2, R](e: Rep[P2])(implicit om: o#arg[TQ, P2]#to[TQ, R]) =
+      om.column(SearchLibrary.Phrase, c.toNode, e.toNode)
 
     def numNode = SearchLibrary.NumNode.column[Int](c.toNode)
     def queryTree = SearchLibrary.QueryTree.column[String](c.toNode)
