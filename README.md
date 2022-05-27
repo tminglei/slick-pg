@@ -146,35 +146,36 @@ Here's the related technical details:
 
 #### Built in supported type/mappers
 
-| scala Type                          | pg Type               | dev 3rd-party library dependency       |
-| ----------------------------------- | --------------------- | -------------------------------------- |
-| List[T]                             | ARRAY                 |        no 3rd party dependencies       |
-| `java.sql` Date <br> Time<br> Timestamp<br> slickpg Interval<br> Calendar | date<br> time<br> timestamp<br> interval<br> timestamptz |    no 3rd party dependencies     |
-| `java.time` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime <br> OffsetDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz <br> timestamptz |    (built-in) no 3rd party dependencies    |
-| `joda` LocalDate<br> LocalTime<br> LocalDateTime<br> Period<br> DateTime  | date<br> time<br> timestamp<br> interval<br> timestamptz |    `joda-time` v2.10.5     |
-| `scala` Enumeration                 | enum                  |        no 3rd party dependencies       |
-| `slickpg` Range[T]                  | range                 |        no 3rd party dependencies       |
-| `slickpg` LTree                     | ltree                 |        no 3rd party dependencies       |
-| Map[String,String]                  | hstore                |        no 3rd party dependencies       |
-| `slickpg` InetString                | inet                  |        no 3rd party dependencies       |
-| `slickpg` MacAddrString             | macaddr               |        no 3rd party dependencies       |
-| `slickpg` JsonString                | json                  |        no 3rd party dependencies       |
-| `json4s` JValue                     | json                  |        `json4s` v3.6.6                 |
-| `play-json` JsValue                 | json                  |        `play-json` v2.7.4              |
-| `spray-json` JsValue                | json                  |        `spray-json` v1.3.5             |
-| `argonaut json` Json                | json                  |        `argonaut` v6.2.3               |
-| `circe json` Json                   | json                  |        `circe` v0.11.2 / v0.12.3       |
-| `jawn json` Json                    | json                  |        `jawn` v0.14.2                  |
-| (TsQuery+TsVector)                  | `text` search         |        no 3rd party dependencies       |
-| `jts` Geometry                      | `postgis` geometry    |        `jts` v1.14.0                   |
-| `locationtech's jts` Geometry       | `postgis` geometry    |       locationtech's `jts` v1.16.1     |
+| scala Type                                                                                               | pg Type               | dev 3rd-party library dependency     |
+|----------------------------------------------------------------------------------------------------------| --------------------- |--------------------------------------|
+| List[T]                                                                                                  | ARRAY                 | no 3rd party dependencies            |
+| `java.sql` Date <br> Time<br> Timestamp<br> slickpg Interval<br> Calendar                                | date<br> time<br> timestamp<br> interval<br> timestamptz | no 3rd party dependencies            |
+| `java.time` LocalDate<br> LocalTime<br> LocalDateTime<br> Duration<br> ZonedDateTime <br> OffsetDateTime | date<br> time<br> timestamp<br> interval<br> timestamptz <br> timestamptz | (built-in) no 3rd party dependencies |
+| `joda` LocalDate<br> LocalTime<br> LocalDateTime<br> Period<br> DateTime                                 | date<br> time<br> timestamp<br> interval<br> timestamptz | `joda-time` v2.10.5                  |
+| `scala` Enumeration                                                                                      | enum                  | no 3rd party dependencies            |
+| `slickpg` Range[T]                                                                                       | range                 | no 3rd party dependencies            |
+| `slickpg` LTree                                                                                          | ltree                 | no 3rd party dependencies            |
+| Map[String,String]                                                                                       | hstore                | no 3rd party dependencies            |
+| `slickpg` InetString                                                                                     | inet                  | no 3rd party dependencies            |
+| `slickpg` MacAddrString                                                                                  | macaddr               | no 3rd party dependencies            |
+| `slickpg` JsonString                                                                                     | json                  | no 3rd party dependencies            |
+| `json4s` JValue                                                                                          | json                  | `json4s` v3.6.6                      |
+| `play-json` JsValue                                                                                      | json                  | `play-json` v2.7.4                   |
+| `spray-json` JsValue                                                                                     | json                  | `spray-json` v1.3.5                  |
+| `argonaut json` Json                                                                                     | json                  | `argonaut` v6.2.3                    |
+| `circe json` Json                                                                                        | json                  | `circe` v0.11.2 / v0.12.3            |
+| `uPickle json` Json                                                                                      | json                  | `uPickle` v2.0.0                     |
+| `jawn json` Json                                                                                         | json                  | `jawn` v0.14.2                       |
+| (TsQuery+TsVector)                                                                                       | `text` search         | no 3rd party dependencies            |
+| `jts` Geometry                                                                                           | `postgis` geometry    | `jts` v1.14.0                        |
+| `locationtech's jts` Geometry                                                                            | `postgis` geometry    | locationtech's `jts` v1.16.1         |
 
 _**Warning:** When your work with time data that contain Timezone, be wary of your postgres configuration. By default `ZonedDateTime` in Java 8 contains more information than `timestamptz` in Postgres. As a consequence, when you store a `ZonedDateTime` you are not guaranteed to get the same timezone as the original class instance. Prefer `OffsetDateTime` instead. cf [Issue #248](https://github.com/tminglei/slick-pg/issues/248)_
 
 Details
 ------------------------------
 - Array's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/array "Array's oper/functions"), usage  [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgArraySupportSuite.scala "test cases")
-- JSON's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/json "JSON's oper/functions"), usage cases for [json4s](https://github.com/tminglei/slick-pg/blob/master/addons/json4s/src/test/scala/com/github/tminglei/slickpg/PgJson4sSupportSuite.scala "test cases"), [play-json](https://github.com/tminglei/slick-pg/blob/master/addons/play-json/src/test/scala/com/github/tminglei/slickpg/PgPlayJsonSupportSuite.scala "test cases"), [spray-json](https://github.com/tminglei/slick-pg/blob/master/addons/spray-json/src/test/scala/com/github/tminglei/slickpg/PgSprayJsonSupportSuite.scala "test cases") and [argonaut json](https://github.com/tminglei/slick-pg/blob/master/addons/argonaut/src/test/scala/com/github/tminglei/slickpg/PgArgonautSupportSuite.scala "test cases")
+- JSON's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/json "JSON's oper/functions"), usage cases for [json4s](https://github.com/tminglei/slick-pg/blob/master/addons/json4s/src/test/scala/com/github/tminglei/slickpg/PgJson4sSupportSuite.scala "test cases"), [play-json](https://github.com/tminglei/slick-pg/blob/master/addons/play-json/src/test/scala/com/github/tminglei/slickpg/PgPlayJsonSupportSuite.scala "test cases"), [spray-json](https://github.com/tminglei/slick-pg/blob/master/addons/spray-json/src/test/scala/com/github/tminglei/slickpg/PgSprayJsonSupportSuite.scala "test cases"), [upickle json](https://github.com/tminglei/slick-pg/blob/master/addons/upickle-json/src/test/scala/com/github/tminglei/slickpg/PgUPickleJsonSupportSuite.scala "test cases") and [argonaut json](https://github.com/tminglei/slick-pg/blob/master/addons/argonaut/src/test/scala/com/github/tminglei/slickpg/PgArgonautSupportSuite.scala "test cases")
 - Date/Time's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/date "Date/Time's oper/functions"), usage cases for [java date](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgDateSupportSuite.scala "test cases"), [java 8 date](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgDate2SupportSuite.scala "test cases") and [joda time](https://github.com/tminglei/slick-pg/blob/master/addons/joda-time/src/test/scala/com/github/tminglei/slickpg/PgDateSupportJodaSuite.scala "test cases")
 - Enum's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/enums "Enum's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgEnumSupportSuite.scala "test cases")
 - Range's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/range "Range's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgRangeSupportSuite.scala "test cases")
@@ -232,6 +233,11 @@ libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.21.0-M1
 > If you need `circe json` support, pls append dependency:
 ```scala
 libraryDependencies += "com.github.tminglei" %% "slick-pg_circe-json" % "0.21.0-M1"
+```
+
+> If you need `uPickle json` support, pls append dependency:
+```scala
+libraryDependencies += "com.github.tminglei" %% "slick-pg_upickle-json" % "0.21.0-M1"
 ```
 
 

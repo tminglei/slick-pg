@@ -195,6 +195,16 @@ lazy val slickPgCirceJson = (project in file("./addons/circe-json"))
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
 
+lazy val slickPgUPickleJson = (project in file("./addons/upickle-json"))
+  .settings(commonSettings)
+  .settings(
+    name := "slick-pg_upickle-json",
+    description := "Slick extensions for PostgreSQL - uPickle module",
+    libraryDependencies := mainDependencies(scalaVersion.value) ++
+      Seq("com.lihaoyi" %% "ujson" % "2.0.0")
+  )
+  .dependsOn(slickPgCore % "test->test;compile->compile")
+
 lazy val slickPgArgonaut = (project in file("./addons/argonaut"))
   .settings(commonSettings)
   .settings(
