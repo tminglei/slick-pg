@@ -1,5 +1,5 @@
 val scala213 = "2.13.8"
-val scala212 = "2.12.15"
+val scala212 = "2.12.16"
 val scala211 = "2.11.12"
 
 lazy val commonSettings = Seq(
@@ -71,12 +71,12 @@ def mainDependencies(scalaVersion: String) = {
   }
   Seq (
     "org.scala-lang" % "scala-reflect" % scalaVersion,
-    "com.typesafe.slick" %% "slick" % "3.4.0-M1",
+    "com.typesafe.slick" %% "slick" % "3.4.0-RC1",
     "org.postgresql" % "postgresql" % "42.4.0",
     "org.slf4j" % "slf4j-simple" % "1.7.36" % "provided",
     "org.scalatest" %% "scalatest" % "3.2.12" % "test",
-    "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.40.7" % "test",
-    "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.40.7" % "test"
+    "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.40.9" % "test",
+    "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.40.9" % "test"
   ) ++ extractedLibs
 }
 
@@ -139,7 +139,7 @@ lazy val slickPgJtsLt = (project in file("./addons/jts_lt"))
     name := "slick-pg_jts_lt",
     description := "Slick extensions for PostgreSQL - (locationtech) jts module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "org.locationtech.jts" % "jts-core" % "1.18.2"
+      "org.locationtech.jts" % "jts-core" % "1.19.0"
     )
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
