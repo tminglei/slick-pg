@@ -6,7 +6,7 @@ lazy val commonSettings = Seq(
   organizationName := "slick-pg",
   organization := "com.github.tminglei",
   name := "slick-pg",
-  version := "0.20.3",
+  version := "0.20.4",
 
   scalaVersion := scala213,
   crossScalaVersions := Seq(scala213, scala212, scala211),
@@ -72,7 +72,7 @@ def mainDependencies(scalaVersion: String) = {
   Seq (
     "org.scala-lang" % "scala-reflect" % scalaVersion,
     "com.typesafe.slick" %% "slick" % "3.3.3",
-    "org.postgresql" % "postgresql" % "42.2.19",
+    "org.postgresql" % "postgresql" % "42.4.1",
     "org.slf4j" % "slf4j-simple" % "1.7.30" % "provided",
     "org.scalatest" %% "scalatest" % "3.2.7" % "test",
     "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.39.3" % "test",
