@@ -20,4 +20,11 @@ class SimpleArrayUtilsSuite extends AnyFunSuite {
     val v5 = SimpleArrayUtils.fromString(identity)("""{")suffix"}""")
     assert(v5 === Some(Seq(")suffix")))
   }
+
+  test("mkString & fromString") {
+    val input = List("Test \\n")
+    val str = SimpleArrayUtils.mkString[String](identity)(input)
+    val result = SimpleArrayUtils.fromString[String](identity)(str).orNull
+    assert(result == input)
+  }
 }

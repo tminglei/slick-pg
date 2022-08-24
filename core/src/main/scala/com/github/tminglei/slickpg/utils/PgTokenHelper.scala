@@ -67,7 +67,15 @@ object PgTokenHelper {
     def mergeString(buf: StringBuilder, token: Token): Unit =
       token match {
         case GroupToken(mList) => mList.foreach(mergeString(buf, _))
-        case Escape(v) => buf append unescape(v, level + 1)
+        case Escape(v) =>
+          val endChar = v.charAt(v.length - 1)
+          if (endChar == '"' || endChar == '\\') {
+            buf append unescape(v, level + 1)
+          } else {  // end char is not an escaped char
+            val escaped = v.substring(0, v.length - 1)
+            buf append unescape(escaped, level + 1)
+            buf append endChar
+          }
         case Marker(m) => buf append unescape(m, level + 1)
         case t => buf append t.value
       }
