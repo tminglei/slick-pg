@@ -152,7 +152,7 @@ lazy val slickPgPlayJson = (project in file("./addons/play-json"))
     libraryDependencies := mainDependencies(scalaVersion.value) ++ (
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, scalaMajor)) if scalaMajor > 11 =>
-          Seq("com.typesafe.play" %% "play-json" % "2.9.2")
+          Seq("com.typesafe.play" %% "play-json" % "2.9.3")
         case _ =>
           Seq("com.typesafe.play" %% "play-json" % "2.7.4")
       }
