@@ -55,6 +55,12 @@ class PgTrgmSupportSuite extends AnyFunSuite with PostgresContainer {
           trgmTestTable.filter(_.id === 101L).map(_.str %> "hello").result.head.map {
             r => assert(true === r)
           },
+          trgmTestTable.filter(_.id === 101L).map(_.str <<% "hello").result.head.map {
+            r => assert(true === r)
+          },
+          trgmTestTable.filter(_.id === 101L).map(_.str %>> "hello").result.head.map {
+            r => assert(true === r)
+          },
           trgmTestTable.filter(_.id === 102L).map(_.str <-> "hi").result.head.map {
             r => assert(Math.abs(r - 1.0d) < 0.1d)
           },
@@ -64,10 +70,19 @@ class PgTrgmSupportSuite extends AnyFunSuite with PostgresContainer {
           trgmTestTable.filter(_.id === 102L).map(_.str <->> "hi").result.head.map {
             r => assert(Math.abs(r - 1.0d) < 0.1d)
           },
+          trgmTestTable.filter(_.id === 103L).map(_.str <<<-> "hi").result.head.map {
+            r => assert(r < 1.0d)
+          },
+          trgmTestTable.filter(_.id === 102L).map(_.str <->>> "hi").result.head.map {
+            r => assert(Math.abs(r - 1.0d) < 0.1d)
+          },
           trgmTestTable.filter(_.id === 103L).map(_.str.similarity("hi")).result.head.map {
             r => assert(r < 1.0d)
           },
           trgmTestTable.filter(_.id === 103L).map(_.str.wordSimilarity("hi")).result.head.map {
+            r => assert(r < 1.0d)
+          },
+          trgmTestTable.filter(_.id === 103L).map(_.str.strictWordSimilarity("hi")).result.head.map {
             r => assert(r < 1.0d)
           }
         )
