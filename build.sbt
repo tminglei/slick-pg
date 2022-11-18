@@ -1,4 +1,4 @@
-val scala213 = "2.13.8"
+val scala213 = "2.13.10"
 val scala212 = "2.12.17"
 val scala211 = "2.11.12"
 
@@ -71,10 +71,10 @@ def mainDependencies(scalaVersion: String) = {
   }
   Seq (
     "org.scala-lang" % "scala-reflect" % scalaVersion,
-    "com.typesafe.slick" %% "slick" % "3.4.0",
+    "com.typesafe.slick" %% "slick" % "3.4.1",
     "org.postgresql" % "postgresql" % "42.5.0",
-    "org.slf4j" % "slf4j-simple" % "2.0.0" % "provided",
-    "org.scalatest" %% "scalatest" % "3.2.13" % "test",
+    "org.slf4j" % "slf4j-simple" % "2.0.3" % "provided",
+    "org.scalatest" %% "scalatest" % "3.2.14" % "test",
     "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.40.10" % "test",
     "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.40.10" % "test"
   ) ++ extractedLibs
@@ -104,7 +104,7 @@ lazy val slickPgJoda = (project in file("./addons/joda-time"))
     name := "slick-pg_joda-time",
     description := "Slick extensions for PostgreSQL - joda time module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "joda-time" % "joda-time" % "2.11.1"
+      "joda-time" % "joda-time" % "2.11.2"
     )
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
@@ -115,9 +115,9 @@ lazy val slickPgJson4s = (project in file("./addons/json4s"))
     name := "slick-pg_json4s",
     description := "Slick extensions for PostgreSQL - json4s module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "org.json4s" %% "json4s-ast" % "4.0.5",
-      "org.json4s" %% "json4s-core" % "4.0.5",
-      "org.json4s" %% "json4s-native" % "4.0.5" % "test"
+      "org.json4s" %% "json4s-ast" % "4.0.6",
+      "org.json4s" %% "json4s-core" % "4.0.6",
+      "org.json4s" %% "json4s-native" % "4.0.6" % "test"
     )
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
@@ -180,9 +180,9 @@ lazy val slickPgCirceJson = (project in file("./addons/circe-json"))
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, scalaMajor)) if scalaMajor > 11 =>
           Seq(
-            "io.circe" %% "circe-core" % "0.14.2",
-            "io.circe" %% "circe-generic" % "0.14.2",
-            "io.circe" %% "circe-parser" % "0.14.2"
+            "io.circe" %% "circe-core" % "0.14.3",
+            "io.circe" %% "circe-generic" % "0.14.3",
+            "io.circe" %% "circe-parser" % "0.14.3"
           )
         case _ =>
           Seq(
