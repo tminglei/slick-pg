@@ -1,5 +1,5 @@
 val scala213 = "2.13.10"
-val scala212 = "2.12.16"
+val scala212 = "2.12.17"
 val scala211 = "2.11.12"
 
 lazy val commonSettings = Seq(
