@@ -73,7 +73,7 @@ def mainDependencies(scalaVersion: String) = {
     "org.scala-lang" % "scala-reflect" % scalaVersion,
     "com.typesafe.slick" %% "slick" % "3.4.0",
     "org.postgresql" % "postgresql" % "42.5.0",
-    "org.slf4j" % "slf4j-simple" % "2.0.0" % "provided",
+    "org.slf4j" % "slf4j-simple" % "2.0.3" % "provided",
     "org.scalatest" %% "scalatest" % "3.2.14" % "test",
     "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.40.10" % "test",
     "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.40.10" % "test"
