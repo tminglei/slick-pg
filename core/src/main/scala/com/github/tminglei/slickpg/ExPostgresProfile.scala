@@ -20,12 +20,22 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
   override def createUpsertBuilder(node: Insert): InsertBuilder =
     if (useNativeUpsert) new NativeUpsertBuilder(node) else new super.UpsertBuilder(node)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
+  override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
+
   override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
     new ExModelBuilder(tables, ignoreInvalidDefaults)
 
   protected lazy val useNativeUpsert = capabilities contains JdbcCapabilities.insertOrUpdate
   override protected lazy val useTransactionForUpsert = !useNativeUpsert
   override protected lazy val useServerSideUpsertReturning = useNativeUpsert
+
+  trait ColumnOptions extends super.ColumnOptions {
+    val AutoIncSeq = ExPostgresProfile.ColumnOption.AutoIncSeq
+    def AutoIncSeqName(name: String) = ExPostgresProfile.ColumnOption.AutoIncSeqName(name)
+    def AutoIncSeqFn(nextValFn: String => String) = ExPostgresProfile.ColumnOption.AutoIncSeqFn(nextValFn)
+  }
+
+  override val columnOptions: ColumnOptions = new ColumnOptions {}
 
   override val api: API = new API {}
 
@@ -210,6 +220,64 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
     val inherited: Table[_]
   }
 
+  class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
+    protected var autoIncSeqName: String = _
+    protected var autoIncFunction: String => String = _
+    protected var autoIncSeq: Boolean = _
+
+    override protected def init(): Unit = {
+      autoIncSeq = false
+      super.init()
+    }
+
+    override def appendColumn(sb: StringBuilder): Unit = {
+      sb append quoteIdentifier(column.name) append ' '
+      if (autoIncrement && !customSqlType && !autoIncSeq) {
+        sb append (if (sqlType.toUpperCase == "BIGINT") "BIGSERIAL" else "SERIAL")
+      } else appendType(sb)
+      appendOptions(sb)
+    }
+
+    override protected def handleColumnOption(o: ColumnOption[_]): Unit = o match {
+      case ExPostgresProfile.ColumnOption.AutoIncSeqName(s) => autoIncSeqName = s
+      case ExPostgresProfile.ColumnOption.AutoIncSeqFn(s) => autoIncFunction = s
+      case ExPostgresProfile.ColumnOption.AutoIncSeq => autoIncSeq = true
+      case _ => super.handleColumnOption(o)
+    }
+
+    override protected def appendOptions(sb: StringBuilder): Unit = {
+      if (defaultLiteral ne null) sb append " DEFAULT " append defaultLiteral
+      if (autoIncSeq && (autoIncSeqName ne null)) {
+        val d = sb append " DEFAULT "
+        val nextVal = s"nextval('$autoIncSeqName'::regclass)"
+        if (autoIncFunction eq null) {
+          d append nextVal
+        } else {
+          d append autoIncFunction(nextVal)
+        }
+      }
+      if (notNull) sb append " NOT NULL"
+      if (primaryKey) sb append " PRIMARY KEY"
+      if (unique) sb append " UNIQUE"
+      ()
+    }
+
+    def createSequence(table: Table[?]): Iterable[String] =
+      if (autoIncSeq) {
+        if (autoIncSeqName eq null) {
+          val seqName = s"${table.tableName}_${column.name}_seq"
+          autoIncSeqName = table.schemaName.map(s => s"${quoteIdentifier(s)}.$seqName").getOrElse(seqName)
+        }
+        Seq(s"create sequence $autoIncSeqName")
+      } else Nil
+
+    def dropSequence: Iterable[String] =
+      if (autoIncSeq)
+        Seq(s"drop sequence $autoIncSeqName")
+      else Nil
+
+  }
+
   class TableDDLBuilder(table: Table[_]) extends super.TableDDLBuilder(table) {
     override protected val columns: Iterable[ColumnDDLBuilder] = {
       (if(table.isInstanceOf[InheritingTable]) {
@@ -229,6 +297,17 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
       } else table.primaryKeys
     }
 
+    override val createPhase1: Iterable[String] = createAutoIncSequences ++ super.createPhase1
+    override val dropPhase2: Iterable[String] = super.dropPhase2 ++ dropAutoIncSequences
+
+    protected def createAutoIncSequences: Iterable[String] = columns.flatMap { case cb: ColumnDDLBuilder =>
+      cb.createSequence(table)
+    }
+
+    protected def dropAutoIncSequences: Iterable[String] = columns.flatMap { case cb: ColumnDDLBuilder =>
+      cb.dropSequence
+    }
+
     override protected def createTable(checkNotExists: Boolean): String = {
       if(table.isInstanceOf[InheritingTable]) {
         val hTable = table.asInstanceOf[InheritingTable].inherited
@@ -239,4 +318,23 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
   }
 }
 
-object ExPostgresProfile extends ExPostgresProfile
+object ExPostgresProfile extends ExPostgresProfile {
+  object ColumnOption {
+
+    /** Flag that indicates that an auto incrementing for an AutoInc column
+      * will be done by explicitly creating a sequence. */
+    case object AutoIncSeq extends ColumnOption[Nothing]
+
+    /** Name of the sequence which is generated for an AutoIncSeq column.
+      * It overrides the default sequence name: "$schemaName.$tableName_$columnName_seq".
+      * */
+    case class AutoIncSeqName(name: String) extends ColumnOption[Nothing]
+
+    /** Function that is used for generating the next value for an AutoIncSeq column.
+      * Example:
+      * AutoIncSeqFn(nextVal => s"'Prefix' || $nextVal")
+      * The function above will be converted to "DEFAULT 'Prefix' || nextval('$autoIncSeqName'::regclass)"
+      * */
+    case class AutoIncSeqFn(nextValFn: String => String) extends ColumnOption[Nothing]
+  }
+}
