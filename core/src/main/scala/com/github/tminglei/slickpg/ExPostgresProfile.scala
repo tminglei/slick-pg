@@ -220,6 +220,10 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
     val inherited: Table[_]
   }
 
+  /***********************************************************************
+    *                     for explicitly auto increment
+   ***********************************************************************/
+
   class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
     protected var autoIncSeqName: String = _
     protected var autoIncFunction: String => String = _
