@@ -5,4 +5,4 @@ logLevel := Level.Warn
 resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/"
 
 // Add sbt PGP Plugin
-addSbtPlugin("com.github.sbt" % "sbt-pgp" % "2.2.0")
+addSbtPlugin("com.github.sbt" % "sbt-pgp" % "2.2.1")
