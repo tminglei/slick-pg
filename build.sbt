@@ -72,7 +72,7 @@ def mainDependencies(scalaVersion: String) = {
   Seq (
     "org.scala-lang" % "scala-reflect" % scalaVersion,
     "com.typesafe.slick" %% "slick" % "3.4.1",
-    "org.postgresql" % "postgresql" % "42.5.1",
+    "org.postgresql" % "postgresql" % "42.5.3",
     "org.slf4j" % "slf4j-simple" % "2.0.6" % "provided",
     "org.scalatest" %% "scalatest" % "3.2.14" % "test",
     "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.40.12" % "test",
