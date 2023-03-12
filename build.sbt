@@ -21,7 +21,7 @@ lazy val commonSettings = Seq(
   javaOptions ++= Seq("-XX:MaxMetaspaceSize=512m"),
 
   resolvers += Resolver.mavenLocal,
-  resolvers += Resolver.sonatypeRepo("snapshots"),
+  resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
   resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/",
 
   //    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))),
@@ -236,6 +236,3 @@ lazy val slickPgJawn = (project in file("./addons/jawn"))
     )
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
-
-
-
