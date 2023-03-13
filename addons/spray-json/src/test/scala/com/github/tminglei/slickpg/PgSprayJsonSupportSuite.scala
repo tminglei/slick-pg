@@ -27,7 +27,7 @@ class PgSprayJsonSupportSuite extends AnyFunSuite with PostgresContainer {
     val plainAPI = new API with SprayJsonPlainImplicits
 
     ///
-    trait API extends super.API with JsonImplicits {
+    trait API extends JdbcAPI with JsonImplicits {
       import MyJsonProtocol._
       implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
       implicit val beanJsonTypeMapper = MappedJdbcType.base[JBean, JsValue](_.toJson, _.convertTo[JBean])

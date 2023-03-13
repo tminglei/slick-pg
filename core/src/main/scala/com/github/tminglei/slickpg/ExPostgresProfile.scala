@@ -17,8 +17,8 @@ import scala.reflect.{ClassTag, classTag}
 trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { driver =>
 
   override def createQueryBuilder(n: Node, state: CompilerState): QueryBuilder = new QueryBuilder(n, state)
-  override def createUpsertBuilder(node: Insert): InsertBuilder =
-    if (useNativeUpsert) new NativeUpsertBuilder(node) else new super.UpsertBuilder(node)
+  override def createUpsertBuilder(node: Insert): PostgresUpsertBuilder =
+    if (useNativeUpsert) new NativeUpsertBuilder(node) else new PostgresUpsertBuilder(node)
   override def createTableDDLBuilder(table: Table[_]): TableDDLBuilder = new TableDDLBuilder(table)
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ColumnDDLBuilder = new ColumnDDLBuilder(column)
 
@@ -29,7 +29,7 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
   override protected lazy val useTransactionForUpsert = !useNativeUpsert
   override protected lazy val useServerSideUpsertReturning = useNativeUpsert
 
-  trait ColumnOptions extends super.ColumnOptions {
+  trait ColumnOptions extends SqlColumnOptions {
     val AutoIncSeq = ExPostgresProfile.ColumnOption.AutoIncSeq
     def AutoIncSeqName(name: String) = ExPostgresProfile.ColumnOption.AutoIncSeqName(name)
     def AutoIncSeqFn(nextValFn: String => String) = ExPostgresProfile.ColumnOption.AutoIncSeqFn(nextValFn)
@@ -40,7 +40,7 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
   override val api: API = new API {}
 
   ///--
-  trait API extends super.API {
+  trait API extends JdbcAPI {
     type InheritingTable = driver.InheritingTable
 
     val Over = window.Over()
@@ -74,7 +74,7 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
     *                 for aggregate and window function support
    *************************************************************************/
 
-  class QueryBuilder(tree: Node, state: CompilerState) extends super.QueryBuilder(tree, state) {
+  class QueryBuilder(tree: Node, state: CompilerState) extends PostgresQueryBuilder(tree, state) {
     import slick.util.MacroSupport.macroSupportInterpolation
     override def expr(n: Node, skipParens: Boolean = false) = n match {
       case agg.AggFuncExpr(func, params, orderBy, filter, distinct, forOrdered) =>
@@ -106,19 +106,19 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
     *                          for upsert support
    ***********************************************************************/
 
-  class NativeUpsertBuilder(ins: Insert) extends super.InsertBuilder(ins) {
+  class NativeUpsertBuilder(ins: Insert) extends PostgresUpsertBuilder(ins) {
     /* NOTE: pk defined by using method `primaryKey` and pk defined with `PrimaryKey` can only have one,
              here we let table ddl to help us ensure this. */
     private lazy val funcDefinedPKs = table.profileTable.asInstanceOf[Table[_]].primaryKeys
     private lazy val (nonPkAutoIncSyms, insertingSyms) = syms.toSeq.partition { s =>
       s.options.contains(ColumnOption.AutoInc) && !(s.options contains ColumnOption.PrimaryKey) }
-    private lazy val (pkSyms, softSyms) = insertingSyms.partition { sym =>
+    override lazy val (pkSyms, softSyms) = insertingSyms.partition { sym =>
       sym.options.contains(ColumnOption.PrimaryKey) || funcDefinedPKs.exists(pk => pk.columns.collect {
         case Select(_, f: FieldSymbol) => f
       }.exists(_.name == sym.name)) }
     private lazy val insertNames = insertingSyms.map { fs => quoteIdentifier(fs.name) }
-    private lazy val pkNames = pkSyms.map { fs => quoteIdentifier(fs.name) }
-    private lazy val softNames = softSyms.map { fs => quoteIdentifier(fs.name) }
+    override lazy val pkNames = pkSyms.map { fs => quoteIdentifier(fs.name) }
+    override lazy val softNames = softSyms.map { fs => quoteIdentifier(fs.name) }
 
     override def buildInsert: InsertBuilderResult = {
       val insert = s"insert into $tableName (${insertNames.mkString(",")}) values (${insertNames.map(_ => "?").mkString(",")})"
@@ -224,7 +224,7 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
     *                     for explicitly auto increment
    ***********************************************************************/
 
-  class ColumnDDLBuilder(column: FieldSymbol) extends super.ColumnDDLBuilder(column) {
+  class ColumnDDLBuilder(column: FieldSymbol) extends PostgresColumnDDLBuilder(column) {
     protected var autoIncSeqName: String = _
     protected var autoIncFunction: String => String = _
     protected var autoIncSeq: Boolean = _
@@ -282,7 +282,7 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
 
   }
 
-  class TableDDLBuilder(table: Table[_]) extends super.TableDDLBuilder(table) {
+  class TableDDLBuilder(table: Table[_]) extends PostgresTableDDLBuilder(table) {
     override protected val columns: Iterable[ColumnDDLBuilder] = {
       (if(table.isInstanceOf[InheritingTable]) {
         val hColumns = table.asInstanceOf[InheritingTable].inherited.create_*.toSeq.map(_.name.toLowerCase)

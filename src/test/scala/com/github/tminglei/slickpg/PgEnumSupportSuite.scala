@@ -51,7 +51,7 @@ class PgEnumSupportSuite extends AnyFunSuite with PostgresContainer {
     override val api: API = new API {}
 
     ///
-    trait API extends super.API {
+    trait API extends JdbcAPI {
       implicit val weekDayTypeMapper = createEnumJdbcType("WeekDay", WeekDays)
       implicit val weekDayListTypeMapper = createEnumListJdbcType("weekDay", WeekDays)
       implicit val rainbowTypeMapper = createEnumJdbcType("Rainbow", Rainbows, true)
