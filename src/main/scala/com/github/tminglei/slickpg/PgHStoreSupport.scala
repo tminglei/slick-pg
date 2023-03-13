@@ -1,9 +1,12 @@
 package com.github.tminglei.slickpg
 
-import scala.collection.JavaConverters._
-import org.postgresql.util.HStoreConverter
-import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
+import scala.jdk.CollectionConverters._
 import scala.reflect.classTag
+
+import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
+
+import org.postgresql.util.HStoreConverter
+
 
 trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
   import driver.api._

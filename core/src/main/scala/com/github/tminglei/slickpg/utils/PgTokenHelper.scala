@@ -11,11 +11,12 @@ object PgTokenHelper {
   }
   case class GroupToken(members: Seq[Token]) extends Token {
     val value = ""
-    override def toString = {
-      StringBuilder.newBuilder append "GroupToken(" append {
-        members map { m => m.toString } mkString (",")
-      } append ")" toString
-    }
+    override def toString =
+      (new StringBuilder)
+        .append("GroupToken(")
+        .append(members.map(_.toString).mkString(","))
+        .append(")")
+        .toString
   }
 
   case object Comma extends Token {
@@ -81,7 +82,7 @@ object PgTokenHelper {
       }
 
     ///
-    val buf = StringBuilder.newBuilder
+    val buf = new StringBuilder
     mergeString(buf, token)
     buf.toString
   }
@@ -169,7 +170,7 @@ object PgTokenHelper {
     }
 
     ///
-    val buf = StringBuilder.newBuilder
+    val buf = new StringBuilder
     mergeString(buf, root, -1, isArray(root))
     buf.toString
   }
