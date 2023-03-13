@@ -88,8 +88,8 @@ object PgTokenHelper {
   }
 
   @tailrec
-  private def smush(soFar: Vector[Token], remaining: Seq[Token]): List[Token] = (soFar, remaining) match {
-    case (tokens, empty)       if empty.isEmpty         => tokens.toList
+  private def smush(soFar: Seq[Token], remaining: Seq[Token]): List[Token] = (soFar, remaining) match {
+    case (tokens, Seq())                                => tokens.toList
     case (lead :+ Chunk(prefix), Chunk(suffix) +: tail) => smush(lead :+ Chunk(prefix + suffix), tail)
     case (lead, middle +: tail)                         => smush(lead :+ middle, tail)
   }

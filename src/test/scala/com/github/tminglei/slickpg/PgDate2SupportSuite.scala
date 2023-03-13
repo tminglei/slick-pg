@@ -3,13 +3,17 @@ package com.github.tminglei.slickpg
 import java.time._
 import java.util.TimeZone
 
-import org.scalatest.funsuite.AnyFunSuite
-import slick.jdbc.GetResult
-
 import scala.concurrent.Await
 
+import slick.jdbc.GetResult
+
+import org.scalatest.funsuite.AnyFunSuite
+
+
 class PgDate2SupportSuite extends AnyFunSuite with PostgresContainer {
+
   import MyPostgresProfile.api._
+
 
   lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
@@ -26,7 +30,7 @@ class PgDate2SupportSuite extends AnyFunSuite with PostgresContainer {
     zone: ZoneId
     )
 
-  class DatetimeTable(tag: Tag) extends Table[DatetimeBean](tag,"Datetime2Test") {
+  class DatetimeTable(tag: Tag) extends Table[DatetimeBean](tag, "Datetime2Test") {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def date = column[LocalDate]("date")
     def time = column[LocalTime]("time")
@@ -345,7 +349,7 @@ class PgDate2SupportSuite extends AnyFunSuite with PostgresContainer {
 
     implicit val getDateBean = GetResult(r => DatetimeBean(
       r.nextLong(), r.nextLocalDate(), r.nextLocalTime(), r.nextLocalDateTime(), r.nextOffsetDateTime(), r.nextZonedDateTime(),
-      r.nextInstant(), r.nextDuration(), r.nextPeriod(), r.nextZoneId))
+      r.nextInstant(), r.nextDuration(), r.nextPeriod(), r.nextZoneId()))
 
     val b = new DatetimeBean(107L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01.101357"),
       LocalDateTime.parse("2001-01-03T13:21:00.223571"),

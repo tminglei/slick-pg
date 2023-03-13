@@ -88,7 +88,7 @@ object PgEnumSupportUtils {
   import PostgresProfile.api._
 
   def sqlName(sqlTypeName: String, quoteName: Boolean) = {
-    if (quoteName) '"' + sqlTypeName + '"' else sqlTypeName.toLowerCase
+    if (quoteName) "\"" + sqlTypeName + "\"" else sqlTypeName.toLowerCase
   }
 
   def buildCreateSql[T <: Enumeration](sqlTypeName: String, enumObject: T, quoteName: Boolean = false): SqlAction[Int, NoStream, Effect] = {

@@ -1,13 +1,17 @@
 package com.github.tminglei.slickpg
 
-import org.scalatest.funsuite.AnyFunSuite
-import slick.jdbc.GetResult
-
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
+import slick.jdbc.GetResult
+
+import org.scalatest.funsuite.AnyFunSuite
+
+
 class PgSearchSupportSuite extends AnyFunSuite with PostgresContainer {
+
   import MyPostgresProfile.api._
+
 
   lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
@@ -156,7 +160,7 @@ class PgSearchSupportSuite extends AnyFunSuite with PostgresContainer {
 
     case class SearchBean(id: Long, tVec: TsVector, tQ: TsQuery)
 
-    implicit val getSearchBeanResult = GetResult(r => SearchBean(r.nextLong(), r.nextTsVector(), r.nextTsQuery))
+    implicit val getSearchBeanResult = GetResult(r => SearchBean(r.nextLong(), r.nextTsVector(), r.nextTsQuery()))
 
     val b = SearchBean(101L, TsVector("'ate' 'cat' 'fat' 'rat'"), TsQuery("'rat'"))
 
