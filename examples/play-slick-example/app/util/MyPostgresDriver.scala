@@ -14,7 +14,7 @@ trait MyPostgresDriver extends ExPostgresDriver
 
   override val pgjson = "jsonb"
   ///
-  override val api = new API with ArrayImplicits
+  override val api = new ExtPostgresAPI with ArrayImplicits
                              with DateTimeImplicits
                              with PlayJsonImplicits
                              with NetImplicits

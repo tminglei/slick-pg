@@ -12,10 +12,10 @@ import scala.concurrent.duration.Duration
 class PgTrgmSupportSuite extends AnyFunSuite with PostgresContainer {
 
   trait MyPostgresProfile1 extends ExPostgresProfile with PgTrgmSupport {
-    override val api: API = new API {}
+    override val api: MyAPI = new MyAPI {}
 
     ///
-    trait API extends super.API with PgTrgmImplicits
+    trait MyAPI extends ExtPostgresAPI with PgTrgmImplicits
   }
   object MyPostgresProfile1 extends MyPostgresProfile1
 

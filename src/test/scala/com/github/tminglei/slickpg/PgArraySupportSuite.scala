@@ -18,10 +18,10 @@ class PgArraySupportSuite extends AnyFunSuite with PostgresContainer {
   case class MarketFinancialProduct(value: String)
 
   trait MyPostgresProfile1 extends ExPostgresProfile with PgArraySupport {
-    override val api: API = new API {}
+    override val api: MyAPI = new MyAPI {}
 
     ///
-    trait API extends super.API with ArrayImplicits {
+    trait MyAPI extends ExtPostgresAPI with ArrayImplicits {
       implicit val simpleOptStrListListMapper = new SimpleArrayJdbcType[String]("text")
         .mapTo[Option[String]](Option(_), _.orNull).to(_.toList)
       implicit val simpleLongBufferTypeMapper = new SimpleArrayJdbcType[Long]("int8").to(_.toBuffer[Long], (v: Buffer[Long]) => v.toSeq)

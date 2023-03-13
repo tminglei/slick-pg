@@ -34,8 +34,10 @@ Slick-pg
 Usage
 ------
 Before using it, you need integrate it with PostgresDriver maybe like this:
+
 ```scala
 import com.github.tminglei.slickpg._
+
 
 trait MyPostgresProfile extends ExPostgresProfile
                           with PgArraySupport
@@ -50,20 +52,20 @@ trait MyPostgresProfile extends ExPostgresProfile
   def pgjson = "jsonb" // jsonb support is in postgres 9.4.0 onward; for 9.3.x use "json"
 
   // Add back `capabilities.insertOrUpdate` to enable native `upsert` support; for postgres 9.5+
-  override protected def computeCapabilities: Set[slick.basic.Capability] = 
+  override protected def computeCapabilities: Set[slick.basic.Capability] =
     super.computeCapabilities + slick.jdbc.JdbcCapabilities.insertOrUpdate
 
   override val api = MyAPI
 
-  object MyAPI extends API with ArrayImplicits
-                           with DateTimeImplicits
-                           with JsonImplicits
-                           with NetImplicits
-                           with LTreeImplicits
-                           with RangeImplicits
-                           with HStoreImplicits
-                           with SearchImplicits
-                           with SearchAssistants {
+  object MyAPI extends ExtPostgresAPI with ArrayImplicits
+                                      with DateTimeImplicits
+                                      with JsonImplicits
+                                      with NetImplicits
+                                      with LTreeImplicits
+                                      with RangeImplicits
+                                      with HStoreImplicits
+                                      with SearchImplicits
+                                      with SearchAssistants {
     implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
     implicit val playJsonArrayTypeMapper =
       new AdvancedArrayJdbcType[JsValue](pgjson,

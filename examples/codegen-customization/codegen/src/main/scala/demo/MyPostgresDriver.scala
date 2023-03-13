@@ -14,7 +14,7 @@ trait MyPostgresDriver extends ExPostgresProfile
   override val api = new MyAPI {}
 
   //////
-  trait MyAPI extends API
+  trait MyAPI extends ExtPostgresAPI
                 with ArrayImplicits
                 with DateTimeImplicits
                 with RangeImplicits

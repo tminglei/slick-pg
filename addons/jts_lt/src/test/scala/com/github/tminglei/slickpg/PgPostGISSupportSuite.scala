@@ -15,11 +15,11 @@ class PgPostGISSupportSuite extends AnyFunSuite with PostgresContainer {
 
   trait MyPostgresProfile extends ExPostgresProfile with PgPostGISSupport {
 
-    override val api: API = new API {}
-    val plainAPI = new API with PostGISPlainImplicits
+    override val api: MyAPI = new MyAPI {}
+    val plainAPI = new MyAPI with PostGISPlainImplicits
 
     ///
-    trait API extends super.API with PostGISImplicits with PostGISAssistants
+    trait MyAPI extends ExtPostgresAPI with PostGISImplicits with PostGISAssistants
   }
   object MyPostgresProfile extends MyPostgresProfile
 
