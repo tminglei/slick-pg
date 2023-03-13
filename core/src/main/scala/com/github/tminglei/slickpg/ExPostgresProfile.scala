@@ -170,7 +170,7 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
             compiled
               .upsert
               .converter
-              .set(value, st)
+              .set(value, st, 0)
             st.addBatch()
           }
           val counts = st.executeBatch()

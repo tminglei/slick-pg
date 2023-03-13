@@ -71,7 +71,7 @@ def mainDependencies(scalaVersion: String) = {
   }
   Seq (
     "org.scala-lang" % "scala-reflect" % scalaVersion,
-    "com.typesafe.slick" %% "slick" % "3.4.1",
+    "com.typesafe.slick" %% "slick" % "3.5.0-M1",
     "org.postgresql" % "postgresql" % "42.5.4",
     "org.slf4j" % "slf4j-simple" % "2.0.6" % "provided",
     "org.scalatest" %% "scalatest" % "3.2.15" % "test",
@@ -236,6 +236,3 @@ lazy val slickPgJawn = (project in file("./addons/jawn"))
     )
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
-
-
-
