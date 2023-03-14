@@ -21,7 +21,7 @@ class PgUPickleJsonSupportSuite extends AnyFunSuite with PostgresContainer {
     val plainAPI = new API with UPickleJsonPlainImplicits
 
     ///
-    trait API extends super.API with JsonImplicits {
+    trait API extends JdbcAPI with JsonImplicits {
       implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
     }
   }

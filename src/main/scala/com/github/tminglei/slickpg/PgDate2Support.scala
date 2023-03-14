@@ -100,7 +100,7 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
       toInfinitable[Instant](Instant.MAX, Instant.MIN, _.toString)
   }
 
-  trait Date2DateTimeImplicits[INTERVAL] extends Date2DateTimeFormatters with API {
+  trait Date2DateTimeImplicits[INTERVAL] extends Date2DateTimeFormatters with JdbcAPI {
     //hide date types introduced in slick 3.3.0 to preserve compatibility
     override def offsetDateTimeColumnType = columnTypes.offsetDateTimeType
     override def zonedDateTimeColumnType = columnTypes.zonedDateType
