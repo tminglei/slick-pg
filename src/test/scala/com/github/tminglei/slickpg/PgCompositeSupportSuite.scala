@@ -61,7 +61,7 @@ object PgCompositeSupportSuite {
       .asInstanceOf[java.util.Map[String, String]]).asScala.toMap
 
     ///
-    trait API extends super.API with ArrayImplicits {
+    trait API extends JdbcAPI with ArrayImplicits {
       utils.TypeConverters.register(PgRangeSupportUtils.mkRangeFn(ts))
       utils.TypeConverters.register(PgRangeSupportUtils.toStringFn[LocalDateTime](_.toString))
       utils.TypeConverters.register(mapToString)

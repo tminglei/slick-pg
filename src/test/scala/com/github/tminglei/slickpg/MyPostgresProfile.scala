@@ -13,9 +13,9 @@ trait MyPostgresProfile extends ExPostgresProfile
 
   override val pgjson = "jsonb"
   ///
-  override val api: API = new API {}
+  override val api: MyAPI = new MyAPI {}
 
-  trait API extends super.API with ArrayImplicits
+  trait MyAPI extends ExtPostgresAPI with ArrayImplicits
                               with SimpleDateTimeImplicits
                               with DateTimeImplicits
                               with SimpleJsonImplicits
@@ -26,7 +26,7 @@ trait MyPostgresProfile extends ExPostgresProfile
                               with SearchImplicits
                               with SearchAssistants
   ///
-  val plainAPI = new API with ByteaPlainImplicits
+  val plainAPI = new MyAPI with ByteaPlainImplicits
                          with SimpleArrayPlainImplicits
                          with Date2DateTimePlainImplicits
                          with SimpleJsonPlainImplicits

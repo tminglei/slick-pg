@@ -24,7 +24,7 @@ class PgJawnJsonSupportSuite extends AnyFunSuite with PostgresContainer {
     val plainAPI = new API with JawnJsonPlainImplicits
 
     ///
-    trait API extends super.API with JsonImplicits {
+    trait API extends JdbcAPI with JsonImplicits {
       implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
       implicit val jsonArrayTypeMapper =
         new AdvancedArrayJdbcType[JValue](pgjson,
