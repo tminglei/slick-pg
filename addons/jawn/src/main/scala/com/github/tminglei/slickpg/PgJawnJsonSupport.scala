@@ -27,8 +27,8 @@ trait PgJawnJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
     implicit val playJsonTypeMapper: JdbcType[JValue] =
       new GenericJdbcType[JValue](
         pgjson,
-        (v) => JParser.parseUnsafe(v),
-        (v) => clean(v.render),
+        v => JParser.parseUnsafe(v),
+        v => clean(v.render()),
         hasLiteralForm = false
       )
 

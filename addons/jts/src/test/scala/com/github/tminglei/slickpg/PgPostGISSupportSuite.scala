@@ -2,13 +2,15 @@ package com.github.tminglei.slickpg
 
 import java.util.concurrent.Executors
 
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext}
+
+import slick.jdbc.GetResult
+
 import com.vividsolutions.jts.geom.{Geometry, Point}
 import com.vividsolutions.jts.io.{WKBWriter, WKTReader, WKTWriter}
 import org.scalatest.funsuite.AnyFunSuite
-import slick.jdbc.{GetResult, PostgresProfile}
 
-import scala.concurrent.{Await, ExecutionContext}
-import scala.concurrent.duration._
 
 class PgPostGISSupportSuite extends AnyFunSuite with PostgresContainer {
   implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
@@ -828,7 +830,7 @@ class PgPostGISSupportSuite extends AnyFunSuite with PostgresContainer {
   test("PostGIS Plain SQL support") {
     import MyPostgresProfile.plainAPI._
 
-    implicit val GetPointBeanResult = GetResult(r => PointBean(r.nextLong, r.nextGeometry[Point]))
+    implicit val GetPointBeanResult = GetResult(r => PointBean(r.nextLong(), r.nextGeometry[Point]()))
 
     val b = PointBean(77L, wktReader.read("POINT(4 5)").asInstanceOf[Point])
 

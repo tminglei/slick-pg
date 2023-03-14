@@ -1,15 +1,19 @@
 package com.github.tminglei.slickpg
 
+import java.sql.{PreparedStatement, ResultSet}
+
+import scala.collection.compat._
+import scala.collection.compat.immutable.LazyList
+import scala.reflect.ClassTag
+
 import slick.ast.FieldSymbol
 import slick.jdbc.{JdbcType, PostgresProfile}
 import slick.sql.SqlAction
 
-import scala.reflect.ClassTag
-import java.sql.{PreparedStatement, ResultSet}
 
 trait PgEnumSupport extends enums.PgEnumExtensions with array.PgArrayJdbcTypes { driver: PostgresProfile =>
-  import driver.api._
   import PgEnumSupportUtils.sqlName
+  import driver.api._
 
   def createEnumColumnExtensionMethodsBuilder[T <: Enumeration](enumObject: T)(
       implicit tm: JdbcType[enumObject.Value], tm1: JdbcType[List[enumObject.Value]]) =
@@ -84,12 +88,12 @@ object PgEnumSupportUtils {
   import PostgresProfile.api._
 
   def sqlName(sqlTypeName: String, quoteName: Boolean) = {
-    if (quoteName) '"' + sqlTypeName + '"' else sqlTypeName.toLowerCase
+    if (quoteName) "\"" + sqlTypeName + "\"" else sqlTypeName.toLowerCase
   }
 
   def buildCreateSql[T <: Enumeration](sqlTypeName: String, enumObject: T, quoteName: Boolean = false): SqlAction[Int, NoStream, Effect] = {
-    // `toStream` to prevent re-ordering after `map(_.toString)`
-    buildCreateSql(sqlTypeName, enumObject.values.toStream.map(_.toString), quoteName)
+    val values: LazyList[enumObject.Value] = enumObject.values.to(LazyList)
+    buildCreateSql(sqlTypeName, values.map(_.toString), quoteName)
   }
 
   def buildCreateSql(sqlTypeName: String, enumValues: Seq[String], quoteName: Boolean): SqlAction[Int, NoStream, Effect] = {

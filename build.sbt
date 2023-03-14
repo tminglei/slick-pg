@@ -1,6 +1,5 @@
 val scala213 = "2.13.10"
 val scala212 = "2.12.17"
-val scala211 = "2.11.12"
 
 lazy val commonSettings = Seq(
   organizationName := "slick-pg",
@@ -21,7 +20,7 @@ lazy val commonSettings = Seq(
   javaOptions ++= Seq("-XX:MaxMetaspaceSize=512m"),
 
   resolvers += Resolver.mavenLocal,
-  resolvers += Resolver.sonatypeRepo("snapshots"),
+  resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
   resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/",
 
   //    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))),
@@ -73,6 +72,7 @@ def mainDependencies(scalaVersion: String) = {
     "org.scala-lang" % "scala-reflect" % scalaVersion,
     "com.typesafe.slick" %% "slick" % "3.4.1",
     "org.postgresql" % "postgresql" % "42.5.4",
+    "org.scala-lang.modules" %% "scala-collection-compat" % "2.9.0",
     "org.slf4j" % "slf4j-simple" % "2.0.6" % "provided",
     "org.scalatest" %% "scalatest" % "3.2.15" % "test",
     "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.40.12" % "test",
@@ -236,6 +236,3 @@ lazy val slickPgJawn = (project in file("./addons/jawn"))
     )
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
-
-
-

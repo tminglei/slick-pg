@@ -2,13 +2,15 @@ package com.github.tminglei.slickpg
 
 import java.util.concurrent.Executors
 
-import utils.JsonUtils
-import org.scalatest.funsuite.AnyFunSuite
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext}
+
 import play.api.libs.json._
 import slick.jdbc.{GetResult, PostgresProfile}
 
-import scala.concurrent.{Await, ExecutionContext}
-import scala.concurrent.duration._
+import com.github.tminglei.slickpg.utils.JsonUtils
+import org.scalatest.funsuite.AnyFunSuite
+
 
 class PgPlayJsonSupportSuite extends AnyFunSuite with PostgresContainer {
   implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
@@ -68,13 +70,13 @@ class PgPlayJsonSupportSuite extends AnyFunSuite with PostgresContainer {
 
   val testRec1 = JsonBean(33L, Json.parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """), List(Json.parse(""" { "a":101, "b":"", "c":[3,4,5,9] } """)),
     JBean("tt", 3), List(JBean("tt", 3)))
-  val testRec2 = JsonBean(35L, Json.parse(JsonUtils.clean(""" [ {"title":"hello\nworld\\u00006\u00007","b":2}, {"a":"v5","b":3} ] """)), List(Json.parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """)),
+  val testRec2 = JsonBean(35L, Json.parse(JsonUtils.clean(" [ {\"title\":\"hello\\nworld\\\\u00006\u00007\",\"b\":2}, {\"a\":\"v5\",\"b\":3} ] ")), List(Json.parse(""" [ {"a":"v1","b":2}, {"a":"v5","b":3} ] """)),
     JBean("t1", 5), List(JBean("t1", 5)))
   val testRec3 = JsonBean(37L, Json.parse(""" { "field": "PF/00.0.0 (abc.xyz abc os x.x.x)" } """), List(Json.parse(""" { "field": "PF/00.0.0 (abc.xyz abc os x.x.x)" } """)), JBean("tx", 7), Nil)
 
 
   test("Play json Lifted support") {
-    val json1 = Json.parse(JsonUtils.clean(""" {"b":2,"title":"hello\nworld\\u00006\u00007"} """))
+    val json1 = Json.parse(JsonUtils.clean(" {\"b\":2,\"title\":\"hello\\nworld\\\\u00006\u00007\"} "))
     val json2 = Json.parse(""" {"a":"v5","b":3} """)
 
     // Unicode testing

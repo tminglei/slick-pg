@@ -2,11 +2,12 @@ package com.github.tminglei.slickpg.utils
 
 import org.scalatest.funsuite.AnyFunSuite
 
+
 class JsonUtilsSuite extends AnyFunSuite {
   import JsonUtils._
 
   test("clean") {
-    val input1 = """123\u000045\\u00006\\\u00007"""
+    val input1 = "123\u000045\\\\u00006\\\\\u00007"
     val expected1 = """12345\\u00006\\7"""
     assert(clean(input1) === expected1)
 
@@ -16,7 +17,7 @@ class JsonUtilsSuite extends AnyFunSuite {
     val expected2 = """{"d":"123456"}"""
     assert(clean(input2) === expected2)
 
-    val input3 = """123\u000045\\u00006\\\\u00007\\\\\u00008"""
+    val input3 = "123\u000045\\\\u00006\\\\\\\\u00007\\\\\\\\\u00008"
     val expected3 = """12345\\u00006\\\\u00007\\\\8"""
     assert(clean(input3) === expected3)
   }

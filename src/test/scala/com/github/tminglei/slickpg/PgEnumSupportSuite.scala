@@ -1,10 +1,14 @@
 package com.github.tminglei.slickpg
 
-import org.scalatest.funsuite.AnyFunSuite
-import slick.jdbc.PostgresProfile
-
+import scala.collection.compat._
+import scala.collection.compat.immutable.LazyList
 import scala.concurrent.Await
 import scala.concurrent.duration._
+
+import slick.jdbc.PostgresProfile
+
+import org.scalatest.funsuite.AnyFunSuite
+
 
 class PgEnumSupportSuite extends AnyFunSuite with PostgresContainer {
   object WeekDays extends Enumeration {
@@ -43,8 +47,9 @@ class PgEnumSupportSuite extends AnyFunSuite with PostgresContainer {
   }
 
   /////////////////////////////////////////////////////////////////////
-  import WeekDays._
+
   import Rainbows._
+  import WeekDays._
 
   trait MyPostgresProfile1 extends PostgresProfile with PgEnumSupport {
 
@@ -180,8 +185,8 @@ class PgEnumSupportSuite extends AnyFunSuite with PostgresContainer {
   test("Custom enum Lifted support") {
     Await.result(db.run(
       DBIO.seq(
-        PgEnumSupportUtils.buildCreateSql("Currency", Currency.values.toStream.map(_._1), quoteName = false),
-        PgEnumSupportUtils.buildCreateSql("Languages", Languages.values.toStream.map(_.name()), quoteName = true),
+        PgEnumSupportUtils.buildCreateSql("Currency", Currency.values.to(LazyList).map(_._1), quoteName = false),
+        PgEnumSupportUtils.buildCreateSql("Languages", Languages.values.to(LazyList).map(_.name()), quoteName = true),
         PgEnumSupportUtils.buildCreateSql("Gender", Gender.values.map(_.repr), quoteName = false),
         (TestEnums1.schema) create,
         ///

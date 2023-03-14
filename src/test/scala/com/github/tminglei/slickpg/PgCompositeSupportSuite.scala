@@ -1,16 +1,17 @@
 package com.github.tminglei.slickpg
 
-import org.postgresql.util.HStoreConverter
-import org.scalatest.funsuite.AnyFunSuite
-import slick.jdbc.{GetResult, PositionedResult, PostgresProfile}
-
-import scala.collection.JavaConverters._
 import java.time.LocalDateTime
-
-import composite.Struct
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.jdk.CollectionConverters._
+
+import slick.jdbc.{GetResult, PositionedResult, PostgresProfile}
+
+import com.github.tminglei.slickpg.composite.Struct
+import org.postgresql.util.HStoreConverter
+import org.scalatest.funsuite.AnyFunSuite
+
 
 object PgCompositeSupportSuite {
   def ts(str: String) = LocalDateTime.parse(str.replace(' ', 'T'))
