@@ -78,14 +78,14 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
    *************************************************************************/
 
   class ExtPostgresQueryBuilder(tree: Node, state: CompilerState) extends PostgresQueryBuilder(tree, state) {
-    import slick.util.MacroSupport.macroSupportInterpolation
-    override def expr(n: Node, skipParens: Boolean = false) = n match {
+    import slick.util.QueryInterpolator.queryInterpolator
+    override def expr(n: Node): Unit = n match {
       case agg.AggFuncExpr(func, params, orderBy, filter, distinct, forOrdered) =>
         if (func == Library.CountAll) b"${func.name}"
         else {
           b"${func.name}("
           if (distinct) b"distinct "
-          b.sep(params, ",")(expr(_, true))
+          b.sep(params, ",")(expr(_, skipParens = true))
           if (orderBy.nonEmpty && !forOrdered) buildOrderByClause(orderBy)
           b")"
         }
@@ -94,14 +94,14 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
       case window.WindowFuncExpr(aggFuncExpr, partitionBy, orderBy, frameDef) =>
         expr(aggFuncExpr)
         b" over ("
-        if(partitionBy.nonEmpty) { b" partition by "; b.sep(partitionBy, ",")(expr(_, true)) }
+        if(partitionBy.nonEmpty) { b" partition by "; b.sep(partitionBy, ",")(expr(_, skipParens = true)) }
         if(orderBy.nonEmpty) buildOrderByClause(orderBy)
-        frameDef.map {
+        frameDef.foreach {
           case (mode, start, Some(end)) => b" $mode between $start and $end"
           case (mode, start, None)      => b" $mode $start"
         }
         b")"
-      case _ => super.expr(n, skipParens)
+      case _ => super.expr(n)
     }
   }
 
