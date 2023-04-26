@@ -78,7 +78,7 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
    *************************************************************************/
 
   class ExtPostgresQueryBuilder(tree: Node, state: CompilerState) extends PostgresQueryBuilder(tree, state) {
-    import slick.util.MacroSupport.macroSupportInterpolation
+    import slick.util.QueryInterpolator.queryInterpolator
     override def expr(n: Node, skipParens: Boolean = false) = n match {
       case agg.AggFuncExpr(func, params, orderBy, filter, distinct, forOrdered) =>
         if (func == Library.CountAll) b"${func.name}"
