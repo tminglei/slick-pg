@@ -3,9 +3,8 @@ package com.github.tminglei.slickpg
 import java.time._
 import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
 import java.time.temporal.ChronoField
-
 import org.postgresql.util.PGInterval
-import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
+import slick.jdbc.{GetResult, JdbcType, PositionedResult, PostgresProfile, SetParameter}
 
 import scala.reflect.{ClassTag, classTag}
 
@@ -125,49 +124,49 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
     implicit val date2ZoneIdMapper: JdbcType[ZoneId] = new GenericJdbcType[ZoneId]("text", ZoneId.of(_), _.getId, hasLiteralForm=false)
 
     ///
-    implicit def date2DateColumnExtensionMethods(c: Rep[LocalDate])(implicit tm: JdbcType[INTERVAL]) =
+    implicit def date2DateColumnExtensionMethods(c: Rep[LocalDate])(implicit tm: JdbcType[INTERVAL]): DateColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, INTERVAL, LocalDate] =
       new DateColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, INTERVAL, LocalDate](c)
-    implicit def date2DateOptColumnExtensionMethods(c: Rep[Option[LocalDate]])(implicit tm: JdbcType[INTERVAL]) =
+    implicit def date2DateOptColumnExtensionMethods(c: Rep[Option[LocalDate]])(implicit tm: JdbcType[INTERVAL]): DateColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, INTERVAL, Option[LocalDate]] =
       new DateColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, INTERVAL, Option[LocalDate]](c)
 
-    implicit def date2TimeColumnExtensionMethods(c: Rep[LocalTime])(implicit tm: JdbcType[INTERVAL]) =
+    implicit def date2TimeColumnExtensionMethods(c: Rep[LocalTime])(implicit tm: JdbcType[INTERVAL]): TimeColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, OffsetTime, INTERVAL, LocalTime] =
       new TimeColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, OffsetTime, INTERVAL, LocalTime](c)
-    implicit def date2TimeOptColumnExtensionMethods(c: Rep[Option[LocalTime]])(implicit tm: JdbcType[INTERVAL]) =
+    implicit def date2TimeOptColumnExtensionMethods(c: Rep[Option[LocalTime]])(implicit tm: JdbcType[INTERVAL]): TimeColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, OffsetTime, INTERVAL, Option[LocalTime]] =
       new TimeColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, OffsetTime, INTERVAL, Option[LocalTime]](c)
 
-    implicit def date2TimestampColumnExtensionMethods(c: Rep[LocalDateTime])(implicit tm: JdbcType[INTERVAL]) =
+    implicit def date2TimestampColumnExtensionMethods(c: Rep[LocalDateTime])(implicit tm: JdbcType[INTERVAL]): TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, OffsetDateTime, INTERVAL, LocalDateTime] =
       new TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, OffsetDateTime, INTERVAL, LocalDateTime](c)
-    implicit def date2TimestampOptColumnExtensionMethods(c: Rep[Option[LocalDateTime]])(implicit tm: JdbcType[INTERVAL]) =
+    implicit def date2TimestampOptColumnExtensionMethods(c: Rep[Option[LocalDateTime]])(implicit tm: JdbcType[INTERVAL]): TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, OffsetDateTime, INTERVAL, Option[LocalDateTime]] =
       new TimestampColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, OffsetDateTime, INTERVAL, Option[LocalDateTime]](c)
 
-    implicit def date2Timestamp1ColumnExtensionMethods(c: Rep[Instant])(implicit tm: JdbcType[INTERVAL]) =
+    implicit def date2Timestamp1ColumnExtensionMethods(c: Rep[Instant])(implicit tm: JdbcType[INTERVAL]): TimestampColumnExtensionMethods[LocalDate, LocalTime, Instant, OffsetDateTime, INTERVAL, Instant] =
       new TimestampColumnExtensionMethods[LocalDate, LocalTime, Instant, OffsetDateTime, INTERVAL, Instant](c)
-    implicit def date2Timestamp1OptColumnExtensionMethods(c: Rep[Option[Instant]])(implicit tm: JdbcType[INTERVAL]) =
+    implicit def date2Timestamp1OptColumnExtensionMethods(c: Rep[Option[Instant]])(implicit tm: JdbcType[INTERVAL]): TimestampColumnExtensionMethods[LocalDate, LocalTime, Instant, OffsetDateTime, INTERVAL, Option[Instant]] =
       new TimestampColumnExtensionMethods[LocalDate, LocalTime, Instant, OffsetDateTime, INTERVAL, Option[Instant]](c)
 
-    implicit def date2IntervalColumnExtensionMethods(c: Rep[Period]) =
+    implicit def date2IntervalColumnExtensionMethods(c: Rep[Period]): IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Period] =
       new IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Period](c)
-    implicit def date2IntervalOptColumnExtensionMethods(c: Rep[Option[Period]]) =
+    implicit def date2IntervalOptColumnExtensionMethods(c: Rep[Option[Period]]): IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Option[Period]] =
       new IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Period, Option[Period]](c)
 
-    implicit def date2Interval1ColumnExtensionMethods(c: Rep[Duration]) =
+    implicit def date2Interval1ColumnExtensionMethods(c: Rep[Duration]): IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Duration, Duration] =
       new IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Duration, Duration](c)
-    implicit def date2Interval1OptColumnExtensionMethods(c: Rep[Option[Duration]]) =
+    implicit def date2Interval1OptColumnExtensionMethods(c: Rep[Option[Duration]]): IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Duration, Option[Duration]] =
       new IntervalColumnExtensionMethods[LocalDate, LocalTime, LocalDateTime, Duration, Option[Duration]](c)
 
-    implicit def date2TzTimeColumnExtensionMethods(c: Rep[OffsetTime])(implicit tm: JdbcType[INTERVAL]) =
+    implicit def date2TzTimeColumnExtensionMethods(c: Rep[OffsetTime])(implicit tm: JdbcType[INTERVAL]): TimestampColumnExtensionMethods[LocalDate, OffsetTime, OffsetDateTime, LocalDateTime, INTERVAL, OffsetTime] =
       new TimestampColumnExtensionMethods[LocalDate, OffsetTime, OffsetDateTime, LocalDateTime, INTERVAL, OffsetTime](c)
-    implicit def date2TzTimeOptColumnExtensionMethods(c: Rep[Option[OffsetTime]])(implicit tm: JdbcType[INTERVAL]) =
+    implicit def date2TzTimeOptColumnExtensionMethods(c: Rep[Option[OffsetTime]])(implicit tm: JdbcType[INTERVAL]): TimestampColumnExtensionMethods[LocalDate, OffsetTime, OffsetDateTime, LocalDateTime, INTERVAL, Option[OffsetTime]] =
       new TimestampColumnExtensionMethods[LocalDate, OffsetTime, OffsetDateTime, LocalDateTime, INTERVAL, Option[OffsetTime]](c)
 
-    implicit def date2TzTimestampColumnExtensionMethods(c: Rep[OffsetDateTime])(implicit tm: JdbcType[INTERVAL]) =
+    implicit def date2TzTimestampColumnExtensionMethods(c: Rep[OffsetDateTime])(implicit tm: JdbcType[INTERVAL]): TimestampColumnExtensionMethods[LocalDate, OffsetTime, OffsetDateTime, LocalDateTime, INTERVAL, OffsetDateTime] =
       new TimestampColumnExtensionMethods[LocalDate, OffsetTime, OffsetDateTime, LocalDateTime, INTERVAL, OffsetDateTime](c)
-    implicit def date2TzTimestampOptColumnExtensionMethods(c: Rep[Option[OffsetDateTime]])(implicit tm: JdbcType[INTERVAL]) =
+    implicit def date2TzTimestampOptColumnExtensionMethods(c: Rep[Option[OffsetDateTime]])(implicit tm: JdbcType[INTERVAL]): TimestampColumnExtensionMethods[LocalDate, OffsetTime, OffsetDateTime, LocalDateTime, INTERVAL, Option[OffsetDateTime]] =
       new TimestampColumnExtensionMethods[LocalDate, OffsetTime, OffsetDateTime, LocalDateTime, INTERVAL, Option[OffsetDateTime]](c)
 
-    implicit def date2TzTimestamp1ColumnExtensionMethods(c: Rep[ZonedDateTime])(implicit tm: JdbcType[INTERVAL]) =
+    implicit def date2TzTimestamp1ColumnExtensionMethods(c: Rep[ZonedDateTime])(implicit tm: JdbcType[INTERVAL]): TimestampColumnExtensionMethods[LocalDate, OffsetTime, ZonedDateTime, LocalDateTime, INTERVAL, ZonedDateTime] =
       new TimestampColumnExtensionMethods[LocalDate, OffsetTime, ZonedDateTime, LocalDateTime, INTERVAL, ZonedDateTime](c)
-    implicit def date2TzTimestamp1OptColumnExtensionMethods(c: Rep[Option[ZonedDateTime]])(implicit tm: JdbcType[INTERVAL]) =
+    implicit def date2TzTimestamp1OptColumnExtensionMethods(c: Rep[Option[ZonedDateTime]])(implicit tm: JdbcType[INTERVAL]): TimestampColumnExtensionMethods[LocalDate, OffsetTime, ZonedDateTime, LocalDateTime, INTERVAL, Option[ZonedDateTime]] =
       new TimestampColumnExtensionMethods[LocalDate, OffsetTime, ZonedDateTime, LocalDateTime, INTERVAL, Option[ZonedDateTime]](c)
 
     /// helper classes to INTERVAL column
@@ -214,55 +213,55 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
     }
 
     /////////////////////////////////////////////////////////////////////////////
-    implicit val getLocalDate = mkGetResult(_.nextLocalDate())
-    implicit val getLocalDateOption = mkGetResult(_.nextLocalDateOption())
-    implicit val setLocalDate = mkSetParameter[LocalDate]("date", toDateOrInfinity, sqlType = Types.DATE)
-    implicit val setLocalDateOption = mkOptionSetParameter[LocalDate]("date", toDateOrInfinity, sqlType = Types.DATE)
+    implicit val getLocalDate: GetResult[LocalDate] = mkGetResult(_.nextLocalDate())
+    implicit val getLocalDateOption: GetResult[Option[LocalDate]] = mkGetResult(_.nextLocalDateOption())
+    implicit val setLocalDate: SetParameter[LocalDate] = mkSetParameter[LocalDate]("date", toDateOrInfinity, sqlType = Types.DATE)
+    implicit val setLocalDateOption: SetParameter[Option[LocalDate]] = mkOptionSetParameter[LocalDate]("date", toDateOrInfinity, sqlType = Types.DATE)
 
-    implicit val getLocalTime = mkGetResult(_.nextLocalTime())
-    implicit val getLocalTimeOption = mkGetResult(_.nextLocalTimeOption())
-    implicit val setLocalTime = mkSetParameter[LocalTime]("time", _.format(date2TimeFormatter), sqlType = Types.TIME)
-    implicit val setLocalTimeOption = mkOptionSetParameter[LocalTime]("time", _.format(date2TimeFormatter), sqlType = Types.TIME)
+    implicit val getLocalTime: GetResult[LocalTime] = mkGetResult(_.nextLocalTime())
+    implicit val getLocalTimeOption: GetResult[Option[LocalTime]] = mkGetResult(_.nextLocalTimeOption())
+    implicit val setLocalTime: SetParameter[LocalTime] = mkSetParameter[LocalTime]("time", _.format(date2TimeFormatter), sqlType = Types.TIME)
+    implicit val setLocalTimeOption: SetParameter[Option[LocalTime]] = mkOptionSetParameter[LocalTime]("time", _.format(date2TimeFormatter), sqlType = Types.TIME)
 
-    implicit val getLocalDateTime = mkGetResult(_.nextLocalDateTime())
-    implicit val getLocalDateTimeOption = mkGetResult(_.nextLocalDateTimeOption())
-    implicit val setLocalDateTime = mkSetParameter[LocalDateTime]("timestamp", toDateTimeOrInfinity, sqlType = Types.TIMESTAMP)
-    implicit val setLocalDateTimeOption = mkOptionSetParameter[LocalDateTime]("timestamp", toDateTimeOrInfinity, sqlType = Types.TIMESTAMP)
+    implicit val getLocalDateTime: GetResult[LocalDateTime] = mkGetResult(_.nextLocalDateTime())
+    implicit val getLocalDateTimeOption: GetResult[Option[LocalDateTime]] = mkGetResult(_.nextLocalDateTimeOption())
+    implicit val setLocalDateTime: SetParameter[LocalDateTime] = mkSetParameter[LocalDateTime]("timestamp", toDateTimeOrInfinity, sqlType = Types.TIMESTAMP)
+    implicit val setLocalDateTimeOption: SetParameter[Option[LocalDateTime]] = mkOptionSetParameter[LocalDateTime]("timestamp", toDateTimeOrInfinity, sqlType = Types.TIMESTAMP)
 
-    implicit val getOffsetTime = mkGetResult(_.nextOffsetTime())
-    implicit val getOffsetTimeOption = mkGetResult(_.nextOffsetTimeOption())
-    implicit val setOffsetTime = mkSetParameter[OffsetTime]("timetz", _.format(date2TzTimeFormatter), sqlType = Types.TIME /*Types.TIME_WITH_TIMEZONE*/)
-    implicit val setOffsetTimeOption = mkOptionSetParameter[OffsetTime]("timetz", _.format(date2TzTimeFormatter), sqlType = Types.TIME /*Types.TIME_WITH_TIMEZONE*/)
+    implicit val getOffsetTime: GetResult[OffsetTime] = mkGetResult(_.nextOffsetTime())
+    implicit val getOffsetTimeOption: GetResult[Option[OffsetTime]] = mkGetResult(_.nextOffsetTimeOption())
+    implicit val setOffsetTime: SetParameter[OffsetTime] = mkSetParameter[OffsetTime]("timetz", _.format(date2TzTimeFormatter), sqlType = Types.TIME /*Types.TIME_WITH_TIMEZONE*/)
+    implicit val setOffsetTimeOption: SetParameter[Option[OffsetTime]] = mkOptionSetParameter[OffsetTime]("timetz", _.format(date2TzTimeFormatter), sqlType = Types.TIME /*Types.TIME_WITH_TIMEZONE*/)
 
-    implicit val getOffsetDateTime = mkGetResult(_.nextOffsetDateTime())
-    implicit val getOffsetDateTimeOption = mkGetResult(_.nextOffsetDateTimeOption())
-    implicit val setOffsetDateTime = mkSetParameter[OffsetDateTime]("timestamptz", toOffsetDateTimeOrInfinity, sqlType = Types.TIMESTAMP /*Types.TIMESTAMP_WITH_TIMEZONE*/)
-    implicit val setOffsetDateTimeOption = mkOptionSetParameter[OffsetDateTime]("timestamptz", toOffsetDateTimeOrInfinity, sqlType = Types.TIMESTAMP /*Types.TIMESTAMP_WITH_TIMEZONE*/)
+    implicit val getOffsetDateTime: GetResult[OffsetDateTime] = mkGetResult(_.nextOffsetDateTime())
+    implicit val getOffsetDateTimeOption: GetResult[Option[OffsetDateTime]] = mkGetResult(_.nextOffsetDateTimeOption())
+    implicit val setOffsetDateTime: SetParameter[OffsetDateTime] = mkSetParameter[OffsetDateTime]("timestamptz", toOffsetDateTimeOrInfinity, sqlType = Types.TIMESTAMP /*Types.TIMESTAMP_WITH_TIMEZONE*/)
+    implicit val setOffsetDateTimeOption: SetParameter[Option[OffsetDateTime]] = mkOptionSetParameter[OffsetDateTime]("timestamptz", toOffsetDateTimeOrInfinity, sqlType = Types.TIMESTAMP /*Types.TIMESTAMP_WITH_TIMEZONE*/)
 
-    implicit val getZonedDateTime = mkGetResult(_.nextZonedDateTime())
-    implicit val getZonedDateTimeOption = mkGetResult(_.nextZonedDateTimeOption())
-    implicit val setZonedDateTime = mkSetParameter[ZonedDateTime]("timestamptz", toZonedDateTimeOrInfinity, sqlType = Types.TIMESTAMP /*Types.TIMESTAMP_WITH_TIMEZONE*/)
-    implicit val setZonedDateTimeOption = mkOptionSetParameter[ZonedDateTime]("timestamptz", toZonedDateTimeOrInfinity, sqlType = Types.TIMESTAMP /*Types.TIMESTAMP_WITH_TIMEZONE*/)
+    implicit val getZonedDateTime: GetResult[ZonedDateTime] = mkGetResult(_.nextZonedDateTime())
+    implicit val getZonedDateTimeOption: GetResult[Option[ZonedDateTime]] = mkGetResult(_.nextZonedDateTimeOption())
+    implicit val setZonedDateTime: SetParameter[ZonedDateTime] = mkSetParameter[ZonedDateTime]("timestamptz", toZonedDateTimeOrInfinity, sqlType = Types.TIMESTAMP /*Types.TIMESTAMP_WITH_TIMEZONE*/)
+    implicit val setZonedDateTimeOption: SetParameter[Option[ZonedDateTime]] = mkOptionSetParameter[ZonedDateTime]("timestamptz", toZonedDateTimeOrInfinity, sqlType = Types.TIMESTAMP /*Types.TIMESTAMP_WITH_TIMEZONE*/)
 
-    implicit val getInstant = mkGetResult(_.nextInstant())
-    implicit val getInstantOption = mkGetResult(_.nextInstantOption())
-    implicit val setInstant = mkSetParameter[Instant]("timestamp", toInstantOrInfinity, sqlType = Types.TIMESTAMP)
-    implicit val setInstantOption = mkOptionSetParameter[Instant]("timestamp", toInstantOrInfinity, sqlType = Types.TIMESTAMP)
+    implicit val getInstant: GetResult[Instant] = mkGetResult(_.nextInstant())
+    implicit val getInstantOption: GetResult[Option[Instant]] = mkGetResult(_.nextInstantOption())
+    implicit val setInstant: SetParameter[Instant] = mkSetParameter[Instant]("timestamp", toInstantOrInfinity, sqlType = Types.TIMESTAMP)
+    implicit val setInstantOption: SetParameter[Option[Instant]] = mkOptionSetParameter[Instant]("timestamp", toInstantOrInfinity, sqlType = Types.TIMESTAMP)
 
-    implicit val getPeriod = mkGetResult(_.nextPeriod())
-    implicit val getPeriodOption = mkGetResult(_.nextPeriodOption())
-    implicit val setPeriod = mkSetParameter[Period]("interval")
-    implicit val setPeriodOption = mkOptionSetParameter[Period]("interval")
+    implicit val getPeriod: GetResult[Period] = mkGetResult(_.nextPeriod())
+    implicit val getPeriodOption: GetResult[Option[Period]] = mkGetResult(_.nextPeriodOption())
+    implicit val setPeriod: SetParameter[Period] = mkSetParameter[Period]("interval")
+    implicit val setPeriodOption: SetParameter[Option[Period]] = mkOptionSetParameter[Period]("interval")
 
-    implicit val getDuration = mkGetResult(_.nextDuration())
-    implicit val getDurationOption = mkGetResult(_.nextDurationOption())
-    implicit val setDuration = mkSetParameter[Duration]("interval")
-    implicit val setDurationOption = mkOptionSetParameter[Duration]("interval")
+    implicit val getDuration: GetResult[Duration] = mkGetResult(_.nextDuration())
+    implicit val getDurationOption: GetResult[Option[Duration]] = mkGetResult(_.nextDurationOption())
+    implicit val setDuration: SetParameter[Duration] = mkSetParameter[Duration]("interval")
+    implicit val setDurationOption: SetParameter[Option[Duration]] = mkOptionSetParameter[Duration]("interval")
 
-    implicit val getZoneId = mkGetResult(_.nextZoneId())
-    implicit val getZoneIdOption = mkGetResult(_.nextZoneIdOption())
-    implicit val setZoneId = mkSetParameter[ZoneId]("text", sqlType = Types.VARCHAR)
-    implicit val setZoneIdOption = mkOptionSetParameter[ZoneId]("text", sqlType = Types.VARCHAR)
+    implicit val getZoneId: GetResult[ZoneId] = mkGetResult(_.nextZoneId())
+    implicit val getZoneIdOption: GetResult[Option[ZoneId]] = mkGetResult(_.nextZoneIdOption())
+    implicit val setZoneId: SetParameter[ZoneId] = mkSetParameter[ZoneId]("text", sqlType = Types.VARCHAR)
+    implicit val setZoneIdOption: SetParameter[Option[ZoneId]] = mkOptionSetParameter[ZoneId]("text", sqlType = Types.VARCHAR)
   }
 }
 

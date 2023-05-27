@@ -1,6 +1,7 @@
 package com.github.tminglei.slickpg
 
-import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
+import slick.jdbc.{GetResult, JdbcType, PositionedResult, PostgresProfile, SetParameter}
+
 import scala.reflect.classTag
 
 /** simple inet string wrapper */
@@ -49,17 +50,17 @@ trait PgNetSupport extends net.PgNetExtensions with utils.PgCommonJdbcTypes { dr
         hasLiteralForm = false
       )
 
-    implicit def simpleInetColumnExtensionMethods(c: Rep[InetString]) = {
+    implicit def simpleInetColumnExtensionMethods(c: Rep[InetString]): InetColumnExtensionMethods[InetString, InetString] = {
         new InetColumnExtensionMethods[InetString, InetString](c)
       }
-    implicit def simpleInetOptionColumnExtensionMethods(c: Rep[Option[InetString]]) = {
+    implicit def simpleInetOptionColumnExtensionMethods(c: Rep[Option[InetString]]): InetColumnExtensionMethods[InetString, Option[InetString]] = {
         new InetColumnExtensionMethods[InetString, Option[InetString]](c)
       }
 
-    implicit def simpleMacAddrColumnExtensionMethods(c: Rep[MacAddrString]) = {
+    implicit def simpleMacAddrColumnExtensionMethods(c: Rep[MacAddrString]): MacAddrColumnExtensionMethods[MacAddrString, MacAddrString] = {
         new MacAddrColumnExtensionMethods[MacAddrString, MacAddrString](c)
       }
-    implicit def simpleMacAddrOptionColumnExtensionMethods(c: Rep[Option[MacAddrString]]) = {
+    implicit def simpleMacAddrOptionColumnExtensionMethods(c: Rep[Option[MacAddrString]]): MacAddrColumnExtensionMethods[MacAddrString, Option[MacAddrString]] = {
         new MacAddrColumnExtensionMethods[MacAddrString, Option[MacAddrString]](c)
       }
   }
@@ -75,20 +76,20 @@ trait PgNetSupport extends net.PgNetExtensions with utils.PgCommonJdbcTypes { dr
 
     implicit class PgNetPositionedResult(r: PositionedResult) {
       def nextIPAddr() = nextIPAddrOption().orNull
-      def nextIPAddrOption() = r.nextStringOption().map(InetString)
+      def nextIPAddrOption() = r.nextStringOption().map(InetString.apply)
       def nextMacAddr() = nextMacAddrOption().orNull
-      def nextMacAddrOption() = r.nextStringOption().map(MacAddrString)
+      def nextMacAddrOption() = r.nextStringOption().map(MacAddrString.apply)
     }
 
     /////////////////////////////////////////////////////////////////
-    implicit val getIPAddr = mkGetResult(_.nextIPAddr())
-    implicit val getIPAddrOption = mkGetResult(_.nextIPAddrOption())
-    implicit val setIPAddr = mkSetParameter[InetString]("inet", _.value)
-    implicit val setIPAddrOption = mkOptionSetParameter[InetString]("inet", _.value)
+    implicit val getIPAddr: GetResult[InetString] = mkGetResult(_.nextIPAddr())
+    implicit val getIPAddrOption: GetResult[Option[InetString]] = mkGetResult(_.nextIPAddrOption())
+    implicit val setIPAddr: SetParameter[InetString] = mkSetParameter[InetString]("inet", _.value)
+    implicit val setIPAddrOption: SetParameter[Option[InetString]] = mkOptionSetParameter[InetString]("inet", _.value)
 
-    implicit val getMacAddr = mkGetResult(_.nextMacAddr())
-    implicit val getMacAddrOption = mkGetResult(_.nextMacAddrOption())
-    implicit val setMacAddr = mkSetParameter[MacAddrString]("macaddr", _.value)
-    implicit val setMacAddrOption = mkOptionSetParameter[MacAddrString]("macaddr", _.value)
+    implicit val getMacAddr: GetResult[MacAddrString] = mkGetResult(_.nextMacAddr())
+    implicit val getMacAddrOption: GetResult[Option[MacAddrString]] = mkGetResult(_.nextMacAddrOption())
+    implicit val setMacAddr: SetParameter[MacAddrString] = mkSetParameter[MacAddrString]("macaddr", _.value)
+    implicit val setMacAddrOption: SetParameter[Option[MacAddrString]] = mkOptionSetParameter[MacAddrString]("macaddr", _.value)
   }
 }
