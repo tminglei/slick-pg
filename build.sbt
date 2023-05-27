@@ -61,13 +61,8 @@ lazy val commonSettings = Seq(
 )
 
 def mainDependencies(scalaVersion: String) = {
-  val extractedLibs = CrossVersion.partialVersion(scalaVersion) match {
-    case Some((2, scalaMajor)) if scalaMajor >= 11 =>
-      Seq("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2")
-    case _ =>
-      Seq()
-  }
   Seq (
+    "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2",
     "org.scala-lang" % "scala-reflect" % scalaVersion,
     "com.typesafe.slick" %% "slick" % "3.5.0-M3",
     "org.postgresql" % "postgresql" % "42.6.0",
@@ -76,7 +71,7 @@ def mainDependencies(scalaVersion: String) = {
     "org.scalatest" %% "scalatest" % "3.2.15" % "test",
     "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.40.15" % "test",
     "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.40.15" % "test"
-  ) ++ extractedLibs
+  )
 }
 
 lazy val slickPgCore = (project in file("./core"))
@@ -148,14 +143,8 @@ lazy val slickPgPlayJson = (project in file("./addons/play-json"))
   .settings(
     name := "slick-pg_play-json",
     description := "Slick extensions for PostgreSQL - play-json module",
-    libraryDependencies := mainDependencies(scalaVersion.value) ++ (
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, scalaMajor)) if scalaMajor > 11 =>
-          Seq("com.typesafe.play" %% "play-json" % "2.9.4")
-        case _ =>
-          Seq("com.typesafe.play" %% "play-json" % "2.7.4")
-      }
-    )
+    libraryDependencies := mainDependencies(scalaVersion.value) ++
+      Seq("com.typesafe.play" %% "play-json" % "2.9.4")
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
 
@@ -175,22 +164,12 @@ lazy val slickPgCirceJson = (project in file("./addons/circe-json"))
   .settings(
     name := "slick-pg_circe-json",
     description := "Slick extensions for PostgreSQL - circe module",
-    libraryDependencies := mainDependencies(scalaVersion.value) ++ (
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, scalaMajor)) if scalaMajor > 11 =>
-          Seq(
-            "io.circe" %% "circe-core" % "0.14.5",
-            "io.circe" %% "circe-generic" % "0.14.5",
-            "io.circe" %% "circe-parser" % "0.14.5"
-          )
-        case _ =>
-          Seq(
-            "io.circe" %% "circe-core" % "0.11.2",
-            "io.circe" %% "circe-generic" % "0.11.2",
-            "io.circe" %% "circe-parser" % "0.11.2"
-          )
-      }
-    )
+    libraryDependencies := mainDependencies(scalaVersion.value) ++
+      Seq(
+        "io.circe" %% "circe-core" % "0.14.5",
+        "io.circe" %% "circe-generic" % "0.14.5",
+        "io.circe" %% "circe-parser" % "0.14.5"
+      )
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
 
@@ -209,14 +188,8 @@ lazy val slickPgArgonaut = (project in file("./addons/argonaut"))
   .settings(
     name := "slick-pg_argonaut",
     description := "Slick extensions for PostgreSQL - argonaut module",
-    libraryDependencies := mainDependencies(scalaVersion.value) ++ (
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, scalaMajor)) if scalaMajor > 11 => 
-          Seq("io.argonaut" %% "argonaut" % "6.3.8")
-        case _ =>
-          Seq("io.argonaut" %% "argonaut" % "6.2.5")
-      }
-    )
+    libraryDependencies := mainDependencies(scalaVersion.value) ++
+      Seq("io.argonaut" %% "argonaut" % "6.3.8")
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
 
@@ -225,13 +198,7 @@ lazy val slickPgJawn = (project in file("./addons/jawn"))
   .settings(
     name := "slick-pg_jawn",
     description := "Slick extensions for PostgreSQL - jawn module",
-    libraryDependencies := mainDependencies(scalaVersion.value) ++ (
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, scalaMajor)) if scalaMajor > 11 =>
-          Seq("org.typelevel" %% "jawn-ast" % "1.4.0")
-        case _ =>
-          Seq("org.typelevel" %% "jawn-ast" % "0.14.3")
-      }
-    )
+    libraryDependencies := mainDependencies(scalaVersion.value) ++
+      Seq("org.typelevel" %% "jawn-ast" % "1.4.0")
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
