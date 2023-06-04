@@ -69,8 +69,8 @@ def mainDependencies(scalaVersion: String) = {
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.9.0",
     "org.slf4j" % "slf4j-simple" % "2.0.7" % "provided",
     "org.scalatest" %% "scalatest" % "3.2.15" % "test",
-    "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.40.15" % "test",
-    "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.40.15" % "test"
+    "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.40.16" % "test",
+    "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.40.16" % "test"
   )
 }
 
@@ -199,6 +199,6 @@ lazy val slickPgJawn = (project in file("./addons/jawn"))
     name := "slick-pg_jawn",
     description := "Slick extensions for PostgreSQL - jawn module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++
-      Seq("org.typelevel" %% "jawn-ast" % "1.4.0")
+      Seq("org.typelevel" %% "jawn-ast" % "1.5.0")
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
