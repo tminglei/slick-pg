@@ -1,7 +1,8 @@
 package com.github.tminglei.slickpg
 
 import com.github.tminglei.slickpg.utils.JsonUtils
-import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
+import slick.jdbc.{GetResult, JdbcType, PositionedResult, PostgresProfile, SetParameter}
+
 import scala.reflect.classTag
 
 /** simple json string wrapper */
@@ -37,10 +38,10 @@ trait PgJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes {
         hasLiteralForm = false
       )
 
-    implicit def simpleJsonColumnExtensionMethods(c: Rep[JsonString]) = {
+    implicit def simpleJsonColumnExtensionMethods(c: Rep[JsonString]): JsonColumnExtensionMethods[JsonString, JsonString] = {
         new JsonColumnExtensionMethods[JsonString, JsonString](c)
       }
-    implicit def simpleJsonOptionColumnExtensionMethods(c: Rep[Option[JsonString]]) = {
+    implicit def simpleJsonOptionColumnExtensionMethods(c: Rep[Option[JsonString]]): JsonColumnExtensionMethods[JsonString, Option[JsonString]] = {
         new JsonColumnExtensionMethods[JsonString, Option[JsonString]](c)
       }
   }
@@ -50,13 +51,13 @@ trait PgJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes {
 
     implicit class PgJsonPositionedResult(r: PositionedResult) {
       def nextJson() = nextJsonOption().orNull
-      def nextJsonOption() = r.nextStringOption().map(JsonString)
+      def nextJsonOption() = r.nextStringOption().map(JsonString.apply)
     }
 
     //////////////////////////////////////////////////////////////
-    implicit val getJson = mkGetResult(_.nextJson())
-    implicit val getJsonOption = mkGetResult(_.nextJsonOption())
-    implicit val setJson = mkSetParameter[JsonString](pgjson, _.value)
-    implicit val setJsonOption = mkOptionSetParameter[JsonString](pgjson, _.value)
+    implicit val getJson: GetResult[JsonString] = mkGetResult(_.nextJson())
+    implicit val getJsonOption: GetResult[Option[JsonString]] = mkGetResult(_.nextJsonOption())
+    implicit val setJson: SetParameter[JsonString] = mkSetParameter[JsonString](pgjson, _.value)
+    implicit val setJsonOption: SetParameter[Option[JsonString]] = mkOptionSetParameter[JsonString](pgjson, _.value)
   }
 }

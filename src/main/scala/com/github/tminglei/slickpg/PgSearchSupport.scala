@@ -1,6 +1,7 @@
 package com.github.tminglei.slickpg
 
-import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
+import slick.jdbc.{GetResult, JdbcType, PositionedResult, PostgresProfile, SetParameter}
+
 import scala.reflect.classTag
 
 /** simple tsvector/tsquery string wrapper */
@@ -24,19 +25,19 @@ trait PgSearchSupport extends search.PgSearchExtensions with utils.PgCommonJdbcT
   trait SearchImplicits extends SimpleSearchImplicits
 
   trait SimpleSearchImplicits extends SearchCodeGenSupport {
-    implicit val simpleTsVectorTypeMapper: JdbcType[TsVector] = new GenericJdbcType[TsVector]("tsvector", TsVector, _.value)
-    implicit val simpleTsQueryTypeMapper: JdbcType[TsQuery] = new GenericJdbcType[TsQuery]("tsquery", TsQuery, _.value)
+    implicit val simpleTsVectorTypeMapper: JdbcType[TsVector] = new GenericJdbcType[TsVector]("tsvector", TsVector.apply, _.value)
+    implicit val simpleTsQueryTypeMapper: JdbcType[TsQuery] = new GenericJdbcType[TsQuery]("tsquery", TsQuery.apply, _.value)
 
-    implicit def simpleTsVectorColumnExtensionMethods(c: Rep[TsVector]) = {
+    implicit def simpleTsVectorColumnExtensionMethods(c: Rep[TsVector]): TsVectorColumnExtensionMethods[TsVector, TsQuery, TsVector] = {
         new TsVectorColumnExtensionMethods[TsVector, TsQuery, TsVector](c)
       }
-    implicit def simpleTsVectorOptionColumnExtensionMethods(c: Rep[Option[TsVector]]) = {
+    implicit def simpleTsVectorOptionColumnExtensionMethods(c: Rep[Option[TsVector]]): TsVectorColumnExtensionMethods[TsVector, TsQuery, Option[TsVector]] = {
         new TsVectorColumnExtensionMethods[TsVector, TsQuery, Option[TsVector]](c)
       }
-    implicit def simpleTsQueryColumnExtensionMethods(c: Rep[TsQuery]) = {
+    implicit def simpleTsQueryColumnExtensionMethods(c: Rep[TsQuery]): TsQueryColumnExtensionMethods[TsVector, TsQuery, TsQuery] = {
         new TsQueryColumnExtensionMethods[TsVector, TsQuery, TsQuery](c)
       }
-    implicit def simpleTsQueryOptionColumnExtensionMethods(c: Rep[Option[TsQuery]]) = {
+    implicit def simpleTsQueryOptionColumnExtensionMethods(c: Rep[Option[TsQuery]]): TsQueryColumnExtensionMethods[TsVector, TsQuery, Option[TsQuery]] = {
         new TsQueryColumnExtensionMethods[TsVector, TsQuery, Option[TsQuery]](c)
       }
   }
@@ -46,20 +47,20 @@ trait PgSearchSupport extends search.PgSearchExtensions with utils.PgCommonJdbcT
 
     implicit class PgSearchPositionedResult(r: PositionedResult) {
       def nextTsVector() = nextTsVectorOption().orNull
-      def nextTsVectorOption() = r.nextStringOption().map(TsVector)
+      def nextTsVectorOption() = r.nextStringOption().map(TsVector.apply)
       def nextTsQuery() = nextTsQueryOption().orNull
-      def nextTsQueryOption() = r.nextStringOption().map(TsQuery)
+      def nextTsQueryOption() = r.nextStringOption().map(TsQuery.apply)
     }
 
     ////////////////////////////////////////////////////////////////
-    implicit val getTsVector = mkGetResult(_.nextTsVector())
-    implicit val getTsVectorOption = mkGetResult(_.nextTsVectorOption())
-    implicit val setTsVector = mkSetParameter[TsVector]("tsvector", _.value)
-    implicit val setTsVectorOption = mkOptionSetParameter[TsVector]("tsvector", _.value)
+    implicit val getTsVector: GetResult[TsVector] = mkGetResult(_.nextTsVector())
+    implicit val getTsVectorOption: GetResult[Option[TsVector]] = mkGetResult(_.nextTsVectorOption())
+    implicit val setTsVector: SetParameter[TsVector] = mkSetParameter[TsVector]("tsvector", _.value)
+    implicit val setTsVectorOption: SetParameter[Option[TsVector]] = mkOptionSetParameter[TsVector]("tsvector", _.value)
 
-    implicit val getTsQuery = mkGetResult(_.nextTsQuery())
-    implicit val getTsQueryOption = mkGetResult(_.nextTsQueryOption())
-    implicit val setTsQuery = mkSetParameter[TsQuery]("tsquery", _.value)
-    implicit val setTsQueryOption = mkOptionSetParameter[TsQuery]("tsquery", _.value)
+    implicit val getTsQuery: GetResult[TsQuery] = mkGetResult(_.nextTsQuery())
+    implicit val getTsQueryOption: GetResult[Option[TsQuery]] = mkGetResult(_.nextTsQueryOption())
+    implicit val setTsQuery: SetParameter[TsQuery] = mkSetParameter[TsQuery]("tsquery", _.value)
+    implicit val setTsQueryOption: SetParameter[Option[TsQuery]] = mkOptionSetParameter[TsQuery]("tsquery", _.value)
   }
 }
