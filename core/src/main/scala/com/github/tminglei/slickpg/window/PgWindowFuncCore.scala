@@ -1,6 +1,7 @@
 package com.github.tminglei.slickpg
 package window
 
+import com.github.tminglei.slickpg.agg.AggFuncRep
 import slick.ast._
 import slick.lifted.Rep.TypedRep
 import slick.lifted.{CanBeQueryCondition, Ordered, Rep}
@@ -46,7 +47,7 @@ object WindowFunc {
   def apply[R: TypedType](aggFunc: FunctionSymbol, params: Seq[Node]): WindowFunc[R] =
     WindowFunc[R](agg.AggFuncParts(aggFunc, params))
 
-  implicit def winFunc2aggFuncRep[R: TypedType](winFunc: WindowFunc[R]) =
+  implicit def winFunc2aggFuncRep[R: TypedType](winFunc: WindowFunc[R]): AggFuncRep[R] =
     new agg.AggFuncRep[R](winFunc._parts)
 }
 case class WindowFunc[R: TypedType](_parts: agg.AggFuncParts) {

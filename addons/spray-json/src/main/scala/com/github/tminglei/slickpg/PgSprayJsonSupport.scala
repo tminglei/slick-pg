@@ -1,6 +1,7 @@
 package com.github.tminglei.slickpg
 
-import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
+import slick.jdbc.{GetResult, JdbcType, PositionedResult, PostgresProfile, SetParameter}
+
 import scala.reflect.classTag
 
 trait PgSprayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
@@ -33,10 +34,10 @@ trait PgSprayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
         hasLiteralForm = false
       )
 
-    implicit def sprayJsonColumnExtensionMethods(c: Rep[JsValue]) = {
+    implicit def sprayJsonColumnExtensionMethods(c: Rep[JsValue]): JsonColumnExtensionMethods[JsValue, JsValue] = {
         new JsonColumnExtensionMethods[JsValue, JsValue](c)
       }
-    implicit def sprayJsonOptionColumnExtensionMethods(c: Rep[Option[JsValue]]) = {
+    implicit def sprayJsonOptionColumnExtensionMethods(c: Rep[Option[JsValue]]): JsonColumnExtensionMethods[JsValue, Option[JsValue]] = {
         new JsonColumnExtensionMethods[JsValue, Option[JsValue]](c)
       }
   }
@@ -50,9 +51,9 @@ trait PgSprayJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
     }
 
     ///////////////////////////////////////////////////////////
-    implicit val getJson = mkGetResult(_.nextJson())
-    implicit val getJsonOption = mkGetResult(_.nextJsonOption())
-    implicit val setJson = mkSetParameter[JsValue](pgjson, _.toJson.compactPrint)
-    implicit val setJsonOption = mkOptionSetParameter[JsValue](pgjson, _.toJson.compactPrint)
+    implicit val getJson: GetResult[JsValue] = mkGetResult(_.nextJson())
+    implicit val getJsonOption: GetResult[Option[JsValue]] = mkGetResult(_.nextJsonOption())
+    implicit val setJson: SetParameter[JsValue] = mkSetParameter[JsValue](pgjson, _.toJson.compactPrint)
+    implicit val setJsonOption: SetParameter[Option[JsValue]] = mkOptionSetParameter[JsValue](pgjson, _.toJson.compactPrint)
   }
 }

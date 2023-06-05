@@ -1,6 +1,7 @@
 package com.github.tminglei.slickpg
 
-import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
+import slick.jdbc.{GetResult, JdbcType, PositionedResult, PostgresProfile, SetParameter}
+
 import scala.reflect.classTag
 
 trait PgJawnJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
@@ -32,10 +33,10 @@ trait PgJawnJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
         hasLiteralForm = false
       )
 
-    implicit def playJsonColumnExtensionMethods(c: Rep[JValue]) = {
+    implicit def playJsonColumnExtensionMethods(c: Rep[JValue]): JsonColumnExtensionMethods[JValue, JValue] = {
         new JsonColumnExtensionMethods[JValue, JValue](c)
       }
-    implicit def playJsonOptionColumnExtensionMethods(c: Rep[Option[JValue]]) = {
+    implicit def playJsonOptionColumnExtensionMethods(c: Rep[Option[JValue]]): JsonColumnExtensionMethods[JValue, Option[JValue]] = {
         new JsonColumnExtensionMethods[JValue, Option[JValue]](c)
       }
   }
@@ -49,9 +50,9 @@ trait PgJawnJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTyp
     }
 
     ////////////////////////////////////////////////////////////
-    implicit val getJson = mkGetResult(_.nextJson())
-    implicit val getJsonOption = mkGetResult(_.nextJsonOption())
-    implicit val setJson = mkSetParameter[JValue](pgjson, CanonicalRenderer.render)
-    implicit val setJsonOption = mkOptionSetParameter[JValue](pgjson, CanonicalRenderer.render)
+    implicit val getJson: GetResult[JValue] = mkGetResult(_.nextJson())
+    implicit val getJsonOption: GetResult[Option[JValue]] = mkGetResult(_.nextJsonOption())
+    implicit val setJson: SetParameter[JValue] = mkSetParameter[JValue](pgjson, CanonicalRenderer.render)
+    implicit val setJsonOption: SetParameter[Option[JValue]] = mkOptionSetParameter[JValue](pgjson, CanonicalRenderer.render)
   }
 }
