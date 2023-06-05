@@ -1,7 +1,8 @@
 package com.github.tminglei.slickpg
 
 import cats.syntax.either._
-import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
+import slick.jdbc.{GetResult, JdbcType, PositionedResult, PostgresProfile, SetParameter}
+
 import scala.reflect.classTag
 
 trait PgCirceJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTypes { driver: PostgresProfile =>
@@ -34,11 +35,11 @@ trait PgCirceJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
         hasLiteralForm = false
       )
 
-    implicit def circeJsonColumnExtensionMethods(c: Rep[Json]) = {
+    implicit def circeJsonColumnExtensionMethods(c: Rep[Json]): JsonColumnExtensionMethods[Json, Json] = {
         new JsonColumnExtensionMethods[Json, Json](c)
       }
 
-    implicit def circeJsonOptionColumnExtensionMethods(c: Rep[Option[Json]]) = {
+    implicit def circeJsonOptionColumnExtensionMethods(c: Rep[Option[Json]]): JsonColumnExtensionMethods[Json, Option[Json]] = {
         new JsonColumnExtensionMethods[Json, Option[Json]](c)
       }
   }
@@ -51,9 +52,9 @@ trait PgCirceJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
       def nextJsonOption() = r.nextStringOption().map(parse(_).getOrElse(Json.Null))
     }
 
-    implicit val getJson = mkGetResult(_.nextJson())
-    implicit val getJsonOption = mkGetResult(_.nextJsonOption())
-    implicit val setJson = mkSetParameter[Json](pgjson, _.asJson.spaces2)
-    implicit val setJsonOption = mkOptionSetParameter[Json](pgjson, _.asJson.spaces2)
+    implicit val getJson: GetResult[Json] = mkGetResult(_.nextJson())
+    implicit val getJsonOption: GetResult[Option[Json]] = mkGetResult(_.nextJsonOption())
+    implicit val setJson: SetParameter[Json] = mkSetParameter[Json](pgjson, _.asJson.spaces2)
+    implicit val setJsonOption: SetParameter[Option[Json]] = mkOptionSetParameter[Json](pgjson, _.asJson.spaces2)
   }
 }

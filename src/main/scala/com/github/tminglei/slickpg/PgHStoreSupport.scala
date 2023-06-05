@@ -2,9 +2,7 @@ package com.github.tminglei.slickpg
 
 import scala.jdk.CollectionConverters._
 import scala.reflect.classTag
-
-import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
-
+import slick.jdbc.{GetResult, JdbcType, PositionedResult, PostgresProfile, SetParameter}
 import org.postgresql.util.HStoreConverter
 
 
@@ -30,10 +28,10 @@ trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcT
         hasLiteralForm = false
       )
 
-    implicit def simpleHStoreColumnExtensionMethods(c: Rep[Map[String, String]])(implicit tm: JdbcType[List[String]]) = {
+    implicit def simpleHStoreColumnExtensionMethods(c: Rep[Map[String, String]])(implicit tm: JdbcType[List[String]]): HStoreColumnExtensionMethods[Map[String, String]] = {
         new HStoreColumnExtensionMethods[Map[String, String]](c)
       }
-    implicit def simpleHStoreOptionColumnExtensionMethods(c: Rep[Option[Map[String,String]]])(implicit tm: JdbcType[List[String]]) = {
+    implicit def simpleHStoreOptionColumnExtensionMethods(c: Rep[Option[Map[String,String]]])(implicit tm: JdbcType[List[String]]): HStoreColumnExtensionMethods[Option[Map[String, String]]] = {
         new HStoreColumnExtensionMethods[Option[Map[String, String]]](c)
       }
   }
@@ -50,11 +48,11 @@ trait PgHStoreSupport extends hstore.PgHStoreExtensions with utils.PgCommonJdbcT
     }
 
     ////////////////////////////////////////////////////////////////////////
-    implicit val getHStore = mkGetResult(_.nextHStore())
-    implicit val getHStoreOption = mkGetResult(_.nextHStoreOption())
-    implicit val setHStore = mkSetParameter[Map[String, String]]("hstore",
+    implicit val getHStore: GetResult[Map[String, String]] = mkGetResult(_.nextHStore())
+    implicit val getHStoreOption: GetResult[Option[Map[String, String]]] = mkGetResult(_.nextHStoreOption())
+    implicit val setHStore: SetParameter[Map[String, String]] = mkSetParameter[Map[String, String]]("hstore",
       (v) => HStoreConverter.toString(v.asJava))
-    implicit val setHStoreOption = mkOptionSetParameter[Map[String, String]]("hstore",
+    implicit val setHStoreOption: SetParameter[Option[Map[String, String]]] = mkOptionSetParameter[Map[String, String]]("hstore",
       (v) => HStoreConverter.toString(v.asJava))
   }
 }

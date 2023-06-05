@@ -16,29 +16,29 @@ trait PgDateSupport extends date.PgDateExtensions with utils.PgCommonJdbcTypes w
     implicit val simpleTimestampTZTypeMapper: JdbcType[Calendar] = new GenericDateJdbcType[Calendar]("timestamptz", java.sql.Types.TIMESTAMP_WITH_TIMEZONE)
 
     ///
-    implicit def simpleDateColumnExtensionMethods(c: Rep[Date]) =
+    implicit def simpleDateColumnExtensionMethods(c: Rep[Date]): DateColumnExtensionMethods[Date, Time, Timestamp, Interval, Date] =
       new DateColumnExtensionMethods[Date, Time, Timestamp,  Interval, Date](c)
-    implicit def simpleDateOptColumnExtensionMethods(c: Rep[Option[Date]]) =
+    implicit def simpleDateOptColumnExtensionMethods(c: Rep[Option[Date]]): DateColumnExtensionMethods[Date, Time, Timestamp, Interval, Option[Date]] =
       new DateColumnExtensionMethods[Date, Time, Timestamp, Interval, Option[Date]](c)
 
-    implicit def simpleTimeColumnExtensionMethods(c: Rep[Time]) =
+    implicit def simpleTimeColumnExtensionMethods(c: Rep[Time]): TimeColumnExtensionMethods[Date, Time, Timestamp, Time, Interval, Time] =
       new TimeColumnExtensionMethods[Date, Time, Timestamp, Time, Interval, Time](c)
-    implicit def simpleTimeOptColumnExtensionMethods(c: Rep[Option[Time]]) =
+    implicit def simpleTimeOptColumnExtensionMethods(c: Rep[Option[Time]]): TimeColumnExtensionMethods[Date, Time, Timestamp, Time, Interval, Option[Time]] =
       new TimeColumnExtensionMethods[Date, Time, Timestamp, Time, Interval, Option[Time]](c)
 
-    implicit def simpleTimestampColumnExtensionMethods(c: Rep[Timestamp]) =
+    implicit def simpleTimestampColumnExtensionMethods(c: Rep[Timestamp]): TimestampColumnExtensionMethods[Date, Time, Timestamp, Calendar, Interval, Timestamp] =
       new TimestampColumnExtensionMethods[Date, Time, Timestamp, Calendar, Interval, Timestamp](c)
-    implicit def simpleTimestampOptColumnExtensionMethods(c: Rep[Option[Timestamp]]) =
+    implicit def simpleTimestampOptColumnExtensionMethods(c: Rep[Option[Timestamp]]): TimestampColumnExtensionMethods[Date, Time, Timestamp, Calendar, Interval, Option[Timestamp]] =
       new TimestampColumnExtensionMethods[Date, Time, Timestamp, Calendar, Interval, Option[Timestamp]](c)
 
-    implicit def simpleIntervalColumnExtensionMethods(c: Rep[Interval]) =
+    implicit def simpleIntervalColumnExtensionMethods(c: Rep[Interval]): IntervalColumnExtensionMethods[Date, Time, Timestamp, Interval, Interval] =
       new IntervalColumnExtensionMethods[Date, Time, Timestamp, Interval, Interval](c)
-    implicit def simpleIntervalOptColumnExtensionMethods(c: Rep[Option[Interval]]) =
+    implicit def simpleIntervalOptColumnExtensionMethods(c: Rep[Option[Interval]]): IntervalColumnExtensionMethods[Date, Time, Timestamp, Interval, Option[Interval]] =
       new IntervalColumnExtensionMethods[Date, Time, Timestamp, Interval, Option[Interval]](c)
 
-    implicit def simpleTimestampTZColumnExtensionMethods(c: Rep[Calendar]) =
+    implicit def simpleTimestampTZColumnExtensionMethods(c: Rep[Calendar]): TimestampColumnExtensionMethods[Date, Time, Calendar, Calendar, Interval, Calendar] =
       new TimestampColumnExtensionMethods[Date, Time, Calendar, Calendar, Interval, Calendar](c)
-    implicit def simpleTimestampTZOptColumnExtensionMethods(c: Rep[Option[Calendar]]) =
+    implicit def simpleTimestampTZOptColumnExtensionMethods(c: Rep[Option[Calendar]]): TimestampColumnExtensionMethods[Date, Time, Calendar, Calendar, Interval, Option[Calendar]] =
       new TimestampColumnExtensionMethods[Date, Time, Calendar, Calendar, Interval, Option[Calendar]](c)
   }
 }

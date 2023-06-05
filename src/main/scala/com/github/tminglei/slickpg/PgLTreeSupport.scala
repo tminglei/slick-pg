@@ -1,6 +1,7 @@
 package com.github.tminglei.slickpg
 
-import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
+import slick.jdbc.{GetResult, JdbcType, PositionedResult, PostgresProfile, SetParameter}
+
 import scala.reflect.classTag
 
 /** simple ltree wrapper */
@@ -43,17 +44,17 @@ trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcType
         hasLiteralForm = true
       ).to(_.toList)
 
-    implicit def simpleLTreeColumnExtensionMethods(c: Rep[LTree]) = {
+    implicit def simpleLTreeColumnExtensionMethods(c: Rep[LTree]): LTreeColumnExtensionMethods[LTree, LTree] = {
         new LTreeColumnExtensionMethods[LTree, LTree](c)
       }
-    implicit def simpleLTreeOptionColumnExtensionMethods(c: Rep[Option[LTree]]) = {
+    implicit def simpleLTreeOptionColumnExtensionMethods(c: Rep[Option[LTree]]): LTreeColumnExtensionMethods[LTree, Option[LTree]] = {
         new LTreeColumnExtensionMethods[LTree, Option[LTree]](c)
       }
 
-    implicit def simpleLTreeListColumnExtensionMethods(c: Rep[List[LTree]]) = {
+    implicit def simpleLTreeListColumnExtensionMethods(c: Rep[List[LTree]]): LTreeListColumnExtensionMethods[LTree, List[LTree]] = {
         new LTreeListColumnExtensionMethods[LTree, List[LTree]](c)
       }
-    implicit def simpleLTreeListOptionColumnExtensionMethods(c: Rep[Option[List[LTree]]]) = {
+    implicit def simpleLTreeListOptionColumnExtensionMethods(c: Rep[Option[List[LTree]]]): LTreeListColumnExtensionMethods[LTree, Option[List[LTree]]] = {
         new LTreeListColumnExtensionMethods[LTree, Option[List[LTree]]](c)
       }
   }
@@ -72,12 +73,12 @@ trait PgLTreeSupport extends ltree.PgLTreeExtensions with utils.PgCommonJdbcType
     }
 
     ///////////////////////////////////////////////////////////
-    implicit val getLTree = mkGetResult(_.nextLTree())
-    implicit val getLTreeOption = mkGetResult(_.nextLTreeOption())
-    implicit val setLTree = mkSetParameter[LTree]("ltree")
-    implicit val setLTreeOption = mkOptionSetParameter[LTree]("ltree")
+    implicit val getLTree: GetResult[LTree] = mkGetResult(_.nextLTree())
+    implicit val getLTreeOption: GetResult[Option[LTree]] = mkGetResult(_.nextLTreeOption())
+    implicit val setLTree: SetParameter[LTree] = mkSetParameter[LTree]("ltree")
+    implicit val setLTreeOption: SetParameter[Option[LTree]] = mkOptionSetParameter[LTree]("ltree")
     ///
-    implicit val setLTreeArray = mkArraySetParameter[LTree]("ltree")
-    implicit val setLTreeArrayOption = mkArrayOptionSetParameter[LTree]("ltree")
+    implicit val setLTreeArray: SetParameter[Seq[LTree]] = mkArraySetParameter[LTree]("ltree")
+    implicit val setLTreeArrayOption: SetParameter[Option[Seq[LTree]]] = mkArrayOptionSetParameter[LTree]("ltree")
   }
 }

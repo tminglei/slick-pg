@@ -2,8 +2,7 @@ package com.github.tminglei.slickpg
 
 import java.sql.{Date, Timestamp}
 import java.time.{LocalDate, LocalDateTime, OffsetDateTime}
-
-import slick.jdbc.{JdbcType, PositionedResult, PostgresProfile}
+import slick.jdbc.{GetResult, JdbcType, PositionedResult, PostgresProfile, SetParameter}
 
 import scala.reflect.classTag
 
@@ -76,11 +75,11 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
     implicit val simpleLocalDateRangeTypeMapper: JdbcType[Range[LocalDate]] = new GenericJdbcType[Range[LocalDate]]("daterange", mkRangeFn(fromDateOrInfinity))
 
     implicit def simpleRangeColumnExtensionMethods[B0](c: Rep[Range[B0]])(
-      implicit tm: JdbcType[B0], tm1: JdbcType[Range[B0]]) = {
+      implicit tm: JdbcType[B0], tm1: JdbcType[Range[B0]]): RangeColumnExtensionMethods[Range[B0], B0, Range[B0]] = {
         new RangeColumnExtensionMethods[Range[B0], B0, Range[B0]](c)
       }
     implicit def simpleRangeOptionColumnExtensionMethods[B0](c: Rep[Option[Range[B0]]])(
-      implicit tm: JdbcType[B0], tm1: JdbcType[Range[B0]]) = {
+      implicit tm: JdbcType[B0], tm1: JdbcType[Range[B0]]): RangeColumnExtensionMethods[Range[B0], B0, Option[Range[B0]]] = {
         new RangeColumnExtensionMethods[Range[B0], B0, Option[Range[B0]]](c)
       }
   }
@@ -120,45 +119,45 @@ trait PgRangeSupport extends range.PgRangeExtensions with utils.PgCommonJdbcType
     }
 
     ////////////////////////////////////////////////////////////////////
-    implicit val getIntRange = mkGetResult(_.nextIntRange())
-    implicit val getIntRangeOption = mkGetResult(_.nextIntRangeOption())
-    implicit val setIntRange = mkSetParameter[Range[Int]]("int4range")
-    implicit val setIntRangeOption = mkOptionSetParameter[Range[Int]]("int4range")
+    implicit val getIntRange: GetResult[Range[Int]] = mkGetResult(_.nextIntRange())
+    implicit val getIntRangeOption: GetResult[Option[Range[Int]]] = mkGetResult(_.nextIntRangeOption())
+    implicit val setIntRange: SetParameter[Range[Int]] = mkSetParameter[Range[Int]]("int4range")
+    implicit val setIntRangeOption: SetParameter[Option[Range[Int]]] = mkOptionSetParameter[Range[Int]]("int4range")
 
-    implicit val getLongRange = mkGetResult(_.nextLongRange())
-    implicit val getLongRangeOption = mkGetResult(_.nextLongRangeOption())
-    implicit val setLongRange = mkSetParameter[Range[Long]]("int8range")
-    implicit val setLongRangeOption = mkOptionSetParameter[Range[Long]]("int8range")
+    implicit val getLongRange: GetResult[Range[Long]] = mkGetResult(_.nextLongRange())
+    implicit val getLongRangeOption: GetResult[Option[Range[Long]]] = mkGetResult(_.nextLongRangeOption())
+    implicit val setLongRange: SetParameter[Range[Long]] = mkSetParameter[Range[Long]]("int8range")
+    implicit val setLongRangeOption: SetParameter[Option[Range[Long]]] = mkOptionSetParameter[Range[Long]]("int8range")
 
-    implicit val getFloatRange = mkGetResult(_.nextFloatRange())
-    implicit val getFloatRangeOption = mkGetResult(_.nextFloatRangeOption())
-    implicit val setFloatRange = mkSetParameter[Range[Float]]("numrange")
-    implicit val setFloatRangeOption = mkOptionSetParameter[Range[Float]]("numrange")
+    implicit val getFloatRange: GetResult[Range[Float]] = mkGetResult(_.nextFloatRange())
+    implicit val getFloatRangeOption: GetResult[Option[Range[Float]]] = mkGetResult(_.nextFloatRangeOption())
+    implicit val setFloatRange: SetParameter[Range[Float]] = mkSetParameter[Range[Float]]("numrange")
+    implicit val setFloatRangeOption: SetParameter[Option[Range[Float]]] = mkOptionSetParameter[Range[Float]]("numrange")
 
-    implicit val getTimestampRange = mkGetResult(_.nextTimestampRange())
-    implicit val getTimestampRangeOption = mkGetResult(_.nextTimestampRangeOption())
-    implicit val setTimestampRange = mkSetParameter[Range[Timestamp]]("tsrange")
-    implicit val setTimestampRangeOption = mkOptionSetParameter[Range[Timestamp]]("tsrange")
+    implicit val getTimestampRange: GetResult[Range[Timestamp]] = mkGetResult(_.nextTimestampRange())
+    implicit val getTimestampRangeOption: GetResult[Option[Range[Timestamp]]] = mkGetResult(_.nextTimestampRangeOption())
+    implicit val setTimestampRange: SetParameter[Range[Timestamp]] = mkSetParameter[Range[Timestamp]]("tsrange")
+    implicit val setTimestampRangeOption: SetParameter[Option[Range[Timestamp]]] = mkOptionSetParameter[Range[Timestamp]]("tsrange")
 
-    implicit val getDateRange = mkGetResult(_.nextDateRange())
-    implicit val getDateRangeOption = mkGetResult(_.nextDateRangeOption())
-    implicit val setDateRange = mkSetParameter[Range[Date]]("daterange")
-    implicit val setDateRangeOption = mkOptionSetParameter[Range[Date]]("daterange")
+    implicit val getDateRange: GetResult[Range[Date]] = mkGetResult(_.nextDateRange())
+    implicit val getDateRangeOption: GetResult[Option[Range[Date]]] = mkGetResult(_.nextDateRangeOption())
+    implicit val setDateRange: SetParameter[Range[Date]] = mkSetParameter[Range[Date]]("daterange")
+    implicit val setDateRangeOption: SetParameter[Option[Range[Date]]] = mkOptionSetParameter[Range[Date]]("daterange")
 
-    implicit val getLocalDateTimeRange = mkGetResult(_.nextLocalDateTimeRange())
-    implicit val getLocalDateTimeRangeOption = mkGetResult(_.nextLocalDateTimeRangeOption())
-    implicit val setLocalDateTimeRange = mkSetParameter[Range[LocalDateTime]]("tsrange")
-    implicit val setLocalDateTimeRangeOption = mkOptionSetParameter[Range[LocalDateTime]]("tsrange")
+    implicit val getLocalDateTimeRange: GetResult[Range[LocalDateTime]] = mkGetResult(_.nextLocalDateTimeRange())
+    implicit val getLocalDateTimeRangeOption: GetResult[Option[Range[LocalDateTime]]] = mkGetResult(_.nextLocalDateTimeRangeOption())
+    implicit val setLocalDateTimeRange: SetParameter[Range[LocalDateTime]] = mkSetParameter[Range[LocalDateTime]]("tsrange")
+    implicit val setLocalDateTimeRangeOption: SetParameter[Option[Range[LocalDateTime]]] = mkOptionSetParameter[Range[LocalDateTime]]("tsrange")
 
-    implicit val getOffsetDateTimeRange = mkGetResult(_.nextOffsetDateTimeRange())
-    implicit val getOffsetDateTimeRangeOption = mkGetResult(_.nextOffsetDateTimeRangeOption())
-    implicit val setOffsetDateTimeRange = mkSetParameter[Range[OffsetDateTime]]("tsrange")
-    implicit val setOffsetDateTimeRangeOption = mkOptionSetParameter[Range[OffsetDateTime]]("tsrange")
+    implicit val getOffsetDateTimeRange: GetResult[Range[OffsetDateTime]] = mkGetResult(_.nextOffsetDateTimeRange())
+    implicit val getOffsetDateTimeRangeOption: GetResult[Option[Range[OffsetDateTime]]] = mkGetResult(_.nextOffsetDateTimeRangeOption())
+    implicit val setOffsetDateTimeRange: SetParameter[Range[OffsetDateTime]] = mkSetParameter[Range[OffsetDateTime]]("tsrange")
+    implicit val setOffsetDateTimeRangeOption: SetParameter[Option[Range[OffsetDateTime]]] = mkOptionSetParameter[Range[OffsetDateTime]]("tsrange")
 
-    implicit val getLocalDateRange = mkGetResult(_.nextLocalDateRange())
-    implicit val getLocalDateRangeOption = mkGetResult(_.nextLocalDateRangeOption())
-    implicit val setLocalDateRange = mkSetParameter[Range[LocalDate]]("daterange")
-    implicit val setLocalDateRangeOption = mkOptionSetParameter[Range[LocalDate]]("daterange")
+    implicit val getLocalDateRange: GetResult[Range[LocalDate]] = mkGetResult(_.nextLocalDateRange())
+    implicit val getLocalDateRangeOption: GetResult[Option[Range[LocalDate]]] = mkGetResult(_.nextLocalDateRangeOption())
+    implicit val setLocalDateRange: SetParameter[Range[LocalDate]] = mkSetParameter[Range[LocalDate]]("daterange")
+    implicit val setLocalDateRangeOption: SetParameter[Option[Range[LocalDate]]] = mkOptionSetParameter[Range[LocalDate]]("daterange")
   }
 }
 

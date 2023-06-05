@@ -35,9 +35,9 @@ trait PgPostGISSupport extends geom.PgPostGISExtensions { driver: PostgresProfil
     implicit val geogMultiLineStringTypeMapper: JdbcType[GeogMultiLineString] = new GeographyJdbcType[GeogMultiLineString]
 
     ///
-    implicit def geographyColumnExtensionMethods[G1 <: Geography](c: Rep[G1]) =
+    implicit def geographyColumnExtensionMethods[G1 <: Geography](c: Rep[G1]): GeographyColumnExtensionMethods[Geography, GeogPoint, GeogLineString, GeogPolygon, GeographyCollection, G1, G1] =
       new GeographyColumnExtensionMethods[Geography, GeogPoint, GeogLineString, GeogPolygon, GeographyCollection, G1, G1](c)
-    implicit def geographyOptionColumnExtensionMethods[G1 <: Geography](c: Rep[Option[G1]]) =
+    implicit def geographyOptionColumnExtensionMethods[G1 <: Geography](c: Rep[Option[G1]]): GeographyColumnExtensionMethods[Geography, GeogPoint, GeogLineString, GeogPolygon, GeographyCollection, G1, Option[G1]] =
       new GeographyColumnExtensionMethods[Geography, GeogPoint, GeogLineString, GeogPolygon, GeographyCollection, G1, Option[G1]](c)
 
     //////
@@ -53,9 +53,9 @@ trait PgPostGISSupport extends geom.PgPostGISExtensions { driver: PostgresProfil
     implicit val multiLineStringTypeMapper: JdbcType[MultiLineString] = new GeometryJdbcType[MultiLineString]
 
     ///
-    implicit def geometryColumnExtensionMethods[G1 <: Geometry](c: Rep[G1]) =
+    implicit def geometryColumnExtensionMethods[G1 <: Geometry](c: Rep[G1]): GeometryColumnExtensionMethods[Geometry, Point, LineString, Polygon, GeometryCollection, G1, G1] =
       new GeometryColumnExtensionMethods[Geometry, Point, LineString, Polygon, GeometryCollection, G1, G1](c)
-    implicit def geometryOptionColumnExtensionMethods[G1 <: Geometry](c: Rep[Option[G1]]) =
+    implicit def geometryOptionColumnExtensionMethods[G1 <: Geometry](c: Rep[Option[G1]]): GeometryColumnExtensionMethods[Geometry, Point, LineString, Polygon, GeometryCollection, G1, Option[G1]] =
       new GeometryColumnExtensionMethods[Geometry, Point, LineString, Polygon, GeometryCollection, G1, Option[G1]](c)
   }
 
@@ -71,8 +71,8 @@ trait PgPostGISSupport extends geom.PgPostGISExtensions { driver: PostgresProfil
     }
 
     ////////////////////////////////////////////////////////////////////////////////
-    implicit val getGeometry = mkGetResult(_.nextGeometry[Geometry]())
-    implicit val getGeometryOption = mkGetResult(_.nextGeometryOption[Geometry]())
+    implicit val getGeometry: GetResult[Geometry] = mkGetResult(_.nextGeometry[Geometry]())
+    implicit val getGeometryOption: GetResult[Option[Geometry]] = mkGetResult(_.nextGeometryOption[Geometry]())
 
     implicit object SetGeometry extends SetParameter[Geometry] {
       def apply(v: Geometry, pp: PositionedParameters) = setGeometry(Option(v), pp)

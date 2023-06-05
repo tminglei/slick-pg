@@ -59,16 +59,16 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
 
   trait ByteaPlainImplicits {
     /** NOTE: Array[Byte] maps to `bytea` instead of `byte ARRAY` */
-    implicit val getByteArray = new GetResult[Array[Byte]] {
+    implicit val getByteArray: GetResult[Array[Byte]] = new GetResult[Array[Byte]] {
       def apply(pr: PositionedResult) = pr.nextBytes()
     }
-    implicit val getByteArrayOption = new GetResult[Option[Array[Byte]]] {
+    implicit val getByteArrayOption: GetResult[Option[Array[Byte]]] = new GetResult[Option[Array[Byte]]] {
       def apply(pr: PositionedResult) = pr.nextBytesOption()
     }
-    implicit val setByteArray = new SetParameter[Array[Byte]] {
+    implicit val setByteArray: SetParameter[Array[Byte]] = new SetParameter[Array[Byte]] {
       def apply(v: Array[Byte], pp: PositionedParameters) = pp.setBytes(v)
     }
-    implicit val setByteArrayOption = new SetParameter[Option[Array[Byte]]] {
+    implicit val setByteArrayOption: SetParameter[Option[Array[Byte]]] = new SetParameter[Option[Array[Byte]]] {
       def apply(v: Option[Array[Byte]], pp: PositionedParameters) = pp.setBytesOption(v)
     }
   }
@@ -162,7 +162,7 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
       if (!tableHasPrimaryKey)
         throw new SlickException("InsertOrUpdateAll is not supported on a table without PK.")
 
-      override def run(ctx: Backend#Context, sql: Vector[String]) =
+      override def run(ctx: Backend#JdbcActionContext, sql: Vector[String]) =
         nativeUpsert(values, sql.head)(ctx.session)
 
       protected def nativeUpsert(values: Iterable[U], sql: String)(
