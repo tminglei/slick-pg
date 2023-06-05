@@ -62,7 +62,7 @@ lazy val commonSettings = Seq(
 
 def mainDependencies(scalaVersion: String) = {
   Seq (
-    "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2",
+    "org.scala-lang.modules" %% "scala-parser-combinators" % "2.3.0",
     "org.scala-lang" % "scala-reflect" % scalaVersion,
     "com.typesafe.slick" %% "slick" % "3.5.0-M3",
     "org.postgresql" % "postgresql" % "42.6.0",
