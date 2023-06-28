@@ -18,6 +18,7 @@ trait PgDateExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
     val Age = new SqlFunction("age")
     val Part = new SqlFunction("date_part")
     val Trunc = new SqlFunction("date_trunc")
+    val DateBin = new SqlFunction("date_bin")
     val IsFinite = new SqlFunction("isfinite")
 
     val JustifyDays = new SqlFunction("justify_days")
@@ -64,6 +65,9 @@ trait PgDateExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
       }
     def trunc[R](field: Rep[String])(implicit om: o#to[TIMESTAMP, R]) = {
         om.column(DateLibrary.Trunc, field.toNode, n)
+      }
+    def dateBin[R](step: Rep[String], base: Rep[TIMESTAMP])(implicit om: o#to[TIMESTAMP, R]) = {
+        om.column(DateLibrary.DateBin, step.toNode, n, base.toNode)
       }
     def isFinite[R](implicit om: o#to[Boolean, R]) = om.column(DateLibrary.IsFinite, n)
 
