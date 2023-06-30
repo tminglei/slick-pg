@@ -162,6 +162,10 @@ class PgDate2SupportSuite extends AnyFunSuite with PostgresContainer {
           Datetimes.filter(_.id === 101L.bind).map(r => r.dateTime.trunc("day")).result.head.map(
             r => assert(LocalDateTime.parse("2001-01-03T00:00:00") === r)
           ),
+          // dateBin
+          DBIO.seq(Option.when(pgVersion.take(2).toInt >= 14)(Datetimes.filter(_.id === 101L.bind).map(r => r.dateTime.dateBin("1 hour", LocalDateTime.parse("2001-01-03T18:35:17"))).result.head.map(
+            r => assert(LocalDateTime.parse("2001-01-03T12:35:17") === r)
+          )).toSeq:_*),
           // isFinite
           Datetimes.filter(_.id === 101L.bind).map(r => r.dateTime.isFinite).result.head.map(
             r => assert(true === r)
@@ -223,7 +227,11 @@ class PgDate2SupportSuite extends AnyFunSuite with PostgresContainer {
             ),
             Datetimes.filter(_.id === 101L.bind).map(r => r.dateTimeTz.trunc("day")).result.head.map(
               r => assert(ZonedDateTime.parse("2001-01-03 00:00:00+08", date2TzDateTimeFormatter) === r)
-            )
+            ),
+            // dateBin
+            DBIO.seq(Option.when(pgVersion.take(2).toInt >= 14)(Datetimes.filter(_.id === 101L.bind).map(r => r.dateTimeTz.dateBin("1 hour", ZonedDateTime.parse("2001-01-03 18:35:17+03", date2TzDateTimeFormatter))).result.head.map(
+              r => assert(ZonedDateTime.parse("2001-01-03 12:35:17+08", date2TzDateTimeFormatter) === r)
+            )).toSeq:_*)
           ),
           // Timezones
           Datetimes.filter(_.id === 101L.bind).map(r => r.zone).result.head.map(

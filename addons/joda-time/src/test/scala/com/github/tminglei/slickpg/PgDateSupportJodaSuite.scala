@@ -145,6 +145,10 @@ class PgDateSupportJodaSuite extends AnyFunSuite with PostgresContainer {
           Datetimes.filter(_.id === 101L.bind).map(r => r.datetime.trunc("day")).result.head.map(
             r => assert(LocalDateTime.parse("2001-01-03T00:00:00") === r)
           ),
+          // dateBin
+         DBIO.seq(Option.when(pgVersion.take(2).toInt >= 14)(Datetimes.filter(_.id === 101L.bind).map(r => r.datetime.dateBin("1 hour", LocalDateTime.parse("2001-01-03T18:35:17"))).result.head.map(
+            r => assert(LocalDateTime.parse("2001-01-03T12:35:17") === r)
+          )).toSeq:_*),
           // isFinite
           Datetimes.filter(_.id === 101L.bind).map(r => r.datetime.isFinite).result.head.map(
             r => assert(true === r)
@@ -204,7 +208,11 @@ class PgDateSupportJodaSuite extends AnyFunSuite with PostgresContainer {
             // trunc
             Datetimes.filter(_.id === 101L.bind).map(r => r.datetimetz.trunc("day")).result.head.map(
               r => assert(DateTime.parse("2001-01-03 00:00:00.000+08", jodaTzDateTimeFormatter) === r)
-            )
+            ),
+            // dateBin
+            DBIO.seq(Option.when(pgVersion.take(2).toInt >= 14)(Datetimes.filter(_.id === 101L.bind).map(r => r.datetimetz.dateBin("1 hour", DateTime.parse("2001-01-02T18:35:17+08"))).result.head.map(
+              r => assert(DateTime.parse("2001-01-03 12:35:17.000+08", jodaTzDateTimeFormatter) === r)
+            )).toSeq:_*)
           ),
           // update and check
           DBIO.seq(

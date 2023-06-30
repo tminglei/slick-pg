@@ -12,6 +12,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class PgDateSupportSuite extends AnyFunSuite with PostgresContainer {
+
   import MyPostgresProfile.api._
 
   lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
@@ -143,6 +144,10 @@ class PgDateSupportSuite extends AnyFunSuite with PostgresContainer {
           Datetimes.filter(_.id === 101L.bind).map(r => r.timestamp.trunc("day")).result.head.map(
             r => assert(ts("2001-1-3 00:00:00.0").toLocalDateTime === r.toLocalDateTime)
           ),
+          // dateBin
+          DBIO.seq(Option.when(pgVersion.take(2).toInt >= 14)(Datetimes.filter(_.id === 101L.bind).map(r => r.timestamp.dateBin("1 hour", ts("2001-1-3 18:35:17"))).result.head.map(
+            r => assert(ts("2001-01-03 12:35:17").toLocalDateTime === r.toLocalDateTime)
+          )).toSeq: _*),
           // isFinite
           Datetimes.filter(_.id === 101L.bind).map(r => r.timestamp.isFinite).result.head.map(
             r => assert(true === r)
@@ -202,7 +207,11 @@ class PgDateSupportSuite extends AnyFunSuite with PostgresContainer {
             // trunc
             Datetimes.filter(_.id === 101L.bind).map(r => r.timestamptz.trunc("day")).result.head.map(
               r => assert(tstz("2001-01-03T00:00:00+08:00").getTimeInMillis === r.getTimeInMillis)
-            )
+            ),
+            // dateBin
+            DBIO.seq(Option.when(pgVersion.take(2).toInt >= 14)(Datetimes.filter(_.id === 101L.bind).map(r => r.timestamptz.dateBin("1 hour", tstz("2001-01-02T18:35:17+03"))).result.head.map(
+              r => assert(tstz("2001-01-03T12:35:17+08").getTimeInMillis === r.getTimeInMillis)
+            )).toSeq: _*)
           )
         )
       ).andFinally(
