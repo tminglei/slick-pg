@@ -14,7 +14,15 @@ import slick.util.DumpInfo
   * @param largeObjectId The oid of the LargeObject to stream.
   * @param bufferSize The chunk size in bytes. Default to 8KB.
   */
-case class LargeObjectStreamingDBIOAction(largeObjectId: Long, bufferSize: Int = 1024 * 8) extends SynchronousDatabaseAction[Array[Byte], Streaming[Array[Byte]], JdbcBackend, Effect.All] {
+case class LargeObjectStreamingDBIOAction(largeObjectId: Long, bufferSize: Int = 1024 * 8)
+  extends SynchronousDatabaseAction[
+    Array[Byte],
+    Streaming[Array[Byte]],
+    JdbcBackend#Context,
+    JdbcBackend#StreamingContext,
+    Effect.All
+  ] {
+
   //our StreamState is the InputStream on the LargeObject instance and the number of bytes read in on the last run.
   type StreamState = (InputStream, Int)
 
@@ -111,4 +119,3 @@ case class LargeObjectStreamingDBIOAction(largeObjectId: Long, bufferSize: Int =
     }
   }
 }
-
