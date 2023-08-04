@@ -15,6 +15,7 @@ final case class WindowFuncExpr(
   frameDef: Option[(String, String, Option[String])] = None
 ) extends SimplyTypedNode {
   type Self = WindowFuncExpr
+  override def self: WindowFuncExpr = this
   protected def buildType = aggFuncExpr.nodeType
   override def children: ConstArray[Node] = aggFuncExpr +: (partitionBy ++ orderBy.map(_._1))
   override protected[this] def rebuild(ch: ConstArray[Node]): Self = {

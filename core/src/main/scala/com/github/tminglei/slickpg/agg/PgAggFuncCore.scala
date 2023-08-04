@@ -17,6 +17,7 @@ final case class AggFuncExpr(
   forOrderedSet: Boolean = false
 )(val buildType: Type) extends SimplyTypedNode {
   type Self = AggFuncExpr
+  override def self: AggFuncExpr = this
   override def children: ConstArray[Node] = params ++ orderBy.map(_._1) ++ ConstArray.from(filter)
   override protected[this] def rebuild(ch: ConstArray[Node]): Self = {
     val newAggParams = ch.slice(0, params.length)
