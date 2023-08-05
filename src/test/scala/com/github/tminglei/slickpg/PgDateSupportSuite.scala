@@ -65,6 +65,9 @@ class PgDateSupportSuite extends AnyFunSuite with PostgresContainer {
     ts("2019-11-3 13:19:03"), tstz("2019-11-03T13:19:03+03:00"), Interval("63 hours 16 mins 2 secs"))
 
   test("Date Lifted support") {
+    def when[A](cond: Boolean)(a: => A): Option[A] =
+      if (cond) Some(a) else None
+
     Await.result(db.run(
       DBIO.seq(
         sqlu"SET TIMEZONE TO '+8';",
@@ -145,9 +148,10 @@ class PgDateSupportSuite extends AnyFunSuite with PostgresContainer {
             r => assert(ts("2001-1-3 00:00:00.0").toLocalDateTime === r.toLocalDateTime)
           ),
           // dateBin
-          DBIO.seq(Option.when(pgVersion.take(2).toInt >= 14)(Datetimes.filter(_.id === 101L.bind).map(r => r.timestamp.dateBin("1 hour", ts("2001-1-3 18:35:17"))).result.head.map(
-            r => assert(ts("2001-01-03 12:35:17").toLocalDateTime === r.toLocalDateTime)
-          )).toSeq: _*),
+          DBIO.seq(when(pgVersion.take(2).toInt >= 14)(
+            Datetimes.filter(_.id === 101L.bind).map(r => r.timestamp.dateBin("1 hour", ts("2001-1-3 18:35:17"))).result.head.map(
+              r => assert(ts("2001-01-03 12:35:17").toLocalDateTime === r.toLocalDateTime)
+            )).toSeq: _*),
           // isFinite
           Datetimes.filter(_.id === 101L.bind).map(r => r.timestamp.isFinite).result.head.map(
             r => assert(true === r)
@@ -209,9 +213,10 @@ class PgDateSupportSuite extends AnyFunSuite with PostgresContainer {
               r => assert(tstz("2001-01-03T00:00:00+08:00").getTimeInMillis === r.getTimeInMillis)
             ),
             // dateBin
-            DBIO.seq(Option.when(pgVersion.take(2).toInt >= 14)(Datetimes.filter(_.id === 101L.bind).map(r => r.timestamptz.dateBin("1 hour", tstz("2001-01-02T18:35:17+03"))).result.head.map(
-              r => assert(tstz("2001-01-03T12:35:17+08").getTimeInMillis === r.getTimeInMillis)
-            )).toSeq: _*)
+            DBIO.seq(when(pgVersion.take(2).toInt >= 14)(
+              Datetimes.filter(_.id === 101L.bind).map(r => r.timestamptz.dateBin("1 hour", tstz("2001-01-02T18:35:17+08:00"))).result.head.map(
+                r => assert(tstz("2001-01-03T12:35:17+08:00").getTimeInMillis === r.getTimeInMillis)
+              )).toSeq: _*)
           )
         )
       ).andFinally(

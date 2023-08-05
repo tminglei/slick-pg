@@ -64,6 +64,9 @@ class PgDateSupportJodaSuite extends AnyFunSuite with PostgresContainer {
     Period.parse("PT63H16M2S"), Instant.parse("2019-11-03 13:19:03.000+03", jodaTzDateTimeFormatter))
 
   test("Joda time Lifted support") {
+    def when[A](cond: Boolean)(a: => A): Option[A] =
+      if (cond) Some(a) else None
+
     val now = LocalDateTime.now
     val now1 = DateTime.now
     val now2 = LocalTime.now
@@ -146,7 +149,8 @@ class PgDateSupportJodaSuite extends AnyFunSuite with PostgresContainer {
             r => assert(LocalDateTime.parse("2001-01-03T00:00:00") === r)
           ),
           // dateBin
-         DBIO.seq(Option.when(pgVersion.take(2).toInt >= 14)(Datetimes.filter(_.id === 101L.bind).map(r => r.datetime.dateBin("1 hour", LocalDateTime.parse("2001-01-03T18:35:17"))).result.head.map(
+          DBIO.seq(when(pgVersion.take(2).toInt >= 14)(
+           Datetimes.filter(_.id === 101L.bind).map(r => r.datetime.dateBin("1 hour", LocalDateTime.parse("2001-01-03T18:35:17"))).result.head.map(
             r => assert(LocalDateTime.parse("2001-01-03T12:35:17") === r)
           )).toSeq:_*),
           // isFinite
@@ -210,9 +214,10 @@ class PgDateSupportJodaSuite extends AnyFunSuite with PostgresContainer {
               r => assert(DateTime.parse("2001-01-03 00:00:00.000+08", jodaTzDateTimeFormatter) === r)
             ),
             // dateBin
-            DBIO.seq(Option.when(pgVersion.take(2).toInt >= 14)(Datetimes.filter(_.id === 101L.bind).map(r => r.datetimetz.dateBin("1 hour", DateTime.parse("2001-01-02T18:35:17+08"))).result.head.map(
-              r => assert(DateTime.parse("2001-01-03 12:35:17.000+08", jodaTzDateTimeFormatter) === r)
-            )).toSeq:_*)
+            DBIO.seq(when(pgVersion.take(2).toInt >= 14)(
+              Datetimes.filter(_.id === 101L.bind).map(r => r.datetimetz.dateBin("1 hour", DateTime.parse("2001-01-02T18:35:17+08"))).result.head.map(
+                r => assert(DateTime.parse("2001-01-03 12:35:17.000+08", jodaTzDateTimeFormatter) === r)
+              )).toSeq:_*)
           ),
           // update and check
           DBIO.seq(
