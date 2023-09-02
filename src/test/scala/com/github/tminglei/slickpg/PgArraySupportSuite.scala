@@ -98,7 +98,7 @@ class PgArraySupportSuite extends AnyFunSuite with PostgresContainer {
     List("robert}; drop table students--", null, "NULL"), List(Some("[2.3,)"), Some("[0.3.0,)"), None, Some("7.1.0"), None),
     Some(Vector("str1", "str3", "", " ")), List(uuid1, uuid2), List(BigDecimal.decimal(0.5)), List(Institution(113)), None)
   val testRec2 = ArrayBean(37L, "test'", List(101, 103), Buffer(11L, 31L, 5L), List(List(21L, 22L, 23L)), Nil, List(""), Nil,
-    Some(Vector("str11", "str3")), List(uuid1, uuid2, uuid3), Nil, List(Institution(579)), Some(List(MarketFinancialProduct("product1"))))
+    Some(Vector("str11", "str3", "Client's address")), List(uuid1, uuid2, uuid3), Nil, List(Institution(579)), Some(List(MarketFinancialProduct("product1"))))
   val testRec3 = ArrayBean(41L, "haha", List(103, 101), Buffer(11L, 5L, 31L), List(List(31L, 32L, 33L)), List(35,77), Nil, Nil,
     Some(Vector("(s)", "str5", "str3")), List(uuid1, uuid3), Nil, Nil, Some(List(MarketFinancialProduct("product3"), MarketFinancialProduct("product x"))))
 
