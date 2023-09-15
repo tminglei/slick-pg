@@ -69,7 +69,7 @@ def mainDependencies(scalaVersion: String) = {
     "org.postgresql" % "postgresql" % "42.6.0",
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.11.0",
     "org.slf4j" % "slf4j-simple" % "2.0.9" % "provided",
-    "org.scalatest" %% "scalatest" % "3.2.16" % "test",
+    "org.scalatest" %% "scalatest" % "3.2.17" % "test",
     "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.40.17" % "test",
     "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.40.17" % "test"
   )
@@ -167,9 +167,9 @@ lazy val slickPgCirceJson = (project in file("./addons/circe-json"))
     description := "Slick extensions for PostgreSQL - circe module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++
       Seq(
-        "io.circe" %% "circe-core" % "0.14.5",
-        "io.circe" %% "circe-generic" % "0.14.5",
-        "io.circe" %% "circe-parser" % "0.14.5"
+        "io.circe" %% "circe-core" % "0.14.6",
+        "io.circe" %% "circe-generic" % "0.14.6",
+        "io.circe" %% "circe-parser" % "0.14.6"
       )
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
