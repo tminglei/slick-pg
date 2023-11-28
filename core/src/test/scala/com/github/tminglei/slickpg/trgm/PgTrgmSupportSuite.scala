@@ -30,7 +30,7 @@ class PgTrgmSupportSuite extends AnyFunSuite with PostgresContainer {
     val id = column[Long]("id")
     val str = column[String]("str")
 
-    def * = (id, str) <> (StrBean.tupled, StrBean.unapply)
+    def * = (id, str) <> ((StrBean.apply _).tupled, StrBean.unapply)
   }
   val trgmTestTable = TableQuery[StringTestTable]
 

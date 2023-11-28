@@ -16,7 +16,7 @@ class PgAutoIncSeqColumnSuite extends AnyFunSuite with PostgresContainer {
 
     def name = column[String]("name")
 
-    def * = (id, name) <> (User.tupled, User.unapply)
+    def * = (id, name) <> ((User.apply _).tupled, User.unapply)
   }
 
   val AutoIncSeqTests = TableQuery[AutoIncSeqTestTable]
@@ -26,7 +26,7 @@ class PgAutoIncSeqColumnSuite extends AnyFunSuite with PostgresContainer {
 
     def name = column[String]("name")
 
-    def * = (id, name) <> (User.tupled, User.unapply)
+    def * = (id, name) <> ((User.apply _).tupled, User.unapply)
   }
 
   val AutoIncSeqNameTests = TableQuery[AutoIncSeqNameTestTable]
@@ -36,7 +36,7 @@ class PgAutoIncSeqColumnSuite extends AnyFunSuite with PostgresContainer {
 
     def name = column[String]("name")
 
-    def * = (id, name) <> (User.tupled, User.unapply)
+    def * = (id, name) <> ((User.apply _).tupled, User.unapply)
   }
 
   val AutoIncSeqFnTests = TableQuery[AutoIncSeqFnTestTable]
@@ -53,7 +53,7 @@ class PgAutoIncSeqColumnSuite extends AnyFunSuite with PostgresContainer {
 
     def name = column[String]("name")
 
-    def * = (id, name) <> (User.tupled, User.unapply)
+    def * = (id, name) <> ((User.apply _).tupled, User.unapply)
   }
 
   val AutoIncSeqNameWithFnTests = TableQuery[AutoIncSeqNameWithFnTestTable]

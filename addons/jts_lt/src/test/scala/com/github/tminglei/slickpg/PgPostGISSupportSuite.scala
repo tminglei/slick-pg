@@ -1,19 +1,16 @@
 package com.github.tminglei.slickpg
 
 import java.util.concurrent.Executors
-
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext}
-
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService}
 import slick.jdbc.GetResult
-
 import org.locationtech.jts.geom.{Geometry, Point}
 import org.locationtech.jts.io.{WKBWriter, WKTReader, WKTWriter}
 import org.scalatest.funsuite.AnyFunSuite
 
 
 class PgPostGISSupportSuite extends AnyFunSuite with PostgresContainer {
-  implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
+  implicit val testExecContext: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
   trait MyPostgresProfile extends ExPostgresProfile with PgPostGISSupport {
 
@@ -41,7 +38,7 @@ class PgPostGISSupportSuite extends AnyFunSuite with PostgresContainer {
     def geom = column[Geometry]("geom")
     def geog = column[Geography]("geog")
 
-    def * = (id, geom, geog) <> (GeometryBean.tupled, GeometryBean.unapply)
+    def * = (id, geom, geog) <> ((GeometryBean.apply _).tupled, GeometryBean.unapply)
   }
   val GeomTests = TableQuery[GeomTestTable]
 
@@ -52,7 +49,7 @@ class PgPostGISSupportSuite extends AnyFunSuite with PostgresContainer {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def point = column[Point]("point")
 
-    def * = (id, point) <> (PointBean.tupled, PointBean.unapply)
+    def * = (id, point) <> ((PointBean.apply _).tupled, PointBean.unapply)
   }
   val PointTests = TableQuery[PointTestTable]
 
@@ -816,7 +813,7 @@ class PgPostGISSupportSuite extends AnyFunSuite with PostgresContainer {
   test("PostGIS (lt) Plain SQL support") {
     import MyPostgresProfile.plainAPI._
 
-    implicit val GetPointBeanResult = GetResult(r => PointBean(r.nextLong(), r.nextGeometry[Point]()))
+    implicit val GetPointBeanResult: GetResult[PointBean] = GetResult(r => PointBean(r.nextLong(), r.nextGeometry[Point]()))
 
     val b = PointBean(77L, wktReader.read("POINT(4 5)").asInstanceOf[Point])
 

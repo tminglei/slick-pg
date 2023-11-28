@@ -28,7 +28,7 @@ class PgUpsertSuite extends AnyFunSuite with PostgresContainer {
     def col1 = column[String]("col1")
     def col2 = column[Int]("col2")
 
-    def * = (id, col1, col2) <> (Bean.tupled, Bean.unapply)
+    def * = (id, col1, col2) <> ((Bean.apply _).tupled, Bean.unapply)
   }
   val UpsertTests = TableQuery[UpsertTestTable]
 
@@ -152,7 +152,7 @@ class PgUpsertSuite extends AnyFunSuite with PostgresContainer {
     def code = column[String]("code", O.PrimaryKey)
     def col2 = column[Int]("col2")
 
-    def * = (id.?, code, col2) <> (Bean1.tupled, Bean1.unapply)
+    def * = (id.?, code, col2) <> ((Bean1.apply _).tupled, Bean1.unapply)
   }
   val UpsertTests1 = TableQuery[UpsertTestTable1]
 
@@ -162,7 +162,7 @@ class PgUpsertSuite extends AnyFunSuite with PostgresContainer {
     def col2 = column[Int]("col2")
 
     def pk = primaryKey("pk_a1", code)
-    def * = (id.?, code, col2) <> (Bean1.tupled, Bean1.unapply)
+    def * = (id.?, code, col2) <> ((Bean1.apply _).tupled, Bean1.unapply)
   }
   val UpsertTests11 = TableQuery[UpsertTestTable11]
 
@@ -325,7 +325,7 @@ class PgUpsertSuite extends AnyFunSuite with PostgresContainer {
     def id = column[Long]("id", O.AutoInc)
     def code = column[String]("code", O.PrimaryKey)
 
-    def * = (id.?, code) <> (Bean12.tupled, Bean12.unapply)
+    def * = (id.?, code) <> ((Bean12.apply _).tupled, Bean12.unapply)
   }
   val UpsertTests12 = TableQuery[UpsertTestTable12]
 
@@ -412,7 +412,7 @@ class PgUpsertSuite extends AnyFunSuite with PostgresContainer {
     def start = column[Int]("start")
     def end = column[Int]("end")
 
-    def * = (id, start, end) <> (Bean2.tupled, Bean2.unapply)
+    def * = (id, start, end) <> ((Bean2.apply _).tupled, Bean2.unapply)
   }
   val UpsertTests2 = TableQuery[UpsertTestTable2]
 

@@ -9,9 +9,9 @@ class PgAggFuncSupportSuite extends AnyFunSuite with PostgresContainer {
   import ExPostgresProfile.api._
 
   val PgArrayJdbcTypes = new array.PgArrayJdbcTypes with ExPostgresProfile {}
-  implicit val simpleIntListTypeMapper = new PgArrayJdbcTypes.SimpleArrayJdbcType[Int]("int4").to(_.toList)
-  implicit val simpleStrListTypeMapper = new PgArrayJdbcTypes.SimpleArrayJdbcType[String]("text").to(_.toList)
-  implicit val simpleDoubleListTypeMapper = new PgArrayJdbcTypes.SimpleArrayJdbcType[Double]("float8").to(_.toList)
+  implicit val simpleIntListTypeMapper: PgArrayJdbcTypes.DriverJdbcType[List[Int]] = new PgArrayJdbcTypes.SimpleArrayJdbcType[Int]("int4").to(_.toList)
+  implicit val simpleStrListTypeMapper: PgArrayJdbcTypes.DriverJdbcType[List[String]] = new PgArrayJdbcTypes.SimpleArrayJdbcType[String]("text").to(_.toList)
+  implicit val simpleDoubleListTypeMapper: PgArrayJdbcTypes.DriverJdbcType[List[Double]] = new PgArrayJdbcTypes.SimpleArrayJdbcType[Double]("float8").to(_.toList)
 
   lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
@@ -24,7 +24,7 @@ class PgAggFuncSupportSuite extends AnyFunSuite with PostgresContainer {
     def x = column[Double]("x")
     def y = column[Double]("y")
 
-    def * = (name, count, bool, x, y) <> (Tab.tupled, Tab.unapply)
+    def * = (name, count, bool, x, y) <> ((Tab.apply _).tupled, Tab.unapply)
   }
   val tabs = TableQuery(new Tabs(_))
 

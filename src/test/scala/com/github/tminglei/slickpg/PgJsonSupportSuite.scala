@@ -18,7 +18,7 @@ class PgJsonSupportSuite extends AnyFunSuite with PostgresContainer {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def json = column[JsonString]("json", O.Default(JsonString(""" {"a":"v1","b":2} """)))
 
-    def * = (id, json) <> (JsonBean.tupled, JsonBean.unapply)
+    def * = (id, json) <> ((JsonBean.apply _).tupled, JsonBean.unapply)
   }
   val JsonTests = TableQuery[JsonTestTable]
 
@@ -148,7 +148,7 @@ class PgJsonSupportSuite extends AnyFunSuite with PostgresContainer {
   test("Json Plain SQL support") {
     import MyPostgresProfile.plainAPI._
 
-    implicit val getJsonBeanResult = GetResult(r => JsonBean(r.nextLong(), r.nextJson()))
+    implicit val getJsonBeanResult: GetResult[JsonBean] = GetResult(r => JsonBean(r.nextLong(), r.nextJson()))
 
     val b = JsonBean(34L, JsonString(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """))
 

@@ -1,20 +1,20 @@
 package com.github.tminglei.slickpg
 
 import java.util.concurrent.Executors
-
 import org.scalatest.funsuite.AnyFunSuite
-import slick.jdbc.{GetResult, PostgresProfile}
+import slick.ast.BaseTypedType
+import slick.jdbc.{GetResult, JdbcType, PostgresProfile}
 import spray.json._
 
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService}
 import scala.concurrent.duration._
 
 class PgSprayJsonSupportSuite extends AnyFunSuite with PostgresContainer {
-  implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
+  implicit val testExecContext: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
   case class JBean(name: String, count: Int)
   object MyJsonProtocol extends DefaultJsonProtocol {
-    implicit val jbeanFormat = jsonFormat2(JBean)
+    implicit val jbeanFormat: RootJsonFormat[JBean] = jsonFormat2(JBean)
   }
 
   trait MyPostgresProfile extends PostgresProfile
@@ -29,8 +29,8 @@ class PgSprayJsonSupportSuite extends AnyFunSuite with PostgresContainer {
     ///
     trait API extends JdbcAPI with JsonImplicits {
       import MyJsonProtocol._
-      implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
-      implicit val beanJsonTypeMapper = MappedJdbcType.base[JBean, JsValue](_.toJson, _.convertTo[JBean])
+      implicit val strListTypeMapper: DriverJdbcType[List[String]] = new SimpleArrayJdbcType[String]("text").to(_.toList)
+      implicit val beanJsonTypeMapper: JdbcType[JBean] with BaseTypedType[JBean] = MappedJdbcType.base[JBean, JsValue](_.toJson, _.convertTo[JBean])
     }
   }
   object MyPostgresProfile extends MyPostgresProfile
@@ -47,7 +47,7 @@ class PgSprayJsonSupportSuite extends AnyFunSuite with PostgresContainer {
     def json = column[JsValue]("json")
     def jbean = column[JBean]("jbean")
 
-    def * = (id, json, jbean) <> (JsonBean.tupled, JsonBean.unapply)
+    def * = (id, json, jbean) <> ((JsonBean.apply _).tupled, JsonBean.unapply)
   }
   val JsonTests = TableQuery[JsonTestTable]
 
@@ -145,19 +145,19 @@ class PgSprayJsonSupportSuite extends AnyFunSuite with PostgresContainer {
           ),
           // ||
           JsonTests.filter(_.id === 33L).map(_.json || """ {"d":"test"} """.parseJson).result.head.map(
-            r => assert(""" {"a": 101, "b": "aaa", "c": [3, 4, 5, 9], "d": "test"} """.replace(" ", "") === r.toString().replace(" ", ""))
+            r => assert(""" {"a": 101, "b": "aaa", "c": [3, 4, 5, 9], "d": "test"} """.replace(" ", "") === r.toString.replace(" ", ""))
           ),
           // -
           JsonTests.filter(_.id === 33L).map(_.json - "c".bind).result.head.map(
-            r => assert(""" {"a": 101, "b": "aaa"} """.replace(" ", "") === r.toString().replace(" ", ""))
+            r => assert(""" {"a": 101, "b": "aaa"} """.replace(" ", "") === r.toString.replace(" ", ""))
           ),
           // #-
           JsonTests.filter(_.id === 33L).map(_.json #- List("c")).result.head.map(
-            r => assert(""" {"a": 101, "b": "aaa"} """.replace(" ", "") === r.toString().replace(" ", ""))
+            r => assert(""" {"a": 101, "b": "aaa"} """.replace(" ", "") === r.toString.replace(" ", ""))
           ),
           // #-
           JsonTests.filter(_.id === 33L).map(_.json.set(List("c"), """ [1] """.parseJson.bind)).result.head.map(
-            r => assert(""" {"a": 101, "b": "aaa", "c": [1]} """.replace(" ", "") === r.toString().replace(" ", ""))
+            r => assert(""" {"a": 101, "b": "aaa", "c": [1]} """.replace(" ", "") === r.toString.replace(" ", ""))
           )
         )
       ).andFinally(
@@ -172,7 +172,7 @@ class PgSprayJsonSupportSuite extends AnyFunSuite with PostgresContainer {
   test("Spray json Plain SQL support") {
     import MyPostgresProfile.plainAPI._
 
-    implicit val getJsonBeanResult = GetResult(r => JsonBean1(r.nextLong(), r.nextJson()))
+    implicit val getJsonBeanResult: GetResult[JsonBean1] = GetResult(r => JsonBean1(r.nextLong(), r.nextJson()))
 
     val b = JsonBean1(34L, """ { "a":101, "b":"aaa", "c":[3,4,5,9] } """.parseJson)
 

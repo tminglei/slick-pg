@@ -1,15 +1,14 @@
 package com.github.tminglei.slickpg
 
 import java.util.concurrent.Executors
-
 import org.joda.time._
 import org.scalatest.funsuite.AnyFunSuite
 import slick.jdbc.{GetResult, PostgresProfile}
 
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService}
 
 class PgDateSupportJodaSuite extends AnyFunSuite with PostgresContainer {
-  implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
+  implicit val testExecContext: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
   trait MyPostgresProfile extends PostgresProfile
                             with PgDateSupportJoda {
@@ -47,7 +46,7 @@ class PgDateSupportJodaSuite extends AnyFunSuite with PostgresContainer {
     def interval = column[Period]("interval")
     def instant = column[Instant]("instant")
 
-    def * = (id, date, time, datetime, datetimetz, interval, instant) <> (DatetimeBean.tupled, DatetimeBean.unapply)
+    def * = (id, date, time, datetime, datetimetz, interval, instant) <> ((DatetimeBean.apply _).tupled, DatetimeBean.unapply)
   }
   val Datetimes = TableQuery[DatetimeTable]
 
@@ -248,7 +247,7 @@ class PgDateSupportJodaSuite extends AnyFunSuite with PostgresContainer {
   test("Joda time Plain SQL support") {
     import MyPostgresProfile.plainAPI._
 
-    implicit val getDateBean = GetResult(r => DatetimeBean(
+    implicit val getDateBean: GetResult[DatetimeBean] = GetResult(r => DatetimeBean(
       r.nextLong(), r.nextLocalDate(), r.nextLocalTime(), r.nextLocalDateTime(), r.nextZonedDateTime(), r.nextPeriod(), r.nextInstant()))
 
     val b1 = new DatetimeBean(107L, LocalDate.parse("2010-11-03"), LocalTime.parse("12:33:01.101357"),

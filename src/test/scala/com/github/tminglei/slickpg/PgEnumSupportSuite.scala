@@ -4,9 +4,7 @@ import scala.collection.compat._
 import scala.collection.compat.immutable.LazyList
 import scala.concurrent.Await
 import scala.concurrent.duration._
-
-import slick.jdbc.PostgresProfile
-
+import slick.jdbc.{JdbcType, PostgresProfile}
 import org.scalatest.funsuite.AnyFunSuite
 
 
@@ -57,30 +55,30 @@ class PgEnumSupportSuite extends AnyFunSuite with PostgresContainer {
 
     ///
     trait API extends JdbcAPI {
-      implicit val weekDayTypeMapper = createEnumJdbcType("WeekDay", WeekDays)
-      implicit val weekDayListTypeMapper = createEnumListJdbcType("weekDay", WeekDays)
-      implicit val rainbowTypeMapper = createEnumJdbcType("Rainbow", Rainbows, true)
-      implicit val rainbowListTypeMapper = createEnumListJdbcType("Rainbow", Rainbows, true)
+      implicit val weekDayTypeMapper: JdbcType[WeekDays.Value] = createEnumJdbcType[WeekDays.type]("WeekDay", WeekDays)
+      implicit val weekDayListTypeMapper: JdbcType[List[WeekDays.Value]] = createEnumListJdbcType[WeekDays.type]("weekDay", WeekDays)
+      implicit val rainbowTypeMapper: JdbcType[Rainbows.Value] = createEnumJdbcType[Rainbows.type]("Rainbow", Rainbows, true)
+      implicit val rainbowListTypeMapper: JdbcType[List[Rainbows.Value]] = createEnumListJdbcType[Rainbows.type]("Rainbow", Rainbows, true)
 
-      implicit val weekDayColumnExtensionMethodsBuilder = createEnumColumnExtensionMethodsBuilder(WeekDays)
-      implicit val weekDayOptionColumnExtensionMethodsBuilder = createEnumOptionColumnExtensionMethodsBuilder(WeekDays)
-      implicit val rainbowColumnExtensionMethodsBuilder = createEnumColumnExtensionMethodsBuilder(Rainbows)
-      implicit val rainbowOptionColumnExtensionMethodsBuilder = createEnumOptionColumnExtensionMethodsBuilder(Rainbows)
+      implicit val weekDayColumnExtensionMethodsBuilder: api.Rep[WeekDays.Value] => EnumColumnExtensionMethods[WeekDays.Value, WeekDays.Value] = createEnumColumnExtensionMethodsBuilder[WeekDays.type](WeekDays)
+      implicit val weekDayOptionColumnExtensionMethodsBuilder: api.Rep[Option[WeekDays.Value]] => EnumColumnExtensionMethods[WeekDays.Value, Option[WeekDays.Value]] = createEnumOptionColumnExtensionMethodsBuilder[WeekDays.type](WeekDays)
+      implicit val rainbowColumnExtensionMethodsBuilder: api.Rep[Rainbows.Value] => EnumColumnExtensionMethods[Rainbows.Value, Rainbows.Value] = createEnumColumnExtensionMethodsBuilder[Rainbows.type](Rainbows)
+      implicit val rainbowOptionColumnExtensionMethodsBuilder: api.Rep[Option[Rainbows.Value]] => EnumColumnExtensionMethods[Rainbows.Value, Option[Rainbows.Value]] = createEnumOptionColumnExtensionMethodsBuilder[Rainbows.type](Rainbows)
 
       /// custom types of java enums and algebraic data type (ADT)
-      implicit val currencyTypeMapper = createEnumJdbcType[Currency]("Currency", _.toString, Currency.values.get(_).get, quoteName = false)
-      implicit val currencyTypeListMapper = createEnumListJdbcType[Currency]("Currency", _.toString, Currency.values.get(_).get, quoteName = false)
-      implicit val languagesTypeMapper = createEnumJdbcType[Languages]("Languages", _.name(), Languages.valueOf, quoteName = true)
-      implicit val languagesTypeListMapper = createEnumListJdbcType[Languages]("Languages", _.name(), Languages.valueOf, quoteName = true)
-      implicit val genderTypeMapper = createEnumJdbcType[Gender]("Gender", _.repr, Gender.fromString, quoteName = false)
-      implicit val genderTypeListMapper = createEnumListJdbcType[Gender]("Gender", _.repr, Gender.fromString, quoteName = false)
+      implicit val currencyTypeMapper: JdbcType[Currency] = createEnumJdbcType[Currency]("Currency", _.toString, Currency.values.get(_).get, quoteName = false)
+      implicit val currencyTypeListMapper: JdbcType[List[Currency]] = createEnumListJdbcType[Currency]("Currency", _.toString, Currency.values.get(_).get, quoteName = false)
+      implicit val languagesTypeMapper: JdbcType[Languages] = createEnumJdbcType[Languages]("Languages", _.name(), Languages.valueOf, quoteName = true)
+      implicit val languagesTypeListMapper: JdbcType[List[Languages]] = createEnumListJdbcType[Languages]("Languages", _.name(), Languages.valueOf, quoteName = true)
+      implicit val genderTypeMapper: JdbcType[Gender] = createEnumJdbcType[Gender]("Gender", _.repr, Gender.fromString, quoteName = false)
+      implicit val genderTypeListMapper: JdbcType[List[Gender]] = createEnumListJdbcType[Gender]("Gender", _.repr, Gender.fromString, quoteName = false)
 
-      implicit val currencyColumnExtensionMethodsBuilder = createEnumColumnExtensionMethodsBuilder[Currency]
-      implicit val currencyOptionColumnExtensionMethodsBuilder = createEnumOptionColumnExtensionMethodsBuilder[Currency]
-      implicit val languagesColumnExtensionMethodsBuilder = createEnumColumnExtensionMethodsBuilder[Languages]
-      implicit val languagesOptionColumnExtensionMethodsBuilder = createEnumOptionColumnExtensionMethodsBuilder[Languages]
-      implicit val genderColumnExtensionMethodsBuilder = createEnumColumnExtensionMethodsBuilder[Gender]
-      implicit val genderOptionColumnExtensionMethodsBuilder = createEnumOptionColumnExtensionMethodsBuilder[Gender]
+      implicit val currencyColumnExtensionMethodsBuilder: api.Rep[Currency] => EnumColumnExtensionMethods[Currency, Currency] = createEnumColumnExtensionMethodsBuilder[Currency]
+      implicit val currencyOptionColumnExtensionMethodsBuilder: api.Rep[Option[Currency]] => EnumColumnExtensionMethods[Currency, Option[Currency]] = createEnumOptionColumnExtensionMethodsBuilder[Currency]
+      implicit val languagesColumnExtensionMethodsBuilder: api.Rep[Languages] => EnumColumnExtensionMethods[Languages, Languages] = createEnumColumnExtensionMethodsBuilder[Languages]
+      implicit val languagesOptionColumnExtensionMethodsBuilder: api.Rep[Option[Languages]] => EnumColumnExtensionMethods[Languages, Option[Languages]] = createEnumOptionColumnExtensionMethodsBuilder[Languages]
+      implicit val genderColumnExtensionMethodsBuilder: api.Rep[Gender] => EnumColumnExtensionMethods[Gender, Gender] = createEnumColumnExtensionMethodsBuilder[Gender]
+      implicit val genderOptionColumnExtensionMethodsBuilder: api.Rep[Option[Gender]] => EnumColumnExtensionMethods[Gender, Option[Gender]] = createEnumOptionColumnExtensionMethodsBuilder[Gender]
     }
   }
   object MyPostgresProfile1 extends MyPostgresProfile1
@@ -104,7 +102,7 @@ class PgEnumSupportSuite extends AnyFunSuite with PostgresContainer {
     def weekdays = column[List[WeekDay]]("weekdays")
     def rainbows = column[List[Rainbow]]("rainbows")
 
-    def * = (id, weekday, rainbow, weekdays, rainbows) <> (TestEnumBean.tupled, TestEnumBean.unapply)
+    def * = (id, weekday, rainbow, weekdays, rainbows) <> ((TestEnumBean.apply _).tupled, TestEnumBean.unapply)
   }
   val TestEnums = TableQuery(new TestEnumTable(_))
 
@@ -125,7 +123,7 @@ class PgEnumSupportSuite extends AnyFunSuite with PostgresContainer {
     def currencies = column[List[Currency]]("currencies")
     def languages = column[List[Languages]]("languages")
 
-    def * = (id, currency, language, gender, currencies, languages) <> (TestEnumBean1.tupled, TestEnumBean1.unapply)
+    def * = (id, currency, language, gender, currencies, languages) <> ((TestEnumBean1.apply _).tupled, TestEnumBean1.unapply)
   }
   val TestEnums1 = TableQuery(new TestEnumTable1(_))
 

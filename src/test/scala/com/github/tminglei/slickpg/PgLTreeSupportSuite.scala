@@ -19,7 +19,7 @@ class PgLTreeSupportSuite extends AnyFunSuite with PostgresContainer {
     def path = column[LTree]("path")
     def treeArr = column[List[LTree]]("tree_arr")
 
-    def * = (id, path, treeArr) <> (LTreeBean.tupled, LTreeBean.unapply)
+    def * = (id, path, treeArr) <> ((LTreeBean.apply _).tupled, LTreeBean.unapply)
   }
   val LTreeTests = TableQuery[LTreeTestTable]
 
@@ -166,7 +166,7 @@ class PgLTreeSupportSuite extends AnyFunSuite with PostgresContainer {
   test("Ltree Plain SQL support") {
     import MyPostgresProfile.plainAPI._
 
-    implicit val getLTreeBeanResult = GetResult(r => LTreeBean(r.nextLong(), r.nextLTree(), r.nextArray[LTree]().toList))
+    implicit val getLTreeBeanResult: GetResult[LTreeBean] = GetResult(r => LTreeBean(r.nextLong(), r.nextLTree(), r.nextArray[LTree]().toList))
 
     val b = LTreeBean(100L, LTree("Top"), List(LTree("Top.Science"), LTree("Top.Collections")))
 

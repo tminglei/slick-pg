@@ -19,7 +19,7 @@ class PgNetSupportSuite extends AnyFunSuite with PostgresContainer {
     def inet = column[InetString]("inet")
     def mac = column[Option[MacAddrString]]("mac")
 
-    def * = (id, inet, mac) <> (NetBean.tupled, NetBean.unapply)
+    def * = (id, inet, mac) <> ((NetBean.apply _).tupled, NetBean.unapply)
   }
   val NetTests = TableQuery[NetTestTable]
 
@@ -180,7 +180,7 @@ class PgNetSupportSuite extends AnyFunSuite with PostgresContainer {
   test("net Plain SQL support") {
     import MyPostgresProfile.plainAPI._
 
-    implicit val getNetBeanResult = GetResult(r => NetBean(r.nextLong(), r.nextIPAddr(), r.nextMacAddrOption()))
+    implicit val getNetBeanResult: GetResult[NetBean] = GetResult(r => NetBean(r.nextLong(), r.nextIPAddr(), r.nextMacAddrOption()))
 
     val b = NetBean(34L, InetString("10.1.0.0/16"), Some(MacAddrString("12:34:56:78:90:ab")))
 
