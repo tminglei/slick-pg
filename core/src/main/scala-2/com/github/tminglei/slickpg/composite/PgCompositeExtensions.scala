@@ -1,5 +1,4 @@
-package com.github.tminglei.slickpg
-package composite
+package com.github.tminglei.slickpg.composite
 
 import slick.jdbc.{JdbcTypesComponent, PostgresProfile}
 

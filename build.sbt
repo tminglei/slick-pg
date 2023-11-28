@@ -1,5 +1,6 @@
 val scala212 = "2.12.18"
 val scala213 = "2.13.12"
+val scala3 = "3.3.1"
 
 lazy val commonSettings = Seq(
   organizationName := "slick-pg",
@@ -8,7 +9,7 @@ lazy val commonSettings = Seq(
   version := "0.22.0-M4",
 
   scalaVersion := scala213,
-  crossScalaVersions := Seq(scala212, scala213),
+  crossScalaVersions := Seq(scala212, scala213, scala3),
   scalacOptions ++= Seq("-deprecation", "-feature",
     "-language:implicitConversions",
     "-language:reflectiveCalls",
@@ -64,7 +65,7 @@ lazy val commonSettings = Seq(
 def mainDependencies(scalaVersion: String) = {
   Seq (
     "org.scala-lang.modules" %% "scala-parser-combinators" % "2.3.0",
-    "org.scala-lang" % "scala-reflect" % scalaVersion,
+    "dev.zio" %% "izumi-reflect" % "2.3.8",
     "com.typesafe.slick" %% "slick" % "3.5.0-M4",
     "org.postgresql" % "postgresql" % "42.6.0",
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.11.0",
@@ -145,7 +146,7 @@ lazy val slickPgPlayJson = (project in file("./addons/play-json"))
     name := "slick-pg_play-json",
     description := "Slick extensions for PostgreSQL - play-json module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++
-      Seq("com.typesafe.play" %% "play-json" % "2.9.4")
+      Seq("org.playframework" %% "play-json" % "3.0.1")
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
 
