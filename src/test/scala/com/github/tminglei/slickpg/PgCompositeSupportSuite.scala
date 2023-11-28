@@ -77,7 +77,7 @@ object PgCompositeSupportSuite {
     }
     override val api: API = new API {}
 
-    val plainImplicits = new API with SimpleArrayPlainImplicits {
+    object plainImplicits extends API with SimpleArrayPlainImplicits {
       import utils.PlainSQLUtils._
       // to support 'nextArray[T]/nextArrayOption[T]' in PgArraySupport
       {

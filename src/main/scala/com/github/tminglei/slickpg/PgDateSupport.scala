@@ -8,9 +8,6 @@ import slick.jdbc.{JdbcType, PostgresProfile}
 trait PgDateSupport extends date.PgDateExtensions with utils.PgCommonJdbcTypes with date.PgDateJdbcTypes { driver: PostgresProfile =>
   import driver.api._
 
-  /// alias
-  trait DateTimeImplicits extends SimpleDateTimeImplicits
-
   trait SimpleDateTimeImplicits {
     implicit val simpleIntervalTypeMapper: JdbcType[Interval] = new GenericJdbcType[Interval]("interval", Interval.apply, hasLiteralForm=false)
     implicit val simpleTimestampTZTypeMapper: JdbcType[Calendar] = new GenericDateJdbcType[Calendar]("timestamptz", java.sql.Types.TIMESTAMP_WITH_TIMEZONE)

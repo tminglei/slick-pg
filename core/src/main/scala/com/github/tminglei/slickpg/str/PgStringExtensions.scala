@@ -27,7 +27,7 @@ trait PgStringExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
   }
 
   class PgStringColumnExtensionMethods[P1](val c: Rep[P1]) extends ExtensionMethods[String, P1] {
-    protected implicit def b1Type = implicitly[TypedType[String]]
+    protected def b1Type = implicitly[TypedType[String]]
 
     def ilike[P2, R](e: Rep[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
         om.column(StringLibrary.ILike, n, e.toNode)
@@ -58,7 +58,7 @@ trait PgStringExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
   }
 
   class PgStringByteaColumnExtensionMethods[P1](val c: Rep[P1]) extends ExtensionMethods[Array[Byte], P1] {
-    protected implicit def b1Type = implicitly[TypedType[Array[Byte]]]
+    protected def b1Type = implicitly[TypedType[Array[Byte]]]
 
     def convert[R](srcEncoding: Rep[String], destEncoding: Rep[String])(implicit om: o#to[Array[Byte], R]) = {
         om.column(StringLibrary.Convert, n, srcEncoding.toNode, destEncoding.toNode)

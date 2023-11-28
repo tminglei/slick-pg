@@ -58,7 +58,7 @@ trait MyPostgresProfile extends ExPostgresProfile
   override val api = MyAPI
 
   object MyAPI extends ExtPostgresAPI with ArrayImplicits
-                                      with DateTimeImplicits
+                                      with Date2DateTimeImplicitsDuration
                                       with JsonImplicits
                                       with NetImplicits
                                       with LTreeImplicits
@@ -91,7 +91,7 @@ class TestTable(tag: Tag) extends Table[Test](tag, Some("xxx"), "Test") {
   def props = column[Map[String,String]]("props_hstore")
   def tags = column[List[String]]("tags_arr")
 
-  def * = (id, during, location, text, props, tags) <> (Test.tupled, Test.unapply)
+  def * = (id, during, location, text, props, tags) <> ((Test.apply _).tupled, Test.unapply)
 }
 
 object tests extends TableQuery(new TestTable(_)) {

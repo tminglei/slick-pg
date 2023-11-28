@@ -7,6 +7,7 @@ import play.api.libs.json._
 import slick.jdbc.{GetResult, JdbcType, PostgresProfile}
 import com.github.tminglei.slickpg.utils.JsonUtils
 import org.scalatest.funsuite.AnyFunSuite
+import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import slick.ast.BaseTypedType
 
 
@@ -15,7 +16,12 @@ class PgPlayJsonSupportSuite extends AnyFunSuite with PostgresContainer {
 
   case class JBean(name: String, count: Int)
   object JBean {
-    implicit val jbeanFmt: OFormat[JBean] = Json.format[JBean]
+    // jbeanFmt should just be this, but there's a bug in play-json for scala 3 that causes it to throw a java.lang.ClassCastException -- and we're not testing that here
+//    implicit val jbeanFmt: OFormat[JBean] = Json.format[JBean]
+    implicit val jbeanFmt: OFormat[JBean] = (
+      (__ \ implicitly[JsonConfiguration].naming("name")).format[String] and
+      (__ \ implicitly[JsonConfiguration].naming("count")).format[Int]
+    )(JBean.apply _, x => (x.name, x.count))
     implicit val jbeanWrt: OWrites[JBean] = Json.writes[JBean]
   }
 

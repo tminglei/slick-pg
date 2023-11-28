@@ -126,7 +126,7 @@ class PgArraySupportSuite extends AnyFunSuite with PostgresContainer {
             r => assert(List(testRec2) === r)
           ),
           // @>
-          ArrayTests.filter(_.strArr @> Vector("str3")).sortBy(_.id).to[List].result.map(
+          ArrayTests.filter(_.strArr @> (Vector("str3"): Rep[Vector[String]])).sortBy(_.id).to[List].result.map(
             r => assert(List(testRec1, testRec2, testRec3) === r)
           ),
           ArrayTests.filter(_.mktFinancialProducts @> List(MarketFinancialProduct("product1"))).sortBy(_.id).to[List].result.map(
@@ -255,7 +255,7 @@ class PgArraySupportSuite extends AnyFunSuite with PostgresContainer {
         sqlu"insert into ArrayTest1 values(${b.id}, ${b.bytea}, ${b.uuidArr}, ${b.strArr}, ${b.longArr}, ${b.intArr}, ${b.shortArr}, ${b.floatArr}, ${b.doubleArr}, ${b.boolArr}, ${b.dateArr}, ${b.timeArr}, ${b.tsArr}, ${b.institutionArr})",
         sql"select * from ArrayTest1 where id = ${b.id}".as[ArrayBean1].head.map(
           f => {
-            b.bytea.zip(f.bytea).map(r => assert(r._1 === r._2))
+            b.bytea.toSeq.zip(f.bytea.toSeq).map(r => assert(r._1 === r._2))
             b.uuidArr.zip(f.uuidArr).map(r => assert(r._1 === r._2))
             b.strArr.getOrElse(Nil).zip(f.strArr.getOrElse(Nil)).map(r => assert(r._1 === r._2))
             b.longArr.zip(f.longArr).map(r => assert(r._1 === r._2))

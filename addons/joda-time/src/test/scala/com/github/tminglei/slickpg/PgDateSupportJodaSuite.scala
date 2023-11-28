@@ -18,7 +18,7 @@ class PgDateSupportJodaSuite extends AnyFunSuite with PostgresContainer {
     val plainAPI = new API with JodaDateTimePlainImplicits
 
     ///
-    trait API extends JdbcAPI with DateTimeImplicits
+    trait API extends JdbcAPI with JodaDateTimeImplicits
   }
   object MyPostgresProfile extends MyPostgresProfile
 

@@ -29,7 +29,6 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
   }
 
   /// alias
-  trait DateTimeImplicits extends Date2DateTimeImplicitsDuration
   trait DateTimeImplicitsPeriod extends Date2DateTimeImplicitsPeriod
 
   trait Date2DateTimeImplicitsDuration extends Date2DateTimeImplicits[Duration]

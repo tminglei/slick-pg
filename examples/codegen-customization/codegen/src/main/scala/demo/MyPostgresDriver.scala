@@ -16,7 +16,7 @@ trait MyPostgresDriver extends ExPostgresProfile
   //////
   trait MyAPI extends ExtPostgresAPI
                 with ArrayImplicits
-                with DateTimeImplicits
+                with Date2DateTimeImplicitsDuration
                 with RangeImplicits
                 with HStoreImplicits
                 with SearchImplicits

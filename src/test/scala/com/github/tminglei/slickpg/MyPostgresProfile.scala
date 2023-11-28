@@ -17,7 +17,7 @@ trait MyPostgresProfile extends ExPostgresProfile
 
   trait MyAPI extends ExtPostgresAPI with ArrayImplicits
                               with SimpleDateTimeImplicits
-                              with DateTimeImplicits
+                              with Date2DateTimeImplicitsDuration
                               with SimpleJsonImplicits
                               with NetImplicits
                               with LTreeImplicits
