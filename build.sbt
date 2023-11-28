@@ -73,7 +73,7 @@ def mainDependencies(scalaVersion: String) = {
     "org.scalatest" %% "scalatest" % "3.2.17" % "test",
     "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.40.17" % "test",
     "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.40.17" % "test"
-  )
+  ) ++ (if (scalaVersion.startsWith("3")) Nil else Seq("org.scala-lang" % "scala-reflect" % scalaVersion))
 }
 
 lazy val slickPgCore = (project in file("./core"))
