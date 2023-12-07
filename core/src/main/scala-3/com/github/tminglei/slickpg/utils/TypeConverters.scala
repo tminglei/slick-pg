@@ -8,46 +8,51 @@ import java.sql.{Date, Time, Timestamp}
 import java.time.{LocalDate, LocalDateTime, LocalTime}
 import java.util.UUID
 
+case class RegisteredTypeConverter[From, To](convert: From => To)
+
 object TypeConverters extends Logging {
   case class ConvConfig(from: LightTypeTag, to: LightTypeTag, var conv: (_ => _))
 
   private var convConfigList = List[ConvConfig]()
 
   // register basic converters
-  register((v: String) => v.toInt)
-  register((v: String) => v.toLong)
-  register((v: String) => v.toShort)
-  register((v: String) => v.toFloat)
-  register((v: String) => v.toDouble)
-  register((v: String) => pgBoolAdjust(v).toBoolean)
-  register((v: String) => v.toByte)
-  register((v: String) => UUID.fromString(v))
+  implicit val StringToInt: RegisteredTypeConverter[String, Int] = RegisteredTypeConverter[String, Int](_.toInt)
+  implicit val StringToLong: RegisteredTypeConverter[String, Long] = RegisteredTypeConverter(_.toLong)
+  implicit val StringToShort: RegisteredTypeConverter[String, Short] = RegisteredTypeConverter(_.toShort)
+  implicit val StringToFloat: RegisteredTypeConverter[String, Float] = RegisteredTypeConverter(_.toFloat)
+  implicit val StringToDouble: RegisteredTypeConverter[String, Double] = RegisteredTypeConverter(_.toDouble)
+  implicit val StringToBoolean: RegisteredTypeConverter[String, Boolean] = RegisteredTypeConverter(pgBoolAdjust(_).toBoolean)
+  implicit val StringToByte: RegisteredTypeConverter[String, Byte] = RegisteredTypeConverter(_.toByte)
+  implicit val StringToUUID: RegisteredTypeConverter[String, UUID] = RegisteredTypeConverter(UUID.fromString)
+  implicit val IntToString: RegisteredTypeConverter[Int, String] = RegisteredTypeConverter(_.toString)
+  implicit val LongToString: RegisteredTypeConverter[Long, String] = RegisteredTypeConverter(_.toString)
+  implicit val ShortToString: RegisteredTypeConverter[Short, String] = RegisteredTypeConverter(_.toString)
+  implicit val FloatToString: RegisteredTypeConverter[Float, String] = RegisteredTypeConverter(_.toString)
+  implicit val DoubleToString: RegisteredTypeConverter[Double, String] = RegisteredTypeConverter(_.toString)
+  implicit val BooleanToString: RegisteredTypeConverter[Boolean, String] = RegisteredTypeConverter(_.toString.take(1))
+  implicit val ByteToString: RegisteredTypeConverter[Byte, String] = RegisteredTypeConverter(_.toString)
+  implicit val UUIDToString: RegisteredTypeConverter[UUID, String] = RegisteredTypeConverter(_.toString)
+  implicit val StringToString: RegisteredTypeConverter[String, String] = RegisteredTypeConverter(identity)
   // register date/time converters
-  register((v: String) => Date.valueOf(v))
-  register((v: String) => Time.valueOf(v))
-  register((v: String) => Timestamp.valueOf(v))
-  register((v: Date) => v.toString)
-  register((v: Time) => v.toString)
-  register((v: Timestamp) => v.toString)
-  register((v: String) => LocalDate.parse(v))
-  register((v: String) => LocalTime.parse(v))
-  register((v: String) => LocalDateTime.parse(v.replace(' ', 'T')))
-  register((v: LocalDate) => v.toString)
-  register((v: LocalTime) => v.toString)
-  register((v: LocalDateTime) => v.toString)
+  implicit val StringToDate: RegisteredTypeConverter[String, Date] = RegisteredTypeConverter(Date.valueOf)
+  implicit val StringToTime: RegisteredTypeConverter[String, Time] = RegisteredTypeConverter(Time.valueOf)
+  implicit val StringToTimestamp: RegisteredTypeConverter[String, Timestamp] = RegisteredTypeConverter(Timestamp.valueOf)
+  implicit val DateToString: RegisteredTypeConverter[Date, String] = RegisteredTypeConverter(_.toString)
+  implicit val TimeToString: RegisteredTypeConverter[Time, String] = RegisteredTypeConverter(_.toString)
+  implicit val TimestampToString: RegisteredTypeConverter[Timestamp, String] = RegisteredTypeConverter(_.toString)
 
-  def register[FROM, TO](convert: (FROM => TO))(implicit from: TTag[FROM], to: TTag[TO]) = {
-    logger.info(s"register converter for ${from.tag.repr} => ${to.tag.repr}")
-    find(from.tag, to.tag).map(_.conv = convert).orElse({
-      convConfigList :+= ConvConfig(from.tag, to.tag, convert)
-      None
-    })
-  }
+  implicit val StringToLocalDate: RegisteredTypeConverter[String, LocalDate] = RegisteredTypeConverter(LocalDate.parse)
+  implicit val StringToLocalTime: RegisteredTypeConverter[String, LocalTime] = RegisteredTypeConverter(LocalTime.parse)
 
-  def converter[FROM,TO](implicit from: TTag[FROM], to: TTag[TO]): (FROM => TO) = {
-    find(from.tag, to.tag).map(_.conv.asInstanceOf[(FROM => TO)])
-      .getOrElse(throw new IllegalArgumentException(s"Converter NOT FOUND for ${from.tag} => ${to.tag}"))
-  }
+  implicit val StringToLocalDateTime: RegisteredTypeConverter[String, LocalDateTime] =
+    RegisteredTypeConverter(v => LocalDateTime.parse(v.replace(' ', 'T')))
+
+  implicit val LocalDateToString: RegisteredTypeConverter[LocalDate, String] = RegisteredTypeConverter(_.toString)
+  implicit val LocalTimeToString: RegisteredTypeConverter[LocalTime, String] = RegisteredTypeConverter(_.toString)
+  implicit val LocalDateTimeToString: RegisteredTypeConverter[LocalDateTime, String] = RegisteredTypeConverter(_.toString)
+
+
+  def converter[FROM, TO](implicit converter: RegisteredTypeConverter[FROM, TO]): (FROM => TO) = converter.convert
 
   ///
   private def pgBoolAdjust(s: String): String =
@@ -56,13 +61,4 @@ object TypeConverters extends Logging {
       case Some("f")  => "false"
       case _ => s
     }
-
-  def find(from: LightTypeTag, to: LightTypeTag): Option[ConvConfig] = {
-    logger.debug(s"get converter for ${from.repr} => ${to.repr}")
-    convConfigList.find(e => (e.from =:= from && e.to =:= to)).orElse({
-      if (from <:< to) {
-        Some(ConvConfig(from, to, (v: Any) => v))
-      } else None
-    })
-  }
 }
