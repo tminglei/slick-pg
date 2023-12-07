@@ -44,10 +44,6 @@ case object Level6 extends BaseLevel[Level5.type, Level6.type]{
 case class Args(args: Any*)
 
 sealed trait TokenConverter[T, L <: BaseLevel[?, ?]](val l: L) {
-  type Type
-  type Level = L
-  type LevelInc = l.Inc
-  def levelInc: LevelInc = l.++
   type LevelDec = l.Dec
   def levelDec: LevelDec = l.--
   def fromToken(token: Token): T
