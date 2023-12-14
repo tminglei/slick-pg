@@ -1,16 +1,21 @@
 package com.github.tminglei.slickpg
 
+import com.github.tminglei.slickpg.composite.Struct
+import org.postgresql.util.HStoreConverter
+import org.scalatest.funsuite.AnyFunSuite
+import slick.jdbc.{GetResult, PositionedResult, PostgresProfile, SetParameter}
+import com.github.tminglei.slickpg.utils.TypeConverters
+
 import java.time.LocalDateTime
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
-import slick.jdbc.{GetResult, PositionedResult, PostgresProfile, SetParameter}
-import com.github.tminglei.slickpg.composite.Struct
-import org.postgresql.util.HStoreConverter
-import org.scalatest.funsuite.AnyFunSuite
 
 
 object PgCompositeSupportSuite {
+  import TypeConverters._
+  import ScalaVersionShim._
+  import ScalaVersionShim.maybeTypeConverters._
   def ts(str: String) = LocalDateTime.parse(str.replace(' ', 'T'))
 
   case class Composite1(
@@ -59,10 +64,7 @@ object PgCompositeSupportSuite {
 
     ///
     trait API extends JdbcAPI with ArrayImplicits {
-      utils.TypeConverters.register(PgRangeSupportUtils.mkRangeFn(ts))
-      utils.TypeConverters.register(PgRangeSupportUtils.toStringFn[LocalDateTime](_.toString))
-      utils.TypeConverters.register(mapToString)
-      utils.TypeConverters.register(stringToMap)
+      registerTypeConverters()
 
       implicit val composite1TypeMapper: GenericJdbcType[Composite1] = createCompositeJdbcType[Composite1]("composite1")
       implicit val composite2TypeMapper: GenericJdbcType[Composite2] = createCompositeJdbcType[Composite2]("composite2")
