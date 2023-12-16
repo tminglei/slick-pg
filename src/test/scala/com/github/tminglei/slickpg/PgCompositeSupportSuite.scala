@@ -199,7 +199,17 @@ class PgCompositeSupportSuite extends AnyFunSuite with PostgresContainer {
   val rec31 = TestBean3(1, None)
   val rec32 = TestBean3(2, Some(Composite4(1, "x1", Nil, Some(List.empty), "get(\"x1\").ok", "(4).ok")))
   val rec32_al = TestBean3(2, Some(Composite4(1, "x1", Nil, None, "get(\"x1\").ok", "(4).ok")))
-  val rec33 = TestBean3(3, Some(Composite4(2, "x2", List("xxx(yyy)zz,z", "u(vv)(w)x(y)", "x=1&y=2&[INSERT_DEVICE_ID_HERE]&z=3"), Some(List("\"t")), "(get(\"A\") + get(\"A\")).ok", "call(A, B).ok")))
+  val rec33 = TestBean3(3, Some(Composite4(2, "x2", List("xxx(yyy)zz,z", "u(vv)(w)x(y)", "x=1&y=2&[INSERT_DEVICE_ID_HERE]&z=3",
+    ")read_world_example", // parses a null element into list `" null, ")read_world_example"`
+    "(", ")", // parsed as one element `"(,)"`
+    "{\"", "}", // parsed as one element `""{",}"`
+    "\\", "\"", // both are parsed as `\"`
+
+//    "();", // the following completely break parsing
+//    "(real_world_example",
+//    ")", "(",
+//    "{\""
+    ), Some(List("\"t")), "(get(\"A\") + get(\"A\")).ok", "call(A, B).ok")))
 
   test("Composite type Lifted support") {
     Await.result(db.run(
