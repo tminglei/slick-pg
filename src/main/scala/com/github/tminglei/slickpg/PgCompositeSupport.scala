@@ -1,6 +1,7 @@
 package com.github.tminglei.slickpg
 
-import scala.reflect.runtime.{universe => u}
+import izumi.reflect.macrortti.LightTypeTag
+import izumi.reflect.{Tag => TTag}
 import scala.reflect.ClassTag
 import composite.Struct
 import slick.jdbc.{PositionedResult, PostgresProfile}
@@ -11,39 +12,39 @@ trait PgCompositeSupport extends utils.PgCommonJdbcTypes with array.PgArrayJdbcT
   protected lazy val emptyMembersAsNull = true
 
   //---
-  def createCompositeJdbcType[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
+  def createCompositeJdbcType[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: TTag[T], tag: ClassTag[T]) = {
     val util = new PgCompositeSupportUtils(cl, emptyMembersAsNull)
     new GenericJdbcType[T](sqlTypeName, util.mkCompositeFromString[T], util.mkStringFromComposite[T])
   }
 
-  def createCompositeArrayJdbcType[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
+  def createCompositeArrayJdbcType[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: TTag[T], tag: ClassTag[T]) = {
     val util = new PgCompositeSupportUtils(cl, emptyMembersAsNull)
     new AdvancedArrayJdbcType[T](sqlTypeName, util.mkCompositeSeqFromString[T], util.mkStringFromCompositeSeq[T])
   }
 
   /// Plain SQL support
-  def nextComposite[T <: Struct](r: PositionedResult, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
+  def nextComposite[T <: Struct](r: PositionedResult, cl: ClassLoader = getClass.getClassLoader)(implicit ev: TTag[T], tag: ClassTag[T]) = {
     val util = new PgCompositeSupportUtils(cl, emptyMembersAsNull)
     r.nextStringOption().map(util.mkCompositeFromString[T])
   }
-  def nextCompositeArray[T <: Struct](r: PositionedResult, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
+  def nextCompositeArray[T <: Struct](r: PositionedResult, cl: ClassLoader = getClass.getClassLoader)(implicit ev: TTag[T], tag: ClassTag[T]) = {
     val util = new PgCompositeSupportUtils(cl, emptyMembersAsNull)
     r.nextStringOption().map(util.mkCompositeSeqFromString[T])
   }
 
-  def createCompositeSetParameter[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
+  def createCompositeSetParameter[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: TTag[T], tag: ClassTag[T]) = {
     val util = new PgCompositeSupportUtils(cl, emptyMembersAsNull)
     utils.PlainSQLUtils.mkSetParameter[T](sqlTypeName, util.mkStringFromComposite[T])
   }
-  def createCompositeOptionSetParameter[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
+  def createCompositeOptionSetParameter[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: TTag[T], tag: ClassTag[T]) = {
     val util = new PgCompositeSupportUtils(cl, emptyMembersAsNull)
     utils.PlainSQLUtils.mkOptionSetParameter[T](sqlTypeName, util.mkStringFromComposite[T])
   }
-  def createCompositeArraySetParameter[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
+  def createCompositeArraySetParameter[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: TTag[T], tag: ClassTag[T]) = {
     val util = new PgCompositeSupportUtils(cl, emptyMembersAsNull)
     utils.PlainSQLUtils.mkArraySetParameter[T](sqlTypeName, seqToStr = Some(util.mkStringFromCompositeSeq[T]))
   }
-  def createCompositeOptionArraySetParameter[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: u.TypeTag[T], tag: ClassTag[T]) = {
+  def createCompositeOptionArraySetParameter[T <: Struct](sqlTypeName: String, cl: ClassLoader = getClass.getClassLoader)(implicit ev: TTag[T], tag: ClassTag[T]) = {
     val util = new PgCompositeSupportUtils(cl, emptyMembersAsNull)
     utils.PlainSQLUtils.mkArrayOptionSetParameter[T](sqlTypeName, seqToStr = Some(util.mkStringFromCompositeSeq[T]))
   }
@@ -53,56 +54,55 @@ class PgCompositeSupportUtils(cl: ClassLoader, emptyMembersAsNull: Boolean) {
   import utils.PgTokenHelper._
   import utils.TypeConverters._
 
-  def mkCompositeFromString[T <: Struct](implicit ev: u.TypeTag[T]): (String => T) = {
-    val converter = mkTokenConverter(u.typeOf[T])
+  def mkCompositeFromString[T <: Struct](implicit ev: TTag[T]): (String => T) = {
+    val converter = mkTokenConverter(ev.tag)
     (input: String) => {
       val root = grouping(Tokenizer.tokenize(input))
       converter.fromToken(root).asInstanceOf[T]
     }
   }
 
-  def mkStringFromComposite[T <: Struct](implicit ev: u.TypeTag[T]): (T => String) = {
-    val converter = mkTokenConverter(u.typeOf[T])
+  def mkStringFromComposite[T <: Struct](implicit ev: TTag[T]): (T => String) = {
+    val converter = mkTokenConverter(ev.tag)
     (value: T) => {
       createString(converter.toToken(value))
     }
   }
 
-  def mkCompositeSeqFromString[T <: Struct](implicit ev: u.TypeTag[Seq[T]]): (String => Seq[T]) = {
-    val converter = mkTokenConverter(u.typeOf[Seq[T]])
+  def mkCompositeSeqFromString[T <: Struct](implicit ev: TTag[Seq[T]]): (String => Seq[T]) = {
+    val converter = mkTokenConverter(ev.tag)
     (input: String) => {
       val root = grouping(Tokenizer.tokenize(input))
       converter.fromToken(root).asInstanceOf[Seq[T]]
     }
   }
 
-  def mkStringFromCompositeSeq[T <: Struct](implicit ev: u.TypeTag[Seq[T]]): (Seq[T] => String) = {
-    val converter = mkTokenConverter(u.typeOf[Seq[T]])
+  def mkStringFromCompositeSeq[T <: Struct](implicit ev: TTag[Seq[T]]): (Seq[T] => String) = {
+    val converter = mkTokenConverter(ev.tag)
     (vList: Seq[T]) => {
       createString(converter.toToken(vList))
     }
   }
 
   ///
-  def mkTokenConverter(theType: u.Type, level: Int = -1)(implicit ev: u.TypeTag[String]): TokenConverter = {
+  def mkTokenConverter(theType: LightTypeTag, level: Int = -1)(implicit ev: TTag[String]): TokenConverter = {
     theType match {
-      case tpe if tpe <:< u.typeOf[Struct] => {
-        val constructor = tpe.decl(u.termNames.CONSTRUCTOR).asMethod
-        val convList = constructor.paramLists.head.map(_.typeSignature).map(mkTokenConverter(_, level +1))
+      case tpe if tpe <:< TTag[Struct].tag => {
+        val convList = tpe.typeArgs.map(x => mkTokenConverter(x, level +1))
         CompositeConverter(tpe, convList)
       }
-      case tpe if tpe.typeConstructor =:= u.typeOf[Option[_]].typeConstructor => {
-        val pType = tpe.asInstanceOf[u.TypeRef].args(0)
+      case tpe if tpe =:= TTag[Option[_]].tag => {
+        val pType = tpe.typeArgs(0)
         OptionConverter(mkTokenConverter(pType, level))
       }
-      case tpe if tpe.typeConstructor <:< u.typeOf[Seq[_]].typeConstructor => {
-        val eType = tpe.asInstanceOf[u.TypeRef].args(0)
+      case tpe if tpe <:< TTag[Seq[_]].tag => {
+        val eType = tpe.typeArgs(0)
         SeqConverter(mkTokenConverter(eType, level +1))
       }
       case tpe => {
-        val fromString = find(u.typeOf[String], tpe).map(_.conv.asInstanceOf[(String => Any)])
+        val fromString = find(TTag[String].tag, tpe).map(_.conv.asInstanceOf[(String => Any)])
           .getOrElse(throw new IllegalArgumentException(s"Converter NOT FOUND for 'String' => '$tpe'"))
-        val ToString = find(tpe, u.typeOf[String]).map(_.conv.asInstanceOf[(Any => String)])
+        val ToString = find(tpe, TTag[String].tag).map(_.conv.asInstanceOf[(Any => String)])
           .getOrElse((v: Any) => v.toString)
         SimpleConverter(fromString, ToString, level)
       }
@@ -122,7 +122,7 @@ class PgCompositeSupportUtils(cl: ClassLoader, emptyMembersAsNull: Boolean) {
       if (value == null) Null else Chunk(ToString(value))
   }
 
-  case class CompositeConverter(theType: u.Type, convList: List[TokenConverter]) extends TokenConverter {
+  case class CompositeConverter(theType: LightTypeTag, convList: List[TokenConverter]) extends TokenConverter {
     private val constructor = theType.decl(u.termNames.CONSTRUCTOR).asMethod
     private val fieldList = constructor.paramLists.head.map(t => theType.decl(t.name).asTerm)
 

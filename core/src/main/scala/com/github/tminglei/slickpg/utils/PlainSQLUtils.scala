@@ -2,26 +2,23 @@ package com.github.tminglei.slickpg.utils
 
 import slick.util.Logging
 
+import izumi.reflect.{Tag => TTag}
 import scala.reflect.ClassTag
 import slick.jdbc.{GetResult, PositionedResult, SetParameter, PositionedParameters}
-
-import scala.reflect.runtime.{universe => u}
 
 object PlainSQLUtils extends Logging {
   import SimpleArrayUtils._
   private[slickpg] var nextArrayConverters = Map.empty[String, PositionedResult => Option[Seq[_]]]
 
   /** used to support 'nextArray[T]/nextArrayOption[T]' in PgArraySupport */
-  def addNextArrayConverter[T](conv: PositionedResult => Option[Seq[T]])(implicit ttag: u.TypeTag[T]) = {
-    logger.info(s"\u001B[36m >>> adding next array converter for ${u.typeOf[T]} \u001B[0m")
-    nextArrayConverters.synchronized {
-      val convKey = u.typeOf[T].toString
+  def addNextArrayConverter[T](conv: PositionedResult => Option[Seq[T]])(implicit ttag: TTag[T]) = {
+    logger.info(s"\u001B[36m >>> adding next array converter for ${ttag.tag.shortName} \u001B[0m")
+      val convKey = ttag.tag.shortName
       val existed = nextArrayConverters.get(convKey)
       if (existed.isDefined) logger.warn(
-        s"\u001B[31m >>> DUPLICATED next array converter for ${u.typeOf[T]}!!! \u001B[36m If it's expected, pls ignore it.\u001B[0m"
+        s"\u001B[31m >>> DUPLICATED next array converter for ${ttag.tag.shortName}!!! \u001B[36m If it's expected, pls ignore it.\u001B[0m"
       )
       nextArrayConverters += (convKey -> conv)
-    }
   }
 
   ///
