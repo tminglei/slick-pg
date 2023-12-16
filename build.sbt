@@ -66,12 +66,12 @@ def mainDependencies(scalaVersion: String) = {
     "org.scala-lang.modules" %% "scala-parser-combinators" % "2.3.0",
     "org.scala-lang" % "scala-reflect" % scalaVersion,
     "com.typesafe.slick" %% "slick" % "3.5.0-M5",
-    "org.postgresql" % "postgresql" % "42.6.0",
+    "org.postgresql" % "postgresql" % "42.7.1",
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.11.0",
     "org.slf4j" % "slf4j-simple" % "2.0.9" % "provided",
     "org.scalatest" %% "scalatest" % "3.2.17" % "test",
-    "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.40.17" % "test",
-    "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.40.17" % "test"
+    "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.41.0" % "test",
+    "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.41.0" % "test"
   )
 }
 
@@ -145,7 +145,7 @@ lazy val slickPgPlayJson = (project in file("./addons/play-json"))
     name := "slick-pg_play-json",
     description := "Slick extensions for PostgreSQL - play-json module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++
-      Seq("com.typesafe.play" %% "play-json" % "2.9.4")
+      Seq("com.typesafe.play" %% "play-json" % "2.10.3")
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
 
@@ -190,7 +190,7 @@ lazy val slickPgArgonaut = (project in file("./addons/argonaut"))
     name := "slick-pg_argonaut",
     description := "Slick extensions for PostgreSQL - argonaut module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++
-      Seq("io.argonaut" %% "argonaut" % "6.3.8")
+      Seq("io.argonaut" %% "argonaut" % "6.3.9")
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
 
