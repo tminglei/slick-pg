@@ -65,7 +65,7 @@ def mainDependencies(scalaVersion: String) = {
   Seq (
     "org.scala-lang.modules" %% "scala-parser-combinators" % "2.3.0",
     "org.scala-lang" % "scala-reflect" % scalaVersion,
-    "com.typesafe.slick" %% "slick" % "3.5.0-M4",
+    "com.typesafe.slick" %% "slick" % "3.5.0-M5",
     "org.postgresql" % "postgresql" % "42.7.1",
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.11.0",
     "org.slf4j" % "slf4j-simple" % "2.0.9" % "provided",
