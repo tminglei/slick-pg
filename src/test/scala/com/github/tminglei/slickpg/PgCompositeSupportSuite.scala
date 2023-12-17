@@ -1,19 +1,21 @@
 package com.github.tminglei.slickpg
 
-import java.time.LocalDateTime
+import com.github.tminglei.slickpg.composite.Struct
+import org.postgresql.util.HStoreConverter
+import org.scalatest.funsuite.AnyFunSuite
+import slick.jdbc.{GetResult, PositionedResult, PostgresProfile, SetParameter}
+import com.github.tminglei.slickpg.utils.TypeConverters
 
+import java.time.LocalDateTime
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 
-import slick.jdbc.{GetResult, PositionedResult, PostgresProfile}
-
-import com.github.tminglei.slickpg.composite.Struct
-import org.postgresql.util.HStoreConverter
-import org.scalatest.funsuite.AnyFunSuite
-
 
 object PgCompositeSupportSuite {
+  import TypeConverters._
+  import ScalaVersionShim._
+  import ScalaVersionShim.maybeTypeConverters._
   def ts(str: String) = LocalDateTime.parse(str.replace(' ', 'T'))
 
   case class Composite1(
@@ -62,25 +64,22 @@ object PgCompositeSupportSuite {
 
     ///
     trait API extends JdbcAPI with ArrayImplicits {
-      utils.TypeConverters.register(PgRangeSupportUtils.mkRangeFn(ts))
-      utils.TypeConverters.register(PgRangeSupportUtils.toStringFn[LocalDateTime](_.toString))
-      utils.TypeConverters.register(mapToString)
-      utils.TypeConverters.register(stringToMap)
+      registerTypeConverters()
 
-      implicit val composite1TypeMapper = createCompositeJdbcType[Composite1]("composite1")
-      implicit val composite2TypeMapper = createCompositeJdbcType[Composite2]("composite2")
-      implicit val composite3TypeMapper = createCompositeJdbcType[Composite3]("composite3")
-      implicit val composite4TypeMapper = createCompositeJdbcType[Composite4]("composite4")
-      implicit val c1TypeMapper = createCompositeJdbcType[C1]("c1")
-      implicit val c2TypeMapper = createCompositeJdbcType[C2]("c2")
+      implicit val composite1TypeMapper: GenericJdbcType[Composite1] = createCompositeJdbcType[Composite1]("composite1")
+      implicit val composite2TypeMapper: GenericJdbcType[Composite2] = createCompositeJdbcType[Composite2]("composite2")
+      implicit val composite3TypeMapper: GenericJdbcType[Composite3] = createCompositeJdbcType[Composite3]("composite3")
+      implicit val composite4TypeMapper: GenericJdbcType[Composite4] = createCompositeJdbcType[Composite4]("composite4")
+      implicit val c1TypeMapper: GenericJdbcType[C1] = createCompositeJdbcType[C1]("c1")
+      implicit val c2TypeMapper: GenericJdbcType[C2] = createCompositeJdbcType[C2]("c2")
 
-      implicit val composite1ArrayTypeMapper = createCompositeArrayJdbcType[Composite1]("composite1").to(_.toList)
-      implicit val composite2ArrayTypeMapper = createCompositeArrayJdbcType[Composite2]("composite2").to(_.toList)
-      implicit val composite3ArrayTypeMapper = createCompositeArrayJdbcType[Composite3]("composite3").to(_.toList)
+      implicit val composite1ArrayTypeMapper: DriverJdbcType[List[Composite1]] = createCompositeArrayJdbcType[Composite1]("composite1").to(_.toList)
+      implicit val composite2ArrayTypeMapper: DriverJdbcType[List[Composite2]] = createCompositeArrayJdbcType[Composite2]("composite2").to(_.toList)
+      implicit val composite3ArrayTypeMapper: DriverJdbcType[List[Composite3]] = createCompositeArrayJdbcType[Composite3]("composite3").to(_.toList)
     }
     override val api: API = new API {}
 
-    val plainImplicits = new API with SimpleArrayPlainImplicits {
+    object plainImplicits extends API with SimpleArrayPlainImplicits {
       import utils.PlainSQLUtils._
       // to support 'nextArray[T]/nextArrayOption[T]' in PgArraySupport
       {
@@ -95,20 +94,20 @@ object PgCompositeSupportSuite {
         def nextComposite3() = nextComposite[Composite3](r)
       }
 
-      implicit val composite1SetParameter = createCompositeSetParameter[Composite1]("composite1")
-      implicit val composite1OptSetParameter = createCompositeOptionSetParameter[Composite1]("composite1")
-      implicit val composite1ArraySetParameter = createCompositeArraySetParameter[Composite1]("composite1")
-      implicit val composite1ArrayOptSetParameter = createCompositeOptionArraySetParameter[Composite1]("composite1")
+      implicit val composite1SetParameter: SetParameter[Composite1] = createCompositeSetParameter[Composite1]("composite1")
+      implicit val composite1OptSetParameter: SetParameter[Option[Composite1]] = createCompositeOptionSetParameter[Composite1]("composite1")
+      implicit val composite1ArraySetParameter: SetParameter[Seq[Composite1]] = createCompositeArraySetParameter[Composite1]("composite1")
+      implicit val composite1ArrayOptSetParameter: SetParameter[Option[Seq[Composite1]]] = createCompositeOptionArraySetParameter[Composite1]("composite1")
 
-      implicit val composite2SetParameter = createCompositeSetParameter[Composite2]("composite2")
-      implicit val composite2OptSetParameter = createCompositeOptionSetParameter[Composite2]("composite2")
-      implicit val composite2ArraySetParameter = createCompositeArraySetParameter[Composite2]("composite2")
-      implicit val composite2ArrayOptSetParameter = createCompositeOptionArraySetParameter[Composite2]("composite2")
+      implicit val composite2SetParameter: SetParameter[Composite2] = createCompositeSetParameter[Composite2]("composite2")
+      implicit val composite2OptSetParameter: SetParameter[Option[Composite2]] = createCompositeOptionSetParameter[Composite2]("composite2")
+      implicit val composite2ArraySetParameter: SetParameter[Seq[Composite2]] = createCompositeArraySetParameter[Composite2]("composite2")
+      implicit val composite2ArrayOptSetParameter: SetParameter[Option[Seq[Composite2]]] = createCompositeOptionArraySetParameter[Composite2]("composite2")
 
-      implicit val composite3SetParameter = createCompositeSetParameter[Composite3]("composite3")
-      implicit val composite3OptSetParameter = createCompositeOptionSetParameter[Composite3]("composite3")
-      implicit val composite3ArraySetParameter = createCompositeArraySetParameter[Composite3]("composite3")
-      implicit val composite3ArrayOptSetParameter = createCompositeOptionArraySetParameter[Composite3]("composite3")
+      implicit val composite3SetParameter: SetParameter[Composite3] = createCompositeSetParameter[Composite3]("composite3")
+      implicit val composite3OptSetParameter: SetParameter[Option[Composite3]] = createCompositeOptionSetParameter[Composite3]("composite3")
+      implicit val composite3ArraySetParameter: SetParameter[Seq[Composite3]] = createCompositeArraySetParameter[Composite3]("composite3")
+      implicit val composite3ArrayOptSetParameter: SetParameter[Option[Seq[Composite3]]] = createCompositeOptionArraySetParameter[Composite3]("composite3")
     }
   }
   object MyPostgresProfile1 extends MyPostgresProfile1
@@ -146,7 +145,7 @@ class PgCompositeSupportSuite extends AnyFunSuite with PostgresContainer {
     def id = column[Long]("id")
     def comps = column[List[Composite2]]("comps", O.Default(Nil))
 
-    def * = (id,comps) <> (TestBean.tupled, TestBean.unapply)
+    def * = (id,comps) <> ((TestBean.apply _).tupled, TestBean.unapply)
   }
   val CompositeTests = TableQuery(new TestTable(_))
 
@@ -154,7 +153,7 @@ class PgCompositeSupportSuite extends AnyFunSuite with PostgresContainer {
     def id = column[Long]("id")
     def comps = column[List[Composite3]]("comps")
 
-    def * = (id,comps) <> (TestBean1.tupled, TestBean1.unapply)
+    def * = (id,comps) <> ((TestBean1.apply _).tupled, TestBean1.unapply)
   }
   val CompositeTests1 = TableQuery(new TestTable1(_))
 
@@ -163,7 +162,7 @@ class PgCompositeSupportSuite extends AnyFunSuite with PostgresContainer {
     def comps = column[Composite1]("comp")
     def c2 = column[C2]("c2")
 
-    def * = (id,comps,c2) <> (TestBean2.tupled, TestBean2.unapply)
+    def * = (id,comps,c2) <> ((TestBean2.apply _).tupled, TestBean2.unapply)
   }
   val CompositeTests2 = TableQuery(new TestTable2(_))
 
@@ -171,7 +170,7 @@ class PgCompositeSupportSuite extends AnyFunSuite with PostgresContainer {
     def id = column[Long]("id")
     def comps = column[Option[Composite4]]("comp")
 
-    def * = (id, comps) <> (TestBean3.tupled, TestBean3.unapply)
+    def * = (id, comps) <> ((TestBean3.apply _).tupled, TestBean3.unapply)
   }
   val CompositeTests3 = TableQuery(new TestTable3(_))
 
@@ -294,8 +293,8 @@ class PgCompositeSupportSuite extends AnyFunSuite with PostgresContainer {
   test("Composite type Plain SQL support") {
     import MyPostgresProfile1.plainImplicits._
 
-    implicit val getTestBeanResult = GetResult(r => TestBean(r.nextLong(), r.nextArray[Composite2]().toList))
-    implicit val getTestBean1Result = GetResult(r => TestBean1(r.nextLong(), r.nextArray[Composite3]().toList))
+    implicit val getTestBeanResult: GetResult[TestBean] = GetResult(r => TestBean(r.nextLong(), r.nextArray[Composite2]().toList))
+    implicit val getTestBean1Result: GetResult[TestBean1] = GetResult(r => TestBean1(r.nextLong(), r.nextArray[Composite3]().toList))
 
     Await.result(db.run(DBIO.seq(
       sqlu"create type composite1 as (id int8, txt text, date timestamp, ts_range tsrange)",

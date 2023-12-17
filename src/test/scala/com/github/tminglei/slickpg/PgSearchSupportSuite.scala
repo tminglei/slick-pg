@@ -23,7 +23,7 @@ class PgSearchSupportSuite extends AnyFunSuite with PostgresContainer {
     def search = column[TsVector]("search")
     def comment = column[String]("comment")
 
-    def * = (id, text, search, comment) <> (TestBean.tupled, TestBean.unapply)
+    def * = (id, text, search, comment) <> ((TestBean.apply _).tupled, TestBean.unapply)
   }
   val Tests = TableQuery[TestTable]
 
@@ -160,7 +160,7 @@ class PgSearchSupportSuite extends AnyFunSuite with PostgresContainer {
 
     case class SearchBean(id: Long, tVec: TsVector, tQ: TsQuery)
 
-    implicit val getSearchBeanResult = GetResult(r => SearchBean(r.nextLong(), r.nextTsVector(), r.nextTsQuery()))
+    implicit val getSearchBeanResult: GetResult[SearchBean] = GetResult(r => SearchBean(r.nextLong(), r.nextTsVector(), r.nextTsQuery()))
 
     val b = SearchBean(101L, TsVector("'ate' 'cat' 'fat' 'rat'"), TsQuery("'rat'"))
 

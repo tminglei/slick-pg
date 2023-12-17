@@ -22,9 +22,6 @@ trait PgDateSupportJoda extends date.PgDateExtensions with utils.PgCommonJdbcTyp
     }
   }
 
-  /// alias
-  trait DateTimeImplicits extends JodaDateTimeImplicits
-
   trait JodaDateTimeFormatters {
     val jodaDateFormatter = ISODateTimeFormat.date()
     val jodaTimeFormatter = DateTimeFormat.forPattern("HH:mm:ss.SSSSSS")

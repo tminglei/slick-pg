@@ -25,7 +25,7 @@ class PgWindowFuncCoreSuite extends AnyFunSuite with PostgresContainer {
     def col3 = column[String]("COL3")
     def col4 = column[Int]("COL4")
 
-    def * = (col1, col2, col3, col4) <> (Tab.tupled, Tab.unapply)
+    def * = (col1, col2, col3, col4) <> ((Tab.apply _).tupled, Tab.unapply)
   }
   val tabs = TableQuery[Tabs]
 

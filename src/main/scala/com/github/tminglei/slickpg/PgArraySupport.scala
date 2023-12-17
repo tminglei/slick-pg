@@ -1,9 +1,9 @@
 package com.github.tminglei.slickpg
 
+import izumi.reflect.{Tag => TTag}
 import java.util.UUID
 import java.sql.{Date, Time, Timestamp}
 import slick.jdbc.{GetResult, JdbcType, PositionedResult, PostgresProfile, SetParameter}
-import scala.reflect.runtime.{universe => u}
 import scala.reflect.classTag
 
 trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes { driver: PostgresProfile =>
@@ -63,9 +63,9 @@ trait PgArraySupport extends array.PgArrayExtensions with array.PgArrayJdbcTypes
     }
 
     implicit class PgArrayPositionedResult(r: PositionedResult) {
-      def nextArray[T]()(implicit tpe: u.TypeTag[T]): Seq[T] = nextArrayOption[T]().getOrElse(Nil)
-      def nextArrayOption[T]()(implicit ttag: u.TypeTag[T]): Option[Seq[T]] = {
-        nextArrayConverters.get(u.typeOf[T].toString).map(_.apply(r))
+      def nextArray[T]()(implicit tpe: TTag[T]): Seq[T] = nextArrayOption[T]().getOrElse(Nil)
+      def nextArrayOption[T]()(implicit ttag: TTag[T]): Option[Seq[T]] = {
+        nextArrayConverters.get(ttag.tag.repr).map(_.apply(r))
           .getOrElse(simpleNextArray[T](r)).asInstanceOf[Option[Seq[T]]]
       }
     }

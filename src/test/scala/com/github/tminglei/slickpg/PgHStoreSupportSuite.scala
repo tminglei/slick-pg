@@ -17,7 +17,7 @@ class PgHStoreSupportSuite extends AnyFunSuite with PostgresContainer {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def hstore = column[Map[String, String]]("hstoreMap", O.Default(Map.empty))
 
-    def * = (id, hstore) <> (MapBean.tupled, MapBean.unapply)
+    def * = (id, hstore) <> ((MapBean.apply _).tupled, MapBean.unapply)
   }
   val HStoreTests = TableQuery[HStoreTestTable]
 
@@ -107,7 +107,7 @@ class PgHStoreSupportSuite extends AnyFunSuite with PostgresContainer {
   test("Hstore Plain SQL support") {
     import MyPostgresProfile.plainAPI._
 
-    implicit val getMapBeanResult = GetResult(r => MapBean(r.nextLong(), r.nextHStore()))
+    implicit val getMapBeanResult: GetResult[MapBean] = GetResult(r => MapBean(r.nextLong(), r.nextHStore()))
 
     val b = MapBean(34L, Map("a"->"val1", "b"->"val3", "c"->"321"))
 

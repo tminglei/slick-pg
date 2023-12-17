@@ -53,12 +53,12 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
         case Some(p) => om.column(GeomLibrary.LineFromEncodedPolyline, encodedPolyline.toNode, LiteralNode(p))
         case None   => om.column(GeomLibrary.LineFromEncodedPolyline, encodedPolyline.toNode)
       }
-    def makeBox[G1 <: GEOMETRY, P1, G2 <: GEOMETRY, P2, R](lowLeftPoint: Rep[P1], upRightPoint: Rep[P2])(
-      implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[G1, P1]#arg[G2, P2]#to[GEOMETRY, R]) = {
+    def makeBox[G <: GEOMETRY, P1, P2, R](lowLeftPoint: Rep[P1], upRightPoint: Rep[P2])(
+      implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[G, P1]#arg[G, P1]#to[GEOMETRY, R]) = {
         om.column(GeomLibrary.MakeBox, lowLeftPoint.toNode, upRightPoint.toNode)
       }
-    def makeBox3d[G1 <: GEOMETRY, P1, G2 <: GEOMETRY, P2, R](lowLeftPoint: Rep[P1], upRightPoint: Rep[P2])(
-      implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[G1, P1]#arg[G2, P2]#to[GEOMETRY, R]) = {
+    def makeBox3d[G <: GEOMETRY, P1,  P2, R](lowLeftPoint: Rep[P1], upRightPoint: Rep[P2])(
+      implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[G, P1]#arg[G, P2]#to[GEOMETRY, R]) = {
         om.column(GeomLibrary.MakeBox3D, lowLeftPoint.toNode, upRightPoint.toNode)
       }
     def makeEnvelope(xmin: Rep[Double], ymin: Rep[Double], xmax: Rep[Double], ymax: Rep[Double], srid: Option[Int] = None)(
@@ -75,8 +75,8 @@ trait PgPostGISExtensions extends JdbcTypesComponent { driver: PostgresProfile =
         case (None, Some(m)) => om.column(GeomLibrary.MakePointM, x.toNode, y.toNode, LiteralNode(m))
         case (None, None) => om.column(GeomLibrary.MakePoint, x.toNode, y.toNode)
       }
-    def makeLine[G1 <: GEOMETRY, P1, G2 <: GEOMETRY, P2, R](point1: Rep[P1], point2: Rep[P2])(
-      implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[G1, P1]#arg[G2, P2]#to[GEOMETRY, R]) = {
+    def makeLine[G <: GEOMETRY, P1, P2, R](point1: Rep[P1], point2: Rep[P2])(
+      implicit tm: JdbcType[GEOMETRY], om: OptionMapperDSL.arg[G, P1]#arg[G, P2]#to[GEOMETRY, R]) = {
         om.column(GeomLibrary.MakeLine, point1.toNode, point2.toNode)
       }
     def makePolygon[G <: GEOMETRY, P, R](linestring: Rep[P])(

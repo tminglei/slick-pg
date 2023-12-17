@@ -1,14 +1,15 @@
 val scala212 = "2.12.18"
 val scala213 = "2.13.12"
+val scala3 = "3.3.1"
 
 lazy val commonSettings = Seq(
   organizationName := "slick-pg",
   organization := "com.github.tminglei",
   name := "slick-pg",
-  version := "0.22.0-M4",
+  version := "0.22.0-M5",
 
   scalaVersion := scala213,
-  crossScalaVersions := Seq(scala212, scala213),
+  crossScalaVersions := Seq(scala212, scala213, scala3),
   scalacOptions ++= Seq("-deprecation", "-feature",
     "-language:implicitConversions",
     "-language:reflectiveCalls",
@@ -64,7 +65,7 @@ lazy val commonSettings = Seq(
 def mainDependencies(scalaVersion: String) = {
   Seq (
     "org.scala-lang.modules" %% "scala-parser-combinators" % "2.3.0",
-    "org.scala-lang" % "scala-reflect" % scalaVersion,
+    "dev.zio" %% "izumi-reflect" % "2.3.8",
     "com.typesafe.slick" %% "slick" % "3.5.0-M5",
     "org.postgresql" % "postgresql" % "42.7.1",
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.11.0",
@@ -72,7 +73,7 @@ def mainDependencies(scalaVersion: String) = {
     "org.scalatest" %% "scalatest" % "3.2.17" % "test",
     "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.41.0" % "test",
     "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.41.0" % "test"
-  )
+  ) ++ (if (scalaVersion.startsWith("3")) Nil else Seq("org.scala-lang" % "scala-reflect" % scalaVersion))
 }
 
 lazy val slickPgCore = (project in file("./core"))

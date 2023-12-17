@@ -1,15 +1,14 @@
 package com.github.tminglei.slickpg
 
 import java.util.concurrent.Executors
-
 import org.scalatest.funsuite.AnyFunSuite
 import slick.jdbc.{GetResult, PostgresProfile}
 
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService}
 import scala.concurrent.duration._
 
 class PgUPickleJsonSupportSuite extends AnyFunSuite with PostgresContainer {
-  implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
+  implicit val testExecContext: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
   trait MyPostgresProfile extends PostgresProfile
                             with PgUPickleJsonSupport
@@ -22,7 +21,7 @@ class PgUPickleJsonSupportSuite extends AnyFunSuite with PostgresContainer {
 
     ///
     trait API extends JdbcAPI with JsonImplicits {
-      implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
+      implicit val strListTypeMapper: DriverJdbcType[List[String]] = new SimpleArrayJdbcType[String]("text").to(_.toList)
     }
   }
   object MyPostgresProfile extends MyPostgresProfile
@@ -37,7 +36,7 @@ class PgUPickleJsonSupportSuite extends AnyFunSuite with PostgresContainer {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def json = column[ujson.Value]("json")
 
-    def * = (id, json) <> (JsonBean.tupled, JsonBean.unapply)
+    def * = (id, json) <> ((JsonBean.apply _).tupled, JsonBean.unapply)
   }
   val JsonTests = TableQuery[JsonTestTable]
 
@@ -134,7 +133,7 @@ class PgUPickleJsonSupportSuite extends AnyFunSuite with PostgresContainer {
   test("UPickle json Plain SQL support") {
     import MyPostgresProfile.plainAPI._
 
-    implicit val getJsonBeanResult = GetResult(r => JsonBean(r.nextLong(), r.nextJson()))
+    implicit val getJsonBeanResult: GetResult[JsonBean] = GetResult(r => JsonBean(r.nextLong(), r.nextJson()))
 
     val b = JsonBean(34L, ujson.read(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """))
 

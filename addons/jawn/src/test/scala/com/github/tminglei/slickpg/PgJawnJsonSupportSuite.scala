@@ -1,18 +1,16 @@
 package com.github.tminglei.slickpg
 
 import java.util.concurrent.Executors
-
 import org.typelevel.jawn._
 import org.typelevel.jawn.ast._
-
 import org.scalatest.funsuite.AnyFunSuite
 import slick.jdbc.{GetResult, PostgresProfile}
 
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService}
 import scala.concurrent.duration._
 
 class PgJawnJsonSupportSuite extends AnyFunSuite with PostgresContainer {
-  implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
+  implicit val testExecContext: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
   trait MyPostgresProfile extends PostgresProfile
                             with PgJawnJsonSupport
@@ -25,8 +23,8 @@ class PgJawnJsonSupportSuite extends AnyFunSuite with PostgresContainer {
 
     ///
     trait API extends JdbcAPI with JsonImplicits {
-      implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
-      implicit val jsonArrayTypeMapper =
+      implicit val strListTypeMapper: DriverJdbcType[List[String]] = new SimpleArrayJdbcType[String]("text").to(_.toList)
+      implicit val jsonArrayTypeMapper: DriverJdbcType[List[JValue]] =
         new AdvancedArrayJdbcType[JValue](pgjson,
           (s) => utils.SimpleArrayUtils.fromString[JValue](JParser.parseUnsafe(_))(s).orNull,
           (v) => utils.SimpleArrayUtils.mkString[JValue](_.toString())(v)
@@ -47,7 +45,7 @@ class PgJawnJsonSupportSuite extends AnyFunSuite with PostgresContainer {
     def json = column[JValue]("json", O.Default(JParser.parseUnsafe(""" {"a":"v1","b":2} """)))
     def jsons = column[List[JValue]]("jsons")
 
-    def * = (id, json, jsons) <> (JsonBean.tupled, JsonBean.unapply)
+    def * = (id, json, jsons) <> ((JsonBean.apply _).tupled, JsonBean.unapply)
   }
   val JsonTests = TableQuery[JsonTestTable]
 
@@ -173,7 +171,7 @@ class PgJawnJsonSupportSuite extends AnyFunSuite with PostgresContainer {
   test("Json Plain SQL support") {
     import MyPostgresProfile.plainAPI._
 
-    implicit val getJsonBeanResult = GetResult(r => JsonBean1(r.nextLong(), r.nextJson()))
+    implicit val getJsonBeanResult: GetResult[JsonBean1] = GetResult(r => JsonBean1(r.nextLong(), r.nextJson()))
 
     val b = JsonBean1(34L, JParser.parseUnsafe(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """))
 

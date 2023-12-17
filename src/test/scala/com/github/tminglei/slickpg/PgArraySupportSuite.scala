@@ -2,10 +2,11 @@ package com.github.tminglei.slickpg
 
 import java.sql.{Date, Time, Timestamp}
 import java.util.UUID
-
 import org.scalatest.funsuite.AnyFunSuite
-import slick.jdbc.GetResult
+import slick.ast.BaseTypedType
+import slick.jdbc.{GetResult, JdbcType, SetParameter}
 
+import scala.collection.mutable
 import scala.collection.mutable.Buffer
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -22,27 +23,27 @@ class PgArraySupportSuite extends AnyFunSuite with PostgresContainer {
 
     ///
     trait MyAPI extends ExtPostgresAPI with ArrayImplicits {
-      implicit val simpleOptStrListListMapper = new SimpleArrayJdbcType[String]("text")
+      implicit val simpleOptStrListListMapper: DriverJdbcType[List[Option[String]]] = new SimpleArrayJdbcType[String]("text")
         .mapTo[Option[String]](Option(_), _.orNull).to(_.toList)
-      implicit val simpleLongBufferTypeMapper = new SimpleArrayJdbcType[Long]("int8").to(_.toBuffer[Long], (v: Buffer[Long]) => v.toSeq)
-      implicit val simpleStrVectorTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toVector)
-      implicit val institutionListTypeWrapper =  new SimpleArrayJdbcType[Long]("int8")
+      implicit val simpleLongBufferTypeMapper: DriverJdbcType[mutable.Buffer[Long]] = new SimpleArrayJdbcType[Long]("int8").to(_.toBuffer[Long], (v: Buffer[Long]) => v.toSeq)
+      implicit val simpleStrVectorTypeMapper: DriverJdbcType[Vector[String]] = new SimpleArrayJdbcType[String]("text").to(_.toVector)
+      implicit val institutionListTypeWrapper: DriverJdbcType[List[Institution]] =  new SimpleArrayJdbcType[Long]("int8")
         .mapTo[Institution](new Institution(_), _.value).to(_.toList)
-      implicit val marketFinancialProductWrapper = new SimpleArrayJdbcType[String]("text")
+      implicit val marketFinancialProductWrapper: DriverJdbcType[List[MarketFinancialProduct]] = new SimpleArrayJdbcType[String]("text")
         .mapTo[MarketFinancialProduct](new MarketFinancialProduct(_), _.value).to(_.toList)
       ///
-      implicit val bigDecimalTypeWrapper = new SimpleArrayJdbcType[java.math.BigDecimal]("numeric")
+      implicit val bigDecimalTypeWrapper: DriverJdbcType[List[BigDecimal]] = new SimpleArrayJdbcType[java.math.BigDecimal]("numeric")
         .mapTo[scala.math.BigDecimal](javaBigDecimal => scala.math.BigDecimal(javaBigDecimal),
           scalaBigDecimal => scalaBigDecimal.bigDecimal).to(_.toList)
-      implicit val advancedStringListTypeMapper = new AdvancedArrayJdbcType[String]("text",
-        fromString(identity)(_).orNull, mkString(identity))
+      implicit val advancedStringListTypeMapper: AdvancedArrayJdbcType[String] = new AdvancedArrayJdbcType[String]("text",
+        fromString(identity)(_).orNull, mkString(identity[String]))
       ///
-      implicit val longlongWitness = ElemWitness.AnyWitness.asInstanceOf[ElemWitness[List[Long]]]
-      implicit val simpleLongLongListTypeMapper = new SimpleArrayJdbcType[List[Long]]("int8[]")
+      implicit val longlongWitness: ElemWitness[List[Long]] = ElemWitness.AnyWitness.asInstanceOf[ElemWitness[List[Long]]]
+      implicit val simpleLongLongListTypeMapper: DriverJdbcType[List[List[Long]]] = new SimpleArrayJdbcType[List[Long]]("int8[]")
         .to(_.asInstanceOf[Seq[Array[Any]]].toList.map(_.toList.asInstanceOf[List[Long]]))
 
-      implicit val institutionTypeWrapper = MappedJdbcType.base[Institution, Long](_.value, Institution)
-      implicit val marketFinancialProductTypeWrapper = MappedJdbcType.base[MarketFinancialProduct, String](_.value, MarketFinancialProduct)
+      implicit val institutionTypeWrapper: JdbcType[Institution] with BaseTypedType[Institution] = MappedJdbcType.base[Institution, Long](_.value, Institution)
+      implicit val marketFinancialProductTypeWrapper: JdbcType[MarketFinancialProduct] with BaseTypedType[MarketFinancialProduct] = MappedJdbcType.base[MarketFinancialProduct, String](_.value, MarketFinancialProduct)
     }
   }
   object MyPostgresProfile1 extends MyPostgresProfile1
@@ -84,7 +85,7 @@ class PgArraySupportSuite extends AnyFunSuite with PostgresContainer {
     def mktFinancialProducts = column[Option[List[MarketFinancialProduct]]]("mktFinancialProducts")
 
     def * = (id, str, intArr, longArr, longlongArr, shortArr, strList, optStrList, strArr, uuidArr,
-      bigDecimalArr, institutions, mktFinancialProducts) <> (ArrayBean.tupled, ArrayBean.unapply)
+      bigDecimalArr, institutions, mktFinancialProducts) <> ((ArrayBean.apply _).tupled, ArrayBean.unapply)
   }
   val ArrayTests = TableQuery[ArrayTestTable]
 
@@ -125,7 +126,7 @@ class PgArraySupportSuite extends AnyFunSuite with PostgresContainer {
             r => assert(List(testRec2) === r)
           ),
           // @>
-          ArrayTests.filter(_.strArr @> Vector("str3")).sortBy(_.id).to[List].result.map(
+          ArrayTests.filter(_.strArr @> (Vector("str3"): Rep[Vector[String]])).sortBy(_.id).to[List].result.map(
             r => assert(List(testRec1, testRec2, testRec3) === r)
           ),
           ArrayTests.filter(_.mktFinancialProducts @> List(MarketFinancialProduct("product1"))).sortBy(_.id).to[List].result.map(
@@ -206,12 +207,12 @@ class PgArraySupportSuite extends AnyFunSuite with PostgresContainer {
       addNextArrayConverter((r) => r.nextArrayOption[Long]().map(_.map(Institution(_))))
     }
 
-    implicit val getInstitutionArray = mkGetResult(_.nextArray[Institution]())
-    implicit val getInstitutionArrayOption = mkGetResult(_.nextArrayOption[Institution]())
-    implicit val setInstitutionArray = mkArraySetParameter[Institution]("int8", v => String.valueOf(v.value))
-    implicit val setInstitutionArrayOption = mkArrayOptionSetParameter[Institution]("int8", v => String.valueOf(v.value))
+    implicit val getInstitutionArray: GetResult[Seq[Institution]] = mkGetResult(_.nextArray[Institution]())
+    implicit val getInstitutionArrayOption: GetResult[Option[Seq[Institution]]] = mkGetResult(_.nextArrayOption[Institution]())
+    implicit val setInstitutionArray: SetParameter[Seq[Institution]] = mkArraySetParameter[Institution]("int8", v => String.valueOf(v.value))
+    implicit val setInstitutionArrayOption: SetParameter[Option[Seq[Institution]]] = mkArrayOptionSetParameter[Institution]("int8", v => String.valueOf(v.value))
 
-    implicit val getArrarBean1Result = GetResult { r =>
+    implicit val getArrarBean1Result: GetResult[ArrayBean1] = GetResult { r =>
       ArrayBean1(r.nextLong(),
         r.<<[Array[Byte]],
         r.<<[Seq[UUID]].toList,
@@ -254,7 +255,7 @@ class PgArraySupportSuite extends AnyFunSuite with PostgresContainer {
         sqlu"insert into ArrayTest1 values(${b.id}, ${b.bytea}, ${b.uuidArr}, ${b.strArr}, ${b.longArr}, ${b.intArr}, ${b.shortArr}, ${b.floatArr}, ${b.doubleArr}, ${b.boolArr}, ${b.dateArr}, ${b.timeArr}, ${b.tsArr}, ${b.institutionArr})",
         sql"select * from ArrayTest1 where id = ${b.id}".as[ArrayBean1].head.map(
           f => {
-            b.bytea.zip(f.bytea).map(r => assert(r._1 === r._2))
+            b.bytea.toSeq.zip(f.bytea.toSeq).map(r => assert(r._1 === r._2))
             b.uuidArr.zip(f.uuidArr).map(r => assert(r._1 === r._2))
             b.strArr.getOrElse(Nil).zip(f.strArr.getOrElse(Nil)).map(r => assert(r._1 === r._2))
             b.longArr.zip(f.longArr).map(r => assert(r._1 === r._2))

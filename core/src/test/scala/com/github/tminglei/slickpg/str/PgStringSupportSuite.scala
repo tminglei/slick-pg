@@ -34,7 +34,7 @@ class PgStringSupportSuite extends AnyFunSuite with PostgresContainer {
     val str = column[String]("str")
     val strArr = column[Array[Byte]]("str_arr")
 
-    def * = (id, str, strArr) <> (StrBean.tupled, StrBean.unapply)
+    def * = (id, str, strArr) <> ((StrBean.apply _).tupled, StrBean.unapply)
   }
   val stringTestTable = TableQuery[StringTestTable]
 

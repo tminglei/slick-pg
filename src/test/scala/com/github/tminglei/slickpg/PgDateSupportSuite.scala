@@ -51,7 +51,7 @@ class PgDateSupportSuite extends AnyFunSuite with PostgresContainer {
     def timestamptz = column[Calendar]("timestamptz")
     def interval = column[Interval]("interval")
 
-    def * = (id, date, time, timestamp, timestamptz, interval) <> (DatetimeBean.tupled, DatetimeBean.unapply)
+    def * = (id, date, time, timestamp, timestamptz, interval) <> ((DatetimeBean.apply _).tupled, DatetimeBean.unapply)
   }
   val Datetimes = TableQuery[DatetimeTable]
 

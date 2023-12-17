@@ -1,24 +1,28 @@
 package com.github.tminglei.slickpg
 
 import java.util.concurrent.Executors
-
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext}
-
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService}
 import play.api.libs.json._
-import slick.jdbc.{GetResult, PostgresProfile}
-
+import slick.jdbc.{GetResult, JdbcType, PostgresProfile}
 import com.github.tminglei.slickpg.utils.JsonUtils
 import org.scalatest.funsuite.AnyFunSuite
+import play.api.libs.functional.syntax.toFunctionalBuilderOps
+import slick.ast.BaseTypedType
 
 
 class PgPlayJsonSupportSuite extends AnyFunSuite with PostgresContainer {
-  implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
+  implicit val testExecContext: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
   case class JBean(name: String, count: Int)
   object JBean {
-    implicit val jbeanFmt = Json.format[JBean]
-    implicit val jbeanWrt = Json.writes[JBean]
+    // jbeanFmt should just be this, but there's a bug in play-json for scala 3 that causes it to throw a java.lang.ClassCastException -- and we're not testing that here
+//    implicit val jbeanFmt: OFormat[JBean] = Json.format[JBean]
+    implicit val jbeanFmt: OFormat[JBean] = (
+      (__ \ implicitly[JsonConfiguration].naming("name")).format[String] and
+      (__ \ implicitly[JsonConfiguration].naming("count")).format[Int]
+    )(JBean.apply _, x => (x.name, x.count))
+    implicit val jbeanWrt: OWrites[JBean] = Json.writes[JBean]
   }
 
   trait MyPostgresProfile extends PostgresProfile
@@ -32,14 +36,14 @@ class PgPlayJsonSupportSuite extends AnyFunSuite with PostgresContainer {
 
     ///
     trait API extends JdbcAPI with JsonImplicits {
-      implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
-      implicit val beanJsonTypeMapper = MappedJdbcType.base[JBean, JsValue](Json.toJson(_), _.as[JBean])
-      implicit val jsonArrayTypeMapper =
+      implicit val strListTypeMapper: DriverJdbcType[List[String]] = new SimpleArrayJdbcType[String]("text").to(_.toList)
+      implicit val beanJsonTypeMapper: JdbcType[JBean] with BaseTypedType[JBean] = MappedJdbcType.base[JBean, JsValue](Json.toJson(_), _.as[JBean])
+      implicit val jsonArrayTypeMapper: DriverJdbcType[List[JsValue]] =
         new AdvancedArrayJdbcType[JsValue](pgjson,
           (s) => utils.SimpleArrayUtils.fromString[JsValue](Json.parse(_))(s).orNull,
           (v) => utils.SimpleArrayUtils.mkString[JsValue](_.toString())(v)
         ).to(_.toList)
-      implicit val beanArrayTypeMapper =
+      implicit val beanArrayTypeMapper: DriverJdbcType[List[JBean]] =
         new AdvancedArrayJdbcType[JBean](pgjson,
           (s) => utils.SimpleArrayUtils.fromString[JBean](Json.parse(_).as[JBean])(s).orNull,
           (v) => utils.SimpleArrayUtils.mkString[JBean](b => Json.stringify(Json.toJson(b)))(v)
@@ -62,7 +66,7 @@ class PgPlayJsonSupportSuite extends AnyFunSuite with PostgresContainer {
     def jbean = column[JBean]("jbean")
     def jbeans = column[List[JBean]]("jbeans")
 
-    def * = (id, json, jsons, jbean, jbeans) <> (JsonBean.tupled, JsonBean.unapply)
+    def * = (id, json, jsons, jbean, jbeans) <> ((JsonBean.apply _).tupled, JsonBean.unapply)
   }
   val JsonTests = TableQuery[JsonTestTable]
 
@@ -207,7 +211,7 @@ class PgPlayJsonSupportSuite extends AnyFunSuite with PostgresContainer {
   test("Json Plain SQL support") {
     import MyPostgresProfile.plainAPI._
 
-    implicit val getJsonBeanResult = GetResult(r => JsonBean1(r.nextLong(), r.nextJson()))
+    implicit val getJsonBeanResult: GetResult[JsonBean1] = GetResult(r => JsonBean1(r.nextLong(), r.nextJson()))
 
     val b = JsonBean1(34L, Json.parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """))
 

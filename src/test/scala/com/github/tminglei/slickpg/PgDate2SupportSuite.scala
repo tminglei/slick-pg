@@ -43,7 +43,7 @@ class PgDate2SupportSuite extends AnyFunSuite with PostgresContainer {
     def zone = column[ZoneId]("zone")
 
     def * = (id, date, time, dateTime, dateTimeOffset, dateTimeTz, instant, duration, period, zone) <>
-            (DatetimeBean.tupled, DatetimeBean.unapply)
+            ((DatetimeBean.apply _).tupled, DatetimeBean.unapply)
   }
   val Datetimes = TableQuery[DatetimeTable]
 
@@ -289,7 +289,7 @@ class PgDate2SupportSuite extends AnyFunSuite with PostgresContainer {
 
       def * = (id, date, time, dateTime, dateTimeOffset,
                dateTimeTz, instant, duration, period, zone) <>
-        (DatetimeOptionBean.tupled, DatetimeOptionBean.unapply)
+        ((DatetimeOptionBean.apply _).tupled, DatetimeOptionBean.unapply)
     }
     val DatetimesOption = TableQuery[DatetimeOptionTable]
 
@@ -360,7 +360,7 @@ class PgDate2SupportSuite extends AnyFunSuite with PostgresContainer {
   test("Java8 date Plain SQL support") {
     import MyPostgresProfile.plainAPI._
 
-    implicit val getDateBean = GetResult(r => DatetimeBean(
+    implicit val getDateBean: GetResult[DatetimeBean] = GetResult(r => DatetimeBean(
       r.nextLong(), r.nextLocalDate(), r.nextLocalTime(), r.nextLocalDateTime(), r.nextOffsetDateTime(), r.nextZonedDateTime(),
       r.nextInstant(), r.nextDuration(), r.nextPeriod(), r.nextZoneId()))
 

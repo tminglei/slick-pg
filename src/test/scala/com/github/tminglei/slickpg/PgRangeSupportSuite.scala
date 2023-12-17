@@ -39,7 +39,7 @@ class PgRangeSupportSuite extends AnyFunSuite with PostgresContainer {
     def odtRange = column[Option[Range[OffsetDateTime]]]("odt_range")
     def ldRange = column[Option[Range[LocalDate]]]("ld_range")
 
-    def * = (id, intRange, floatRange, tsRange, ldtRange, odtRange, ldRange) <> (RangeBean.tupled, RangeBean.unapply)
+    def * = (id, intRange, floatRange, tsRange, ldtRange, odtRange, ldRange) <> ((RangeBean.apply _).tupled, RangeBean.unapply)
   }
   val RangeTests = TableQuery[RangeTestTable]
 
@@ -159,7 +159,7 @@ class PgRangeSupportSuite extends AnyFunSuite with PostgresContainer {
   test("Range Plain SQL support") {
     import MyPostgresProfile.plainAPI._
 
-    implicit val getRangeBeanResult = GetResult(r =>
+    implicit val getRangeBeanResult: GetResult[RangeBean] = GetResult(r =>
       RangeBean(r.nextLong(), r.nextIntRange(), r.nextFloatRange(), r.nextTimestampRangeOption(),
         r.nextLocalDateTimeRangeOption(), r.nextOffsetDateTimeRangeOption(), r.nextLocalDateRangeOption()))
 

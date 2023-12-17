@@ -20,7 +20,7 @@ class PgInheritsSuite extends AnyFunSuite with PostgresContainer {
   case class Tab1(col1: String, col2: String, col3: String, col4: Int)
 
   class Tabs1(tag: Tag) extends BaseT[Tab1](tag, "test_tab1") {
-    def * = (col1, col2, col3, col4) <> (Tab1.tupled, Tab1.unapply)
+    def * = (col1, col2, col3, col4) <> ((Tab1.apply _).tupled, Tab1.unapply)
   }
   val tabs1 = TableQuery(new Tabs1(_))
 
@@ -31,7 +31,7 @@ class PgInheritsSuite extends AnyFunSuite with PostgresContainer {
     val inherited = tabs1.baseTableRow
     def col5 = column[Long]("col5")
 
-    def * = (col1, col2, col3, col4, col5) <> (Tab2.tupled, Tab2.unapply)
+    def * = (col1, col2, col3, col4, col5) <> ((Tab2.apply _).tupled, Tab2.unapply)
   }
   val tabs2 = TableQuery(new Tabs2(_))
 

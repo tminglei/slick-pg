@@ -1,16 +1,15 @@
 package com.github.tminglei.slickpg
 
 import java.util.concurrent.Executors
-
 import org.json4s._
 import org.scalatest.funsuite.AnyFunSuite
 import slick.jdbc.{GetResult, PostgresProfile}
 
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService}
 import scala.concurrent.duration._
 
 class PgJson4sSupportSuite extends AnyFunSuite with PostgresContainer {
-  implicit val testExecContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
+  implicit val testExecContext: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
 
   trait MyPostgresProfile extends PostgresProfile
                             with PgJson4sSupport
@@ -26,8 +25,8 @@ class PgJson4sSupportSuite extends AnyFunSuite with PostgresContainer {
 
     ///
     trait API extends JdbcAPI with JsonImplicits {
-      implicit val strListTypeMapper = new SimpleArrayJdbcType[String]("text").to(_.toList)
-      implicit val json4sJsonArrayTypeMapper =
+      implicit val strListTypeMapper: DriverJdbcType[List[String]] = new SimpleArrayJdbcType[String]("text").to(_.toList)
+      implicit val json4sJsonArrayTypeMapper: DriverJdbcType[List[JValue]] =
         new AdvancedArrayJdbcType[JValue](pgjson,
           (s) => utils.SimpleArrayUtils.fromString[JValue](jsonMethods.parse(_))(s).orNull,
           (v) => utils.SimpleArrayUtils.mkString[JValue](j=>jsonMethods.compact(jsonMethods.render(j)))(v)
@@ -49,7 +48,7 @@ class PgJson4sSupportSuite extends AnyFunSuite with PostgresContainer {
     def json = column[JValue]("json")
     def jsons = column[List[JValue]]("jsons")
 
-    def * = (id, json, jsons) <> (JsonBean.tupled, JsonBean.unapply)
+    def * = (id, json, jsons) <> ((JsonBean.apply _).tupled, JsonBean.unapply)
   }
   val JsonTests = TableQuery[JsonTestTable]
 
@@ -175,7 +174,7 @@ class PgJson4sSupportSuite extends AnyFunSuite with PostgresContainer {
   test("Json4s Plain SQL support") {
     import MyPostgresProfile.plainAPI._
 
-    implicit val getJsonBeanResult = GetResult(r => JsonBean1(r.nextLong(), r.nextJson()))
+    implicit val getJsonBeanResult: GetResult[JsonBean1] = GetResult(r => JsonBean1(r.nextLong(), r.nextJson()))
 
     val b = JsonBean1(34L, parse(""" { "a":101, "b":"aaa", "c":[3,4,5,9] } """))
 

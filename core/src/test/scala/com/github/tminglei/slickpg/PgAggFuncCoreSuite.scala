@@ -22,7 +22,7 @@ class PgAggFuncCoreSuite extends AnyFunSuite with PostgresContainer {
     def x = column[Double]("x")
     def y = column[Double]("y")
 
-    def * = (name, count, x, y) <> (Tab.tupled, Tab.unapply)
+    def * = (name, count, x, y) <> ((Tab.apply _).tupled, Tab.unapply)
   }
   val tabs = TableQuery(new Tabs(_))
 
