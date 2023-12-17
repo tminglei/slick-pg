@@ -1,15 +1,10 @@
 package com.github.tminglei.slickpg
 
-import izumi.reflect.macrortti.LightTypeTag
-import izumi.reflect.{Tag => TTag}
-
 import scala.reflect.{ClassTag, classTag}
 import composite.Struct
 import slick.jdbc.{PositionedResult, PostgresProfile}
 import slick.jdbc.SetParameter
 
-import scala.annotation.unchecked.uncheckedVariance
-import scala.deriving.*
 import scala.compiletime.{error, erasedValue, summonInline, summonFrom}
 import utils.PgTokenHelper._
 import utils.TypeConverters._

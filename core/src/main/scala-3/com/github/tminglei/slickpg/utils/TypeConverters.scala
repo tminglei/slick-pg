@@ -1,8 +1,6 @@
 package com.github.tminglei.slickpg
 package utils
 
-import izumi.reflect.{Tag => TTag}
-import izumi.reflect.macrortti.LightTypeTag
 import slick.util.Logging
 import java.sql.{Date, Time, Timestamp}
 import java.time.{LocalDate, LocalDateTime, LocalTime}
@@ -11,9 +9,6 @@ import java.util.UUID
 case class RegisteredTypeConverter[From, To](convert: From => To)
 
 object TypeConverters extends Logging {
-  case class ConvConfig(from: LightTypeTag, to: LightTypeTag, var conv: (_ => _))
-
-  private var convConfigList = List[ConvConfig]()
 
   // register basic converters
   implicit val StringToInt: RegisteredTypeConverter[String, Int] = RegisteredTypeConverter[String, Int](_.toInt)
@@ -50,7 +45,6 @@ object TypeConverters extends Logging {
   implicit val LocalDateToString: RegisteredTypeConverter[LocalDate, String] = RegisteredTypeConverter(_.toString)
   implicit val LocalTimeToString: RegisteredTypeConverter[LocalTime, String] = RegisteredTypeConverter(_.toString)
   implicit val LocalDateTimeToString: RegisteredTypeConverter[LocalDateTime, String] = RegisteredTypeConverter(_.toString)
-
 
   def converter[FROM, TO](implicit converter: RegisteredTypeConverter[FROM, TO]): (FROM => TO) = converter.convert
 
