@@ -162,7 +162,7 @@ Here's the related technical details:
 | `slickpg` MacAddrString                                                                                  | macaddr               | no 3rd party dependencies            |
 | `slickpg` JsonString                                                                                     | json                  | no 3rd party dependencies            |
 | `json4s` JValue                                                                                          | json                  | `json4s` v3.6.6                      |
-| `play-json` JsValue                                                                                      | json                  | `play-json` v2.7.4                   |
+| `play-json` JsValue                                                                                      | json                  | `play-json` v2.10 or v3.0            |
 | `spray-json` JsValue                                                                                     | json                  | `spray-json` v1.3.5                  |
 | `argonaut json` Json                                                                                     | json                  | `argonaut` v6.2.3                    |
 | `circe json` Json                                                                                        | json                  | `circe` v0.11.2 / v0.12.3            |
@@ -220,6 +220,8 @@ libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.22.0-M4"
 > If you need `play-json` support, pls append dependency:
 ```scala
 libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.22.0-M4"
+or
+libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json3" % "0.22.0-M4"
 ```
 
 > If you need `spray-json` support, pls append dependency:
