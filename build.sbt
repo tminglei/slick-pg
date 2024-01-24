@@ -151,7 +151,7 @@ def slickPgPlayJson0(play: ModuleID, suffix: String) = Project("slick-pg_play-js
   .dependsOn (slickPgCore % "test->test;compile->compile")
 
 lazy val slickPgPlayJson = slickPgPlayJson0("com.typesafe.play" %% "play-json" % "2.10.3", "")
-lazy val slickPgPlayJson3 = slickPgPlayJson0("org.playframework" %% "play-json" % "3.0.1", "3")
+lazy val slickPgPlayJson3 = slickPgPlayJson0("org.playframework" %% "play-json" % "3.0.2", "3")
 
 lazy val slickPgSprayJson = (project in file("./addons/spray-json"))
   .settings(commonSettings)
