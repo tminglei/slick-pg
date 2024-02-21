@@ -66,13 +66,13 @@ def mainDependencies(scalaVersion: String) = {
   Seq (
     "org.scala-lang.modules" %% "scala-parser-combinators" % "2.3.0",
     "dev.zio" %% "izumi-reflect" % "2.3.8",
-    "com.typesafe.slick" %% "slick" % "3.5.0-M5",
+    "com.typesafe.slick" %% "slick" % "3.5.0-RC1",
     "org.postgresql" % "postgresql" % "42.7.1",
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.11.0",
-    "org.slf4j" % "slf4j-simple" % "2.0.11" % "provided",
+    "org.slf4j" % "slf4j-simple" % "2.0.12" % "provided",
     "org.scalatest" %% "scalatest" % "3.2.18" % "test",
-    "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.41.2" % "test",
-    "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.41.2" % "test"
+    "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.41.3" % "test",
+    "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.41.3" % "test"
   ) ++ (if (scalaVersion.startsWith("3")) Nil else Seq("org.scala-lang" % "scala-reflect" % scalaVersion))
 }
 
@@ -100,7 +100,7 @@ lazy val slickPgJoda = (project in file("./addons/joda-time"))
     name := "slick-pg_joda-time",
     description := "Slick extensions for PostgreSQL - joda time module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "joda-time" % "joda-time" % "2.12.6"
+      "joda-time" % "joda-time" % "2.12.7"
     )
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
