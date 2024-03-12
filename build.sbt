@@ -6,7 +6,7 @@ lazy val commonSettings = Seq(
   organizationName := "slick-pg",
   organization := "com.github.tminglei",
   name := "slick-pg",
-  version := "0.22.0-M5",
+  version := "0.22.0",
 
   scalaVersion := scala213,
   crossScalaVersions := Seq(scala212, scala213, scala3),
@@ -41,24 +41,24 @@ lazy val commonSettings = Seq(
 
   pomExtra :=
     <url>https://github.com/tminglei/slick-pg</url>
-      <licenses>
-        <license>
-          <name>BSD-style</name>
-          <url>http://www.opensource.org/licenses/bsd-license.php</url>
-          <distribution>repo</distribution>
-        </license>
-      </licenses>
-      <scm>
-        <url>git@github.com:tminglei/slick-pg.git</url>
-        <connection>scm:git:git@github.com:tminglei/slick-pg.git</connection>
-      </scm>
-      <developers>
-        <developer>
-          <id>tminglei</id>
-          <name>Minglei Tu</name>
-          <timezone>+8</timezone>
-        </developer>
-      </developers>
+    <licenses>
+      <license>
+        <name>BSD-style</name>
+        <url>http://www.opensource.org/licenses/bsd-license.php</url>
+        <distribution>repo</distribution>
+      </license>
+    </licenses>
+    <scm>
+      <url>git@github.com:tminglei/slick-pg.git</url>
+      <connection>scm:git:git@github.com:tminglei/slick-pg.git</connection>
+    </scm>
+    <developers>
+      <developer>
+        <id>tminglei</id>
+        <name>Minglei Tu</name>
+        <timezone>+8</timezone>
+      </developer>
+    </developers>
 
 )
 
@@ -92,7 +92,7 @@ lazy val slickPg = (project in file("."))
     libraryDependencies := mainDependencies(scalaVersion.value)
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
-  .aggregate (slickPgCore, slickPgJoda, slickPgJson4s, slickPgJts, slickPgJtsLt, slickPgPlayJson, slickPgPlayJson3, slickPgSprayJson, slickPgCirceJson, slickPgArgonaut, slickPgJawn)
+  .aggregate (slickPgCore, slickPgJoda, slickPgJson4s, slickPgJts, slickPgJtsLt, slickPgPlayJson, slickPgSprayJson, slickPgCirceJson, slickPgArgonaut, slickPgJawn)
 
 lazy val slickPgJoda = (project in file("./addons/joda-time"))
   .settings(commonSettings)
@@ -111,9 +111,9 @@ lazy val slickPgJson4s = (project in file("./addons/json4s"))
     name := "slick-pg_json4s",
     description := "Slick extensions for PostgreSQL - json4s module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "org.json4s" %% "json4s-ast" % "4.0.6",
-      "org.json4s" %% "json4s-core" % "4.0.6",
-      "org.json4s" %% "json4s-native" % "4.0.6" % "test"
+      "org.json4s" %% "json4s-ast" % "4.0.7",
+      "org.json4s" %% "json4s-core" % "4.0.7",
+      "org.json4s" %% "json4s-native" % "4.0.7" % "test"
     )
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
@@ -140,18 +140,19 @@ lazy val slickPgJtsLt = (project in file("./addons/jts_lt"))
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
 
-def slickPgPlayJson0(play: ModuleID, suffix: String) = Project("slick-pg_play-json" + suffix, file("./addons/play-json"))
+def playJsonDependencies(scalaVersion: String) = {
+  if (scalaVersion.startsWith("3")) Seq("org.playframework" %% "play-json" % "3.0.2")
+  else Seq("com.typesafe.play" %% "play-json" % "2.10.4")
+}
+lazy val slickPgPlayJson = (project in file("./addons/play-json"))
   .settings(commonSettings)
   .settings(
-    description := s"Slick extensions for PostgreSQL - play-json${suffix} module",
-    target := target.value / suffix,
+    name := "slick-pg_play-json",
+    description := "Slick extensions for PostgreSQL - play-json module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++
-      Seq(play)
+      playJsonDependencies(scalaVersion.value)
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
-
-lazy val slickPgPlayJson = slickPgPlayJson0("com.typesafe.play" %% "play-json" % "2.10.3", "")
-lazy val slickPgPlayJson3 = slickPgPlayJson0("org.playframework" %% "play-json" % "3.0.2", "3")
 
 lazy val slickPgSprayJson = (project in file("./addons/spray-json"))
   .settings(commonSettings)
@@ -184,7 +185,7 @@ lazy val slickPgUPickleJson = (project in file("./addons/upickle-json"))
     name := "slick-pg_upickle-json",
     description := "Slick extensions for PostgreSQL - uPickle module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++
-      Seq("com.lihaoyi" %% "ujson" % "2.0.0")
+      Seq("com.lihaoyi" %% "ujson" % "3.1.4")
   )
   .dependsOn(slickPgCore % "test->test;compile->compile")
 

@@ -79,7 +79,7 @@ class PgPlayJsonSupportSuite extends AnyFunSuite with PostgresContainer {
   val testRec3 = JsonBean(37L, Json.parse(""" { "field": "PF/00.0.0 (abc.xyz abc os x.x.x)" } """), List(Json.parse(""" { "field": "PF/00.0.0 (abc.xyz abc os x.x.x)" } """)), JBean("tx", 7), Nil)
 
 
-  test("Play json Lifted support") {
+  test("play-json Lifted support") {
     val json1 = Json.parse(JsonUtils.clean(" {\"b\":2,\"title\":\"hello\\nworld\\\\u00006\u00007\"} "))
     val json2 = Json.parse(""" {"a":"v5","b":3} """)
 
@@ -208,7 +208,7 @@ class PgPlayJsonSupportSuite extends AnyFunSuite with PostgresContainer {
 
   case class JsonBean1(id: Long, json: JsValue)
 
-  test("Json Plain SQL support") {
+  test("play-json Plain SQL support") {
     import MyPostgresProfile.plainAPI._
 
     implicit val getJsonBeanResult: GetResult[JsonBean1] = GetResult(r => JsonBean1(r.nextLong(), r.nextJson()))
