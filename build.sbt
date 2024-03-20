@@ -63,8 +63,10 @@ lazy val commonSettings = Seq(
 )
 
 def mainDependencies(scalaVersion: String) = {
+  val isScala3 = scalaVersion.startsWith("3")
+
   Seq (
-    "org.scala-lang.modules" %% "scala-parser-combinators" % "2.3.0",
+    "org.scala-lang.modules" %% "scala-parser-combinators" % (if (isScala3) "2.3.0" else "1.1.2"),
     "dev.zio" %% "izumi-reflect" % "2.3.8",
     "com.typesafe.slick" %% "slick" % "3.5.0",
     "org.postgresql" % "postgresql" % "42.7.3",
@@ -73,7 +75,7 @@ def mainDependencies(scalaVersion: String) = {
     "org.scalatest" %% "scalatest" % "3.2.18" % "test",
     "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.41.3" % "test",
     "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.41.3" % "test"
-  ) ++ (if (scalaVersion.startsWith("3")) Nil else Seq("org.scala-lang" % "scala-reflect" % scalaVersion))
+  ) ++ (if (isScala3) Nil else Seq("org.scala-lang" % "scala-reflect" % scalaVersion))
 }
 
 lazy val slickPgCore = (project in file("./core"))
