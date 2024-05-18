@@ -1,5 +1,5 @@
 val scala212 = "2.12.19"
-val scala213 = "2.13.13"
+val scala213 = "2.13.14"
 val scala3 = "3.3.1"
 
 lazy val commonSettings = Seq(
@@ -67,7 +67,7 @@ def mainDependencies(scalaVersion: String) = {
 
   Seq (
     "org.scala-lang.modules" %% "scala-parser-combinators" % (if (isScala3) "2.3.0" else "1.1.2"),
-    "dev.zio" %% "izumi-reflect" % "2.3.8",
+    "dev.zio" %% "izumi-reflect" % "2.3.9",
     "com.typesafe.slick" %% "slick" % "3.5.1",
     "org.postgresql" % "postgresql" % "42.7.3",
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.12.0",
@@ -143,7 +143,7 @@ lazy val slickPgJtsLt = (project in file("./addons/jts_lt"))
   .dependsOn (slickPgCore % "test->test;compile->compile")
 
 def playJsonDependencies(scalaVersion: String) = {
-  if (scalaVersion.startsWith("3")) Seq("org.playframework" %% "play-json" % "3.0.2")
+  if (scalaVersion.startsWith("3")) Seq("org.playframework" %% "play-json" % "3.0.3")
   else Seq("com.typesafe.play" %% "play-json" % "2.10.5")
 }
 lazy val slickPgPlayJson = (project in file("./addons/play-json"))
@@ -174,9 +174,9 @@ lazy val slickPgCirceJson = (project in file("./addons/circe-json"))
     description := "Slick extensions for PostgreSQL - circe module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++
       Seq(
-        "io.circe" %% "circe-core" % "0.14.6",
-        "io.circe" %% "circe-generic" % "0.14.6",
-        "io.circe" %% "circe-parser" % "0.14.6"
+        "io.circe" %% "circe-core" % "0.14.7",
+        "io.circe" %% "circe-generic" % "0.14.7",
+        "io.circe" %% "circe-parser" % "0.14.7"
       )
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
