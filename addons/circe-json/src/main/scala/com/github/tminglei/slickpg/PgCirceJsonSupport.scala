@@ -31,7 +31,7 @@ trait PgCirceJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
       new GenericJdbcType[Json](
         pgjson,
         (v) => parse(v).getOrElse(Json.Null),
-        (v) => clean(v.asJson.spaces2),
+        (v) => clean(v.asJson.noSpaces),
         hasLiteralForm = false
       )
 
@@ -54,7 +54,7 @@ trait PgCirceJsonSupport extends json.PgJsonExtensions with utils.PgCommonJdbcTy
 
     implicit val getJson: GetResult[Json] = mkGetResult(_.nextJson())
     implicit val getJsonOption: GetResult[Option[Json]] = mkGetResult(_.nextJsonOption())
-    implicit val setJson: SetParameter[Json] = mkSetParameter[Json](pgjson, _.asJson.spaces2)
-    implicit val setJsonOption: SetParameter[Option[Json]] = mkOptionSetParameter[Json](pgjson, _.asJson.spaces2)
+    implicit val setJson: SetParameter[Json] = mkSetParameter[Json](pgjson, _.asJson.noSpaces)
+    implicit val setJsonOption: SetParameter[Option[Json]] = mkOptionSetParameter[Json](pgjson, _.asJson.noSpaces)
   }
 }
