@@ -66,7 +66,7 @@ def mainDependencies(scalaVersion: String) = {
   val isScala3 = scalaVersion.startsWith("3")
 
   Seq (
-    "org.scala-lang.modules" %% "scala-parser-combinators" % (if (isScala3) "2.3.0" else "1.1.2"),
+    "org.scala-lang.modules" %% "scala-parser-combinators" % (if (isScala3) "2.3.0" else "2.4.0"),
     "dev.zio" %% "izumi-reflect" % "2.3.9",
     "com.typesafe.slick" %% "slick" % "3.5.1",
     "org.postgresql" % "postgresql" % "42.7.3",
