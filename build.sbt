@@ -207,6 +207,6 @@ lazy val slickPgJawn = (project in file("./addons/jawn"))
     name := "slick-pg_jawn",
     description := "Slick extensions for PostgreSQL - jawn module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++
-      Seq("org.typelevel" %% "jawn-ast" % "1.5.1")
+      Seq("org.typelevel" %% "jawn-ast" % "1.6.0")
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
