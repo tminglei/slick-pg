@@ -144,7 +144,7 @@ lazy val slickPgJtsLt = (project in file("./addons/jts_lt"))
 
 def playJsonDependencies(scalaVersion: String) = {
   if (scalaVersion.startsWith("3")) Seq("org.playframework" %% "play-json" % "3.0.3")
-  else Seq("com.typesafe.play" %% "play-json" % "2.10.5")
+  else Seq("com.typesafe.play" %% "play-json" % "2.10.6")
 }
 lazy val slickPgPlayJson = (project in file("./addons/play-json"))
   .settings(commonSettings)
