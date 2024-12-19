@@ -73,8 +73,8 @@ def mainDependencies(scalaVersion: String) = {
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.12.0",
     "org.slf4j" % "slf4j-simple" % "2.0.13" % "provided",
     "org.scalatest" %% "scalatest" % "3.2.19" % "test",
-    "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.41.3" % "test",
-    "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.41.3" % "test"
+    "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.41.5" % "test",
+    "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.41.5" % "test"
   ) ++ (if (isScala3) Nil else Seq("org.scala-lang" % "scala-reflect" % scalaVersion))
 }
 
