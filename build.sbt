@@ -1,5 +1,5 @@
 val scala212 = "2.12.20"
-val scala213 = "2.13.14"
+val scala213 = "2.13.15"
 val scala3 = "3.3.1"
 
 lazy val commonSettings = Seq(
@@ -68,10 +68,10 @@ def mainDependencies(scalaVersion: String) = {
   Seq (
     "org.scala-lang.modules" %% "scala-parser-combinators" % (if (isScala3) "2.3.0" else "1.1.2"),
     "dev.zio" %% "izumi-reflect" % "2.3.10",
-    "com.typesafe.slick" %% "slick" % "3.5.1",
+    "com.typesafe.slick" %% "slick" % "3.5.2",
     "org.postgresql" % "postgresql" % "42.7.3",
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.12.0",
-    "org.slf4j" % "slf4j-simple" % "2.0.13" % "provided",
+    "org.slf4j" % "slf4j-simple" % "2.0.16" % "provided",
     "org.scalatest" %% "scalatest" % "3.2.19" % "test",
     "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.41.3" % "test",
     "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.41.3" % "test"
@@ -102,7 +102,7 @@ lazy val slickPgJoda = (project in file("./addons/joda-time"))
     name := "slick-pg_joda-time",
     description := "Slick extensions for PostgreSQL - joda time module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "joda-time" % "joda-time" % "2.12.7"
+      "joda-time" % "joda-time" % "2.13.0"
     )
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
@@ -137,7 +137,7 @@ lazy val slickPgJtsLt = (project in file("./addons/jts_lt"))
     name := "slick-pg_jts_lt",
     description := "Slick extensions for PostgreSQL - (locationtech) jts module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "org.locationtech.jts" % "jts-core" % "1.19.0"
+      "org.locationtech.jts" % "jts-core" % "1.20.0"
     )
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
@@ -174,9 +174,9 @@ lazy val slickPgCirceJson = (project in file("./addons/circe-json"))
     description := "Slick extensions for PostgreSQL - circe module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++
       Seq(
-        "io.circe" %% "circe-core" % "0.14.9",
-        "io.circe" %% "circe-generic" % "0.14.9",
-        "io.circe" %% "circe-parser" % "0.14.9"
+        "io.circe" %% "circe-core" % "0.14.10",
+        "io.circe" %% "circe-generic" % "0.14.10",
+        "io.circe" %% "circe-parser" % "0.14.10"
       )
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
@@ -197,7 +197,7 @@ lazy val slickPgArgonaut = (project in file("./addons/argonaut"))
     name := "slick-pg_argonaut",
     description := "Slick extensions for PostgreSQL - argonaut module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++
-      Seq("io.argonaut" %% "argonaut" % "6.3.10")
+      Seq("io.github.argonaut-io" %% "argonaut" % "6.3.11")
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
 
