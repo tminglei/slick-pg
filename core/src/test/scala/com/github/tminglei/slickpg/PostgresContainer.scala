@@ -15,7 +15,7 @@ trait PostgresContainer extends ForAllTestContainer { self: Suite =>
     sys.env
       .get(variable)
       .orElse(sys.props.get(variable))
-      .getOrElse("11")
+      .getOrElse("14")
   }
   
   override val container: PostgreSQLContainer = PostgreSQLContainer(
@@ -44,6 +44,8 @@ trait PostgresContainer extends ForAllTestContainer { self: Suite =>
   def createLtree(): Unit = createExtension("ltree")
   
   def createTrgm(): Unit = createExtension("pg_trgm")
+
+  def createCiText(): Unit = createExtension("citext")
   
   def createPostgis(): Unit = createExtension("postgis")
   
@@ -51,6 +53,7 @@ trait PostgresContainer extends ForAllTestContainer { self: Suite =>
     createHstore()
     createLtree()
     createTrgm()
+    createCiText()
     
     // only create the postgis extension when using the postgis container
     if(imageName == "postgis/postgis") createPostgis()

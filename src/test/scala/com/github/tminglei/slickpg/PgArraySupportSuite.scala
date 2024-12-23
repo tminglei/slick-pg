@@ -7,7 +7,6 @@ import slick.ast.BaseTypedType
 import slick.jdbc.{GetResult, JdbcType, SetParameter}
 
 import scala.collection.mutable
-import scala.collection.mutable.Buffer
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
@@ -23,9 +22,12 @@ class PgArraySupportSuite extends AnyFunSuite with PostgresContainer {
 
     ///
     trait MyAPI extends ExtPostgresAPI with ArrayImplicits {
+      type CiText = String
+
+      implicit val simpleCiTextListTypeMapper: JdbcType[List[CiText]] = new SimpleArrayJdbcType[CiText]("citext", (v)=> if (v==null) null else v.toString, identity).to(_.toList)
       implicit val simpleOptStrListListMapper: DriverJdbcType[List[Option[String]]] = new SimpleArrayJdbcType[String]("text")
         .mapTo[Option[String]](Option(_), _.orNull).to(_.toList)
-      implicit val simpleLongBufferTypeMapper: DriverJdbcType[mutable.Buffer[Long]] = new SimpleArrayJdbcType[Long]("int8").to(_.toBuffer[Long], (v: Buffer[Long]) => v.toSeq)
+      implicit val simpleLongBufferTypeMapper: DriverJdbcType[mutable.Buffer[Long]] = new SimpleArrayJdbcType[Long]("int8").to(_.toBuffer[Long], (v: mutable.Buffer[Long]) => v.toSeq)
       implicit val simpleStrVectorTypeMapper: DriverJdbcType[Vector[String]] = new SimpleArrayJdbcType[String]("text").to(_.toVector)
       implicit val institutionListTypeWrapper: DriverJdbcType[List[Institution]] =  new SimpleArrayJdbcType[Long]("int8")
         .mapTo[Institution](new Institution(_), _.value).to(_.toList)
@@ -57,12 +59,13 @@ class PgArraySupportSuite extends AnyFunSuite with PostgresContainer {
     id: Long,
     str: String,
     intArr: List[Int],
-    longArr: Buffer[Long],
+    longArr: mutable.Buffer[Long],
     longlongArr: List[List[Long]],
     shortArr: List[Short],
     strList: List[String],
     optStrList: List[Option[String]],
     strArr: Option[Vector[String]],
+    citextList: List[CiText],
     uuidArr: List[UUID],
     bigDecimalArr: List[BigDecimal],
     institutions: List[Institution],
@@ -73,18 +76,19 @@ class PgArraySupportSuite extends AnyFunSuite with PostgresContainer {
     def id = column[Long]("id", O.AutoInc, O.PrimaryKey)
     def str = column[String]("str")
     def intArr = column[List[Int]]("intArray", O.Default(Nil))
-    def longArr = column[Buffer[Long]]("longArray")
+    def longArr = column[mutable.Buffer[Long]]("longArray")
     def longlongArr = column[List[List[Long]]]("longlongArray")
     def shortArr = column[List[Short]]("shortArray")
     def strList = column[List[String]]("stringList")
     def optStrList = column[List[Option[String]]]("optStrList")
     def strArr = column[Option[Vector[String]]]("stringArray")
+    def citextList = column[List[CiText]]("citextList")
     def uuidArr = column[List[UUID]]("uuidArray")
     def bigDecimalArr = column[List[BigDecimal]]("bigDecimalArr")
     def institutions = column[List[Institution]]("institutions")
     def mktFinancialProducts = column[Option[List[MarketFinancialProduct]]]("mktFinancialProducts")
 
-    def * = (id, str, intArr, longArr, longlongArr, shortArr, strList, optStrList, strArr, uuidArr,
+    def * = (id, str, intArr, longArr, longlongArr, shortArr, strList, optStrList, strArr, citextList, uuidArr,
       bigDecimalArr, institutions, mktFinancialProducts) <> ((ArrayBean.apply _).tupled, ArrayBean.unapply)
   }
   val ArrayTests = TableQuery[ArrayTestTable]
@@ -95,13 +99,13 @@ class PgArraySupportSuite extends AnyFunSuite with PostgresContainer {
   val uuid2 = UUID.randomUUID()
   val uuid3 = UUID.randomUUID()
 
-  val testRec1 = ArrayBean(33L, "tt", List(101, 102, 103), Buffer(1L, 3L, 5L, 7L), List(List(11L, 12L, 13L)), List(1,7),
+  val testRec1 = ArrayBean(33L, "tt", List(101, 102, 103), mutable.Buffer(1L, 3L, 5L, 7L), List(List(11L, 12L, 13L)), List(1,7),
     List("robert}; drop table students--", null, "NULL"), List(Some("[2.3,)"), Some("[0.3.0,)"), None, Some("7.1.0"), None),
-    Some(Vector("str1", "str3", "", " ")), List(uuid1, uuid2), List(BigDecimal.decimal(0.5)), List(Institution(113)), None)
-  val testRec2 = ArrayBean(37L, "test'", List(101, 103), Buffer(11L, 31L, 5L), List(List(21L, 22L, 23L)), Nil, List(""), Nil,
-    Some(Vector("str11", "str3", "Client's address")), List(uuid1, uuid2, uuid3), Nil, List(Institution(579)), Some(List(MarketFinancialProduct("product1"))))
-  val testRec3 = ArrayBean(41L, "haha", List(103, 101), Buffer(11L, 5L, 31L), List(List(31L, 32L, 33L)), List(35,77), Nil, Nil,
-    Some(Vector("(s)", "str5", "str3")), List(uuid1, uuid3), Nil, Nil, Some(List(MarketFinancialProduct("product3"), MarketFinancialProduct("product x"))))
+    Some(Vector("str1", "str3", "", " ")), List("robert}; drop table students--", null, "NULL"), List(uuid1, uuid2), List(BigDecimal.decimal(0.5)), List(Institution(113)), None)
+  val testRec2 = ArrayBean(37L, "test'", List(101, 103), mutable.Buffer(11L, 31L, 5L), List(List(21L, 22L, 23L)), Nil, List(""), Nil,
+    Some(Vector("str11", "str3", "Client's address")), List(""), List(uuid1, uuid2, uuid3), Nil, List(Institution(579)), Some(List(MarketFinancialProduct("product1"))))
+  val testRec3 = ArrayBean(41L, "haha", List(103, 101), mutable.Buffer(11L, 5L, 31L), List(List(31L, 32L, 33L)), List(35,77), Nil, Nil,
+    Some(Vector("(s)", "str5", "str3")), Nil, List(uuid1, uuid3), Nil, Nil, Some(List(MarketFinancialProduct("product3"), MarketFinancialProduct("product x"))))
 
   test("Array Lifted support") {
     Await.result(db.run(
@@ -146,7 +150,7 @@ class PgArraySupportSuite extends AnyFunSuite with PostgresContainer {
             r => assert(List(testRec2) === r)
           ),
           // &&
-          ArrayTests.filter(_.longArr @& Buffer(5L, 17L).bind).sortBy(_.id).to[List].result.map(
+          ArrayTests.filter(_.longArr @& mutable.Buffer(5L, 17L).bind).sortBy(_.id).to[List].result.map(
             r => assert(List(testRec1, testRec2, testRec3) === r)
           ),
           // length
