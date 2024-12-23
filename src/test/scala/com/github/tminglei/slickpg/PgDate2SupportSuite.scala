@@ -380,6 +380,10 @@ class PgDate2SupportSuite extends AnyFunSuite with PostgresContainer {
 
     Await.result(db.run(
       DBIO.seq(
+        {
+          val now = Instant.now()
+          sql"""SELECT ${now}""".as[Instant].head.map { r => assert(r === now) }
+        },
         sqlu"SET TIMEZONE TO '+8';",
         sqlu"""create table Datetime2Test(
               id int8 not null primary key,

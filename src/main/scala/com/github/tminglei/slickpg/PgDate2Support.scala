@@ -1,12 +1,13 @@
 package com.github.tminglei.slickpg
 
 import java.time._
-import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
+import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder, DateTimeParseException}
 import java.time.temporal.ChronoField
 import org.postgresql.util.PGInterval
 import slick.jdbc.{GetResult, JdbcType, PositionedResult, PostgresProfile, SetParameter}
 
 import scala.reflect.{ClassTag, classTag}
+import scala.util.control._
 
 trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes with date.PgDateJdbcTypes { driver: PostgresProfile =>
   import PgDate2SupportUtils._
@@ -61,23 +62,48 @@ trait PgDate2Support extends date.PgDateExtensions with utils.PgCommonJdbcTypes 
         .appendOffset("+HH:mm","+00")
         .toFormatter()
 
+    protected def comboParse[T](parses: (String => T)*): String => T = {
+      (str: String) => {
+        var v = null.asInstanceOf[T]
+        var ex = null.asInstanceOf[DateTimeParseException]
+
+        val loop = new Breaks
+        loop.breakable {
+          for (parse <- parses) {
+            try {
+              v = parse(str)
+              loop.break()
+            } catch {
+              case e: DateTimeParseException => ex = e
+            }
+          }
+        }
+
+        if (v != null) v
+        else if (ex != null) throw ex
+        else v
+      }
+    }
     protected def fromInfinitable[T](max: T, min: T, parse: String => T): String => T = {
       case "infinity" => max
       case "-infinity" => min
       case finite => parse(finite)
     }
-    protected val fromDateOrInfinity: String => LocalDate =
-      fromInfinitable(LocalDate.MAX, LocalDate.MIN, LocalDate.parse(_, date2DateFormatter))
-    protected val fromDateTimeOrInfinity: String => LocalDateTime =
-      fromInfinitable(LocalDateTime.MAX, LocalDateTime.MIN, LocalDateTime.parse(_, date2DateTimeFormatter))
-    protected val fromOffsetDateTimeOrInfinity: String => OffsetDateTime =
-      fromInfinitable(OffsetDateTime.MAX, OffsetDateTime.MIN, OffsetDateTime.parse(_, date2TzDateTimeFormatter))
+    protected val fromDateOrInfinity: String => LocalDate = fromInfinitable(
+      LocalDate.MAX, LocalDate.MIN, comboParse(
+        LocalDate.parse(_), LocalDate.parse(_, date2DateFormatter)))
+    protected val fromDateTimeOrInfinity: String => LocalDateTime = fromInfinitable(
+      LocalDateTime.MAX, LocalDateTime.MIN, comboParse(
+        LocalDateTime.parse(_), LocalDateTime.parse(_, date2DateTimeFormatter)))
+    protected val fromOffsetDateTimeOrInfinity: String => OffsetDateTime = fromInfinitable(
+      OffsetDateTime.MAX, OffsetDateTime.MIN, comboParse(
+        OffsetDateTime.parse(_), OffsetDateTime.parse(_, date2TzDateTimeFormatter)))
     protected val fromZonedDateTimeOrInfinity: String => ZonedDateTime = fromInfinitable(
-      LocalDateTime.MAX.atZone(ZoneId.of("UTC")), LocalDateTime.MIN.atZone(ZoneId.of("UTC")),
-      ZonedDateTime.parse(_, date2TzDateTimeFormatter)
-    )
+      LocalDateTime.MAX.atZone(ZoneId.of("UTC")), LocalDateTime.MIN.atZone(ZoneId.of("UTC")), comboParse(
+        ZonedDateTime.parse(_), ZonedDateTime.parse(_, date2TzDateTimeFormatter)))
     protected val fromInstantOrInfinity: String => Instant = fromInfinitable(
-      Instant.MAX, Instant.MIN, fromDateTimeOrInfinity.andThen(_.toInstant(ZoneOffset.UTC)))
+      Instant.MAX, Instant.MIN, comboParse(
+        Instant.parse(_), fromDateTimeOrInfinity.andThen(_.toInstant(ZoneOffset.UTC))))
     ///
     protected def toInfinitable[T](max: T, min: T, format: T => String): T => String = {
       case `max` =>  "infinity"
