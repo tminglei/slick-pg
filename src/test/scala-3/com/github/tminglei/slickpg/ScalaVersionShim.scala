@@ -12,6 +12,7 @@ object ScalaVersionShim {
   def mapToString(m: Map[String, String]): String = HStoreConverter.toString((m).asJava)
   def stringToMap(s: String): Map[String, String] = (HStoreConverter.fromString(s)
     .asInstanceOf[java.util.Map[String, String]]).asScala.toMap
+
   implicit val StringToRange: RegisteredTypeConverter[String, Range[LocalDateTime]] =
     RegisteredTypeConverter(PgRangeSupportUtils.mkRangeFn(ts))
   implicit val RangeToString: RegisteredTypeConverter[Range[LocalDateTime], String] =

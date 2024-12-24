@@ -66,8 +66,8 @@ class PgEnumSupportSuite extends AnyFunSuite with PostgresContainer {
       implicit def rainbowOptionColumnExtensionMethodsBuilder(rep: Rep[Option[Rainbows.Value]]): EnumColumnExtensionMethods[Rainbows.Value, Option[Rainbows.Value]] = createEnumOptionColumnExtensionMethodsBuilder[Rainbows.type](Rainbows).apply(rep)
 
       /// custom types of java enums and algebraic data type (ADT)
-      implicit val currencyTypeMapper: JdbcType[Currency] = createEnumJdbcType[Currency]("Currency", _.toString, Currency.values.get(_).get, quoteName = false)
-      implicit val currencyTypeListMapper: JdbcType[List[Currency]] = createEnumListJdbcType[Currency]("Currency", _.toString, Currency.values.get(_).get, quoteName = false)
+      implicit val currencyTypeMapper: JdbcType[Currency] = createEnumJdbcType[Currency]("Currency", _.toString, Currency.values(_), quoteName = false)
+      implicit val currencyTypeListMapper: JdbcType[List[Currency]] = createEnumListJdbcType[Currency]("Currency", _.toString, Currency.values(_), quoteName = false)
       implicit val languagesTypeMapper: JdbcType[Languages] = createEnumJdbcType[Languages]("Languages", _.name(), Languages.valueOf, quoteName = true)
       implicit val languagesTypeListMapper: JdbcType[List[Languages]] = createEnumListJdbcType[Languages]("Languages", _.name(), Languages.valueOf, quoteName = true)
       implicit val genderTypeMapper: JdbcType[Gender] = createEnumJdbcType[Gender]("Gender", _.repr, Gender.fromString, quoteName = false)
