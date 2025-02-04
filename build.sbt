@@ -70,7 +70,7 @@ def mainDependencies(scalaVersion: String) = {
     "dev.zio" %% "izumi-reflect" % "2.3.10",
     "com.typesafe.slick" %% "slick" % "3.5.2",
     "org.postgresql" % "postgresql" % "42.7.4",
-    "org.scala-lang.modules" %% "scala-collection-compat" % "2.12.0",
+    "org.scala-lang.modules" %% "scala-collection-compat" % "2.13.0",
     "org.slf4j" % "slf4j-simple" % "2.0.16" % "provided",
     "org.scalatest" %% "scalatest" % "3.2.19" % "test",
     "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.41.3" % "test",
