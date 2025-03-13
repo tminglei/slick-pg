@@ -67,7 +67,7 @@ def mainDependencies(scalaVersion: String) = {
 
   Seq (
     "org.scala-lang.modules" %% "scala-parser-combinators" % (if (isScala3) "2.3.0" else "1.1.2"),
-    "dev.zio" %% "izumi-reflect" % "2.3.10",
+    "dev.zio" %% "izumi-reflect" % "3.0.1",
     "com.typesafe.slick" %% "slick" % "3.5.2",
     "org.postgresql" % "postgresql" % "42.7.5",
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.13.0",
