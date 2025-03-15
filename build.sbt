@@ -1,3 +1,5 @@
+import xerial.sbt.Sonatype.sonatypeCentralHost
+
 val scala212 = "2.12.20"
 val scala213 = "2.13.16"
 val scala3 = "3.3.1"
@@ -6,10 +8,11 @@ lazy val commonSettings = Seq(
   organizationName := "slick-pg",
   organization := "com.github.tminglei",
   name := "slick-pg",
-  version := "0.22.2",
+  version := "0.23.0",
 
   scalaVersion := scala213,
   crossScalaVersions := Seq(scala212, scala213, scala3),
+  versionScheme := Some("early-semver"),
   scalacOptions ++= Seq("-deprecation", "-feature",
     "-language:implicitConversions",
     "-language:reflectiveCalls",
@@ -25,13 +28,8 @@ lazy val commonSettings = Seq(
   resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/",
 
   //    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))),
-  publishTo := {
-    val nexus = "https://oss.sonatype.org/"
-    if (version.value.trim.endsWith("SNAPSHOT"))
-      Some("snapshots" at nexus + "content/repositories/snapshots")
-    else
-      Some("releases" at nexus + "service/local/staging/deploy/maven2")
-  },
+  publishTo := sonatypePublishToBundle.value,
+  sonatypeCredentialHost := sonatypeCentralHost,
   publishMavenStyle := true,
   (Test / publishArtifact) := false,
   pomIncludeRepository := { _ => false },
@@ -94,7 +92,8 @@ lazy val slickPg = (project in file("."))
     libraryDependencies := mainDependencies(scalaVersion.value)
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
-  .aggregate (slickPgCore, slickPgJoda, slickPgJson4s, slickPgJts, slickPgJtsLt, slickPgPlayJson, slickPgSprayJson, slickPgCirceJson, slickPgArgonaut, slickPgJawn)
+  .aggregate (slickPgCore, slickPgJoda, slickPgJson4s, slickPgJts, slickPgJtsLt,
+    slickPgPlayJson, slickPgUPickleJson, slickPgSprayJson, slickPgCirceJson, slickPgArgonaut, slickPgJawn)
 
 lazy val slickPgJoda = (project in file("./addons/joda-time"))
   .settings(commonSettings)
