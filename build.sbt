@@ -101,7 +101,7 @@ lazy val slickPgJoda = (project in file("./addons/joda-time"))
     name := "slick-pg_joda-time",
     description := "Slick extensions for PostgreSQL - joda time module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++ Seq(
-      "joda-time" % "joda-time" % "2.13.1"
+      "joda-time" % "joda-time" % "2.14.0"
     )
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
