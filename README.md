@@ -26,7 +26,7 @@ Slick-pg
 - Pg_trgm
 
 
-** _Tested on `PostgreSQL 11/12/13/14` with `Slick 3.6.0`._  
+** _Tested on `PostgreSQL 11/12/13/14` with `Slick 3.6.1`._  
 ** _`Java 8`+ is required (except for `play-json` addon, which requires `java 11`+)._  
 
 
@@ -197,51 +197,51 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.23.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.23.1"
 ```
 
 > If you need `joda-time` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.23.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.23.1"
 ```
 
 > If you need `jts` geom support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.23.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.23.1"
 or
-libraryDependencies += "com.github.tminglei" %% "slick-pg_jts_lt" % "0.23.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_jts_lt" % "0.23.1"
 ```
 
 > If you need `json4s` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.23.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.23.1"
 ```
 
 > If you need `play-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.23.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.23.1"
 or
-libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json3" % "0.23.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json3" % "0.23.1"
 ```
 
 > If you need `spray-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.23.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.23.1"
 ```
 
 > If you need `argonaut json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.23.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.23.1"
 ```
 
 > If you need `circe json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_circe-json" % "0.23.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_circe-json" % "0.23.1"
 ```
 
 > If you need `uPickle json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_upickle-json" % "0.23.0"
+libraryDependencies += "com.github.tminglei" %% "slick-pg_upickle-json" % "0.23.1"
 ```
 
 
@@ -250,7 +250,7 @@ Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg`
 <dependency>
     <groupId>com.github.tminglei</groupId>
     <artifactId>slick-pg_2.13</artifactId>
-    <version>0.23.0</version>
+    <version>0.23.1</version>
 </dependency>
 <!-- other addons if necessary -->
 ...
