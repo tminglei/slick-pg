@@ -67,7 +67,7 @@ def mainDependencies(scalaVersion: String) = {
     "org.scala-lang.modules" %% "scala-parser-combinators" % (if (isScala3) "2.3.0" else "1.1.2"),
     "dev.zio" %% "izumi-reflect" % "3.0.3",
     "com.typesafe.slick" %% "slick" % "3.6.1",
-    "org.postgresql" % "postgresql" % "42.7.6",
+    "org.postgresql" % "postgresql" % "42.7.7",
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.13.0",
     "org.slf4j" % "slf4j-simple" % "2.0.17" % "provided",
     "org.scalatest" %% "scalatest" % "3.2.19" % "test",
