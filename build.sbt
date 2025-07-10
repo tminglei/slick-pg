@@ -65,7 +65,7 @@ def mainDependencies(scalaVersion: String) = {
 
   Seq (
     "org.scala-lang.modules" %% "scala-parser-combinators" % (if (isScala3) "2.3.0" else "1.1.2"),
-    "dev.zio" %% "izumi-reflect" % "3.0.3",
+    "dev.zio" %% "izumi-reflect" % "3.0.5",
     "com.typesafe.slick" %% "slick" % "3.6.1",
     "org.postgresql" % "postgresql" % "42.7.7",
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.13.0",
@@ -142,7 +142,7 @@ lazy val slickPgJtsLt = (project in file("./addons/jts_lt"))
   .dependsOn (slickPgCore % "test->test;compile->compile")
 
 def playJsonDependencies(scalaVersion: String) = {
-  if (scalaVersion.startsWith("3") || scalaVersion.startsWith("2.13")) Seq("org.playframework" %% "play-json" % "3.0.4")
+  if (scalaVersion.startsWith("3") || scalaVersion.startsWith("2.13")) Seq("org.playframework" %% "play-json" % "3.0.5")
   else Seq("com.typesafe.play" %% "play-json" % "2.10.7")
 }
 lazy val slickPgPlayJson = (project in file("./addons/play-json"))
