@@ -1,7 +1,7 @@
 import xerial.sbt.Sonatype.sonatypeCentralHost
 
 val scala212 = "2.12.20"
-val scala213 = "2.13.16"
+val scala213 = "2.13.17"
 val scala3 = "3.3.1"
 
 lazy val commonSettings = Seq(
@@ -68,7 +68,7 @@ def mainDependencies(scalaVersion: String) = {
     "dev.zio" %% "izumi-reflect" % "3.0.6",
     "com.typesafe.slick" %% "slick" % "3.6.1",
     "org.postgresql" % "postgresql" % "42.7.8",
-    "org.scala-lang.modules" %% "scala-collection-compat" % "2.13.0",
+    "org.scala-lang.modules" %% "scala-collection-compat" % "2.14.0",
     "org.slf4j" % "slf4j-simple" % "2.0.17" % "provided",
     "org.scalatest" %% "scalatest" % "3.2.19" % "test",
     "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.43.0" % "test",
@@ -142,8 +142,8 @@ lazy val slickPgJtsLt = (project in file("./addons/jts_lt"))
   .dependsOn (slickPgCore % "test->test;compile->compile")
 
 def playJsonDependencies(scalaVersion: String) = {
-  if (scalaVersion.startsWith("3") || scalaVersion.startsWith("2.13")) Seq("org.playframework" %% "play-json" % "3.0.5")
-  else Seq("com.typesafe.play" %% "play-json" % "2.10.7")
+  if (scalaVersion.startsWith("3") || scalaVersion.startsWith("2.13")) Seq("org.playframework" %% "play-json" % "3.0.6")
+  else Seq("com.typesafe.play" %% "play-json" % "2.10.8")
 }
 lazy val slickPgPlayJson = (project in file("./addons/play-json"))
   .settings(commonSettings)
@@ -173,9 +173,9 @@ lazy val slickPgCirceJson = (project in file("./addons/circe-json"))
     description := "Slick extensions for PostgreSQL - circe module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++
       Seq(
-        "io.circe" %% "circe-core" % "0.14.14",
-        "io.circe" %% "circe-generic" % "0.14.14",
-        "io.circe" %% "circe-parser" % "0.14.14"
+        "io.circe" %% "circe-core" % "0.14.15",
+        "io.circe" %% "circe-generic" % "0.14.15",
+        "io.circe" %% "circe-parser" % "0.14.15"
       )
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
