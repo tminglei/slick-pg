@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         java: [8, 21]
-        scala: [2.12.20, 2.13.17, 3.3.1]
+        scala: [2.12.20, 2.13.18, 3.3.1]
         postgres: [11, 12, 13, 14]
     name: Test (Postgres ${{ matrix.postgres }} Scala ${{ matrix.scala }} Java ${{ matrix.java }})
     runs-on: ubuntu-latest
