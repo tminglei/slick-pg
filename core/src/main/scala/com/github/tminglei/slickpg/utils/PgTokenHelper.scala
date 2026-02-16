@@ -107,7 +107,7 @@ object PgTokenHelper {
     def isArray(token: Token): Boolean = token match {
       case GroupToken(mList) =>
         mList match {
-          case Open("{") :: _ => true
+          case Open("{") +: _ => true
           case _ => false
         }
       case _ => false
