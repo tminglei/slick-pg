@@ -340,5 +340,19 @@ class PgTokenHelperSuite extends AnyFunSuite {
 
     val expected2 = """{{11,12,13},{21,22,23}}"""
     assert(pgStr2 === expected2)
+
+    ///
+    val input3 = GroupToken(List(Open("{"), Null, Close("}")))
+    val pgStr3 = createString(input3)
+
+    val expected3 = """{null}"""
+    assert(pgStr3 === expected3)
+
+    ///
+    val input4 = GroupToken(Vector(Open("{"), Null, Close("}")))
+    val pgStr4 = createString(input4)
+
+    val expected4 = """{null}"""
+    assert(pgStr4 === expected4)
   }
 }
