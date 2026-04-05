@@ -11,7 +11,6 @@ import slick.jdbc.meta.MTable
 import slick.lifted.PrimaryKey
 import slick.util.Logging
 
-import scala.concurrent.ExecutionContext
 import scala.reflect.{ClassTag, classTag}
 
 trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { driver =>
@@ -25,7 +24,7 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
   override def createColumnDDLBuilder(column: FieldSymbol, table: Table[_]): ExtPostgresColumnDDLBuilder =
     new ExtPostgresColumnDDLBuilder(column)
 
-  override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext): JdbcModelBuilder =
+  override def createModelBuilder(tables: Seq[MTable], ignoreInvalidDefaults: Boolean): JdbcModelBuilder =
     new ExModelBuilder(tables, ignoreInvalidDefaults)
 
   protected lazy val useNativeUpsert = capabilities contains JdbcCapabilities.insertOrUpdate
@@ -207,7 +206,7 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
     bindPgTypeToScala("bool", classTag[Boolean])
   }
 
-  class ExModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)(implicit ec: ExecutionContext)
+  class ExModelBuilder(mTables: Seq[MTable], ignoreInvalidDefaults: Boolean)
             extends super.ModelBuilder(mTables, ignoreInvalidDefaults) {
     override def jdbcTypeToScala(jdbcType: Int, typeName: String = ""): ClassTag[_] = {
       logger.info(s"[info]\u001B[36m jdbcTypeToScala - jdbcType $jdbcType, typeName: $typeName \u001B[0m")

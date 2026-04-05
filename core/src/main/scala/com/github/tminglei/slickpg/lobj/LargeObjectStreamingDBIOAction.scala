@@ -7,31 +7,28 @@ import org.postgresql.PGConnection
 import org.postgresql.largeobject.LargeObjectManager
 import slick.dbio.{Effect, Streaming, SynchronousDatabaseAction}
 import slick.jdbc.JdbcBackend
-import slick.util.DumpInfo
+import slick.util.{CloseableIterator, DumpInfo}
 
 /**
   * Action for streaming Postgres LargeObject instances from a Postgres DB.
   * @param largeObjectId The oid of the LargeObject to stream.
   * @param bufferSize The chunk size in bytes. Default to 8KB.
   */
-case class LargeObjectStreamingDBIOAction(largeObjectId: Long, bufferSize: Int = 1024 * 8)(implicit proof: JdbcBackend#StreamingContext <:< JdbcBackend#Context)
+case class LargeObjectStreamingDBIOAction(largeObjectId: Long, bufferSize: Int = 1024 * 8)
   extends SynchronousDatabaseAction[
     Array[Byte],
     Streaming[Array[Byte]],
-    JdbcBackend#Context,
-    JdbcBackend#StreamingContext,
+    JdbcBackend#JdbcActionContext,
     Effect.All
   ] {
 
-  //our StreamState is the InputStream on the LargeObject instance and the number of bytes read in on the last run.
-  type StreamState = (InputStream, Int)
 
   /**
     * Opens an InputStream on a Postgres LargeObject.
     * @param context The current database context.
     * @return An InputStream on a Postgres LargeObject.
     */
-  private def openObject(context: JdbcBackend#Context): InputStream = {
+  private def openObject(context: JdbcBackend#JdbcActionContext): InputStream = {
     context.connection.setAutoCommit(false)
     val largeObjectApi = context.connection.unwrap(classOf[PGConnection]).getLargeObjectAPI
     val largeObject = largeObjectApi.open(largeObjectId, LargeObjectManager.READ, false)
@@ -65,57 +62,21 @@ case class LargeObjectStreamingDBIOAction(largeObjectId: Long, bufferSize: Int =
     * @param context The current database context.
     * @return An UnsupportedOperationException with a friendly message.
     */
-  override def run(context: JdbcBackend#Context): Array[Byte] = throw new UnsupportedOperationException(s"Method 'run' is not supported for this action type.")
+  override def run(context: JdbcBackend#JdbcActionContext): Array[Byte] = throw new UnsupportedOperationException(s"Method 'run' is not supported for this action type.")
 
   override def getDumpInfo = DumpInfo(name = "LargeObjectStreamingDBIOAction")
 
-  /**
-    * Emits at most limit number of events to the context's stream.
-    * @param context The current database context.
-    * @param limit The maximum number of events to emit back to the stream.
-    * @param state The state of the stream as returned by the previous iteration.
-    * @return The new stream state.
-    */
-  override def emitStream(context: JdbcBackend#StreamingContext, limit: Long, state: StreamState): StreamState = {
-    //open the stream iff no stream state exists
-    val (stream, previousBytesRead) = (state == null) match {
-      case true => (openObject(proof(context)), 1)
-      case false => state
+  override def openStream(ctx: JdbcBackend#JdbcActionContext): CloseableIterator[Array[Byte]] =
+    CloseableIterator.close(openObject(ctx)).after { stream =>
+      var done = false
+      val iter = new Iterator[Array[Byte]] {
+        def hasNext = !done
+        def next() = {
+          val (bytes, bytesRead) = readNextResult(stream)
+          if (bytesRead <= 0) { done = true; new Array[Byte](0) }
+          else bytes
+        }
+      }.filter(_.nonEmpty)
+      CloseableIterator.wrap(iter)
     }
-
-    //read some byte arrays
-    var count = 0L
-    var bytesRead = previousBytesRead
-    while (count < limit && bytesRead > 0) {
-      val thing = readNextResult(stream)
-      val bytes = thing._1
-      bytesRead = thing._2
-      //only emit these bytes if the chunk is nonempty to avoid issues with stream cancellation
-      if (bytes.length > 0) {
-        context.emit(bytes)
-        count += 1
-      }
-    }
-
-    //if the final bytesRead value was non-positive, close the stream and return a null StreamState
-    //to indicate the end of this Stream
-    bytesRead <= 0 match {
-      case true =>
-        stream.close()
-        null
-      case false => (stream, bytesRead)
-    }
-  }
-
-  /**
-    * Cancels this stream and closes the underlying InputStream.
-    * @param context The current database context.
-    * @param state The current StreamState at the time of the cancelling.
-    */
-  override def cancelStream(context: JdbcBackend#StreamingContext, state: StreamState): Unit = {
-    if (state != null) {
-      val (stream, _) = state
-      stream.close()
-    }
-  }
 }

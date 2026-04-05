@@ -36,7 +36,6 @@ class PgJawnJsonSupportSuite extends AnyFunSuite with PostgresContainer {
   ///
   import MyPostgresProfile.api._
 
-  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class JsonBean(id: Long, json: JValue, jsons: List[JValue])
 

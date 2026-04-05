@@ -9,7 +9,6 @@ import scala.concurrent.duration._
 class PgHStoreSupportSuite extends AnyFunSuite with PostgresContainer {
   import MyPostgresProfile.api._
 
-  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class MapBean(id: Long, hstore: Map[String, String])
 

@@ -7,7 +7,6 @@ import scala.concurrent.duration.Duration
 class PgAutoIncSeqColumnSuite extends AnyFunSuite with PostgresContainer {
   import ExPostgresProfile.api._
 
-  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class User(id: String, name: String)
 

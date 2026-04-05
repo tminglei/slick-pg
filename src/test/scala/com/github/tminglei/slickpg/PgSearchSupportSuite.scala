@@ -13,7 +13,6 @@ class PgSearchSupportSuite extends AnyFunSuite with PostgresContainer {
   import MyPostgresProfile.api._
 
 
-  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class TestBean(id: Long, text: String, search: TsVector, comment: String)
 

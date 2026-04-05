@@ -11,7 +11,6 @@ class PgWindowFuncSupportSuite extends AnyFunSuite with PostgresContainer {
   import ExPostgresProfile.api._
   import window.PgWindowFuncSupport.WindowFunctions._
 
-  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class Tab(col1: Option[UUID], col2: Option[String], col3: String, col4: Int)
 
