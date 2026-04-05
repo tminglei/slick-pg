@@ -12,7 +12,6 @@ import scala.concurrent.duration.Duration
 class PgAggFuncCoreSuite extends AnyFunSuite with PostgresContainer {
   import ExPostgresProfile.api._
 
-  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class Tab(name: String, count: Int, x: Double, y: Double)
 

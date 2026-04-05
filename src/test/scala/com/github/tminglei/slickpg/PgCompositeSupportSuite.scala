@@ -71,14 +71,8 @@ object PgCompositeSupportSuite {
     ///
     trait API extends JdbcAPI with ArrayImplicits {
       registerTypeConverters()
-      //-- for scala 2
-      register((s:String) => WeekDays.withName(s))
-      register((v:WeekDays.WeekDay) => v.toString)
-      //-- for scala 3
-//      import com.github.tminglei.slickpg.utils.RegisteredTypeConverter
-//      implicit val StringToWeekDay: RegisteredTypeConverter[String, WeekDays.WeekDay] = RegisteredTypeConverter((s:String) => WeekDays.withName(s))
-//      implicit val WeekDayToString: RegisteredTypeConverter[WeekDays.WeekDay, String] = RegisteredTypeConverter((v:WeekDays.WeekDay) => v.toString)
-      //--//
+      //-- Scala 3: register() uses implicit resolution and cannot be called here under Scala 3;
+      //-- WeekDay converters are registered via ScalaVersionShim (version-specific source trees)
 
       implicit val composite1TypeMapper: GenericJdbcType[Composite1] = createCompositeJdbcType[Composite1]("composite1")
       implicit val composite2TypeMapper: GenericJdbcType[Composite2] = createCompositeJdbcType[Composite2]("composite2")
@@ -132,7 +126,6 @@ class PgCompositeSupportSuite extends AnyFunSuite with PostgresContainer {
   import PgCompositeSupportSuite._
   import MyPostgresProfile1.api._
 
-  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class TestBean(
     id: Long,

@@ -29,7 +29,6 @@ class PgPostGISSupportSuite extends AnyFunSuite with PostgresContainer {
   override lazy val imageName: String = "postgis/postgis"
   override lazy val imageTag: String = pgVersion + "-3.2"
   
-  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class GeometryBean(id: Long, geom: Geometry, geog: Geography)
 
