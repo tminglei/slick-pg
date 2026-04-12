@@ -196,7 +196,7 @@ lazy val slickPgArgonaut = (project in file("./addons/argonaut"))
     name := "slick-pg_argonaut",
     description := "Slick extensions for PostgreSQL - argonaut module",
     libraryDependencies := mainDependencies(scalaVersion.value) ++
-      Seq("io.github.argonaut-io" %% "argonaut" % "6.3.11")
+      Seq("io.github.argonaut-io" %% "argonaut" % "6.3.12")
   )
   .dependsOn (slickPgCore % "test->test;compile->compile")
 
