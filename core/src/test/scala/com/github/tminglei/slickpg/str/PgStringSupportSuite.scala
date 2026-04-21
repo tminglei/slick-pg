@@ -25,7 +25,6 @@ class PgStringSupportSuite extends AnyFunSuite with PostgresContainer {
   ///
   import MyPostgresProfile1.api._
 
-  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class StrBean(id: Long, str: String, strArr: Array[Byte])
 

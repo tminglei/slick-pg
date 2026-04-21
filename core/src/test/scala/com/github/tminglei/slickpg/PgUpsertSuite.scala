@@ -19,7 +19,6 @@ class PgUpsertSuite extends AnyFunSuite with PostgresContainer {
 
   import ExPostgresProfile.api._
 
-  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class Bean(id: Long, col1: String, col2: Int)
 

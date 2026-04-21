@@ -20,6 +20,11 @@ object ScalaVersionShim {
   implicit val MapToString: RegisteredTypeConverter[Map[String, String], String] = RegisteredTypeConverter(mapToString)
   implicit val StringToMap: RegisteredTypeConverter[String, Map[String, String]] = RegisteredTypeConverter(stringToMap)
 
+  implicit val StringToWeekDay: RegisteredTypeConverter[String, PgCompositeSupportSuite.WeekDays.WeekDay] =
+    RegisteredTypeConverter((s: String) => PgCompositeSupportSuite.WeekDays.withName(s))
+  implicit val WeekDayToString: RegisteredTypeConverter[PgCompositeSupportSuite.WeekDays.WeekDay, String] =
+    RegisteredTypeConverter((v: PgCompositeSupportSuite.WeekDays.WeekDay) => v.toString)
+
   def registerTypeConverters(): Unit = ()
   val maybeTypeConverters: RegisteredTypeConverter.type = RegisteredTypeConverter
 }

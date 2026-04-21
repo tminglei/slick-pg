@@ -8,7 +8,6 @@ import scala.concurrent.duration._
 class PgInheritsSuite extends AnyFunSuite with PostgresContainer {
   import ExPostgresProfile.api._
 
-  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   abstract class BaseT[T](tag: Tag, tname: String = "test_tab1") extends Table[T](tag, tname) {
     def col1 = column[String]("COL1")
