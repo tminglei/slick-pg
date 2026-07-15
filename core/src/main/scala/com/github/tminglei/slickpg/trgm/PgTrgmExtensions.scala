@@ -30,7 +30,7 @@ trait PgTrgmExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
   }
 
   class PgTrgmColumnExtensionMethods[P1](val c: Rep[P1]) extends ExtensionMethods[String, P1] {
-    protected implicit def b1Type = implicitly[TypedType[String]]
+    protected implicit def b1Type: TypedType[String] = implicitly[TypedType[String]]
 
     def % [P2, R](e: Rep[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
         om.column(TrgmLibrary.%, n, e.toNode)
