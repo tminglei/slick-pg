@@ -1,6 +1,7 @@
 Slick-pg
 ========
 
+[![#slick channel on the official Scala Discord server](https://img.shields.io/badge/Discord%20-%23slick%20on%20Scala%20server-blue)](https://discord.gg/yQheBhUtAa)
 [![Join the chat at https://gitter.im/tminglei/slick-pg](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/tminglei/slick-pg?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [Slick](https://github.com/slick/slick "Slick") extensions for PostgreSQL, to support a series of pg data types and related operators/functions.
