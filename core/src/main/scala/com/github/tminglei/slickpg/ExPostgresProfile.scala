@@ -134,10 +134,13 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
 
     class NativeUpsertBuilderResult extends InsertBuilderResult(
       table, s"$insertStart$insertVars on $conflictWithPadding do $updateOrNothing", syms) {
-      /* NOTE: multi-row upsert is only sound without a non-pk AutoInc column: the padding
-               placeholders live in the once-per-statement `on conflict` clause and cannot be
-               expanded per row. Also note PostgreSQL rejects a multi-row upsert whose values
-               contain the same PK twice ("cannot affect row a second time"). */
+      /** Builds a single multi-row upsert statement. Note that PostgreSQL rejects a multi-row
+        * upsert whose values contain the same PK twice ("cannot affect row a second time").
+        *
+        * @throws SlickException if the table has a non-primary-key AutoInc column: its padding
+        *         placeholders live in the once-per-statement `on conflict` clause and cannot be
+        *         expanded per row; use `insertOrUpdateAll(values, RowsPerStatement.One)` instead
+        */
       override def buildMultiRowInsert(size: Int): String =
         if (nonPkAutoIncSyms.isEmpty)
           s"$insertStart${(1 to size).map(_ => insertVars).mkString(",")} on $conflictWithPadding do $updateOrNothing"
