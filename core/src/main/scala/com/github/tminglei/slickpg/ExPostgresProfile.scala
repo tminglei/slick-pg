@@ -123,25 +123,27 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
     override lazy val pkNames = pkSyms.map { fs => quoteIdentifier(fs.name) }
     override lazy val softNames = softSyms.map { fs => quoteIdentifier(fs.name) }
 
-    override def buildInsert: InsertBuilderResult = {
-      val insertStart = s"insert into $tableName (${insertNames.mkString(",")}) values "
-      val allVars = s"(${insertNames.map(_ => "?").mkString(",")})"
-      val conflictWithPadding = "conflict (" + pkNames.mkString(", ") + ")" +
-        (/* padding */ if (nonPkAutoIncSyms.isEmpty) "" else "where ? is null or ?=?")
-      val updateOrNothing = if (softNames.isEmpty) "nothing" else
-        "update set " + softNames.map(n => s"$n=EXCLUDED.$n").mkString(",")
-      new InsertBuilderResult(table, s"$insertStart$allVars on $conflictWithPadding do $updateOrNothing", syms) {
-        /* NOTE: multi-row upsert is only sound without a non-pk AutoInc column: the padding
-                 placeholders live in the once-per-statement `on conflict` clause and cannot be
-                 expanded per row. Also note PostgreSQL rejects a multi-row upsert whose values
-                 contain the same PK twice ("cannot affect row a second time"). */
-        override def buildMultiRowInsert(size: Int): String =
-          if (nonPkAutoIncSyms.isEmpty)
-            s"$insertStart${(1 to size).map(_ => allVars).mkString(",")} on $conflictWithPadding do $updateOrNothing"
-          else throw new SlickException(
-            "Multi-row insert-or-update is not supported on a table with a non-primary-key AutoInc column. " +
-            "Use insertOrUpdateAll(values, RowsPerStatement.One) instead.")
-      }
+    private lazy val insertStart = s"insert into $tableName (${insertNames.mkString(",")}) values "
+    private lazy val insertVars = s"(${insertNames.map(_ => "?").mkString(",")})"
+    private lazy val conflictWithPadding = "conflict (" + pkNames.mkString(", ") + ")" +
+      (/* padding */ if (nonPkAutoIncSyms.isEmpty) "" else "where ? is null or ?=?")
+    private lazy val updateOrNothing = if (softNames.isEmpty) "nothing" else
+      "update set " + softNames.map(n => s"$n=EXCLUDED.$n").mkString(",")
+
+    override def buildInsert: InsertBuilderResult = new NativeUpsertBuilderResult
+
+    class NativeUpsertBuilderResult extends InsertBuilderResult(
+      table, s"$insertStart$insertVars on $conflictWithPadding do $updateOrNothing", syms) {
+      /* NOTE: multi-row upsert is only sound without a non-pk AutoInc column: the padding
+               placeholders live in the once-per-statement `on conflict` clause and cannot be
+               expanded per row. Also note PostgreSQL rejects a multi-row upsert whose values
+               contain the same PK twice ("cannot affect row a second time"). */
+      override def buildMultiRowInsert(size: Int): String =
+        if (nonPkAutoIncSyms.isEmpty)
+          s"$insertStart${(1 to size).map(_ => insertVars).mkString(",")} on $conflictWithPadding do $updateOrNothing"
+        else throw new SlickException(
+          "Multi-row insert-or-update is not supported on a table with a non-primary-key AutoInc column. " +
+          "Use insertOrUpdateAll(values, RowsPerStatement.One) instead.")
     }
 
     override def transformMapping(n: Node) = reorderColumns(n,
