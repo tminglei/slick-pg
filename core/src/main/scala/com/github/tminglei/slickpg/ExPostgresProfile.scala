@@ -124,12 +124,31 @@ trait ExPostgresProfile extends JdbcProfile with PostgresProfile with Logging { 
     override lazy val softNames = softSyms.map { fs => quoteIdentifier(fs.name) }
 
     override def buildInsert: InsertBuilderResult = {
-      val insert = s"insert into $tableName (${insertNames.mkString(",")}) values (${insertNames.map(_ => "?").mkString(",")})"
+      val insertStart = s"insert into $tableName (${insertNames.mkString(",")}) values "
+      val insertVars = s"(${insertNames.map(_ => "?").mkString(",")})"
       val conflictWithPadding = "conflict (" + pkNames.mkString(", ") + ")" +
         (/* padding */ if (nonPkAutoIncSyms.isEmpty) "" else "where ? is null or ?=?")
       val updateOrNothing = if (softNames.isEmpty) "nothing" else
         "update set " + softNames.map(n => s"$n=EXCLUDED.$n").mkString(",")
-      new InsertBuilderResult(table, s"$insert on $conflictWithPadding do $updateOrNothing", syms)
+      new NativeUpsertBuilderResult(insertStart, insertVars, conflictWithPadding, updateOrNothing)
+    }
+
+    class NativeUpsertBuilderResult(insertStart: String, insertVars: String,
+                                    conflictWithPadding: String, updateOrNothing: String)
+      extends InsertBuilderResult(table, s"$insertStart$insertVars on $conflictWithPadding do $updateOrNothing", syms) {
+      /** Builds a single multi-row upsert statement. Note that PostgreSQL rejects a multi-row
+        * upsert whose values contain the same PK twice ("cannot affect row a second time").
+        *
+        * @throws SlickException if the table has a non-primary-key AutoInc column: its padding
+        *         placeholders live in the once-per-statement `on conflict` clause and cannot be
+        *         expanded per row; use `insertOrUpdateAll(values, RowsPerStatement.One)` instead
+        */
+      override def buildMultiRowInsert(size: Int): String =
+        if (nonPkAutoIncSyms.isEmpty)
+          s"$insertStart${(1 to size).map(_ => insertVars).mkString(",")} on $conflictWithPadding do $updateOrNothing"
+        else throw new SlickException(
+          "Multi-row insert-or-update is not supported on a table with a non-primary-key AutoInc column. " +
+          "Use insertOrUpdateAll(values, RowsPerStatement.One) instead.")
     }
 
     override def transformMapping(n: Node) = reorderColumns(n,
