@@ -1,8 +1,9 @@
 package com.github.tminglei.slickpg
 
 import org.scalatest.funsuite.AnyFunSuite
+import slick.SlickException
 import slick.basic.Capability
-import slick.jdbc.JdbcCapabilities
+import slick.jdbc.{JdbcCapabilities, RowsPerStatement}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -490,6 +491,108 @@ class PgUpsertSuite extends AnyFunSuite with PostgresContainer {
         (UpsertTests2.schema) drop
       ).transactionally
     ), Duration.Inf)
+  }
+
+  ///---
+
+  case class Bean3(id: Long, col1: String, col2: Int)
+
+  class UpsertTestTable3(tag: Tag) extends Table[Bean3](tag, "test_tab_upsert3") {
+    def id = column[Long]("id", O.PrimaryKey)
+    def col1 = column[String]("col1")
+    def col2 = column[Int]("col2")
+
+    def * = (id, col1, col2) <> ((Bean3.apply _).tupled, Bean3.unapply)
+  }
+  val UpsertTests3 = TableQuery[UpsertTestTable3]
+
+  //------------------------------------------------------------------------------
+
+  test("native multi-row upsert sql") {
+    val multiRowUpsertSql = MyPostgresProfile.compileInsert(UpsertTests3.toNode).upsert.ibr.buildMultiRowInsert(2)
+    println(s"native multi-row upsert sql: $multiRowUpsertSql")
+
+    assert(multiRowUpsertSql.contains("values (?,?,?),(?,?,?)"))
+    assert(multiRowUpsertSql.contains("on conflict"))
+  }
+
+  test("native bulk upsert support - multi-row statement") {
+    import MyPostgresProfile.api._
+
+    Await.result(db.run(
+      DBIO.seq(
+        (UpsertTests3.schema) create,
+        ///
+        UpsertTests3 forceInsertAll Seq(
+          Bean3(101, "aa", 3),
+          Bean3(102, "bb", 5)
+        ),
+        UpsertTests3.insertOrUpdateAll(Seq(
+          Bean3(101, "a1", 3),
+          Bean3(107, "dd", 7)
+        ), RowsPerStatement.All)
+      ).andThen(
+        DBIO.seq(
+          UpsertTests3.sortBy(_.id).to[List].result.map(
+            r => assert(Seq(
+              Bean3(101, "a1", 3),
+              Bean3(102, "bb", 5),
+              Bean3(107, "dd", 7)
+            ) === r)
+          )
+        )
+      ).andFinally(
+        (UpsertTests3.schema) drop
+      ).transactionally
+    ), Duration.Inf)
+  }
+
+  test("native bulk upsert support with returning") {
+    import MyPostgresProfile.api._
+
+    Await.result(db.run(
+      DBIO.seq(
+        (UpsertTests3.schema) create,
+        ///
+        UpsertTests3 forceInsertAll Seq(
+          Bean3(101, "aa", 3),
+          Bean3(102, "bb", 5)
+        ),
+        (UpsertTests3 returning UpsertTests3).insertOrUpdateAll(Seq(
+          Bean3(101, "a1", 3),
+          Bean3(107, "dd", 7)
+        )).map(
+          r => assert(Seq(
+            Bean3(101, "a1", 3),
+            Bean3(107, "dd", 7)
+          ) === r)
+        )
+      ).andThen(
+        DBIO.seq(
+          UpsertTests3.sortBy(_.id).to[List].result.map(
+            r => assert(Seq(
+              Bean3(101, "a1", 3),
+              Bean3(102, "bb", 5),
+              Bean3(107, "dd", 7)
+            ) === r)
+          )
+        )
+      ).andFinally(
+        (UpsertTests3.schema) drop
+      ).transactionally
+    ), Duration.Inf)
+  }
+
+  test("native bulk upsert with returning rejects table with non-pk AutoInc column") {
+    import MyPostgresProfile.api._
+
+    val e = intercept[SlickException] {
+      (UpsertTests1 returning UpsertTests1.map(_.id)).insertOrUpdateAll(Seq(
+        Bean1(None, "aa", 1),
+        Bean1(Some(107L), "dd", 7)
+      ))
+    }
+    assert(e.getMessage.contains("RowsPerStatement.One"))
   }
 
 }
