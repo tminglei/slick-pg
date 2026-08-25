@@ -1,6 +1,7 @@
 Slick-pg
 ========
 
+[![#slick channel on the official Scala Discord server](https://img.shields.io/badge/Discord%20-%23slick%20on%20Scala%20server-blue)](https://discord.gg/yQheBhUtAa)
 [![Join the chat at https://gitter.im/tminglei/slick-pg](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/tminglei/slick-pg?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [Slick](https://github.com/slick/slick "Slick") extensions for PostgreSQL, to support a series of pg data types and related operators/functions.
@@ -26,7 +27,7 @@ Slick-pg
 - Pg_trgm
 
 
-** _Tested on `PostgreSQL 11/12/13/14` with `Slick 3.6.1`._  
+** _Tested on `PostgreSQL 11/12/13/14` with `Slick 4.0.0`._  
 ** _`Java 8`+ is required (except for `play-json` addon, which requires `java 11`+)._  
 
 
@@ -172,24 +173,24 @@ Here's the related technical details:
 | `jts` Geometry                                                                                           | `postgis` geometry    | `jts` v1.14.0                        |
 | `locationtech's jts` Geometry                                                                            | `postgis` geometry    | locationtech's `jts` v1.19.0         |
 
-_**Warning:** When your work with time data that contain Timezone, be wary of your postgres configuration. By default `ZonedDateTime` in Java 8 contains more information than `timestamptz` in Postgres. As a consequence, when you store a `ZonedDateTime` you are not guaranteed to get the same timezone as the original class instance. Prefer `OffsetDateTime` instead. cf [Issue #248](https://github.com/tminglei/slick-pg/issues/248)_
+_**Warning:** When your work with time data that contain Timezone, be wary of your postgres configuration. By default `ZonedDateTime` in Java 8 contains more information than `timestamptz` in Postgres. As a consequence, when you store a `ZonedDateTime` you are not guaranteed to get the same timezone as the original class instance. Prefer `OffsetDateTime` instead. cf [Issue #248](https://github.com/slick/slick-pg/issues/248)_
 
 Details
 ------------------------------
-- Array's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/array "Array's oper/functions"), usage  [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgArraySupportSuite.scala "test cases")
-- JSON's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/json "JSON's oper/functions"), usage cases for [json4s](https://github.com/tminglei/slick-pg/blob/master/addons/json4s/src/test/scala/com/github/tminglei/slickpg/PgJson4sSupportSuite.scala "test cases"), [play-json](https://github.com/tminglei/slick-pg/blob/master/addons/play-json/src/test/scala/com/github/tminglei/slickpg/PgPlayJsonSupportSuite.scala "test cases"), [spray-json](https://github.com/tminglei/slick-pg/blob/master/addons/spray-json/src/test/scala/com/github/tminglei/slickpg/PgSprayJsonSupportSuite.scala "test cases"), [upickle json](https://github.com/tminglei/slick-pg/blob/master/addons/upickle-json/src/test/scala/com/github/tminglei/slickpg/PgUPickleJsonSupportSuite.scala "test cases") and [argonaut json](https://github.com/tminglei/slick-pg/blob/master/addons/argonaut/src/test/scala/com/github/tminglei/slickpg/PgArgonautSupportSuite.scala "test cases")
-- Date/Time's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/date "Date/Time's oper/functions"), usage cases for [java date](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgDateSupportSuite.scala "test cases"), [java 8 date](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgDate2SupportSuite.scala "test cases") and [joda time](https://github.com/tminglei/slick-pg/blob/master/addons/joda-time/src/test/scala/com/github/tminglei/slickpg/PgDateSupportJodaSuite.scala "test cases")
-- Enum's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/enums "Enum's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgEnumSupportSuite.scala "test cases")
-- Range's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/range "Range's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgRangeSupportSuite.scala "test cases")
-- HStore's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/hstore "HStore's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgHStoreSupportSuite.scala "test cases")
-- LTree's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/ltree "LTree's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgLTreeSupportSuite.scala "test cases")
-- PgTrgm's [oper/functions](https://github.com/tminglei/slick-pg/blob/master/core/src/main/scala/com/github/tminglei/slickpg/trgm "PgTrgm's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/core/src/test/scala/com/github/tminglei/slickpg/trgm/PgTrgmSupportSuite.scala "test cases")
-- Inet/MacAddr's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/net "net's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgNetSupportSuite.scala "test cases")
-- Search's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/search "Search's oper/functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgSearchSupportSuite.scala "test cases")
-- Geometry's [oper/functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/geom "Geometry's oper/functions"), usage cases for [postgis](https://github.com/tminglei/slick-pg/blob/master/addons/jts/src/test/scala/com/github/tminglei/slickpg/PgPostGISSupportSuite.scala "test cases")
-- `basic` Composite type [support](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/composite "Composite type Support"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgCompositeSupportSuite.scala "test cases")
-- Aggregate [functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/agg "Aggregate functions"), usage [cases](https://github.com/tminglei/slick-pg/blob/master/core/src/test/scala/com/github/tminglei/slickpg/PgAggFuncSupportSuite.scala)
-- Window [functions](https://github.com/tminglei/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/window), usage [cases](https://github.com/tminglei/slick-pg/blob/master/core/src/test/scala/com/github/tminglei/slickpg/PgWindowFuncSupportSuite.scala)
+- Array's [oper/functions](https://github.com/slick/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/array "Array's oper/functions"), usage  [cases](https://github.com/slick/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgArraySupportSuite.scala "test cases")
+- JSON's [oper/functions](https://github.com/slick/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/json "JSON's oper/functions"), usage cases for [json4s](https://github.com/slick/slick-pg/blob/master/addons/json4s/src/test/scala/com/github/tminglei/slickpg/PgJson4sSupportSuite.scala "test cases"), [play-json](https://github.com/slick/slick-pg/blob/master/addons/play-json/src/test/scala/com/github/tminglei/slickpg/PgPlayJsonSupportSuite.scala "test cases"), [spray-json](https://github.com/slick/slick-pg/blob/master/addons/spray-json/src/test/scala/com/github/tminglei/slickpg/PgSprayJsonSupportSuite.scala "test cases"), [upickle json](https://github.com/slick/slick-pg/blob/master/addons/upickle-json/src/test/scala/com/github/tminglei/slickpg/PgUPickleJsonSupportSuite.scala "test cases") and [argonaut json](https://github.com/slick/slick-pg/blob/master/addons/argonaut/src/test/scala/com/github/tminglei/slickpg/PgArgonautSupportSuite.scala "test cases")
+- Date/Time's [oper/functions](https://github.com/slick/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/date "Date/Time's oper/functions"), usage cases for [java date](https://github.com/slick/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgDateSupportSuite.scala "test cases"), [java 8 date](https://github.com/slick/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgDate2SupportSuite.scala "test cases") and [joda time](https://github.com/slick/slick-pg/blob/master/addons/joda-time/src/test/scala/com/github/tminglei/slickpg/PgDateSupportJodaSuite.scala "test cases")
+- Enum's [oper/functions](https://github.com/slick/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/enums "Enum's oper/functions"), usage [cases](https://github.com/slick/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgEnumSupportSuite.scala "test cases")
+- Range's [oper/functions](https://github.com/slick/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/range "Range's oper/functions"), usage [cases](https://github.com/slick/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgRangeSupportSuite.scala "test cases")
+- HStore's [oper/functions](https://github.com/slick/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/hstore "HStore's oper/functions"), usage [cases](https://github.com/slick/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgHStoreSupportSuite.scala "test cases")
+- LTree's [oper/functions](https://github.com/slick/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/ltree "LTree's oper/functions"), usage [cases](https://github.com/slick/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgLTreeSupportSuite.scala "test cases")
+- PgTrgm's [oper/functions](https://github.com/slick/slick-pg/blob/master/core/src/main/scala/com/github/tminglei/slickpg/trgm "PgTrgm's oper/functions"), usage [cases](https://github.com/slick/slick-pg/blob/master/core/src/test/scala/com/github/tminglei/slickpg/trgm/PgTrgmSupportSuite.scala "test cases")
+- Inet/MacAddr's [oper/functions](https://github.com/slick/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/net "net's oper/functions"), usage [cases](https://github.com/slick/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgNetSupportSuite.scala "test cases")
+- Search's [oper/functions](https://github.com/slick/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/search "Search's oper/functions"), usage [cases](https://github.com/slick/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgSearchSupportSuite.scala "test cases")
+- Geometry's [oper/functions](https://github.com/slick/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/geom "Geometry's oper/functions"), usage cases for [postgis](https://github.com/slick/slick-pg/blob/master/addons/jts/src/test/scala/com/github/tminglei/slickpg/PgPostGISSupportSuite.scala "test cases")
+- `basic` Composite type [support](https://github.com/slick/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/composite "Composite type Support"), usage [cases](https://github.com/slick/slick-pg/blob/master/src/test/scala/com/github/tminglei/slickpg/PgCompositeSupportSuite.scala "test cases")
+- Aggregate [functions](https://github.com/slick/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/agg "Aggregate functions"), usage [cases](https://github.com/slick/slick-pg/blob/master/core/src/test/scala/com/github/tminglei/slickpg/PgAggFuncSupportSuite.scala)
+- Window [functions](https://github.com/slick/slick-pg/tree/master/core/src/main/scala/com/github/tminglei/slickpg/window), usage [cases](https://github.com/slick/slick-pg/blob/master/core/src/test/scala/com/github/tminglei/slickpg/PgWindowFuncSupportSuite.scala)
 
 
 
@@ -197,60 +198,60 @@ Install
 -------
 To use `slick-pg` in [sbt](http://www.scala-sbt.org/ "slick-sbt") project, add the following to your project file:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg" % "0.23.1"
+libraryDependencies += "com.typesafe.slick" %% "slick-pg" % "0.24.0"
 ```
 
 > If you need `joda-time` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_joda-time" % "0.23.1"
+libraryDependencies += "com.typesafe.slick" %% "slick-pg_joda-time" % "0.24.0"
 ```
 
 > If you need `jts` geom support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_jts" % "0.23.1"
+libraryDependencies += "com.typesafe.slick" %% "slick-pg_jts" % "0.24.0"
 or
-libraryDependencies += "com.github.tminglei" %% "slick-pg_jts_lt" % "0.23.1"
+libraryDependencies += "com.typesafe.slick" %% "slick-pg_jts_lt" % "0.24.0"
 ```
 
 > If you need `json4s` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_json4s" % "0.23.1"
+libraryDependencies += "com.typesafe.slick" %% "slick-pg_json4s" % "0.24.0"
 ```
 
 > If you need `play-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json" % "0.23.1"
+libraryDependencies += "com.typesafe.slick" %% "slick-pg_play-json" % "0.24.0"
 or
-libraryDependencies += "com.github.tminglei" %% "slick-pg_play-json3" % "0.23.1"
+libraryDependencies += "com.typesafe.slick" %% "slick-pg_play-json3" % "0.24.0"
 ```
 
 > If you need `spray-json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_spray-json" % "0.23.1"
+libraryDependencies += "com.typesafe.slick" %% "slick-pg_spray-json" % "0.24.0"
 ```
 
 > If you need `argonaut json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_argonaut" % "0.23.1"
+libraryDependencies += "com.typesafe.slick" %% "slick-pg_argonaut" % "0.24.0"
 ```
 
 > If you need `circe json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_circe-json" % "0.23.1"
+libraryDependencies += "com.typesafe.slick" %% "slick-pg_circe-json" % "0.24.0"
 ```
 
 > If you need `uPickle json` support, pls append dependency:
 ```scala
-libraryDependencies += "com.github.tminglei" %% "slick-pg_upickle-json" % "0.23.1"
+libraryDependencies += "com.typesafe.slick" %% "slick-pg_upickle-json" % "0.24.0"
 ```
 
 
 Or, in [maven](http://maven.apache.org/ "maven") project, you can add `slick-pg` to your `pom.xml` like this:
 ```xml
 <dependency>
-    <groupId>com.github.tminglei</groupId>
+    <groupId>com.typesafe.slick</groupId>
     <artifactId>slick-pg_2.13</artifactId>
-    <version>0.23.1</version>
+    <version>0.24.0</version>
 </dependency>
 <!-- other addons if necessary -->
 ...

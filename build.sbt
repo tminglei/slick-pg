@@ -2,13 +2,14 @@ import xerial.sbt.Sonatype.sonatypeCentralHost
 
 val scala212 = "2.12.21"
 val scala213 = "2.13.18"
-val scala3 = "3.3.1"
+val scala3 = "3.8.3"
 
 lazy val commonSettings = Seq(
   organizationName := "slick-pg",
-  organization := "com.github.tminglei",
+  organization := "com.typesafe.slick",
   name := "slick-pg",
-  version := "0.23.1",
+  // version is derived from git tags by sbt-dynver (part of sbt-ci-release).
+  // Tag `v0.24.0` publishes 0.24.0; other commits publish a -SNAPSHOT.
 
   scalaVersion := scala213,
   crossScalaVersions := Seq(scala212, scala213, scala3),
@@ -30,6 +31,7 @@ lazy val commonSettings = Seq(
   //    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))),
   publishTo := sonatypePublishToBundle.value,
   sonatypeCredentialHost := sonatypeCentralHost,
+  sonatypeProfileName := "com.typesafe.slick",
   publishMavenStyle := true,
   (Test / publishArtifact) := false,
   pomIncludeRepository := { _ => false },
@@ -38,7 +40,7 @@ lazy val commonSettings = Seq(
   ),
 
   pomExtra :=
-    <url>https://github.com/tminglei/slick-pg</url>
+    <url>https://github.com/slick/slick-pg</url>
     <licenses>
       <license>
         <name>BSD-style</name>
@@ -47,8 +49,8 @@ lazy val commonSettings = Seq(
       </license>
     </licenses>
     <scm>
-      <url>git@github.com:tminglei/slick-pg.git</url>
-      <connection>scm:git:git@github.com:tminglei/slick-pg.git</connection>
+      <url>git@github.com:slick/slick-pg.git</url>
+      <connection>scm:git:git@github.com:slick/slick-pg.git</connection>
     </scm>
     <developers>
       <developer>
@@ -66,7 +68,10 @@ def mainDependencies(scalaVersion: String) = {
   Seq (
     "org.scala-lang.modules" %% "scala-parser-combinators" % (if (isScala3) "2.3.0" else "1.1.2"),
     "dev.zio" %% "izumi-reflect" % "3.0.9",
-    "com.typesafe.slick" %% "slick" % "3.6.1",
+    "com.typesafe.slick" %% "slick" % "4.0.0-RC1",
+    "com.typesafe.slick" %% "slick-future" % "4.0.0-RC1",
+    "org.typelevel" %% "cats-effect" % "3.6.1",
+    "co.fs2" %% "fs2-core" % "3.12.0",
     "org.postgresql" % "postgresql" % "42.7.13",
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.14.0",
     "org.slf4j" % "slf4j-simple" % "2.0.18" % "provided",
@@ -142,8 +147,7 @@ lazy val slickPgJtsLt = (project in file("./addons/jts_lt"))
   .dependsOn (slickPgCore % "test->test;compile->compile")
 
 def playJsonDependencies(scalaVersion: String) = {
-  if (scalaVersion.startsWith("3") || scalaVersion.startsWith("2.13")) Seq("org.playframework" %% "play-json" % "3.0.6")
-  else Seq("com.typesafe.play" %% "play-json" % "2.10.8")
+  Seq("org.playframework" %% "play-json" % "3.0.6")
 }
 lazy val slickPgPlayJson = (project in file("./addons/play-json"))
   .settings(commonSettings)

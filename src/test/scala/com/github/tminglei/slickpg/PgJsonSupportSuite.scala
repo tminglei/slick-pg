@@ -10,7 +10,6 @@ import scala.concurrent.duration._
 class PgJsonSupportSuite extends AnyFunSuite with PostgresContainer {
   import MyPostgresProfile.api._
 
-  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class JsonBean(id: Long, json: JsonString)
 

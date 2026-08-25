@@ -68,8 +68,12 @@ trait PgDateJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
 
     ///---
 
-    def mapTo[U](tmap: T => U, tcomap: U => T)(implicit ctag: ClassTag[U]): JdbcType[U] =
-      MappedJdbcType.base(tcomap, tmap)(ctag, this)
+    // Scala 3: passing `this` explicitly as an implicit argument is a hard error;
+    // use `implicit val self` so the compiler can find it via implicit search instead.
+    def mapTo[U](tmap: T => U, tcomap: U => T)(implicit ctag: ClassTag[U]): JdbcType[U] = {
+      implicit val self: JdbcType[T] = this
+      MappedJdbcType.base(tcomap, tmap)
+    }
 
     /// pg interval string --> time.Duration
     private def pgInterval2Duration(pgInterval: PGInterval): Duration = {

@@ -17,6 +17,8 @@ object ScalaVersionShim {
     utils.TypeConverters.register(PgRangeSupportUtils.toStringFn[LocalDateTime](_.toString))
     utils.TypeConverters.register(mapToString)
     utils.TypeConverters.register(stringToMap)
+    utils.TypeConverters.register((s: String) => PgCompositeSupportSuite.WeekDays.withName(s))
+    utils.TypeConverters.register((v: PgCompositeSupportSuite.WeekDays.WeekDay) => v.toString)
   }
 
   object maybeTypeConverters {}

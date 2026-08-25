@@ -13,7 +13,6 @@ class PgAggFuncSupportSuite extends AnyFunSuite with PostgresContainer {
   implicit val simpleStrListTypeMapper: PgArrayJdbcTypes.DriverJdbcType[List[String]] = new PgArrayJdbcTypes.SimpleArrayJdbcType[String]("text").to(_.toList)
   implicit val simpleDoubleListTypeMapper: PgArrayJdbcTypes.DriverJdbcType[List[Double]] = new PgArrayJdbcTypes.SimpleArrayJdbcType[Double]("float8").to(_.toList)
 
-  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class Tab(name: String, count: Int, bool: Boolean, x: Double, y: Double)
 

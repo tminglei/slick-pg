@@ -15,7 +15,6 @@ class PgDateSupportSuite extends AnyFunSuite with PostgresContainer {
 
   import MyPostgresProfile.api._
 
-  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
   val timeFormat = new SimpleDateFormat("HH:mm:ss")

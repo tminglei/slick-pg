@@ -4,6 +4,11 @@ import com.dimafeng.testcontainers.ForAllTestContainer
 import com.dimafeng.testcontainers.PostgreSQLContainer
 import org.scalatest.Suite
 import org.testcontainers.utility.DockerImageName
+import slick.future.Database
+import slick.jdbc.DatabaseConfig
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 trait PostgresContainer extends ForAllTestContainer { self: Suite =>
   
@@ -49,6 +54,10 @@ trait PostgresContainer extends ForAllTestContainer { self: Suite =>
   
   def createPostgis(): Unit = createExtension("postgis")
   
+  private var _db: Option[Database] = None
+
+  def db: Database = _db.get
+
   override def afterStart(): Unit = {
     createHstore()
     createLtree()
@@ -59,5 +68,15 @@ trait PostgresContainer extends ForAllTestContainer { self: Suite =>
     if(imageName == "postgis/postgis") createPostgis()
     
     super.afterStart()
+    _db = Some(Await.result(
+      Database.open(DatabaseConfig.forURL(ExPostgresProfile, url = container.jdbcUrl, driver = "org.postgresql.Driver")),
+      30.seconds
+    ))
+  }
+
+  override def beforeStop(): Unit = {
+    _db.foreach(_.close())
+    _db = None
+    super.beforeStop()
   }
 }

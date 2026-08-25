@@ -55,7 +55,6 @@ class PgPlayJsonSupportSuite extends AnyFunSuite with PostgresContainer {
   ///
   import MyPostgresProfile.api._
 
-  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
 
   case class JsonBean(id: Long, json: JsValue, jsons: List[JsValue], jbean: JBean, jbeans: List[JBean])
 

@@ -14,8 +14,6 @@ class LargeObjectSupportSuite extends AnyFunSuite with PostgresContainer {
 
   val driver = new LargeObjectSupport with ExPostgresProfile {}
 
-  lazy val db = Database.forURL(url = container.jdbcUrl, driver = "org.postgresql.Driver")
-
   test("upload and download large object") {
     val testString = "some string to store as a large object"
     val largeObjectUploadStream = new ByteArrayInputStream(testString.getBytes)
